@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"

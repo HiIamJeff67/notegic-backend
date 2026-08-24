@@ -29,11 +29,11 @@ import (
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 

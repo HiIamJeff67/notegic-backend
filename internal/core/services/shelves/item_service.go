@@ -18,10 +18,10 @@ import (
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 )
 
 type ItemServiceInterface interface {

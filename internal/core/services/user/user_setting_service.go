@@ -7,17 +7,16 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 type UserSettingServiceInterface interface {
@@ -77,9 +76,9 @@ func (s *UserSettingService) GetMySetting(
 	}
 
 	return &apicontract.GetMySettingResponseDto{
-		Language:             enumcontract.Language(userSetting.Language),
-		Density:              enumcontract.UserSettingDensity(userSetting.Density),
-		StartSurface:         enumcontract.UserSettingStartSurface(userSetting.StartSurface),
+		Language:             *userSetting.Language.ToContractable(),
+		Density:              *userSetting.Density.ToContractable(),
+		StartSurface:         *userSetting.StartSurface.ToContractable(),
 		ReduceMotion:         userSetting.ReduceMotion,
 		LineWrap:             userSetting.LineWrap,
 		QuickInsert:          userSetting.QuickInsert,
@@ -113,18 +112,15 @@ func (s *UserSettingService) UpdateMySetting(
 	db := s.db.WithContext(ctx)
 	var language *enums.Language
 	if requestDto.Body.Values.Language != nil {
-		value := enums.Language(*requestDto.Body.Values.Language)
-		language = &value
+		language = enums.LanguageToStorable(requestDto.Body.Values.Language)
 	}
 	var density *enums.UserSettingDensity
 	if requestDto.Body.Values.Density != nil {
-		value := enums.UserSettingDensity(*requestDto.Body.Values.Density)
-		density = &value
+		density = enums.UserSettingDensityToStorable(requestDto.Body.Values.Density)
 	}
 	var startSurface *enums.UserSettingStartSurface
 	if requestDto.Body.Values.StartSurface != nil {
-		value := enums.UserSettingStartSurface(*requestDto.Body.Values.StartSurface)
-		startSurface = &value
+		startSurface = enums.UserSettingStartSurfaceToStorable(requestDto.Body.Values.StartSurface)
 	}
 	updatedUserSetting, exception := s.userSettingRepository.UpdateOneByUserId(
 		actorUserId,

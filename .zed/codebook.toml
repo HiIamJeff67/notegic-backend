@@ -99,6 +99,8 @@ words = [
     "fanout",
     "securly",
     "nginx",
+    "dedupe",
+    "storable",
 ]
 
 ignore_paths = [

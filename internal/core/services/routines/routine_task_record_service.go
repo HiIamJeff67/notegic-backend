@@ -20,12 +20,12 @@ import (
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 

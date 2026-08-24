@@ -15,7 +15,7 @@ import (
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/apigateway/configs"
-	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/cache/ratelimitrecord"
+	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/redis/ratelimitrecord"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/apigateway/ratelimit"
 	ratelimitmiddlewares "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/middlewares"
 	developmentroutes "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/routes/developmentroutes"

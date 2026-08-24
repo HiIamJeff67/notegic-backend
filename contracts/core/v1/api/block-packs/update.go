@@ -7,7 +7,7 @@ import (
 
 	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/block-packs"
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 type UpdateMyBlockPackByIdRequestDto struct {

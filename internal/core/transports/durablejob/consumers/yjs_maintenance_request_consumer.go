@@ -16,7 +16,7 @@ import (
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
 	durablejobproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/producers"
 	yjsworkerproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker/producers"
 )

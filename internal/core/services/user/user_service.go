@@ -21,14 +21,14 @@ import (
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/userdata"
-	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/userdata/inputs"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
+	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 )
 
 type UserServiceInterface interface {

@@ -7,7 +7,7 @@ import (
 
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
-	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/data/cache/ratelimitrecord"
+	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/data/redis/ratelimitrecord"
 )
 
 type RateLimitConfig struct {

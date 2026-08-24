@@ -15,7 +15,7 @@ import (
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 type LifecycleConsumer struct {
@@ -154,8 +154,6 @@ func (c *LifecycleConsumer) process(
 			EventId:      envelope.EventId,
 			UserPublicId: envelope.AggregateId,
 		})
-	case coreeventscontract.EventType_UserDeleted:
-		return nil
 	case coreeventscontract.EventType_BlockPackRoomPolicyChanged,
 		coreeventscontract.EventType_RootShelfPermissionRevoked:
 		if envelope.EventType == coreeventscontract.EventType_RootShelfPermissionRevoked {

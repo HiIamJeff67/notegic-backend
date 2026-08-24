@@ -11,7 +11,7 @@ import (
 
 	realtimegatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
 
-	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 type BlockPackEndpoint struct {

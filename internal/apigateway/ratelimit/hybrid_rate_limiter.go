@@ -13,8 +13,8 @@ import (
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/apigateway/configs"
-	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/cache/ratelimitrecord"
-	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/cache/ratelimitrecord/inputs"
+	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/redis/ratelimitrecord"
+	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/redis/ratelimitrecord/inputs"
 )
 
 type HybridRateLimitTask struct {

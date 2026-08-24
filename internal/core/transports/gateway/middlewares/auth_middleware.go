@@ -16,10 +16,10 @@ import (
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/userdata"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 )
 
 func AuthMiddleware(

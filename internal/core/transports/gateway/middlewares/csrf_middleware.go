@@ -16,7 +16,7 @@ import (
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/userdata"
+	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 )
 
 func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.HandlerFunc {

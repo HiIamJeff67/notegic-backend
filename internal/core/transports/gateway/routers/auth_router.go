@@ -5,8 +5,8 @@ import (
 
 	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
 
-	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/userdata"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"

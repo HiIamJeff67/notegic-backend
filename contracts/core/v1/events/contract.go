@@ -23,7 +23,6 @@ const (
 	EventType_BlockPackChanged           eventcontract.EventType = "BlockPackChanged"
 	EventType_BlockPackDeleted           eventcontract.EventType = "BlockPackDeleted"
 	EventType_UserSessionsRevoked        eventcontract.EventType = "UserSessionsRevoked"
-	EventType_UserDeleted                eventcontract.EventType = "UserDeleted"
 	EventType_YjsMaintenanceHint         eventcontract.EventType = "YjsMaintenanceHint"
 	EventType_RoutineTaskCompleted       eventcontract.EventType = "RoutineTaskCompleted"
 )

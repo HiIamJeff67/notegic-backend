@@ -10,7 +10,7 @@ import (
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/database/repositories"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
 )
 
 type OutboxRelay struct {
@@ -100,7 +100,7 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 			failedIds = append(failedIds, event.Id)
 			continue
 		}
-		if err := r.producer.Produce(ctx, event.Topic, event.KafkaKey, event.Payload); err != nil {
+		if err := r.producer.Produce(ctx, event.Topic.String(), event.KafkaKey, event.Payload); err != nil {
 			failedIds = append(failedIds, event.Id)
 			if logs.NotegicLogger != nil {
 				logs.NotegicLogger.Error(ctx, err, "Failed to publish Notification outbox event")

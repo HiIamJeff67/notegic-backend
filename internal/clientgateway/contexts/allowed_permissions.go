@@ -9,7 +9,7 @@ import (
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 func WithAllowedPermissions(

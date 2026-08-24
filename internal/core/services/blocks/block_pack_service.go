@@ -25,14 +25,14 @@ import (
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
-	blockpacksql "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/sqls/block_pack"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	blockpacksql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/block_pack"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -349,7 +349,7 @@ func (s *BlockPackService) CreateBlockPack(
 		inputs.CreateBlockPackInput{
 			Id:                  requestDto.Body.Id,
 			Name:                requestDto.Body.Name,
-			Icon:                (*enums.SupportedIcon)(requestDto.Body.Icon).ToStorable(),
+			Icon:                enums.SupportedIconToStorable(requestDto.Body.Icon),
 			HeaderBackgroundURL: requestDto.Body.HeaderBackgroundURL,
 		},
 		options.WithTransactionDB(tx),
@@ -411,7 +411,7 @@ func (s *BlockPackService) CreateBlockPacks(
 			Id:                  createdBlockPack.Id,
 			ParentSubShelfId:    createdBlockPack.ParentSubShelfId,
 			Name:                createdBlockPack.Name,
-			Icon:                (*enums.SupportedIcon)(createdBlockPack.Icon).ToStorable(),
+			Icon:                enums.SupportedIconToStorable(createdBlockPack.Icon),
 			HeaderBackgroundURL: createdBlockPack.HeaderBackgroundURL,
 		}
 	}
@@ -487,7 +487,7 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 		inputs.PartialUpdateBlockPackInput{
 			Values: inputs.UpdateBlockPackInput{
 				Name:                requestDto.Body.Values.Name,
-				Icon:                (*enums.SupportedIcon)(requestDto.Body.Values.Icon).ToStorable(),
+				Icon:                enums.SupportedIconToStorable(requestDto.Body.Values.Icon),
 				HeaderBackgroundURL: requestDto.Body.Values.HeaderBackgroundURL,
 			},
 			SetNull: requestDto.Body.SetNull,
@@ -546,7 +546,7 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateBlockPackInput]{
 				Values: inputs.UpdateBlockPackInput{
 					Name:                updatedBlockPack.Values.Name,
-					Icon:                (*enums.SupportedIcon)(updatedBlockPack.Values.Icon).ToStorable(),
+					Icon:                enums.SupportedIconToStorable(updatedBlockPack.Values.Icon),
 					HeaderBackgroundURL: updatedBlockPack.Values.HeaderBackgroundURL,
 				},
 			},

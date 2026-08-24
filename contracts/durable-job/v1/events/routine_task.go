@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 type RoutineTaskRunningData struct {

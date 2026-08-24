@@ -11,13 +11,13 @@ import (
 	"github.com/google/uuid"
 
 	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
-	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *testing.T) {

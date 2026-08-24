@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )

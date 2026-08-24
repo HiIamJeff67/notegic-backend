@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
 

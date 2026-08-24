@@ -13,8 +13,8 @@ import (
 
 	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 const (

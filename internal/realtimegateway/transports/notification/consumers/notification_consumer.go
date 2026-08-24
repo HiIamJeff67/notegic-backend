@@ -15,7 +15,7 @@ import (
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 type NotificationConsumer struct {

@@ -5,7 +5,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	graphql "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/middlewares"

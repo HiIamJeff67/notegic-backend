@@ -11,7 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/datatypes"

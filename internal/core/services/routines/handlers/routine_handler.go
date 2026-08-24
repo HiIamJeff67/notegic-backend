@@ -12,12 +12,12 @@ import (
 
 	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"

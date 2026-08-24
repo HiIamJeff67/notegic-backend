@@ -13,8 +13,7 @@ import (
 	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
 	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 )
 
 type ClientInterface interface {
@@ -101,7 +100,7 @@ func enqueue[D any](
 			true,
 		).WithOrigin(tx.Error)
 	}
-	if err := repositories.EnqueueOutboxEvents(
+	if err := crepositories.EnqueueOutboxEvents(
 		tx,
 		emaileventscontract.CoreEmailRequestTopic,
 		[]eventcontract.EventEnvelope[D]{envelope},

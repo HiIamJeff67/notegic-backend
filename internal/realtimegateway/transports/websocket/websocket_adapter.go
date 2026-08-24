@@ -26,7 +26,7 @@ import (
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 
 	realtimeconfig "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/configs"
-	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 	workers "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/workers"
 )

@@ -13,12 +13,12 @@ import (
 	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 func TestGetOptionalAllowedPermissionsReturnsNilWhenRouteHasNoScope(t *testing.T) {

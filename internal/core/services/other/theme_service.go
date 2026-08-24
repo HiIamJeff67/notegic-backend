@@ -9,14 +9,14 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
 )
 
 type ThemeServiceInterface interface {

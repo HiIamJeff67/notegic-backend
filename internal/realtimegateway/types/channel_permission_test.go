@@ -3,7 +3,7 @@ package realtimetypes
 import (
 	"testing"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 func TestChannelPermissionAllowedAccessControlPermissions(t *testing.T) {

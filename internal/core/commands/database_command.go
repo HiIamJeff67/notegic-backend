@@ -10,13 +10,13 @@ import (
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	constraints "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/constraints"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	triggers "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/triggers"
-	views "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/views"
-	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/seeds"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	constraints "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/constraints"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	triggers "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/triggers"
+	views "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/views"
+	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/seeds"
 )
 
 var viewAllAvailableDatabasesCommand = &cobra.Command{

@@ -11,15 +11,16 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	inputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 )
 
 type OutboxRelay struct {
@@ -117,7 +118,7 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 	publishedEventIds := make([]uuid.UUID, 0, len(events))
 	failureInputs := make([]inputs.FailedOutboxEventInput, 0)
 	for _, event := range events {
-		payload, err := repositories.SerializeOutboxEvent(event)
+		payload, err := crepositories.SerializeOutboxEvent(event)
 		if err == nil && r.producer == nil {
 			err = errors.New("Kafka producer is unavailable")
 		}

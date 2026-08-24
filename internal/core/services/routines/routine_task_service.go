@@ -24,15 +24,17 @@ import (
 	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
 	durablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cinputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 	durablejobeventbuilders "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/eventbuilders"
 )
@@ -383,7 +385,7 @@ func (s *RoutineTaskService) CreateRoutineTaskByRoutineId(
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
 	if exception := s.routineTaskExecutionService.ValidateRoutineTaskPayload(
-		*(*enums.RoutineTaskPurpose)(&reqDto.Body.Purpose).ToStorable(),
+		*enums.RoutineTaskPurposeToStorable(&reqDto.Body.Purpose),
 		reqDto.Body.Payload,
 	); exception != nil {
 		return nil, exception
@@ -401,11 +403,11 @@ func (s *RoutineTaskService) CreateRoutineTaskByRoutineId(
 		inputs.CreateRoutineTaskInput{
 			ActorUserId:     actorUserId,
 			Title:           reqDto.Body.Title,
-			Purpose:         *(*enums.RoutineTaskPurpose)(&reqDto.Body.Purpose).ToStorable(),
+			Purpose:         *enums.RoutineTaskPurposeToStorable(&reqDto.Body.Purpose),
 			Payload:         reqDto.Body.Payload,
 			Priority:        reqDto.Body.Priority,
 			MaxAttempts:     reqDto.Body.MaxAttempts,
-			Period:          (*enums.RoutinePeriod)(reqDto.Body.Period).ToStorable(),
+			Period:          enums.RoutinePeriodToStorable(reqDto.Body.Period),
 			NextScheduledAt: reqDto.Body.NextScheduledAt,
 		},
 		options.WithDB(db),
@@ -460,7 +462,7 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 				finalPayload = &existingRoutineTask.Payload
 			}
 		} else {
-			finalPurpose = *(*enums.RoutineTaskPurpose)(reqDto.Body.Values.Purpose).ToStorable()
+			finalPurpose = *enums.RoutineTaskPurposeToStorable(reqDto.Body.Values.Purpose)
 		}
 		if exception := s.routineTaskExecutionService.ValidateRoutineTaskPayload(finalPurpose, *finalPayload); exception != nil {
 			return nil, exception
@@ -474,11 +476,11 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 			Values: inputs.UpdateRoutineTaskInput{
 				RoutineId:       reqDto.Body.Values.RoutineId,
 				Title:           reqDto.Body.Values.Title,
-				Purpose:         (*enums.RoutineTaskPurpose)(reqDto.Body.Values.Purpose).ToStorable(),
+				Purpose:         enums.RoutineTaskPurposeToStorable(reqDto.Body.Values.Purpose),
 				Payload:         reqDto.Body.Values.Payload,
 				Priority:        reqDto.Body.Values.Priority,
 				MaxAttempts:     reqDto.Body.Values.MaxAttempts,
-				Period:          (*enums.RoutinePeriod)(reqDto.Body.Values.Period).ToStorable(),
+				Period:          enums.RoutinePeriodToStorable(reqDto.Body.Values.Period),
 				NextScheduledAt: reqDto.Body.Values.NextScheduledAt,
 			},
 			SetNull: reqDto.Body.SetNull,
@@ -1109,14 +1111,11 @@ func (s *RoutineTaskService) ClaimRoutineTasks(
 		return nil, apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	result := tx.
-		Clauses(clause.OnConflict{
-			DoNothing: true,
-		}).
-		Create(&schemas.InboxEvent{
-			EventId: eventId,
-		})
-	if result.Error != nil {
+	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
+		cinputs.CreateInboxEventInput{EventId: eventId},
+		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	)
+	if inboxException != nil {
 		tx.Rollback()
 		return nil, exceptions.New(
 			"FailedToRecordInboxEvent",
@@ -1125,9 +1124,9 @@ func (s *RoutineTaskService) ClaimRoutineTasks(
 			"Failed to record the Kafka claim event",
 			http.StatusInternalServerError,
 			true,
-		).WithOrigin(result.Error)
+		).WithOrigin(inboxException)
 	}
-	if result.RowsAffected == 0 {
+	if !isNewInboxEvent {
 		if err := tx.Commit().Error; err != nil {
 			tx.Rollback()
 			return nil, apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
@@ -1146,7 +1145,7 @@ func (s *RoutineTaskService) ClaimRoutineTasks(
 
 	now := time.Now().UTC()
 	var claimableRoutineTasks []claimableRoutineTask
-	result = tx.
+	result := tx.
 		Model(&schemas.RoutineTask{}).
 		Select("id, actor_user_id, cost_unit, priority, scheduled_at").
 		Where("status = ?", enums.RoutineTaskStatus_Idle).
@@ -1230,7 +1229,7 @@ func (s *RoutineTaskService) ClaimRoutineTasks(
 			WorkerId:    reqDto.WorkerId,
 			Assignments: []durablejobroutinetasktypes.RoutineTaskAssignment{},
 		}
-		if err := repositories.EnqueueOutboxEvents(
+		if err := crepositories.EnqueueOutboxEvents(
 			tx,
 			durablejobeventscontract.CoreDurableJobRoutineTaskTopic,
 			[]eventcontract.EventEnvelope[durablejobcontract.ClaimRoutineTasksResponseDto]{
@@ -1426,7 +1425,7 @@ func (s *RoutineTaskService) ClaimRoutineTasks(
 		Assignments: assignments,
 	}
 
-	if err := repositories.EnqueueOutboxEvents(
+	if err := crepositories.EnqueueOutboxEvents(
 		tx,
 		durablejobeventscontract.CoreDurableJobRoutineTaskTopic,
 		[]eventcontract.EventEnvelope[durablejobcontract.ClaimRoutineTasksResponseDto]{
@@ -1480,12 +1479,15 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 	if err := tx.Error; err != nil {
 		return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 	}
-	result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&schemas.InboxEvent{EventId: eventId})
-	if result.Error != nil {
+	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
+		cinputs.CreateInboxEventInput{EventId: eventId},
+		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	)
+	if inboxException != nil {
 		tx.Rollback()
-		return exceptions.New("FailedToRecordInboxEvent", "RoutineTask", "MarkCompletedRoutineTasks", "Failed to record the Kafka result event", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return exceptions.New("FailedToRecordInboxEvent", "RoutineTask", "MarkCompletedRoutineTasks", "Failed to record the Kafka result event", http.StatusInternalServerError, true).WithOrigin(inboxException)
 	}
-	if result.RowsAffected == 0 {
+	if !isNewInboxEvent {
 		if err := tx.Commit().Error; err != nil {
 			return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 		}
@@ -1499,7 +1501,7 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 		taskIds[index] = task.RoutineTaskId
 		recordIds[index] = task.RoutineTaskRecordId
 	}
-	result = tx.Model(&schemas.RoutineTask{}).
+	result := tx.Model(&schemas.RoutineTask{}).
 		Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Running).
 		Updates(map[string]any{
 			"status":          enums.RoutineTaskStatus_Idle,
@@ -1572,12 +1574,15 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 	if err := tx.Error; err != nil {
 		return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 	}
-	result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&schemas.InboxEvent{EventId: eventId})
-	if result.Error != nil {
+	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
+		cinputs.CreateInboxEventInput{EventId: eventId},
+		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	)
+	if inboxException != nil {
 		tx.Rollback()
-		return exceptions.New("FailedToRecordInboxEvent", "RoutineTask", "MarkFailedRoutineTasks", "Failed to record the Kafka result event", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return exceptions.New("FailedToRecordInboxEvent", "RoutineTask", "MarkFailedRoutineTasks", "Failed to record the Kafka result event", http.StatusInternalServerError, true).WithOrigin(inboxException)
 	}
-	if result.RowsAffected == 0 {
+	if !isNewInboxEvent {
 		if err := tx.Commit().Error; err != nil {
 			return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 		}
@@ -1597,7 +1602,7 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 			ErrorReason: task.ErrorReason,
 		})
 	}
-	result = tx.Model(&schemas.RoutineTask{}).
+	result := tx.Model(&schemas.RoutineTask{}).
 		Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Running).
 		Updates(map[string]any{
 			"status":          enums.RoutineTaskStatus_Idle,

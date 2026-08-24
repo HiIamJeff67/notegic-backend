@@ -20,8 +20,8 @@ import (
 	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
 	configs "github.com/HiIamJeff67/notegic-backend/internal/notification/configs"
-	database "github.com/HiIamJeff67/notegic-backend/internal/notification/data/database"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/database/repositories"
+	postgres "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
 	notificationtransports "github.com/HiIamJeff67/notegic-backend/internal/notification/transports"
 	consumers "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/core/consumers"
@@ -78,7 +78,7 @@ func (a *Application) initializeObservability() func() {
 }
 
 func (a *Application) initializeDatabase(config platformpostgres.Config, shutdownObservability func()) *gorm.DB {
-	db, err := database.Connect(config)
+	db, err := postgres.Connect(config)
 	if err != nil {
 		shutdownObservability()
 		panic(err)
@@ -96,7 +96,7 @@ func (a *Application) initializeKafka(
 		ClientId:         "notegic-notification-producer",
 	})
 	if err != nil {
-		_ = database.Disconnect(db)
+		_ = postgres.Disconnect(db)
 		shutdownObservability()
 		panic(err)
 	}
@@ -182,7 +182,7 @@ func (a *Application) startHTTP(
 	if err != nil {
 		shutdownWorkers()
 		producer.Close()
-		_ = database.Disconnect(db)
+		_ = postgres.Disconnect(db)
 		shutdownObservability()
 		panic(err)
 	}
@@ -206,7 +206,7 @@ func (a *Application) startHTTP(
 			fmt.Printf("Failed to shutdown Notification server: %v\n", err)
 		}
 		producer.Close()
-		if err := database.Disconnect(db); err != nil {
+		if err := postgres.Disconnect(db); err != nil {
 			fmt.Printf("Failed to disconnect Notification database: %v\n", err)
 		}
 		shutdownObservability()

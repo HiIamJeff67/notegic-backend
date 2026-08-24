@@ -12,7 +12,7 @@ import (
 
 	blockpackscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	blockenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	blockenums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 )

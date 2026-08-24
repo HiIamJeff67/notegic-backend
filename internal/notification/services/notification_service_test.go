@@ -13,10 +13,11 @@ import (
 	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
 
 	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/notification/data/database/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/schemas"
 	notificationvalidations "github.com/HiIamJeff67/notegic-backend/internal/notification/validations"
 )
 
@@ -61,7 +62,7 @@ func (r *notificationRepositoryStub) DeleteExpired(context.Context, time.Time, t
 	return 0, nil
 }
 
-func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]schemas.OutboxEvent, error) {
+func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]cmodels.OutboxEvent, error) {
 	return nil, nil
 }
 

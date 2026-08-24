@@ -9,7 +9,7 @@ import (
 
 	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/durablejob/validations"

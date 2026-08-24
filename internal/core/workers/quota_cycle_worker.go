@@ -11,8 +11,8 @@ import (
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 )
 
 type QuotaCycleWorkerInterface interface {

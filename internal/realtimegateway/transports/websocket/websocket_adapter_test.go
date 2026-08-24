@@ -30,7 +30,7 @@ import (
 
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
-	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
 

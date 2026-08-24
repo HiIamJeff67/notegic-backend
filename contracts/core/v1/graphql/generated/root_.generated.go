@@ -3700,7 +3700,7 @@ type PrivateSearchableStation {
   updatedAt: Time!
 }
 `, BuiltIn: false},
-	{Name: "../schemas/user.graphql", Input: `# the complete user structure: internal/core/data/database/schemas/user_schema.go
+	{Name: "../schemas/user.graphql", Input: `# the complete user structure: internal/core/data/postgres/schemas/user_schema.go
 # this schema file is only use for go graphql to improve better user experience
 
 type PublicUser {

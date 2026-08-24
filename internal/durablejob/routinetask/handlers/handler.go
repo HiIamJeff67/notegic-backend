@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/internal/durablejob/exceptions"
 )

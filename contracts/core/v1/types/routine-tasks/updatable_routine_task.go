@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 type UpdatableRoutineTask struct {

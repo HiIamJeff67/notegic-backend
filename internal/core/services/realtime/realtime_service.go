@@ -17,14 +17,14 @@ import (
 
 	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
 	realtimegatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
-	enumscontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumscontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 type RealtimeServiceInterface interface {

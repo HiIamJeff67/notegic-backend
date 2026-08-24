@@ -8,7 +8,7 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 func TestPreparedRoutineTaskContractRoundTripPreservesAttempt(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/database/repositories"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
 	notificationexceptions "github.com/HiIamJeff67/notegic-backend/internal/notification/exceptions"
 )
 

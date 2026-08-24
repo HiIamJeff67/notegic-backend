@@ -3,11 +3,8 @@ package consumers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 
 	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
@@ -53,7 +50,6 @@ func (c *NotificationRequestConsumer) run(ctx context.Context) {
 		consumer, err := platformkafka.NewConsumer(
 			c.kafkaConfig,
 			coreeventscontract.CoreNotificationTopic.String(),
-			coreeventscontract.CoreLifecycleTopic.String(),
 		)
 		if err == nil {
 			err = consumer.Run(ctx, c.consume)
@@ -78,34 +74,6 @@ func (c *NotificationRequestConsumer) consume(
 	_ platformkafka.ConsumerRecord,
 	event eventcontract.EventEnvelope[json.RawMessage],
 ) error {
-	if event.EventType == coreeventscontract.EventType_UserDeleted {
-		if event.AggregateType != coreeventscontract.AggregateType_User || event.AggregateId == uuid.Nil {
-			return &platformkafka.ConsumerError{
-				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
-				Origin:         errors.New("user deletion event aggregate is invalid"),
-			}
-		}
-		var data coreeventscontract.UserDeletedData
-		if err := json.Unmarshal(event.Data, &data); err != nil {
-			return &platformkafka.ConsumerError{
-				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
-				Origin:         err,
-			}
-		}
-		if data.DeletedAt.IsZero() {
-			return &platformkafka.ConsumerError{
-				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
-				Origin:         errors.New("user deletion event timestamp is missing"),
-			}
-		}
-		if err := c.service.DeleteAllNotificationsForUser(ctx, event.AggregateId); err != nil {
-			return &platformkafka.ConsumerError{
-				Classification: platformkafka.ErrorClassification_Transient,
-				Origin:         err,
-			}
-		}
-		return nil
-	}
 	if event.EventType != coreeventscontract.EventType_NotificationRequested {
 		return nil
 	}

@@ -12,15 +12,16 @@ import (
 
 	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 	yjsworkereventscontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	blockservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/blocks"
 )
 
@@ -348,7 +349,7 @@ func (c *YjsCommandConsumer) enqueueReply(
 		Error:         exception,
 	}
 
-	return repositories.EnqueueOutboxEvents(
+	return crepositories.EnqueueOutboxEvents(
 		tx,
 		yjsworkereventscontract.CoreYjsWorkerReplyTopic,
 		[]eventcontract.EventEnvelope[yjsworkercontract.ReplyEnvelope[json.RawMessage]]{

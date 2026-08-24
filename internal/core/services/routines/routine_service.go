@@ -22,13 +22,13 @@ import (
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/scopes"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -535,11 +535,11 @@ func (s *RoutineService) CreateRoutineByStationId(
 			Id:               reqDto.Body.Id,
 			Title:            reqDto.Body.Title,
 			Description:      reqDto.Body.Description,
-			Status:           (*enums.RoutineStatus)(reqDto.Body.Status).ToStorable(),
+			Status:           enums.RoutineStatusToStorable(reqDto.Body.Status),
 			IsPinned:         reqDto.Body.IsPinned,
 			ScheduledStartAt: reqDto.Body.ScheduledStartAt,
 			ScheduledEndAt:   reqDto.Body.ScheduledEndAt,
-			Period:           (*enums.RoutinePeriod)(reqDto.Body.Period).ToStorable(),
+			Period:           enums.RoutinePeriodToStorable(reqDto.Body.Period),
 			Timezone:         reqDto.Body.Timezone,
 		},
 		options.WithDB(db),
@@ -579,11 +579,11 @@ func (s *RoutineService) CreateRoutinesByStationIds(
 			StationId:        createdRoutine.StationId,
 			Title:            createdRoutine.Title,
 			Description:      createdRoutine.Description,
-			Status:           (*enums.RoutineStatus)(createdRoutine.Status).ToStorable(),
+			Status:           enums.RoutineStatusToStorable(createdRoutine.Status),
 			IsPinned:         createdRoutine.IsPinned,
 			ScheduledStartAt: createdRoutine.ScheduledStartAt,
 			ScheduledEndAt:   createdRoutine.ScheduledEndAt,
-			Period:           (*enums.RoutinePeriod)(createdRoutine.Period).ToStorable(),
+			Period:           enums.RoutinePeriodToStorable(createdRoutine.Period),
 			Timezone:         createdRoutine.Timezone,
 		}
 	}
@@ -628,11 +628,11 @@ func (s *RoutineService) UpdateMyRoutineById(
 				StationId:        reqDto.Body.Values.StationId,
 				Title:            reqDto.Body.Values.Title,
 				Description:      reqDto.Body.Values.Description,
-				Status:           (*enums.RoutineStatus)(reqDto.Body.Values.Status).ToStorable(),
+				Status:           enums.RoutineStatusToStorable(reqDto.Body.Values.Status),
 				IsPinned:         reqDto.Body.Values.IsPinned,
 				ScheduledStartAt: reqDto.Body.Values.ScheduledStartAt,
 				ScheduledEndAt:   reqDto.Body.Values.ScheduledEndAt,
-				Period:           (*enums.RoutinePeriod)(reqDto.Body.Values.Period).ToStorable(),
+				Period:           enums.RoutinePeriodToStorable(reqDto.Body.Values.Period),
 				Timezone:         reqDto.Body.Values.Timezone,
 			},
 			SetNull: reqDto.Body.SetNull,
@@ -675,11 +675,11 @@ func (s *RoutineService) UpdateMyRoutinesByIds(
 					StationId:        updatedRoutine.Values.StationId,
 					Title:            updatedRoutine.Values.Title,
 					Description:      updatedRoutine.Values.Description,
-					Status:           (*enums.RoutineStatus)(updatedRoutine.Values.Status).ToStorable(),
+					Status:           enums.RoutineStatusToStorable(updatedRoutine.Values.Status),
 					IsPinned:         updatedRoutine.Values.IsPinned,
 					ScheduledStartAt: updatedRoutine.Values.ScheduledStartAt,
 					ScheduledEndAt:   updatedRoutine.Values.ScheduledEndAt,
-					Period:           (*enums.RoutinePeriod)(updatedRoutine.Values.Period).ToStorable(),
+					Period:           enums.RoutinePeriodToStorable(updatedRoutine.Values.Period),
 					Timezone:         updatedRoutine.Values.Timezone,
 				},
 				SetNull: updatedRoutine.SetNull,

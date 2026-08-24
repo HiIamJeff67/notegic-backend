@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
 )

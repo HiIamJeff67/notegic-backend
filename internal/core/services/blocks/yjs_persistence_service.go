@@ -14,9 +14,9 @@ import (
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 )
 
 type YjsPersistenceServiceInterface interface {

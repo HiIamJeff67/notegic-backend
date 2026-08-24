@@ -46,15 +46,15 @@ internal/
       realtimegateway/
         adapters/
   realtimegateway/           # standalone WebSocket edge runtime
-    data/cache/              # Realtime leases and Realtime-specific rate limits
+    data/redis/              # Realtime leases and Realtime-specific rate limits
     transports/
       gateway/               # private API Gateway presence transport
       yjsworker/             # WebSocket client, connection/channel state, middleware
     workers/                 # YjsWorker connection manager
   core/
     data/
-      database/             # schemas, repositories, scopes, SQL, seeds, options
-      cache/                # Core-owned Redis caches and Lua libraries
+      postgres/             # schemas, repositories, scopes, SQL, seeds, options
+      redis/                # Core-owned Redis caches and Lua libraries
       storage/              # Core-owned storage implementations
     services/
       routines/
@@ -162,7 +162,7 @@ shared/platform -X-> domain business packages
 
 ## Shared contract types
 
-`contracts/types/enums` is the canonical owner of cross-runtime enum values.
+`contracts/types/models/enums` is the canonical owner of cross-runtime enum values.
 Core and DurableJob database enum wrappers import those values and add only the
 PostgreSQL responsibilities (`Name`, `Scan`, `Value`, validation, and string
 conversion); neither runtime redefines a value set.
@@ -350,7 +350,7 @@ shard selection, and cache operations; they never retrieve another runtime's
 store from a global registry.
 
 Core quota functions are one-function-per-file under
-`internal/core/data/cache/userdata/libraries/`. The UserData store
+`internal/core/data/redis/userdata/libraries/`. The UserData store
 embeds and joins them into one `user_quota_library`, then performs a single
 `FUNCTION LOAD REPLACE` during `Initialize()`.
 
@@ -390,7 +390,7 @@ Auth/User service
     -> UserDataCacheStore.ClientSet()
 ```
 
-`internal/realtimegateway/data/cache/realtimelease/` owns the RealtimeGateway
+`internal/realtimegateway/data/redis/realtimelease/` owns the RealtimeGateway
 runtime's user
 connection and BlockPack subscriber lease lifecycle, active lease inspection,
 participant presence, and presence PubSub fanout. A Core-issued BlockPack

@@ -11,8 +11,8 @@ import (
 
 	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
 )
 
 type BadgeServiceInterface interface {

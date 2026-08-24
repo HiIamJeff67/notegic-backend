@@ -21,10 +21,7 @@ type notificationServiceStub struct {
 	services.NotificationServiceInterface
 	consumeCalls          int
 	consumeErr            error
-	deleteCalls           int
-	deleteErr             error
 	lastNotificationEvent eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]
-	lastDeletedUser       uuid.UUID
 }
 
 func (s *notificationServiceStub) ConsumeNotificationRequested(
@@ -34,15 +31,6 @@ func (s *notificationServiceStub) ConsumeNotificationRequested(
 	s.consumeCalls++
 	s.lastNotificationEvent = event
 	return s.consumeErr
-}
-
-func (s *notificationServiceStub) DeleteAllNotificationsForUser(
-	_ context.Context,
-	userPublicId uuid.UUID,
-) error {
-	s.deleteCalls++
-	s.lastDeletedUser = userPublicId
-	return s.deleteErr
 }
 
 func TestNotificationRequestConsumerConsumesNotificationRequestedEvent(t *testing.T) {
@@ -111,42 +99,11 @@ func TestNotificationRequestConsumerClassifiesServiceFailureAsTransient(t *testi
 	}
 }
 
-func TestNotificationRequestConsumerDeletesNotificationsForDeletedUser(t *testing.T) {
-	userPublicId := uuid.New()
-	service := &notificationServiceStub{}
-	consumer := &NotificationRequestConsumer{service: service}
-	event := eventcontract.EventEnvelope[json.RawMessage]{
-		SchemaVersion: eventcontract.Version,
-		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_UserDeleted,
-		AggregateType: coreeventscontract.AggregateType_User,
-		AggregateId:   userPublicId,
-		KafkaKey:      userPublicId.String(),
-		Data:          mustMarshalUserDeleted(t, coreeventscontract.UserDeletedData{DeletedAt: time.Now().UTC()}),
-	}
-
-	if err := consumer.consume(context.Background(), platformkafka.ConsumerRecord{}, event); err != nil {
-		t.Fatalf("consume user deleted event: %v", err)
-	}
-	if service.deleteCalls != 1 || service.lastDeletedUser != userPublicId {
-		t.Fatalf("delete call = %d for %s, want one call for %s", service.deleteCalls, service.lastDeletedUser, userPublicId)
-	}
-}
-
 func mustMarshalNotificationRequest(t *testing.T, data coreeventscontract.NotificationRequestedData) json.RawMessage {
 	t.Helper()
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		t.Fatalf("marshal notification request: %v", err)
-	}
-	return encoded
-}
-
-func mustMarshalUserDeleted(t *testing.T, data coreeventscontract.UserDeletedData) json.RawMessage {
-	t.Helper()
-	encoded, err := json.Marshal(data)
-	if err != nil {
-		t.Fatalf("marshal user deleted event: %v", err)
 	}
 	return encoded
 }

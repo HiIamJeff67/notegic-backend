@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 
 	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 )
 
 type CreateBlockPackRoutineTaskTemplateBlock struct {

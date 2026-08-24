@@ -13,11 +13,11 @@ import (
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/cache/apikey"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/database"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/options"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
+	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
+	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 

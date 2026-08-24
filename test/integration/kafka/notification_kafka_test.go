@@ -16,7 +16,7 @@ import (
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
-func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
+func TestCoreNotificationKafkaContract(t *testing.T) {
 	if os.Getenv("NOTEGIC_RUN_INTEGRATION") != "1" {
 		t.Skip("set NOTEGIC_RUN_INTEGRATION=1 to run Kafka broker integration tests")
 	}
@@ -53,7 +53,7 @@ func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
 		InitialRetryBackoff: 10 * time.Millisecond,
 		MaximumRetryBackoff: 25 * time.Millisecond,
 		MaximumPollRecords:  20,
-	}, coreeventscontract.CoreNotificationTopic.String(), coreeventscontract.CoreLifecycleTopic.String())
+	}, coreeventscontract.CoreNotificationTopic.String())
 	if err != nil {
 		t.Fatalf("create Kafka consumer: %v", err)
 	}
@@ -65,7 +65,6 @@ func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
 		mu                 sync.Mutex
 		eventsReceivedOnce sync.Once
 		notificationSeen   bool
-		userDeletionSeen   bool
 		invalidContractErr error
 		receivedEventCount int
 		eventsReceived     = make(chan struct{})
@@ -97,19 +96,8 @@ func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
 					return nil
 				}
 				notificationSeen = true
-			case coreeventscontract.EventType_UserDeleted:
-				var data coreeventscontract.UserDeletedData
-				if err := json.Unmarshal(event.Data, &data); err != nil {
-					invalidContractErr = err
-					return nil
-				}
-				if event.AggregateId != userPublicId || data.DeletedAt.IsZero() {
-					invalidContractErr = &notificationContractError{message: "user deletion contract fields are invalid"}
-					return nil
-				}
-				userDeletionSeen = true
 			}
-			if notificationSeen && userDeletionSeen {
+			if notificationSeen {
 				eventsReceivedOnce.Do(func() { close(eventsReceived) })
 			}
 			return nil
@@ -130,12 +118,6 @@ func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
 	}
 	publishNotificationContract(t, ctx, producer, coreeventscontract.CoreNotificationTopic.String(), correlationId, userPublicId, coreeventscontract.EventType_NotificationRequested, coreeventscontract.AggregateType_Notification, notificationPayload)
 
-	deletionPayload, err := json.Marshal(coreeventscontract.UserDeletedData{DeletedAt: time.Now().UTC()})
-	if err != nil {
-		t.Fatalf("marshal user deletion contract: %v", err)
-	}
-	publishNotificationContract(t, ctx, producer, coreeventscontract.CoreLifecycleTopic.String(), correlationId, userPublicId, coreeventscontract.EventType_UserDeleted, coreeventscontract.AggregateType_User, deletionPayload)
-
 	select {
 	case <-eventsReceived:
 	case <-ctx.Done():
@@ -147,8 +129,8 @@ func TestCoreNotificationAndUserDeletionKafkaContracts(t *testing.T) {
 	if invalidContractErr != nil {
 		t.Fatalf("received invalid notification contract: %v", invalidContractErr)
 	}
-	if receivedEventCount != 2 {
-		t.Fatalf("received event count = %d, want 2", receivedEventCount)
+	if receivedEventCount != 1 {
+		t.Fatalf("received event count = %d, want 1", receivedEventCount)
 	}
 }
 

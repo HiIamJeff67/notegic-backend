@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/ratelimit"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/api/endpoints"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/api/middlewares"

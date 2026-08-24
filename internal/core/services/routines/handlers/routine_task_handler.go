@@ -5,7 +5,7 @@ import (
 
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 )
 

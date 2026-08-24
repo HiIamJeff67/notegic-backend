@@ -11,8 +11,8 @@ import (
 
 	durablejobcontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	durablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 

@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
@@ -17,10 +16,11 @@ import (
 	durablejobcontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cinputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	handlers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/handlers"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
@@ -160,8 +160,11 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		).WithOrigin(tx.Error)
 	}
 
-	result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&schemas.InboxEvent{EventId: eventId})
-	if result.Error != nil {
+	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
+		cinputs.CreateInboxEventInput{EventId: eventId},
+		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	)
+	if inboxException != nil {
 		tx.Rollback()
 		return exceptions.New(
 			"FailedToRecordInboxEvent",
@@ -170,9 +173,9 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			"Failed to record the Kafka result event",
 			http.StatusInternalServerError,
 			true,
-		).WithOrigin(result.Error)
+		).WithOrigin(inboxException)
 	}
-	if result.RowsAffected == 0 {
+	if !isNewInboxEvent {
 		if err := tx.Commit().Error; err != nil {
 			return exceptions.New(
 				"FailedToCommitTransaction",
@@ -203,7 +206,7 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			time.Now().UTC(),
 		)
 	}
-	if err := repositories.EnqueueOutboxEvents(
+	if err := crepositories.EnqueueOutboxEvents(
 		tx,
 		coreeventscontract.CoreLifecycleTopic,
 		completionEvents,

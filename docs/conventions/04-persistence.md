@@ -167,7 +167,7 @@ result := parsedOptions.DB.Model(&schemas.Station{}).
 
 ## Schema, Migration, and SQL
 
-- Table schemas, enums, constraints, triggers, seeds, raw SQL, and migrations belong under the owning service's `internal/<service>/data/database/`. Keep a legacy path only while its owner has not migrated.
+- Table schemas, enums, constraints, triggers, seeds, raw SQL, and migrations belong under the owning service's `internal/<service>/data/postgres/`. Redis-specific persistence belongs under `internal/<service>/data/redis/`; keep `data/storage/` for storage abstractions that are not tied to one backend.
 - Register every new table/enum/trigger/constraint in its corresponding `migrate.go`; otherwise the migration will not apply it.
 - For database invariants such as soft-delete, ownership, projection, and accounting, prefer the existing trigger/constraint/scope patterns; do not rely only on controller checks.
 - When changing a trigger or raw SQL, verify that table names, columns, and migration registration are updated together. Database-facing semantic changes must also update the corresponding `docs/codebase-design/`, `docs/api-route-design/`, or `docs/system-design/` document.

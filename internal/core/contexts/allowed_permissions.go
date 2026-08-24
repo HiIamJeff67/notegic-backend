@@ -12,7 +12,7 @@ import (
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 func WithGatewaySource(ctx context.Context, source string) context.Context {

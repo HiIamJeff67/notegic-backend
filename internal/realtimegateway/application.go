@@ -23,8 +23,8 @@ import (
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	realtimeconfig "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/configs"
-	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/ratelimitrecord"
-	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/cache/realtimelease"
+	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord"
+	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/ratelimit"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/api/middlewares"
 	apiRouters "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/api/routers"

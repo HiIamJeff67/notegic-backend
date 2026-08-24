@@ -14,7 +14,7 @@ import (
 	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 func DelegationMiddleware(expectedOperation string) gin.HandlerFunc {

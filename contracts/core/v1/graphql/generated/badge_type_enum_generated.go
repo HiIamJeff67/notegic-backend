@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 

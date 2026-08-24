@@ -19,7 +19,7 @@ import (
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/configs"
-	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/data/cache/ratelimitrecord"
+	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/data/redis/ratelimitrecord"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/ratelimit"
 	ratelimitmiddlewares "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/middlewares"
 	developmentroutes "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/routes/developmentroutes"

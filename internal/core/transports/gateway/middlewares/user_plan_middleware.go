@@ -13,7 +13,7 @@ import (
 
 	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/database/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 )
 
 func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
