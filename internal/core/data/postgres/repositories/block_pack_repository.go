@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"sort"
 	"strings"
@@ -13,48 +14,47 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BlockPackRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.BlockPack, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *exceptions.Exception)
-	CheckPermissionAndGetOneWithOwnerIdById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*uuid.UUID, *schemas.BlockPack, *exceptions.Exception)
-	CheckPermissionsAndGetManyWithOwnerIdsByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]uuid.UUID, []schemas.BlockPack, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.BlockPack, *exceptions.Exception)
-	GetManyByRootShelfIds(rootShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *exceptions.Exception)
-	GetIdsByParentSubShelfIds(parentSubShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	GetIdsBySubShelfIdsAndDescendants(subShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	CreateOneBySubShelfId(subShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateBlockPackInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	CreateManyBySubShelfIds(userId uuid.UUID, input []inputs.CreateBlockPackBySubShelfIdInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateBlockPackInput, opts ...options.RepositoryOptions) (*schemas.BlockPack, *exceptions.Exception)
-	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateBlockPackByIdInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.BlockPack, *exceptions.Exception)
-	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *exceptions.Exception)
-	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.BlockPack, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *cexceptions.Exception)
+	CheckPermissionAndGetOneWithOwnerIdById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*uuid.UUID, *schemas.BlockPack, *cexceptions.Exception)
+	CheckPermissionsAndGetManyWithOwnerIdsByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]uuid.UUID, []schemas.BlockPack, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.BlockPack, *cexceptions.Exception)
+	GetManyByRootShelfIds(rootShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *cexceptions.Exception)
+	GetIdsByParentSubShelfIds(parentSubShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	GetIdsBySubShelfIdsAndDescendants(subShelfIds []uuid.UUID, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	CreateOneBySubShelfId(subShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateBlockPackInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	CreateManyBySubShelfIds(userId uuid.UUID, input []inputs.CreateBlockPackBySubShelfIdInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateBlockPackInput, opts ...options.RepositoryOptions) (*schemas.BlockPack, *cexceptions.Exception)
+	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateBlockPackByIdInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.BlockPack, *cexceptions.Exception)
+	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.BlockPack, *cexceptions.Exception)
+	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 
 	/* ============================== System Only Method ============================== */
 
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPackPermissionInput, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.BlockPack, *exceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPackPermissionInput, preloads []schemas.BlockPackRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.BlockPack, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(inputs []inputs.BulkDeleteBlockPackInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type BlockPackRepository struct {
@@ -120,7 +120,7 @@ func (r *BlockPackRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.BlockPack, *exceptions.Exception) {
+) (*schemas.BlockPack, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var blockPack schemas.BlockPack
@@ -138,7 +138,7 @@ func (r *BlockPackRepository) CheckPermissionAndGetOneById(
 		Scopes(r.blockPackScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&blockPack)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().NotFound().WithOrigin(result.Error)},
 		{First: blockPack.Id == uuid.Nil, Second: apiexceptions.NewBlockPackException().NotFound()},
 	}); exception != nil {
@@ -154,7 +154,7 @@ func (r *BlockPackRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.BlockPack, *exceptions.Exception) {
+) ([]schemas.BlockPack, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var blockPacks []schemas.BlockPack
@@ -165,7 +165,7 @@ func (r *BlockPackRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.blockPackScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&blockPacks)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().NotFound().WithOrigin(result.Error)},
 		{First: len(blockPacks) == 0, Second: apiexceptions.NewBlockPackException().NotFound()},
 	}); exception != nil {
@@ -181,7 +181,7 @@ func (r *BlockPackRepository) CheckPermissionAndGetOneWithOwnerIdById(
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *schemas.BlockPack, *exceptions.Exception) { // we should also return the owner id for the block groups and blocks
+) (*uuid.UUID, *schemas.BlockPack, *cexceptions.Exception) { // we should also return the owner id for the block groups and blocks
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	query := parsedOptions.DB.Model(&schemas.BlockPack{}).
 		Select(`"BlockPackTable".*, owner_uts.user_id AS owner_id`).
@@ -208,7 +208,7 @@ func (r *BlockPackRepository) CheckPermissionAndGetOneWithOwnerIdById(
 		OwnerId uuid.UUID `gorm:"column:owner_id;"`
 	}
 	result := query.First(&blockPackWithOwnerId)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().NotFound().WithOrigin(result.Error)},
 		{First: blockPackWithOwnerId.OwnerId == uuid.Nil, Second: apiexceptions.NewBlockPackException().NotFound()},
 	}); exception != nil {
@@ -224,7 +224,7 @@ func (r *BlockPackRepository) CheckPermissionsAndGetManyWithOwnerIdsByIds(
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, []schemas.BlockPack, *exceptions.Exception) { // we should also return the owner id for the block groups and blocks
+) ([]uuid.UUID, []schemas.BlockPack, *cexceptions.Exception) { // we should also return the owner id for the block groups and blocks
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	query := parsedOptions.DB.Model(&schemas.BlockPack{}).
 		Select(`"BlockPackTable".*, owner_uts.user_id AS owner_id`).
@@ -251,7 +251,7 @@ func (r *BlockPackRepository) CheckPermissionsAndGetManyWithOwnerIdsByIds(
 		ownerId uuid.UUID `gorm:"column:owner_id;"`
 	}
 	result := query.Find(&blockPacksWithOwnerIds)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().NotFound().WithOrigin(result.Error)},
 		{First: len(blockPacksWithOwnerIds) == 0, Second: apiexceptions.NewBlockPackException().NotFound()},
 	}); exception != nil {
@@ -272,7 +272,7 @@ func (r *BlockPackRepository) GetOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.BlockPack, *exceptions.Exception) {
+) (*schemas.BlockPack, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -285,7 +285,7 @@ func (r *BlockPackRepository) GetOneById(
 func (r *BlockPackRepository) GetManyByRootShelfIds(
 	rootShelfIds []uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.BlockPack, *exceptions.Exception) {
+) ([]schemas.BlockPack, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var blockPacks []schemas.BlockPack
@@ -306,7 +306,7 @@ func (r *BlockPackRepository) GetManyByRootShelfIds(
 func (r *BlockPackRepository) GetIdsByParentSubShelfIds(
 	parentSubShelfIds []uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var blockPackIds []uuid.UUID
@@ -326,7 +326,7 @@ func (r *BlockPackRepository) GetIdsByParentSubShelfIds(
 func (r *BlockPackRepository) GetIdsBySubShelfIdsAndDescendants(
 	subShelfIds []uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(subShelfIds) == 0 {
 		return []uuid.UUID{}, nil
 	}
@@ -353,7 +353,7 @@ func (r *BlockPackRepository) CreateOneBySubShelfId(
 	userId uuid.UUID,
 	input inputs.CreateBlockPackInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -390,7 +390,7 @@ func (r *BlockPackRepository) CreateOneBySubShelfId(
 
 	result := parsedOptions.DB.Model(&schemas.BlockPack{}).
 		Create(&newBlockPack)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToCreate().WithOrigin(result.Error)},
 		{First: newBlockPack.Id == uuid.Nil, Second: apiexceptions.NewBlockPackException().FailedToCreate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
@@ -413,7 +413,7 @@ func (r *BlockPackRepository) CreateManyBySubShelfIds(
 	userId uuid.UUID,
 	input []inputs.CreateBlockPackBySubShelfIdInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -472,7 +472,7 @@ func (r *BlockPackRepository) CreateManyBySubShelfIds(
 
 	result := parsedOptions.DB.Model(&schemas.BlockPack{}).
 		CreateInBatches(&newBlockPacks, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -500,7 +500,7 @@ func (r *BlockPackRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateBlockPackInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.BlockPack, *exceptions.Exception) {
+) (*schemas.BlockPack, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -540,14 +540,14 @@ func (r *BlockPackRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingBlockPack)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.BlockPack{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -569,7 +569,7 @@ func (r *BlockPackRepository) UpdateManyByIds(
 	userId uuid.UUID,
 	input []inputs.UpdateBlockPackByIdInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -680,7 +680,7 @@ func (r *BlockPackRepository) UpdateManyByIds(
 		WHERE bp.id = v.id::uuid AND bp.deleted_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
 	result := parsedOptions.DB.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -702,7 +702,7 @@ func (r *BlockPackRepository) RestoreSoftDeletedOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.BlockPack, *exceptions.Exception) {
+) (*schemas.BlockPack, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -717,7 +717,7 @@ func (r *BlockPackRepository) RestoreSoftDeletedOneById(
 		Clauses(clause.Returning{}).
 		Where(`"BlockPackTable".id = ?`, id).
 		Updates(map[string]interface{}{"deleted_at": nil})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -731,7 +731,7 @@ func (r *BlockPackRepository) RestoreSoftDeletedManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.BlockPack, *exceptions.Exception) {
+) ([]schemas.BlockPack, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return nil, apiexceptions.NewBlockPackException().NoChanges()
 	}
@@ -750,7 +750,7 @@ func (r *BlockPackRepository) RestoreSoftDeletedManyByIds(
 		Clauses(&clause.Returning{}).
 		Where(`"BlockPackTable".id IN ?`, ids).
 		Updates(map[string]interface{}{"deleted_at": nil})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -764,7 +764,7 @@ func (r *BlockPackRepository) SoftDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	query := parsedOptions.DB.Model(&schemas.BlockPack{}).
@@ -776,7 +776,7 @@ func (r *BlockPackRepository) SoftDeleteOneById(
 	result := query.
 		Where(`"BlockPackTable".id = ?`, id).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -790,7 +790,7 @@ func (r *BlockPackRepository) SoftDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewBlockPackException().NoChanges()
 	}
@@ -807,7 +807,7 @@ func (r *BlockPackRepository) SoftDeleteManyByIds(
 	result := query.
 		Where(`"BlockPackTable".id IN ?`, ids).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -821,7 +821,7 @@ func (r *BlockPackRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	query := parsedOptions.DB.Model(&schemas.BlockPack{}).
@@ -833,7 +833,7 @@ func (r *BlockPackRepository) HardDeleteOneById(
 	result := query.
 		Where(`"BlockPackTable".id = ?`, id).
 		Delete(&schemas.BlockPack{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -847,7 +847,7 @@ func (r *BlockPackRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewBlockPackException().NoChanges()
 	}
@@ -864,7 +864,7 @@ func (r *BlockPackRepository) HardDeleteManyByIds(
 	result := query.
 		Where(`"BlockPackTable".id IN ?`, ids).
 		Delete(&schemas.BlockPack{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockPackException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewBlockPackException().NoChanges()},
 	}); exception != nil {
@@ -881,7 +881,7 @@ func (r *BlockPackRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.BlockPack, *exceptions.Exception) {
+) ([]bool, []schemas.BlockPack, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, []schemas.BlockPack{}, nil
 	}
@@ -976,7 +976,7 @@ func (r *BlockPackRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *BlockPackRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateBlockPackInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, apiexceptions.NewBlockPackException().NoChanges()
 	}
@@ -1069,7 +1069,7 @@ func (r *BlockPackRepository) BulkCreateMany(
 func (r *BlockPackRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateBlockPackInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewBlockPackException().NoChanges()
 	}
@@ -1231,7 +1231,7 @@ func (r *BlockPackRepository) BulkUpdateMany(
 func (r *BlockPackRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteBlockPackInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewBlockPackException().NoChanges()
 	}

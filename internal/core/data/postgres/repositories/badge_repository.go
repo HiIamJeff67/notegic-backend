@@ -3,16 +3,16 @@ package repositories
 import (
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BadgeRepositoryInterface interface {
-	GetOneById(id uuid.UUID, preloads []schemas.BadgeRelation, opts ...options.RepositoryOptions) (*schemas.Badge, *exceptions.Exception)
+	GetOneById(id uuid.UUID, preloads []schemas.BadgeRelation, opts ...options.RepositoryOptions) (*schemas.Badge, *cexceptions.Exception)
 }
 
 type BadgeRepository struct{}
@@ -25,7 +25,7 @@ func (r *BadgeRepository) GetOneById(
 	id uuid.UUID,
 	preloads []schemas.BadgeRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.Badge, *exceptions.Exception) {
+) (*schemas.Badge, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	badge := schemas.Badge{}
@@ -40,7 +40,7 @@ func (r *BadgeRepository) GetOneById(
 	result := query.Where("id = ?", id).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&badge)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBadgeException().NotFound().WithOrigin(result.Error)},
 		{First: badge.Id == uuid.Nil, Second: apiexceptions.NewBadgeException().NotFound()},
 	}); exception != nil {

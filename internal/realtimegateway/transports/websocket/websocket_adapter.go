@@ -18,8 +18,8 @@ import (
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
@@ -339,7 +339,7 @@ func (g *WebSocketAdapter) revokeBlockPackChannels(revocation realtimeleasecache
 			code := realtimetypes.ErrorCode_PermissionRevoked
 			message := "permission for this channel has been revoked"
 			outcome := "permission_revoked"
-			if revocation.Reason == coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable {
+			if revocation.Reason == coreevents.BlockPackAccessRevocationReason_ResourceUnavailable {
 				code = realtimetypes.ErrorCode_ResourceUnavailable
 				message = "the block pack is no longer available"
 				outcome = "resource_unavailable"
@@ -1344,7 +1344,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			})
 		}
 
-		quotaPolicyPayload, err := json.Marshal(yjsworkercontract.BlockPackQuotaPolicy{
+		quotaPolicyPayload, err := json.Marshal(cyjsworker.BlockPackQuotaPolicy{
 			Version:           channel.DocumentQuotaPolicyVersion,
 			MaximumBlockCount: channel.MaximumBlockCount,
 		})

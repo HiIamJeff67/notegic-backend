@@ -24,9 +24,9 @@ import (
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	realtimegatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
@@ -99,11 +99,11 @@ func generateRealtimeBlockPackTicketWithMaximumSubscribers(
 		ChannelId:                        blockPackId.String(),
 		Permission:                       string(permission),
 		RealtimeProtocolVersion:          constants.RealtimeProtocolVersion,
-		SchemaVersion:                    yjsworkercontract.YjsBlockPackSchemaVersion,
-		RoomAdmissionPolicyVersion:       realtimegatewaycontract.BlockPackRoomAdmissionPolicyVersion,
-		RoomAdmissionEnforcementStrategy: string(realtimegatewaycontract.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
+		SchemaVersion:                    cyjsworker.YjsBlockPackSchemaVersion,
+		RoomAdmissionPolicyVersion:       crealtimegateway.BlockPackRoomAdmissionPolicyVersion,
+		RoomAdmissionEnforcementStrategy: string(crealtimegateway.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
 		MaximumSubscribers:               maximumSubscribers,
-		DocumentQuotaPolicyVersion:       yjsworkercontract.BlockPackDocumentQuotaPolicyVersion,
+		DocumentQuotaPolicyVersion:       cyjsworker.BlockPackDocumentQuotaPolicyVersion,
 		MaximumBlockCount:                1000,
 	}
 	claims.Subject = userPublicId.String()
@@ -186,7 +186,7 @@ func TestGatewayRevokesMatchingBlockPackChannels(t *testing.T) {
 		EventId:            uuid.New(),
 		BlockPackId:        blockPackId,
 		TargetUserPublicId: &userPublicId,
-		Reason:             coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	})
 
 	if _, exists := connector.get(1); exists {
@@ -225,7 +225,7 @@ func TestGatewaySendsReadyAndPong(t *testing.T) {
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -285,12 +285,12 @@ func TestGatewayRejectsConnectionsOutsideRealtimeBetaAllowlist(t *testing.T) {
 	}
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
 
-	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/" + realtimegatewaycontract.RealtimeDevelopmentBaseURL
+	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/" + crealtimegateway.RealtimeDevelopmentBaseURL
 	connection, response, err := (&websocket.Dialer{
 		Subprotocols: []string{*connectionTicket},
 	}).Dial(wsURL, http.Header{
@@ -338,7 +338,7 @@ func TestGatewayRejectsConnectionsWhenGatewayCapacityIsReached(t *testing.T) {
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -375,7 +375,7 @@ func TestGatewayRejectsConnectionsWhenUserCapacityIsReached(t *testing.T) {
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -413,7 +413,7 @@ func TestGatewayRejectsReplayedConnectionTicket(t *testing.T) {
 	}
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -476,7 +476,7 @@ func TestGatewayRejectsBlockPackSubscriptionWhenRoomCapacityIsReached(t *testing
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -598,7 +598,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -689,8 +689,8 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 		secondSubscribed.ChannelType != realtimetypes.ChannelType_BlockPack ||
 		firstSubscribed.ChannelId != firstBlockPackId ||
 		secondSubscribed.ChannelId != secondBlockPackId ||
-		firstSubscribed.DocumentQuotaPolicyVersion != yjsworkercontract.BlockPackDocumentQuotaPolicyVersion ||
-		secondSubscribed.DocumentQuotaPolicyVersion != yjsworkercontract.BlockPackDocumentQuotaPolicyVersion ||
+		firstSubscribed.DocumentQuotaPolicyVersion != cyjsworker.BlockPackDocumentQuotaPolicyVersion ||
+		secondSubscribed.DocumentQuotaPolicyVersion != cyjsworker.BlockPackDocumentQuotaPolicyVersion ||
 		firstSubscribed.MaximumBlockCount != 1000 ||
 		secondSubscribed.MaximumBlockCount != 1000 {
 		t.Fatalf("unexpected subscribed frames: %#v %#v", firstSubscribed, secondSubscribed)
@@ -702,9 +702,9 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 		t.Fatalf("expected two worker attach frames, got %#v", attachFrames)
 	}
 	for _, attachFrame := range attachFrames[:2] {
-		var quotaPolicy yjsworkercontract.BlockPackQuotaPolicy
+		var quotaPolicy cyjsworker.BlockPackQuotaPolicy
 		if err := json.Unmarshal(attachFrame.Payload, &quotaPolicy); err != nil ||
-			quotaPolicy.Version != yjsworkercontract.BlockPackDocumentQuotaPolicyVersion ||
+			quotaPolicy.Version != cyjsworker.BlockPackDocumentQuotaPolicyVersion ||
 			quotaPolicy.MaximumBlockCount != 1000 {
 			t.Fatalf("unexpected worker attach quota policy: %#v", attachFrame)
 		}
@@ -806,7 +806,7 @@ func TestGatewayRejectsYjsDocumentUpdatesOnReadOnlyChannels(t *testing.T) {
 	workerManager.SetFrameHandler(gateway.handleInternalFrame)
 
 	router := gin.New()
-	router.GET("/"+realtimegatewaycontract.RealtimeDevelopmentBaseURL, gateway.Handle)
+	router.GET("/"+crealtimegateway.RealtimeDevelopmentBaseURL, gateway.Handle)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -882,7 +882,7 @@ func TestGatewayRejectsYjsDocumentUpdatesOnReadOnlyChannels(t *testing.T) {
 func dialGateway(t *testing.T, serverURL string, userAgent string, connectionTicket string) *websocket.Conn {
 	t.Helper()
 
-	wsURL := "ws" + strings.TrimPrefix(serverURL, "http") + "/" + realtimegatewaycontract.RealtimeDevelopmentBaseURL
+	wsURL := "ws" + strings.TrimPrefix(serverURL, "http") + "/" + crealtimegateway.RealtimeDevelopmentBaseURL
 	connection, response, err := (&websocket.Dialer{
 		Subprotocols: []string{connectionTicket},
 	}).Dial(wsURL, http.Header{
@@ -908,7 +908,7 @@ func assertGatewayConnectionRejected(
 ) {
 	t.Helper()
 
-	wsURL := "ws" + strings.TrimPrefix(serverURL, "http") + "/" + realtimegatewaycontract.RealtimeDevelopmentBaseURL
+	wsURL := "ws" + strings.TrimPrefix(serverURL, "http") + "/" + crealtimegateway.RealtimeDevelopmentBaseURL
 	connection, response, err := (&websocket.Dialer{
 		Subprotocols: []string{connectionTicket},
 	}).Dial(wsURL, http.Header{

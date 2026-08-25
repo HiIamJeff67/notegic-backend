@@ -12,8 +12,8 @@ import (
 
 	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 )
@@ -28,7 +28,7 @@ func RefreshTokenInterceptor(accessTokenCookieHandler *cookies.CookieHandler) fu
 			var writer *responsewriter.ResponseWriter
 			existingWriter, exist := ctx.Get(responseWriterKey)
 			if !exist || existingWriter == nil {
-				exceptions.New(
+				cexceptions.New(
 					"WrongInterceptorOrder",
 					"Context",
 					"Interceptor",
@@ -60,7 +60,7 @@ func RefreshTokenInterceptor(accessTokenCookieHandler *cookies.CookieHandler) fu
 				return
 			}
 
-			var originalResponse gatewaycontract.ClientResponse[json.RawMessage]
+			var originalResponse cgateway.ClientResponse[json.RawMessage]
 			if err := json.Unmarshal(writer.Body.Bytes(), &originalResponse); err != nil {
 				return
 			}
@@ -73,7 +73,7 @@ func RefreshTokenInterceptor(accessTokenCookieHandler *cookies.CookieHandler) fu
 
 			accessTokenCookieHandler.Set(ctx, *accessToken)
 			ctx.Header("X-CSRF-Token", *csrfToken)
-			originalResponse.RefreshableTokens = &gatewaycontract.RefreshableTokens{
+			originalResponse.RefreshableTokens = &cgateway.RefreshableTokens{
 				NewCSRFToken: *csrfToken,
 			}
 			modifiedResponse, err := json.Marshal(originalResponse)

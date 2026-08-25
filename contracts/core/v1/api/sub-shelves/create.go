@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/sub-shelves"
 )
 
 type CreateSubShelfByRootShelfIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -26,7 +26,7 @@ type CreateSubShelfByRootShelfIdResponseDto struct {
 }
 
 type CreateSubShelvesByRootShelfIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

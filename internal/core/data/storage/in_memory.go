@@ -15,7 +15,7 @@ import (
 
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 )
 
 /* ============================== Interface & Constructor ============================== */
@@ -152,10 +152,10 @@ func (s *inMemoryStorage) DeleteObjectByKey(ctx context.Context, key string) err
 
 // [not implemented] For Testing：return fake URL
 func (s *inMemoryStorage) PresignPutObjectByKey(ctx context.Context, key string, option *PresignOptions) (string, error) {
-	return "http://localhost:" + "/" + gatewaycontract.APIDevelopmentBaseURL + "/" + "storage/mock://put/" + key, nil
+	return "http://localhost:" + "/" + cgateway.APIDevelopmentBaseURL + "/" + "storage/mock://put/" + key, nil
 }
 
 // For Testing：return localhost URL, give the frontend ability to visit
 func (s *inMemoryStorage) PresignGetObjectByKey(ctx context.Context, key string, option *PresignOptions) (string, error) {
-	return "http://localhost:" + "/" + gatewaycontract.APIDevelopmentBaseURL + "/" + "storage/mock/files/" + key, nil
+	return "http://localhost:" + "/" + cgateway.APIDevelopmentBaseURL + "/" + "storage/mock/files/" + key, nil
 }

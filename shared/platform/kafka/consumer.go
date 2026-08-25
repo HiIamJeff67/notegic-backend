@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	franzkgo "github.com/twmb/franz-go/pkg/kgo"
 
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
@@ -59,7 +59,7 @@ type ConsumerRecord struct {
 type ConsumerHandler func(
 	ctx context.Context,
 	record ConsumerRecord,
-	envelope eventcontract.EventEnvelope[json.RawMessage],
+	envelope cevent.EventEnvelope[json.RawMessage],
 ) error
 
 type DeadLetter struct {
@@ -163,7 +163,7 @@ func (c *Consumer) consumeRecord(
 	record *franzkgo.Record,
 	handler ConsumerHandler,
 ) bool {
-	var envelope eventcontract.EventEnvelope[json.RawMessage]
+	var envelope cevent.EventEnvelope[json.RawMessage]
 	if err := json.Unmarshal(record.Value, &envelope); err != nil {
 		return c.deadLetter(
 			ctx,
@@ -174,7 +174,7 @@ func (c *Consumer) consumeRecord(
 			fmt.Errorf("decode Kafka event envelope: %w", err),
 		)
 	}
-	if envelope.SchemaVersion != eventcontract.Version {
+	if envelope.SchemaVersion != cevent.Version {
 		return c.deadLetter(
 			ctx,
 			record,
@@ -279,7 +279,7 @@ func (c *Consumer) deadLetter(
 	}
 
 	deadLetter := DeadLetter{
-		SchemaVersion:   eventcontract.Version,
+		SchemaVersion:   cevent.Version,
 		ConsumerGroup:   c.consumerGroup,
 		SourceTopic:     record.Topic,
 		SourcePartition: record.Partition,

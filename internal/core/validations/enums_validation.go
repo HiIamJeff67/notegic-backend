@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10" // make sure we use the version 10
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func RegisterEnumsValidation(validate *validator.Validate) {

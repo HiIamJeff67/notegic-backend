@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	routineservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines"
@@ -35,7 +35,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/get-by-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyRoutineByIdOperation,
+				capi.GetMyRoutineByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyRoutineById,
@@ -43,7 +43,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/get-by-station-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyRoutinesByStationIdOperation,
+				capi.GetMyRoutinesByStationIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyRoutinesByStationId,
@@ -51,7 +51,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/get-all-by-time-range",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetAllMyRoutinesByTimeRangeOperation,
+				capi.GetAllMyRoutinesByTimeRangeOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetAllMyRoutinesByTimeRange,
@@ -59,7 +59,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/create-by-station-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.CreateRoutineByStationIdOperation,
+				capi.CreateRoutineByStationIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.CreateRoutineByStationId,
@@ -67,7 +67,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/create-many-by-station-ids",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.CreateRoutinesByStationIdsOperation,
+				capi.CreateRoutinesByStationIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.CreateRoutinesByStationIds,
@@ -75,7 +75,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/update",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMyRoutineByIdOperation,
+				capi.UpdateMyRoutineByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.UpdateMyRoutineById,
@@ -83,7 +83,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/update-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMyRoutinesByIdsOperation,
+				capi.UpdateMyRoutinesByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.UpdateMyRoutinesByIds,
@@ -91,7 +91,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/link-tag",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LinkRoutineTagByIdOperation,
+				capi.LinkRoutineTagByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.LinkRoutineTagById,
@@ -99,7 +99,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/link-tags",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LinkRoutineTagsByIdsOperation,
+				capi.LinkRoutineTagsByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.LinkRoutineTagsByIds,
@@ -107,7 +107,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/link-item",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LinkRoutineItemByIdOperation,
+				capi.LinkRoutineItemByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.LinkRoutineItemById,
@@ -115,7 +115,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/link-items",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LinkRoutineItemsByIdsOperation,
+				capi.LinkRoutineItemsByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.LinkRoutineItemsByIds,
@@ -123,7 +123,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/restore",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.RestoreMyRoutineByIdOperation,
+				capi.RestoreMyRoutineByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.RestoreMyRoutineById,
@@ -131,7 +131,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/restore-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.RestoreMyRoutinesByIdsOperation,
+				capi.RestoreMyRoutinesByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.RestoreMyRoutinesByIds,
@@ -139,7 +139,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/delete",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.DeleteMyRoutineByIdOperation,
+				capi.DeleteMyRoutineByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.DeleteMyRoutineById,
@@ -147,7 +147,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/delete-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.DeleteMyRoutinesByIdsOperation,
+				capi.DeleteMyRoutinesByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.DeleteMyRoutinesByIds,
@@ -155,7 +155,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/hard-delete",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.HardDeleteMyRoutineByIdOperation,
+				capi.HardDeleteMyRoutineByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.HardDeleteMyRoutineById,
@@ -163,7 +163,7 @@ func configureRoutineRoutes(
 		routineRoutes.POST(
 			"/hard-delete-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.HardDeleteMyRoutinesByIdsOperation,
+				capi.HardDeleteMyRoutinesByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.HardDeleteMyRoutinesByIds,
@@ -174,7 +174,7 @@ func configureRoutineRoutes(
 		visualizationRoutes.POST(
 			"/status-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineStatusCountOperation,
+				capi.VisualizeMyRoutineStatusCountOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.VisualizeMyRoutineStatusCount,
@@ -182,7 +182,7 @@ func configureRoutineRoutes(
 		visualizationRoutes.POST(
 			"/period-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutinePeriodCountOperation,
+				capi.VisualizeMyRoutinePeriodCountOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.VisualizeMyRoutinePeriodCount,
@@ -190,7 +190,7 @@ func configureRoutineRoutes(
 		visualizationRoutes.POST(
 			"/scheduled-start-at-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineScheduledStartAtCountOperation,
+				capi.VisualizeMyRoutineScheduledStartAtCountOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.VisualizeMyRoutineScheduledStartAtCount,
@@ -198,7 +198,7 @@ func configureRoutineRoutes(
 		visualizationRoutes.POST(
 			"/scheduled-end-at-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineScheduledEndAtCountOperation,
+				capi.VisualizeMyRoutineScheduledEndAtCountOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.VisualizeMyRoutineScheduledEndAtCount,
@@ -207,7 +207,7 @@ func configureRoutineRoutes(
 	router.POST(
 		"/routines/graphql/search",
 		middlewares.DelegationAuthenticatedMiddleware(
-			apicontract.SearchRoutinesOperation,
+			capi.SearchRoutinesOperation,
 		),
 		apiCompatibleAuthMiddleware,
 		endpoint.SearchRoutines,

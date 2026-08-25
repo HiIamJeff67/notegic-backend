@@ -5,27 +5,27 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/core/adapters"
 )
 
 type SubShelfControllerInterface interface {
-	GetMySubShelfById(ctx *gin.Context, requestDto *apicontract.GetMySubShelfByIdRequestDto)
-	GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMySubShelvesByPrevSubShelfIdRequestDto)
-	GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *apicontract.GetAllMySubShelvesByRootShelfIdRequestDto)
-	GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto)
-	CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *apicontract.CreateSubShelfByRootShelfIdRequestDto)
-	CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *apicontract.CreateSubShelvesByRootShelfIdsRequestDto)
-	UpdateMySubShelfById(ctx *gin.Context, requestDto *apicontract.UpdateMySubShelfByIdRequestDto)
-	UpdateMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.UpdateMySubShelvesByIdsRequestDto)
-	MoveMySubShelfByRootShelfId(ctx *gin.Context, requestDto *apicontract.MoveMySubShelfByRootShelfIdRequestDto)
-	MoveMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *apicontract.MoveMySubShelvesByRootShelfIdRequestDto)
-	MoveMySubShelvesByRootShelfIds(ctx *gin.Context, requestDto *apicontract.MoveMySubShelvesByRootShelfIdsRequestDto)
-	RestoreMySubShelfById(ctx *gin.Context, requestDto *apicontract.RestoreMySubShelfByIdRequestDto)
-	RestoreMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.RestoreMySubShelvesByIdsRequestDto)
-	DeleteMySubShelfById(ctx *gin.Context, requestDto *apicontract.DeleteMySubShelfByIdRequestDto)
-	DeleteMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.DeleteMySubShelvesByIdsRequestDto)
+	GetMySubShelfById(ctx *gin.Context, requestDto *capi.GetMySubShelfByIdRequestDto)
+	GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByPrevSubShelfIdRequestDto)
+	GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMySubShelvesByRootShelfIdRequestDto)
+	GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto)
+	CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.CreateSubShelfByRootShelfIdRequestDto)
+	CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.CreateSubShelvesByRootShelfIdsRequestDto)
+	UpdateMySubShelfById(ctx *gin.Context, requestDto *capi.UpdateMySubShelfByIdRequestDto)
+	UpdateMySubShelvesByIds(ctx *gin.Context, requestDto *capi.UpdateMySubShelvesByIdsRequestDto)
+	MoveMySubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelfByRootShelfIdRequestDto)
+	MoveMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdRequestDto)
+	MoveMySubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdsRequestDto)
+	RestoreMySubShelfById(ctx *gin.Context, requestDto *capi.RestoreMySubShelfByIdRequestDto)
+	RestoreMySubShelvesByIds(ctx *gin.Context, requestDto *capi.RestoreMySubShelvesByIdsRequestDto)
+	DeleteMySubShelfById(ctx *gin.Context, requestDto *capi.DeleteMySubShelfByIdRequestDto)
+	DeleteMySubShelvesByIds(ctx *gin.Context, requestDto *capi.DeleteMySubShelvesByIdsRequestDto)
 }
 
 type SubShelfController struct {
@@ -38,15 +38,15 @@ func NewSubShelfController(coreAdapter *coreadapters.CoreAdapter) SubShelfContro
 	}
 }
 
-func (c *SubShelfController) GetMySubShelfById(ctx *gin.Context, requestDto *apicontract.GetMySubShelfByIdRequestDto) {
+func (c *SubShelfController) GetMySubShelfById(ctx *gin.Context, requestDto *capi.GetMySubShelfByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMySubShelfByIdRequestDto,
-		apicontract.GetMySubShelfByIdResponseDto,
+		capi.GetMySubShelfByIdRequestDto,
+		capi.GetMySubShelfByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMySubShelfByIdOperation,
+		capi.GetMySubShelfByIdOperation,
 		"/core/v1/sub-shelves/get-by-id",
 	)
 	if exception != nil {
@@ -57,15 +57,15 @@ func (c *SubShelfController) GetMySubShelfById(ctx *gin.Context, requestDto *api
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMySubShelvesByPrevSubShelfIdRequestDto) {
+func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByPrevSubShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMySubShelvesByPrevSubShelfIdRequestDto,
-		apicontract.GetMySubShelvesByPrevSubShelfIdResponseDto,
+		capi.GetMySubShelvesByPrevSubShelfIdRequestDto,
+		capi.GetMySubShelvesByPrevSubShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMySubShelvesByPrevSubShelfIdOperation,
+		capi.GetMySubShelvesByPrevSubShelfIdOperation,
 		"/core/v1/sub-shelves/get-by-prev-sub-shelf-id",
 	)
 	if exception != nil {
@@ -76,15 +76,15 @@ func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, r
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *apicontract.GetAllMySubShelvesByRootShelfIdRequestDto) {
+func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMySubShelvesByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetAllMySubShelvesByRootShelfIdRequestDto,
-		apicontract.GetAllMySubShelvesByRootShelfIdResponseDto,
+		capi.GetAllMySubShelvesByRootShelfIdRequestDto,
+		capi.GetAllMySubShelvesByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetAllMySubShelvesByRootShelfIdOperation,
+		capi.GetAllMySubShelvesByRootShelfIdOperation,
 		"/core/v1/sub-shelves/get-all-by-root-shelf-id",
 	)
 	if exception != nil {
@@ -95,15 +95,15 @@ func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, r
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) {
+func (c *SubShelfController) GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto,
-		apicontract.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto,
+		capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto,
+		capi.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMySubShelvesAndItemsByPrevSubShelfIdOperation,
+		capi.GetMySubShelvesAndItemsByPrevSubShelfIdOperation,
 		"/core/v1/sub-shelves/get-and-items-by-prev-sub-shelf-id",
 	)
 	if exception != nil {
@@ -114,15 +114,15 @@ func (c *SubShelfController) GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Co
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *apicontract.CreateSubShelfByRootShelfIdRequestDto) {
+func (c *SubShelfController) CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.CreateSubShelfByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateSubShelfByRootShelfIdRequestDto,
-		apicontract.CreateSubShelfByRootShelfIdResponseDto,
+		capi.CreateSubShelfByRootShelfIdRequestDto,
+		capi.CreateSubShelfByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateSubShelfByRootShelfIdOperation,
+		capi.CreateSubShelfByRootShelfIdOperation,
 		"/core/v1/sub-shelves/create",
 	)
 	if exception != nil {
@@ -133,15 +133,15 @@ func (c *SubShelfController) CreateSubShelfByRootShelfId(ctx *gin.Context, reque
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *apicontract.CreateSubShelvesByRootShelfIdsRequestDto) {
+func (c *SubShelfController) CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.CreateSubShelvesByRootShelfIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateSubShelvesByRootShelfIdsRequestDto,
-		apicontract.CreateSubShelvesByRootShelfIdsResponseDto,
+		capi.CreateSubShelvesByRootShelfIdsRequestDto,
+		capi.CreateSubShelvesByRootShelfIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateSubShelvesByRootShelfIdsOperation,
+		capi.CreateSubShelvesByRootShelfIdsOperation,
 		"/core/v1/sub-shelves/create-many",
 	)
 	if exception != nil {
@@ -152,15 +152,15 @@ func (c *SubShelfController) CreateSubShelvesByRootShelfIds(ctx *gin.Context, re
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) UpdateMySubShelfById(ctx *gin.Context, requestDto *apicontract.UpdateMySubShelfByIdRequestDto) {
+func (c *SubShelfController) UpdateMySubShelfById(ctx *gin.Context, requestDto *capi.UpdateMySubShelfByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMySubShelfByIdRequestDto,
-		apicontract.UpdateMySubShelfByIdResponseDto,
+		capi.UpdateMySubShelfByIdRequestDto,
+		capi.UpdateMySubShelfByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMySubShelfByIdOperation,
+		capi.UpdateMySubShelfByIdOperation,
 		"/core/v1/sub-shelves/update",
 	)
 	if exception != nil {
@@ -171,15 +171,15 @@ func (c *SubShelfController) UpdateMySubShelfById(ctx *gin.Context, requestDto *
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) UpdateMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.UpdateMySubShelvesByIdsRequestDto) {
+func (c *SubShelfController) UpdateMySubShelvesByIds(ctx *gin.Context, requestDto *capi.UpdateMySubShelvesByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMySubShelvesByIdsRequestDto,
-		apicontract.UpdateMySubShelvesByIdsResponseDto,
+		capi.UpdateMySubShelvesByIdsRequestDto,
+		capi.UpdateMySubShelvesByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMySubShelvesByIdsOperation,
+		capi.UpdateMySubShelvesByIdsOperation,
 		"/core/v1/sub-shelves/update-many",
 	)
 	if exception != nil {
@@ -190,15 +190,15 @@ func (c *SubShelfController) UpdateMySubShelvesByIds(ctx *gin.Context, requestDt
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) MoveMySubShelfByRootShelfId(ctx *gin.Context, requestDto *apicontract.MoveMySubShelfByRootShelfIdRequestDto) {
+func (c *SubShelfController) MoveMySubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelfByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMySubShelfByRootShelfIdRequestDto,
-		apicontract.MoveMySubShelfByRootShelfIdResponseDto,
+		capi.MoveMySubShelfByRootShelfIdRequestDto,
+		capi.MoveMySubShelfByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMySubShelfByRootShelfIdOperation,
+		capi.MoveMySubShelfByRootShelfIdOperation,
 		"/core/v1/sub-shelves/move",
 	)
 	if exception != nil {
@@ -209,15 +209,15 @@ func (c *SubShelfController) MoveMySubShelfByRootShelfId(ctx *gin.Context, reque
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) MoveMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *apicontract.MoveMySubShelvesByRootShelfIdRequestDto) {
+func (c *SubShelfController) MoveMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMySubShelvesByRootShelfIdRequestDto,
-		apicontract.MoveMySubShelvesByRootShelfIdResponseDto,
+		capi.MoveMySubShelvesByRootShelfIdRequestDto,
+		capi.MoveMySubShelvesByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMySubShelvesByRootShelfIdOperation,
+		capi.MoveMySubShelvesByRootShelfIdOperation,
 		"/core/v1/sub-shelves/move-many",
 	)
 	if exception != nil {
@@ -228,15 +228,15 @@ func (c *SubShelfController) MoveMySubShelvesByRootShelfId(ctx *gin.Context, req
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) MoveMySubShelvesByRootShelfIds(ctx *gin.Context, requestDto *apicontract.MoveMySubShelvesByRootShelfIdsRequestDto) {
+func (c *SubShelfController) MoveMySubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMySubShelvesByRootShelfIdsRequestDto,
-		apicontract.MoveMySubShelvesByRootShelfIdsResponseDto,
+		capi.MoveMySubShelvesByRootShelfIdsRequestDto,
+		capi.MoveMySubShelvesByRootShelfIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMySubShelvesByRootShelfIdsOperation,
+		capi.MoveMySubShelvesByRootShelfIdsOperation,
 		"/core/v1/sub-shelves/move-many-by-root-shelves",
 	)
 	if exception != nil {
@@ -247,15 +247,15 @@ func (c *SubShelfController) MoveMySubShelvesByRootShelfIds(ctx *gin.Context, re
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) RestoreMySubShelfById(ctx *gin.Context, requestDto *apicontract.RestoreMySubShelfByIdRequestDto) {
+func (c *SubShelfController) RestoreMySubShelfById(ctx *gin.Context, requestDto *capi.RestoreMySubShelfByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMySubShelfByIdRequestDto,
-		apicontract.RestoreMySubShelfByIdResponseDto,
+		capi.RestoreMySubShelfByIdRequestDto,
+		capi.RestoreMySubShelfByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RestoreMySubShelfByIdOperation,
+		capi.RestoreMySubShelfByIdOperation,
 		"/core/v1/sub-shelves/restore",
 	)
 	if exception != nil {
@@ -266,15 +266,15 @@ func (c *SubShelfController) RestoreMySubShelfById(ctx *gin.Context, requestDto 
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) RestoreMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.RestoreMySubShelvesByIdsRequestDto) {
+func (c *SubShelfController) RestoreMySubShelvesByIds(ctx *gin.Context, requestDto *capi.RestoreMySubShelvesByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMySubShelvesByIdsRequestDto,
-		apicontract.RestoreMySubShelvesByIdsResponseDto,
+		capi.RestoreMySubShelvesByIdsRequestDto,
+		capi.RestoreMySubShelvesByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RestoreMySubShelvesByIdsOperation,
+		capi.RestoreMySubShelvesByIdsOperation,
 		"/core/v1/sub-shelves/restore-many",
 	)
 	if exception != nil {
@@ -285,15 +285,15 @@ func (c *SubShelfController) RestoreMySubShelvesByIds(ctx *gin.Context, requestD
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) DeleteMySubShelfById(ctx *gin.Context, requestDto *apicontract.DeleteMySubShelfByIdRequestDto) {
+func (c *SubShelfController) DeleteMySubShelfById(ctx *gin.Context, requestDto *capi.DeleteMySubShelfByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMySubShelfByIdRequestDto,
-		apicontract.DeleteMySubShelfByIdResponseDto,
+		capi.DeleteMySubShelfByIdRequestDto,
+		capi.DeleteMySubShelfByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.DeleteMySubShelfByIdOperation,
+		capi.DeleteMySubShelfByIdOperation,
 		"/core/v1/sub-shelves/delete",
 	)
 	if exception != nil {
@@ -304,15 +304,15 @@ func (c *SubShelfController) DeleteMySubShelfById(ctx *gin.Context, requestDto *
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *SubShelfController) DeleteMySubShelvesByIds(ctx *gin.Context, requestDto *apicontract.DeleteMySubShelvesByIdsRequestDto) {
+func (c *SubShelfController) DeleteMySubShelvesByIds(ctx *gin.Context, requestDto *capi.DeleteMySubShelvesByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMySubShelvesByIdsRequestDto,
-		apicontract.DeleteMySubShelvesByIdsResponseDto,
+		capi.DeleteMySubShelvesByIdsRequestDto,
+		capi.DeleteMySubShelvesByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.DeleteMySubShelvesByIdsOperation,
+		capi.DeleteMySubShelvesByIdsOperation,
 		"/core/v1/sub-shelves/delete-many",
 	)
 	if exception != nil {

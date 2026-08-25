@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	notificationeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cnotificationevents "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -52,7 +52,7 @@ func (c *NotificationConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
 		consumer, err := platformkafka.NewConsumer(
 			c.kafkaConfig,
-			notificationeventscontract.NotificationTopic.String(),
+			cnotificationevents.NotificationTopic.String(),
 		)
 		if err == nil {
 			err = consumer.Run(ctx, c.consume)
@@ -75,15 +75,15 @@ func (c *NotificationConsumer) run(ctx context.Context) {
 func (c *NotificationConsumer) consume(
 	ctx context.Context,
 	_ platformkafka.ConsumerRecord,
-	event eventcontract.EventEnvelope[json.RawMessage],
+	event cevent.EventEnvelope[json.RawMessage],
 ) error {
-	if event.EventType != notificationeventscontract.EventType_NotificationCreated {
+	if event.EventType != cnotificationevents.EventType_NotificationCreated {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_PoisonMessage,
 			Origin:         errors.New("unsupported Notification event type"),
 		}
 	}
-	var data notificationeventscontract.NotificationCreatedData
+	var data cnotificationevents.NotificationCreatedData
 	if err := json.Unmarshal(event.Data, &data); err != nil {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_SchemaIncompatible,

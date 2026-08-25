@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type StorageException struct {
@@ -15,8 +15,8 @@ func NewStorageException() StorageException {
 	return StorageException{CoreException: NewCoreException("Storage")}
 }
 
-func (StorageException) FailedToReadObjectBytes() *exceptions.Exception {
-	return exceptions.New(
+func (StorageException) FailedToReadObjectBytes() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToReadObjectBytes",
 		"Storage",
 		"Read",
@@ -26,8 +26,8 @@ func (StorageException) FailedToReadObjectBytes() *exceptions.Exception {
 	)
 }
 
-func (StorageException) FailedToPutObject(object any) *exceptions.Exception {
-	return exceptions.New(
+func (StorageException) FailedToPutObject(object any) *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToPutObject",
 		"Storage",
 		"Put",
@@ -37,8 +37,8 @@ func (StorageException) FailedToPutObject(object any) *exceptions.Exception {
 	)
 }
 
-func (StorageException) FailedToPresignedGetObject(object any) *exceptions.Exception {
-	return exceptions.New(
+func (StorageException) FailedToPresignedGetObject(object any) *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToPresignedGetObject",
 		"Storage",
 		"PresignGet",

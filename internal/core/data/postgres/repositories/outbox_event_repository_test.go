@@ -8,36 +8,36 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 func TestConvertEnvelopeToCreateOutboxEventInputAndSerializePreserveEventContract(t *testing.T) {
 	eventId := uuid.New()
 	aggregateId := uuid.New()
 	occurredAt := time.Now().UTC().Round(0)
-	envelope := eventcontract.EventEnvelope[coreeventscontract.BlockPackAccessRevokedData]{
-		SchemaVersion: eventcontract.Version,
+	envelope := cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+		SchemaVersion: cevent.Version,
 		EventId:       eventId,
-		EventType:     coreeventscontract.EventType_BlockPackAccessRevoked,
-		AggregateType: coreeventscontract.AggregateType_BlockPack,
+		EventType:     coreevents.EventType_BlockPackAccessRevoked,
+		AggregateType: coreevents.AggregateType_BlockPack,
 		AggregateId:   aggregateId,
 		KafkaKey:      aggregateId.String(),
 		OccurredAt:    occurredAt,
 		CorrelationId: "request-123",
-		Trace: eventcontract.TraceMetadata{
+		Trace: cevent.TraceMetadata{
 			TraceParent: "00-trace",
 		},
-		Data: coreeventscontract.BlockPackAccessRevokedData{},
+		Data: coreevents.BlockPackAccessRevokedData{},
 	}
 
-	createInput, err := crepositories.ConvertEnvelopeToCreateOutboxEventInput(coreeventscontract.CoreLifecycleTopic, envelope)
+	createInput, err := crepositories.ConvertEnvelopeToCreateOutboxEventInput(coreevents.CoreLifecycleTopic, envelope)
 	if err != nil {
 		t.Fatalf("failed to create outbox input: %v", err)
 	}
-	payload, err := crepositories.SerializeOutboxEvent(cmodels.OutboxEvent{
+	payload, err := crepositories.SerializeOutboxEvent(platformschemas.OutboxEvent{
 		Id:            createInput.Id,
 		AggregateType: createInput.AggregateType,
 		AggregateId:   createInput.AggregateId,
@@ -51,7 +51,7 @@ func TestConvertEnvelopeToCreateOutboxEventInputAndSerializePreserveEventContrac
 		t.Fatalf("failed to serialize outbox event: %v", err)
 	}
 
-	var serialized eventcontract.EventEnvelope[coreeventscontract.BlockPackAccessRevokedData]
+	var serialized cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]
 	if err := json.Unmarshal(payload, &serialized); err != nil {
 		t.Fatalf("failed to decode serialized event: %v", err)
 	}
@@ -64,17 +64,17 @@ func TestConvertEnvelopeToCreateOutboxEventInputAndSerializePreserveEventContrac
 
 func TestConvertEnvelopeToCreateOutboxEventInputRejectsMismatchedKafkaKey(t *testing.T) {
 	_, err := crepositories.ConvertEnvelopeToCreateOutboxEventInput(
-		coreeventscontract.CoreLifecycleTopic,
-		eventcontract.EventEnvelope[coreeventscontract.UserSessionsRevokedData]{
-			SchemaVersion: eventcontract.Version,
+		coreevents.CoreLifecycleTopic,
+		cevent.EventEnvelope[coreevents.UserSessionsRevokedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     coreeventscontract.EventType_UserSessionsRevoked,
-			AggregateType: coreeventscontract.AggregateType_User,
+			EventType:     coreevents.EventType_UserSessionsRevoked,
+			AggregateType: coreevents.AggregateType_User,
 			AggregateId:   uuid.New(),
 			KafkaKey:      "another-aggregate",
 			OccurredAt:    time.Now(),
 			CorrelationId: "request-123",
-			Data:          coreeventscontract.UserSessionsRevokedData{},
+			Data:          coreevents.UserSessionsRevokedData{},
 		},
 	)
 	if err == nil {

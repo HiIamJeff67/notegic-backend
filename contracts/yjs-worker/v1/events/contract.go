@@ -3,24 +3,24 @@ package adapterseventscontract
 import (
 	"github.com/google/uuid"
 
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 )
 
 const (
-	YjsWorkerCoreCommandTopic            eventcontract.Topic = "notegic.adapters.core.command.v1"
-	CoreYjsWorkerReplyTopic              eventcontract.Topic = "notegic.core.adapters.reply.v1"
-	YjsWorkerCoreMaintenanceCommandTopic eventcontract.Topic = "notegic.core.adapters.maintenance-command.v1"
-	CoreYjsWorkerMaintenanceResultTopic  eventcontract.Topic = "notegic.adapters.core.maintenance-result.v1"
+	YjsWorkerCoreCommandTopic            cevent.Topic = "notegic.adapters.core.command.v1"
+	CoreYjsWorkerReplyTopic              cevent.Topic = "notegic.core.adapters.reply.v1"
+	YjsWorkerCoreMaintenanceCommandTopic cevent.Topic = "notegic.core.adapters.maintenance-command.v1"
+	CoreYjsWorkerMaintenanceResultTopic  cevent.Topic = "notegic.adapters.core.maintenance-result.v1"
 )
 
 const (
-	EventType_YjsWorkerCommand          eventcontract.EventType = "YjsWorkerCommand"
-	EventType_YjsWorkerCommandCompleted eventcontract.EventType = "YjsWorkerCommandCompleted"
-	EventType_YjsMaintenanceCommand     eventcontract.EventType = "YjsMaintenanceCommand"
-	EventType_YjsMaintenanceCompleted   eventcontract.EventType = "YjsMaintenanceCompleted"
+	EventType_YjsWorkerCommand          cevent.EventType = "YjsWorkerCommand"
+	EventType_YjsWorkerCommandCompleted cevent.EventType = "YjsWorkerCommandCompleted"
+	EventType_YjsMaintenanceCommand     cevent.EventType = "YjsMaintenanceCommand"
+	EventType_YjsMaintenanceCompleted   cevent.EventType = "YjsMaintenanceCompleted"
 )
 
-const AggregateType_BlockPack eventcontract.AggregateType = "BlockPack"
+const AggregateType_BlockPack cevent.AggregateType = "BlockPack"
 
 type YjsMaintenanceOperation string
 

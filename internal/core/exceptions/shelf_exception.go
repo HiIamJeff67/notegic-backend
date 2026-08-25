@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type ShelfException struct {
@@ -17,8 +17,8 @@ func NewShelfException() ShelfException {
 	}
 }
 
-func (ShelfException) DuplicateName(name string) *exceptions.Exception {
-	return exceptions.New(
+func (ShelfException) DuplicateName(name string) *cexceptions.Exception {
+	return cexceptions.New(
 		"DuplicateName",
 		"Shelf",
 		"Create",
@@ -27,8 +27,8 @@ func (ShelfException) DuplicateName(name string) *exceptions.Exception {
 	)
 }
 
-func (ShelfException) MaximumDepthExceeded(currentDepth int32, maxDepth int32) *exceptions.Exception {
-	return exceptions.New(
+func (ShelfException) MaximumDepthExceeded(currentDepth int32, maxDepth int32) *cexceptions.Exception {
+	return cexceptions.New(
 		"MaximumDepthExceeded",
 		"Shelf",
 		"Validate",
@@ -37,8 +37,8 @@ func (ShelfException) MaximumDepthExceeded(currentDepth int32, maxDepth int32) *
 	)
 }
 
-func (ShelfException) InsertParentIntoItsChildren(destination any, target any) *exceptions.Exception {
-	return exceptions.New(
+func (ShelfException) InsertParentIntoItsChildren(destination any, target any) *cexceptions.Exception {
+	return cexceptions.New(
 		"InsertParentIntoItsChildren",
 		"Shelf",
 		"Validate",

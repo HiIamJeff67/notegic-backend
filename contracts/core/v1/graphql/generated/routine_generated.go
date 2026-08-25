@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -30,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateRoutine_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -74,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_id(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_stationId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_stationId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_stationId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -118,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_stationId(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_title(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_title(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_title(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -162,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_title(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_description(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_description(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_description(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -206,7 +206,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_description(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_status(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_status(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_status(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -250,7 +250,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_status(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_isPinned(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -294,7 +294,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_isPinned(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_scheduledStartAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_scheduledStartAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_scheduledStartAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -338,7 +338,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_scheduledStartAt(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_scheduledEndAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_scheduledEndAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_scheduledEndAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -382,7 +382,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_scheduledEndAt(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_period(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_period(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_period(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -423,7 +423,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_period(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_timezone(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_timezone(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_timezone(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -467,7 +467,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_timezone(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -508,7 +508,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_deletedAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -552,7 +552,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_updatedAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -596,7 +596,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_createdAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_tagIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_tagIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_tagIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -640,7 +640,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_tagIds(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_taskIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_taskIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_taskIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -684,7 +684,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_taskIds(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutine_itemIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutine_itemIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_itemIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -728,7 +728,7 @@ func (ec *executionContext) fieldContext_PrivateRoutine_itemIds(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -772,7 +772,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_id(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_stationId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_stationId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_stationId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -816,7 +816,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_stationId(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_title(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_title(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_title(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -860,7 +860,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_title(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_status(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_status(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_status(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -904,7 +904,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_status(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_isPinned(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -948,7 +948,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_isPinned(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_scheduledStartAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_scheduledStartAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_scheduledStartAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -992,7 +992,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_scheduledStart
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_scheduledEndAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_scheduledEndAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_scheduledEndAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1036,7 +1036,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_scheduledEndAt
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_period(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_period(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_period(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1077,7 +1077,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_period(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_timezone(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_timezone(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_timezone(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1121,7 +1121,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_timezone(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1162,7 +1162,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_deletedAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1206,7 +1206,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_updatedAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1250,7 +1250,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_createdAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_tagIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_tagIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_tagIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1294,7 +1294,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_tagIds(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_taskIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_taskIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_taskIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1338,7 +1338,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_taskIds(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableRoutine_itemIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableRoutine_itemIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_itemIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1396,7 +1396,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_itemIds(_ cont
 
 var privateRoutineImplementors = []string{"PrivateRoutine"}
 
-func (ec *executionContext) _PrivateRoutine(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateRoutine) graphql.Marshaler {
+func (ec *executionContext) _PrivateRoutine(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateRoutine) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateRoutineImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1504,7 +1504,7 @@ func (ec *executionContext) _PrivateRoutine(ctx context.Context, sel ast.Selecti
 
 var privateSearchableRoutineImplementors = []string{"PrivateSearchableRoutine"}
 
-func (ec *executionContext) _PrivateSearchableRoutine(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateSearchableRoutine) graphql.Marshaler {
+func (ec *executionContext) _PrivateSearchableRoutine(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateSearchableRoutine) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateSearchableRoutineImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1609,7 +1609,7 @@ func (ec *executionContext) _PrivateSearchableRoutine(ctx context.Context, sel a
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateSearchableRoutine2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSearchableRoutine(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateSearchableRoutine) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateSearchableRoutine2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSearchableRoutine(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateSearchableRoutine) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

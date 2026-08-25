@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/routine-tags"
 )
 
 type UpdateMyRoutineTagByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -34,7 +34,7 @@ type UpdateMyRoutineTagByIdResponseDto struct {
 }
 
 type UpdateMyRoutineTagsByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

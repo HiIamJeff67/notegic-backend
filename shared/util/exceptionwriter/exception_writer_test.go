@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 func TestSafelyAbortAndResponseWithJSONMasksInternalException(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSafelyAbortAndResponseWithJSONMasksInternalException(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(responseRecorder)
 
 	SafelyAbortAndResponseWithJSON(
-		exceptions.New(
+		cexceptions.New(
 			"DatabaseFailure",
 			"API",
 			"CreateRootShelf",

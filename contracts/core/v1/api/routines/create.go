@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/routines"
 )
 
 type CreateRoutineByStationIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -24,7 +24,7 @@ type CreateRoutineByStationIdResponseDto struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 type CreateRoutinesByStationIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

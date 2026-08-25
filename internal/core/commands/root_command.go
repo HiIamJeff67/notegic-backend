@@ -27,11 +27,7 @@ var rootCommand = &cobra.Command{
 }
 
 func init() {
-	truncateDatabaseCommand.Flags().String("database", "", "The name of the database to truncate the table inside it")
-	truncateDatabaseCommand.Flags().String("table", "", "The name of the table to truncate")
 	rootCommand.AddCommand(
-		viewAllAvailableDatabasesCommand,
-		truncateDatabaseCommand,
 		viewAllDatabaseEnumsCommand,
 		migrateDatabaseCommand,
 		seedDatabaseCommand,

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type RoutineTaskRecordCountDatum struct {
@@ -21,7 +21,7 @@ type RoutineTaskRecordCountResponseDto struct {
 }
 
 type VisualizeMyRoutineTaskRecordStatusCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -37,7 +37,7 @@ type VisualizeMyRoutineTaskRecordStatusCountRequestDto struct {
 type VisualizeMyRoutineTaskRecordStatusCountResponseDto = RoutineTaskRecordCountResponseDto
 
 type VisualizeMyRoutineTaskRecordPurposeCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -53,7 +53,7 @@ type VisualizeMyRoutineTaskRecordPurposeCountRequestDto struct {
 type VisualizeMyRoutineTaskRecordPurposeCountResponseDto = RoutineTaskRecordCountResponseDto
 
 type VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -72,7 +72,7 @@ type VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto struct {
 type VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto = RoutineTaskRecordCountResponseDto
 
 type VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -91,7 +91,7 @@ type VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto struct {
 type VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto = RoutineTaskRecordCountResponseDto
 
 type VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

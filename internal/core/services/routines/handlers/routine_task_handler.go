@@ -3,9 +3,9 @@ package handlers
 import (
 	"gorm.io/datatypes"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 )
 
@@ -13,7 +13,7 @@ type RoutineTaskHandlerInterface interface {
 	HandleValidateRoutineTaskPayload(
 		purpose enums.RoutineTaskPurpose,
 		payload datatypes.JSON,
-	) *exceptions.Exception
+	) *cexceptions.Exception
 }
 
 type RoutineTaskHandler struct {
@@ -29,6 +29,6 @@ func NewRoutineTaskHandler(
 func (h *RoutineTaskHandler) HandleValidateRoutineTaskPayload(
 	purpose enums.RoutineTaskPurpose,
 	payload datatypes.JSON,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	return h.payloadParser.ValidateRoutineTaskPayload(purpose, payload)
 }

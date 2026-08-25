@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/themes"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/themes"
 
 	otherservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/other"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -21,7 +21,7 @@ func configureThemeRoutes(router *gin.RouterGroup, deps ThemeRouterDependencies)
 		themeRoutes.POST(
 			"/graphql/search",
 			middlewares.DelegationMiddleware(
-				apicontract.SearchThemesOperation,
+				capi.SearchThemesOperation,
 			),
 			endpoint.SearchThemes,
 		)

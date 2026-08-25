@@ -10,7 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -270,19 +270,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		SearchBlockPacks         func(childComplexity int, input gqlmodels.SearchBlockPackInput) int
-		SearchBlocks             func(childComplexity int, input gqlmodels.SearchBlockInput) int
-		SearchItems              func(childComplexity int, input gqlmodels.SearchItemInput) int
-		SearchMaterials          func(childComplexity int, input gqlmodels.SearchMaterialInput) int
-		SearchRootShelves        func(childComplexity int, input gqlmodels.SearchRootShelfInput) int
-		SearchRoutineTags        func(childComplexity int, input gqlmodels.SearchRoutineTagInput) int
-		SearchRoutineTaskRecords func(childComplexity int, input gqlmodels.SearchRoutineTaskRecordInput) int
-		SearchRoutineTasks       func(childComplexity int, input gqlmodels.SearchRoutineTaskInput) int
-		SearchRoutines           func(childComplexity int, input gqlmodels.SearchRoutineInput) int
-		SearchStations           func(childComplexity int, input gqlmodels.SearchStationInput) int
-		SearchSubShelves         func(childComplexity int, input gqlmodels.SearchSubShelfInput) int
-		SearchThemes             func(childComplexity int, input gqlmodels.SearchThemeInput) int
-		SearchUsers              func(childComplexity int, input gqlmodels.SearchUserInput) int
+		SearchBlockPacks         func(childComplexity int, input cgqlmodels.SearchBlockPackInput) int
+		SearchBlocks             func(childComplexity int, input cgqlmodels.SearchBlockInput) int
+		SearchItems              func(childComplexity int, input cgqlmodels.SearchItemInput) int
+		SearchMaterials          func(childComplexity int, input cgqlmodels.SearchMaterialInput) int
+		SearchRootShelves        func(childComplexity int, input cgqlmodels.SearchRootShelfInput) int
+		SearchRoutineTags        func(childComplexity int, input cgqlmodels.SearchRoutineTagInput) int
+		SearchRoutineTaskRecords func(childComplexity int, input cgqlmodels.SearchRoutineTaskRecordInput) int
+		SearchRoutineTasks       func(childComplexity int, input cgqlmodels.SearchRoutineTaskInput) int
+		SearchRoutines           func(childComplexity int, input cgqlmodels.SearchRoutineInput) int
+		SearchStations           func(childComplexity int, input cgqlmodels.SearchStationInput) int
+		SearchSubShelves         func(childComplexity int, input cgqlmodels.SearchSubShelfInput) int
+		SearchThemes             func(childComplexity int, input cgqlmodels.SearchThemeInput) int
+		SearchUsers              func(childComplexity int, input cgqlmodels.SearchUserInput) int
 	}
 
 	SearchBadgeConnection struct {
@@ -1729,7 +1729,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchBlockPacks(childComplexity, args["input"].(gqlmodels.SearchBlockPackInput)), true
+		return e.complexity.Query.SearchBlockPacks(childComplexity, args["input"].(cgqlmodels.SearchBlockPackInput)), true
 
 	case "Query.searchBlocks":
 		if e.complexity.Query.SearchBlocks == nil {
@@ -1741,7 +1741,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchBlocks(childComplexity, args["input"].(gqlmodels.SearchBlockInput)), true
+		return e.complexity.Query.SearchBlocks(childComplexity, args["input"].(cgqlmodels.SearchBlockInput)), true
 
 	case "Query.searchItems":
 		if e.complexity.Query.SearchItems == nil {
@@ -1753,7 +1753,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchItems(childComplexity, args["input"].(gqlmodels.SearchItemInput)), true
+		return e.complexity.Query.SearchItems(childComplexity, args["input"].(cgqlmodels.SearchItemInput)), true
 
 	case "Query.searchMaterials":
 		if e.complexity.Query.SearchMaterials == nil {
@@ -1765,7 +1765,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchMaterials(childComplexity, args["input"].(gqlmodels.SearchMaterialInput)), true
+		return e.complexity.Query.SearchMaterials(childComplexity, args["input"].(cgqlmodels.SearchMaterialInput)), true
 
 	case "Query.searchRootShelves":
 		if e.complexity.Query.SearchRootShelves == nil {
@@ -1777,7 +1777,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchRootShelves(childComplexity, args["input"].(gqlmodels.SearchRootShelfInput)), true
+		return e.complexity.Query.SearchRootShelves(childComplexity, args["input"].(cgqlmodels.SearchRootShelfInput)), true
 
 	case "Query.searchRoutineTags":
 		if e.complexity.Query.SearchRoutineTags == nil {
@@ -1789,7 +1789,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchRoutineTags(childComplexity, args["input"].(gqlmodels.SearchRoutineTagInput)), true
+		return e.complexity.Query.SearchRoutineTags(childComplexity, args["input"].(cgqlmodels.SearchRoutineTagInput)), true
 
 	case "Query.searchRoutineTaskRecords":
 		if e.complexity.Query.SearchRoutineTaskRecords == nil {
@@ -1801,7 +1801,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchRoutineTaskRecords(childComplexity, args["input"].(gqlmodels.SearchRoutineTaskRecordInput)), true
+		return e.complexity.Query.SearchRoutineTaskRecords(childComplexity, args["input"].(cgqlmodels.SearchRoutineTaskRecordInput)), true
 
 	case "Query.searchRoutineTasks":
 		if e.complexity.Query.SearchRoutineTasks == nil {
@@ -1813,7 +1813,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchRoutineTasks(childComplexity, args["input"].(gqlmodels.SearchRoutineTaskInput)), true
+		return e.complexity.Query.SearchRoutineTasks(childComplexity, args["input"].(cgqlmodels.SearchRoutineTaskInput)), true
 
 	case "Query.searchRoutines":
 		if e.complexity.Query.SearchRoutines == nil {
@@ -1825,7 +1825,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchRoutines(childComplexity, args["input"].(gqlmodels.SearchRoutineInput)), true
+		return e.complexity.Query.SearchRoutines(childComplexity, args["input"].(cgqlmodels.SearchRoutineInput)), true
 
 	case "Query.searchStations":
 		if e.complexity.Query.SearchStations == nil {
@@ -1837,7 +1837,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchStations(childComplexity, args["input"].(gqlmodels.SearchStationInput)), true
+		return e.complexity.Query.SearchStations(childComplexity, args["input"].(cgqlmodels.SearchStationInput)), true
 
 	case "Query.searchSubShelves":
 		if e.complexity.Query.SearchSubShelves == nil {
@@ -1849,7 +1849,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchSubShelves(childComplexity, args["input"].(gqlmodels.SearchSubShelfInput)), true
+		return e.complexity.Query.SearchSubShelves(childComplexity, args["input"].(cgqlmodels.SearchSubShelfInput)), true
 
 	case "Query.searchThemes":
 		if e.complexity.Query.SearchThemes == nil {
@@ -1861,7 +1861,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchThemes(childComplexity, args["input"].(gqlmodels.SearchThemeInput)), true
+		return e.complexity.Query.SearchThemes(childComplexity, args["input"].(cgqlmodels.SearchThemeInput)), true
 
 	case "Query.searchUsers":
 		if e.complexity.Query.SearchUsers == nil {
@@ -1873,7 +1873,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchUsers(childComplexity, args["input"].(gqlmodels.SearchUserInput)), true
+		return e.complexity.Query.SearchUsers(childComplexity, args["input"].(cgqlmodels.SearchUserInput)), true
 
 	case "SearchBadgeConnection.searchEdges":
 		if e.complexity.SearchBadgeConnection.SearchEdges == nil {

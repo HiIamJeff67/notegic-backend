@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type RoutineException struct {
@@ -18,8 +18,8 @@ func NewRoutineException() RoutineException {
 	}
 }
 
-func (RoutineException) QueriedTimeRangeTooLarge(from time.Time, to time.Time) *exceptions.Exception {
-	return exceptions.New(
+func (RoutineException) QueriedTimeRangeTooLarge(from time.Time, to time.Time) *cexceptions.Exception {
+	return cexceptions.New(
 		"QueriedTimeRangeTooLarge",
 		"Routine",
 		"Search",
@@ -28,8 +28,8 @@ func (RoutineException) QueriedTimeRangeTooLarge(from time.Time, to time.Time) *
 	)
 }
 
-func (RoutineException) FailedToLinkRoutineTags() *exceptions.Exception {
-	return exceptions.New(
+func (RoutineException) FailedToLinkRoutineTags() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToLinkRoutineTags",
 		"Routine",
 		"Link",
@@ -38,8 +38,8 @@ func (RoutineException) FailedToLinkRoutineTags() *exceptions.Exception {
 	)
 }
 
-func (RoutineException) FailedToLinkItems() *exceptions.Exception {
-	return exceptions.New(
+func (RoutineException) FailedToLinkItems() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToLinkItems",
 		"Routine",
 		"Link",

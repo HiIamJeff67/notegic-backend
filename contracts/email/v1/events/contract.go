@@ -1,13 +1,13 @@
 package emaileventscontract
 
-import eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+import cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 const (
-	CoreEmailRequestTopic  eventcontract.Topic = "notegic.core.email.request.v1"
-	CoreEmailConsumerGroup                     = "notegic-email-core-v1"
+	CoreEmailRequestTopic  cevent.Topic = "notegic.core.email.request.v1"
+	CoreEmailConsumerGroup              = "notegic-email-core-v1"
 )
 
 const (
-	AggregateType_EmailRequest eventcontract.AggregateType = "EmailRequest"
-	EventType_EmailRequested   eventcontract.EventType     = "EmailRequested"
+	AggregateType_EmailRequest cevent.AggregateType = "EmailRequest"
+	EventType_EmailRequested   cevent.EventType     = "EmailRequested"
 )

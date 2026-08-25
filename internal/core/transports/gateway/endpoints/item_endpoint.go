@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	shelfservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/shelves"
@@ -30,7 +30,7 @@ func NewItemEndpoint(
 }
 
 func (t *ItemEndpoint) SearchItems(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.SearchItemsRequestDto]{}
+	request := &cgateway.Request[capi.SearchItemsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -39,9 +39,9 @@ func (t *ItemEndpoint) SearchItems(ctx *gin.Context) {
 	userId, exception := contexts.GetActorUserId(ctx.Request.Context())
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -54,9 +54,9 @@ func (t *ItemEndpoint) SearchItems(ctx *gin.Context) {
 	responseDto, exception := t.itemService.SearchPrivateItems(ctx.Request.Context(), userId, request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -66,9 +66,9 @@ func (t *ItemEndpoint) SearchItems(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.SearchItemsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.SearchItemsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

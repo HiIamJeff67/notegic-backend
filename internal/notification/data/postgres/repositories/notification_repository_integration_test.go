@@ -11,12 +11,12 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/schemas"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
@@ -30,7 +30,7 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 
 	repository := NewNotificationRepository(db)
 	userPublicId := uuid.New()
-	if err := db.Create(&cmodels.UserView{PublicId: userPublicId, Status: enumcontract.UserStatus_Online}).Error; err != nil {
+	if err := db.Create(&platformschemas.UserView{PublicId: userPublicId, Status: enums.UserStatus_Online}).Error; err != nil {
 		t.Fatalf("create user view: %v", err)
 	}
 	firstEvent := newNotificationRequestEvent(t, userPublicId, "first")
@@ -45,7 +45,7 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 	if deletedCount != 1 {
 		t.Fatalf("deleted notification count = %d, want 1", deletedCount)
 	}
-	if err := db.Delete(&cmodels.UserView{}, "public_id = ?", userPublicId).Error; err != nil {
+	if err := db.Delete(&platformschemas.UserView{}, "public_id = ?", userPublicId).Error; err != nil {
 		t.Fatalf("delete user view: %v", err)
 	}
 
@@ -124,7 +124,7 @@ func createNotificationRepositoryTestTables(db *gorm.DB) error {
 		`CREATE UNIQUE INDEX notification_dedupe_key_index ON NotificationTable (dedupe_key)`,
 		`CREATE TABLE InboxEventTable (event_id BLOB PRIMARY KEY, consumed_at DATETIME NOT NULL)`,
 		`CREATE TABLE OutboxEventTable (id BLOB PRIMARY KEY, aggregate_type TEXT NOT NULL, aggregate_id BLOB NOT NULL, event_type TEXT NOT NULL, topic TEXT NOT NULL, kafka_key TEXT NOT NULL, payload BLOB NOT NULL, metadata BLOB NOT NULL, available_at DATETIME NOT NULL, published_at DATETIME, publish_count INTEGER NOT NULL DEFAULT 0, last_error TEXT, claimed_by TEXT, claimed_at DATETIME, created_at DATETIME NOT NULL)`,
-		`CREATE TABLE UserView (public_id BLOB PRIMARY KEY, status TEXT NOT NULL)`,
+		`CREATE TABLE UserView (id BLOB PRIMARY KEY, public_id BLOB NOT NULL UNIQUE, plan TEXT NOT NULL, status TEXT NOT NULL, created_at DATETIME NOT NULL)`,
 	} {
 		if err := db.Exec(statement).Error; err != nil {
 			return err
@@ -138,10 +138,10 @@ func newNotificationRequestEvent(
 	t *testing.T,
 	userPublicId uuid.UUID,
 	dedupeSuffix string,
-) eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData] {
+) cevent.EventEnvelope[coreevents.NotificationRequestedData] {
 	t.Helper()
 
-	payload, err := json.Marshal(notificationtypescontract.NewsPayload{
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
 		Title:   "Release update",
 		Summary: "A new release is available.",
 		Body:    "Read the release notes.",
@@ -150,20 +150,20 @@ func newNotificationRequestEvent(
 		t.Fatalf("marshal notification payload: %v", err)
 	}
 
-	return eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{
-		SchemaVersion: eventcontract.Version,
+	return cevent.EventEnvelope[coreevents.NotificationRequestedData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   userPublicId,
 		KafkaKey:      userPublicId.String(),
 		OccurredAt:    time.Now().UTC(),
 		CorrelationId: "notification-repository-test",
-		Data: coreeventscontract.NotificationRequestedData{
+		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: userPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
-			TemplateKey:           notificationtypescontract.TemplateKey_News,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
+			TemplateKey:           cnotificationtypes.TemplateKey_News,
 			TemplateVersion:       1,
 			Payload:               payload,
 			DedupeKey:             "repository-test:" + dedupeSuffix,

@@ -3,11 +3,11 @@ package apicontract
 import (
 	"time"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type ForgetPasswordRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

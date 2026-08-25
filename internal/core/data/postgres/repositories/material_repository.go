@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"time"
 
@@ -8,39 +9,38 @@ import (
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type MaterialRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Material, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Material, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Material, *exceptions.Exception)
-	CreateOneBySubShelfId(subShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateMaterialInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateMaterialInput, opts ...options.RepositoryOptions) (*schemas.Material, *exceptions.Exception)
-	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Material, *exceptions.Exception)
-	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.Material, *exceptions.Exception)
-	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Material, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Material, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Material, *cexceptions.Exception)
+	CreateOneBySubShelfId(subShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateMaterialInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateMaterialInput, opts ...options.RepositoryOptions) (*schemas.Material, *cexceptions.Exception)
+	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Material, *cexceptions.Exception)
+	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.Material, *cexceptions.Exception)
+	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 
 	/* ============================== System Only Method ============================== */
 
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckMaterialPermissionInput, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Material, *exceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteMaterialInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckMaterialPermissionInput, preloads []schemas.MaterialRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Material, *cexceptions.Exception)
+	BulkDeleteMany(inputs []inputs.BulkDeleteMaterialInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type MaterialRepository struct {
@@ -106,7 +106,7 @@ func (r *MaterialRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.MaterialRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.Material, *exceptions.Exception) {
+) (*schemas.Material, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var material schemas.Material
@@ -124,7 +124,7 @@ func (r *MaterialRepository) CheckPermissionAndGetOneById(
 		Scopes(r.materialScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&material)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().NotFound().WithOrigin(result.Error)},
 		{First: material.Id == uuid.Nil, Second: apiexceptions.NewMaterialException().NotFound()},
 	}); exception != nil {
@@ -140,7 +140,7 @@ func (r *MaterialRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.MaterialRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Material, *exceptions.Exception) {
+) ([]schemas.Material, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var materials []schemas.Material
@@ -151,7 +151,7 @@ func (r *MaterialRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.materialScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&materials)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().NotFound().WithOrigin(result.Error)},
 		{First: len(materials) == 0, Second: apiexceptions.NewMaterialException().NotFound()},
 	}); exception != nil {
@@ -165,7 +165,7 @@ func (r *MaterialRepository) GetOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.Material, *exceptions.Exception) {
+) (*schemas.Material, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -180,7 +180,7 @@ func (r *MaterialRepository) CreateOneBySubShelfId(
 	userId uuid.UUID,
 	input inputs.CreateMaterialInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -214,7 +214,7 @@ func (r *MaterialRepository) CreateOneBySubShelfId(
 
 	result := parsedOptions.DB.Model(&schemas.Material{}).
 		Create(&newMaterial)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToCreate().WithOrigin(result.Error)},
 		{First: newMaterial.Id == uuid.Nil, Second: apiexceptions.NewMaterialException().FailedToCreate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
@@ -238,7 +238,7 @@ func (r *MaterialRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateMaterialInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.Material, *exceptions.Exception) {
+) (*schemas.Material, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -284,14 +284,14 @@ func (r *MaterialRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingMaterial)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.Material{}).
 		Where("id = ? AND deleted_at IS NULL", id). // no need to check the permission here, since we have done that part on the above
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
 	}); exception != nil {
@@ -313,7 +313,7 @@ func (r *MaterialRepository) RestoreSoftDeletedOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.Material, *exceptions.Exception) {
+) (*schemas.Material, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -328,7 +328,7 @@ func (r *MaterialRepository) RestoreSoftDeletedOneById(
 		Clauses(clause.Returning{}).
 		Where(`"MaterialTable".id = ?`, id).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: restoredMaterial.Id == uuid.Nil, Second: apiexceptions.NewMaterialException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
@@ -343,7 +343,7 @@ func (r *MaterialRepository) RestoreSoftDeletedManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Material, *exceptions.Exception) {
+) ([]schemas.Material, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return nil, apiexceptions.NewMaterialException().NoChanges()
 	}
@@ -361,7 +361,7 @@ func (r *MaterialRepository) RestoreSoftDeletedManyByIds(
 		Clauses(clause.Returning{}).
 		Where(`"MaterialTable".id IN ?`, ids).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: len(restoredMaterials) != len(ids), Second: apiexceptions.NewMaterialException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
@@ -376,7 +376,7 @@ func (r *MaterialRepository) SoftDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -385,7 +385,7 @@ func (r *MaterialRepository) SoftDeleteOneById(
 		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"MaterialTable".id = ?`, id).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
 	}); exception != nil {
@@ -399,7 +399,7 @@ func (r *MaterialRepository) SoftDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewMaterialException().NoChanges()
 	}
@@ -412,7 +412,7 @@ func (r *MaterialRepository) SoftDeleteManyByIds(
 		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"MaterialTable".id IN ?`, ids).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
 	}); exception != nil {
@@ -426,7 +426,7 @@ func (r *MaterialRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -435,7 +435,7 @@ func (r *MaterialRepository) HardDeleteOneById(
 		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"MaterialTable".id = ?`, id).
 		Delete(&schemas.Material{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
 	}); exception != nil {
@@ -449,7 +449,7 @@ func (r *MaterialRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewMaterialException().NoChanges()
 	}
@@ -462,7 +462,7 @@ func (r *MaterialRepository) HardDeleteManyByIds(
 		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"MaterialTable".id IN ?`, ids).
 		Delete(&schemas.Material{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewMaterialException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewMaterialException().NoChanges()},
 	}); exception != nil {
@@ -479,7 +479,7 @@ func (r *MaterialRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.MaterialRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.Material, *exceptions.Exception) {
+) ([]bool, []schemas.Material, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, []schemas.Material{}, nil
 	}
@@ -569,7 +569,7 @@ func (r *MaterialRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *MaterialRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteMaterialInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewMaterialException().NoChanges()
 	}

@@ -8,16 +8,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	rootshelvescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
-	userscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
+	cusers "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 	corerouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/routers"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 
 func TestEitherMiddlewareAllowsAPIOnlyForPublishedResourceDomains(t *testing.T) {
 	configureDelegationTestEnvironment(t)
-	apiToken := issueAPIDelegationToken(t, rootshelvescontract.GetMyRootShelfByIdOperation)
-	requestBody := requestBodyForOperation(rootshelvescontract.GetMyRootShelfByIdOperation)
+	apiToken := issueAPIDelegationToken(t, crootshelves.GetMyRootShelfByIdOperation)
+	requestBody := requestBodyForOperation(crootshelves.GetMyRootShelfByIdOperation)
 
 	router := newRouterForAuthSelection()
 	request := httptest.NewRequest(http.MethodPost, "/core/v1/root-shelves/get-by-id", bytes.NewReader(requestBody))
@@ -29,8 +29,8 @@ func TestEitherMiddlewareAllowsAPIOnlyForPublishedResourceDomains(t *testing.T) 
 		t.Fatalf("published resource selected the wrong middleware branch: got %d, want %d", response.Code, http.StatusTeapot)
 	}
 
-	apiToken = issueAPIDelegationToken(t, userscontract.GetMeOperation)
-	requestBody = requestBodyForOperation(userscontract.GetMeOperation)
+	apiToken = issueAPIDelegationToken(t, cusers.GetMeOperation)
+	requestBody = requestBodyForOperation(cusers.GetMeOperation)
 	request = httptest.NewRequest(http.MethodPost, "/core/v1/users/me", bytes.NewReader(requestBody))
 	request.Header.Set("Authorization", "Bearer "+apiToken)
 	request.Header.Set("Content-Type", "application/json")

@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
@@ -55,7 +55,7 @@ func configureDevelopmentRealtimeRoutes(
 				},
 				append(
 					connectionMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				realtimeBinder.BindCreateMyRealtimeConnectionTicket(realtimeController.CreateMyRealtimeConnectionTicket),
 			)...,
@@ -82,7 +82,7 @@ func configureDevelopmentRealtimeRoutes(
 				},
 				append(
 					channelMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				realtimeBinder.BindCreateMyBlockPackChannelTicket(realtimeController.CreateMyBlockPackChannelTicket),
 			)...,

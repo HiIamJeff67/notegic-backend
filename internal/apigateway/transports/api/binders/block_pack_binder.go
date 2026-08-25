@@ -6,31 +6,31 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
 
 type BlockPackBinderInterface interface {
-	BindGetMyBlockPackById(controllerFunc controllers.Func[*apicontract.GetMyBlockPackByIdRequestDto]) gin.HandlerFunc
-	BindGetMyBlockPackAndItsParentById(controllerFunc controllers.Func[*apicontract.GetMyBlockPackAndItsParentByIdRequestDto]) gin.HandlerFunc
-	BindGetMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc
-	BindCreateBlockPack(controllerFunc controllers.Func[*apicontract.CreateBlockPackRequestDto]) gin.HandlerFunc
-	BindCreateBlockPacks(controllerFunc controllers.Func[*apicontract.CreateBlockPacksRequestDto]) gin.HandlerFunc
-	BindUpdateMyBlockPackById(controllerFunc controllers.Func[*apicontract.UpdateMyBlockPackByIdRequestDto]) gin.HandlerFunc
-	BindUpdateMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.UpdateMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
-	BindMoveMyBlockPackByParentSubShelfId(controllerFunc controllers.Func[*apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindMoveMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc controllers.Func[*apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto]) gin.HandlerFunc
-	BindRestoreMyBlockPackById(controllerFunc controllers.Func[*apicontract.RestoreMyBlockPackByIdRequestDto]) gin.HandlerFunc
-	BindRestoreMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.RestoreMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
-	BindDeleteMyBlockPackById(controllerFunc controllers.Func[*apicontract.DeleteMyBlockPackByIdRequestDto]) gin.HandlerFunc
-	BindDeleteMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.DeleteMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
+	BindGetMyBlockPackById(controllerFunc controllers.Func[*capi.GetMyBlockPackByIdRequestDto]) gin.HandlerFunc
+	BindGetMyBlockPackAndItsParentById(controllerFunc controllers.Func[*capi.GetMyBlockPackAndItsParentByIdRequestDto]) gin.HandlerFunc
+	BindGetMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc
+	BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc
+	BindCreateBlockPack(controllerFunc controllers.Func[*capi.CreateBlockPackRequestDto]) gin.HandlerFunc
+	BindCreateBlockPacks(controllerFunc controllers.Func[*capi.CreateBlockPacksRequestDto]) gin.HandlerFunc
+	BindUpdateMyBlockPackById(controllerFunc controllers.Func[*capi.UpdateMyBlockPackByIdRequestDto]) gin.HandlerFunc
+	BindUpdateMyBlockPacksByIds(controllerFunc controllers.Func[*capi.UpdateMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
+	BindMoveMyBlockPackByParentSubShelfId(controllerFunc controllers.Func[*capi.MoveMyBlockPackByParentSubShelfIdRequestDto]) gin.HandlerFunc
+	BindMoveMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*capi.MoveMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc
+	BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc controllers.Func[*capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto]) gin.HandlerFunc
+	BindRestoreMyBlockPackById(controllerFunc controllers.Func[*capi.RestoreMyBlockPackByIdRequestDto]) gin.HandlerFunc
+	BindRestoreMyBlockPacksByIds(controllerFunc controllers.Func[*capi.RestoreMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
+	BindDeleteMyBlockPackById(controllerFunc controllers.Func[*capi.DeleteMyBlockPackByIdRequestDto]) gin.HandlerFunc
+	BindDeleteMyBlockPacksByIds(controllerFunc controllers.Func[*capi.DeleteMyBlockPacksByIdsRequestDto]) gin.HandlerFunc
 }
 
 type BlockPackBinder struct{}
@@ -39,9 +39,9 @@ func NewBlockPackBinder() BlockPackBinderInterface {
 	return &BlockPackBinder{}
 }
 
-func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func[*apicontract.GetMyBlockPackByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func[*capi.GetMyBlockPackByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyBlockPackByIdRequestDto
+		var requestDto capi.GetMyBlockPackByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -49,7 +49,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func
 		if isDeletedString != "" {
 			value, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -57,7 +57,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -66,9 +66,9 @@ func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func
 	}
 }
 
-func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc controllers.Func[*apicontract.GetMyBlockPackAndItsParentByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc controllers.Func[*capi.GetMyBlockPackAndItsParentByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyBlockPackAndItsParentByIdRequestDto
+		var requestDto capi.GetMyBlockPackAndItsParentByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -76,7 +76,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc cont
 		if isDeletedString != "" {
 			value, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -84,7 +84,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc cont
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -93,9 +93,9 @@ func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc cont
 	}
 }
 
-func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto
+		var requestDto capi.GetMyBlockPacksByParentSubShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -103,7 +103,7 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 		if areDeletedString != "" {
 			value, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -111,7 +111,7 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.ParentSubShelfId = value
@@ -120,9 +120,9 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 	}
 }
 
-func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto
+		var requestDto capi.GetAllMyBlockPacksByRootShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -130,7 +130,7 @@ func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc con
 		if areDeletedString != "" {
 			value, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -138,7 +138,7 @@ func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc con
 
 		value, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = value
@@ -147,21 +147,21 @@ func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc con
 	}
 }
 
-func (b *BlockPackBinder) BindCreateBlockPack(controllerFunc controllers.Func[*apicontract.CreateBlockPackRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindCreateBlockPack(controllerFunc controllers.Func[*capi.CreateBlockPackRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.CreateBlockPackRequestDto
+		var requestDto capi.CreateBlockPackRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.ParentSubShelfId = value
@@ -170,14 +170,14 @@ func (b *BlockPackBinder) BindCreateBlockPack(controllerFunc controllers.Func[*a
 	}
 }
 
-func (b *BlockPackBinder) BindCreateBlockPacks(controllerFunc controllers.Func[*apicontract.CreateBlockPacksRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindCreateBlockPacks(controllerFunc controllers.Func[*capi.CreateBlockPacksRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.CreateBlockPacksRequestDto
+		var requestDto capi.CreateBlockPacksRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -186,21 +186,21 @@ func (b *BlockPackBinder) BindCreateBlockPacks(controllerFunc controllers.Func[*
 	}
 }
 
-func (b *BlockPackBinder) BindUpdateMyBlockPackById(controllerFunc controllers.Func[*apicontract.UpdateMyBlockPackByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindUpdateMyBlockPackById(controllerFunc controllers.Func[*capi.UpdateMyBlockPackByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.UpdateMyBlockPackByIdRequestDto
+		var requestDto capi.UpdateMyBlockPackByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -209,14 +209,14 @@ func (b *BlockPackBinder) BindUpdateMyBlockPackById(controllerFunc controllers.F
 	}
 }
 
-func (b *BlockPackBinder) BindUpdateMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.UpdateMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindUpdateMyBlockPacksByIds(controllerFunc controllers.Func[*capi.UpdateMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.UpdateMyBlockPacksByIdsRequestDto
+		var requestDto capi.UpdateMyBlockPacksByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -225,21 +225,21 @@ func (b *BlockPackBinder) BindUpdateMyBlockPacksByIds(controllerFunc controllers
 	}
 }
 
-func (b *BlockPackBinder) BindMoveMyBlockPackByParentSubShelfId(controllerFunc controllers.Func[*apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindMoveMyBlockPackByParentSubShelfId(controllerFunc controllers.Func[*capi.MoveMyBlockPackByParentSubShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto
+		var requestDto capi.MoveMyBlockPackByParentSubShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.BlockPackId = value
@@ -248,14 +248,14 @@ func (b *BlockPackBinder) BindMoveMyBlockPackByParentSubShelfId(controllerFunc c
 	}
 }
 
-func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*capi.MoveMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto
+		var requestDto capi.MoveMyBlockPacksByParentSubShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -264,14 +264,14 @@ func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfId(controllerFunc 
 	}
 }
 
-func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc controllers.Func[*apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc controllers.Func[*capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto
+		var requestDto capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -280,15 +280,15 @@ func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc
 	}
 }
 
-func (b *BlockPackBinder) BindRestoreMyBlockPackById(controllerFunc controllers.Func[*apicontract.RestoreMyBlockPackByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindRestoreMyBlockPackById(controllerFunc controllers.Func[*capi.RestoreMyBlockPackByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.RestoreMyBlockPackByIdRequestDto
+		var requestDto capi.RestoreMyBlockPackByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -297,14 +297,14 @@ func (b *BlockPackBinder) BindRestoreMyBlockPackById(controllerFunc controllers.
 	}
 }
 
-func (b *BlockPackBinder) BindRestoreMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.RestoreMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindRestoreMyBlockPacksByIds(controllerFunc controllers.Func[*capi.RestoreMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.RestoreMyBlockPacksByIdsRequestDto
+		var requestDto capi.RestoreMyBlockPacksByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -313,15 +313,15 @@ func (b *BlockPackBinder) BindRestoreMyBlockPacksByIds(controllerFunc controller
 	}
 }
 
-func (b *BlockPackBinder) BindDeleteMyBlockPackById(controllerFunc controllers.Func[*apicontract.DeleteMyBlockPackByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindDeleteMyBlockPackById(controllerFunc controllers.Func[*capi.DeleteMyBlockPackByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.DeleteMyBlockPackByIdRequestDto
+		var requestDto capi.DeleteMyBlockPackByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -330,14 +330,14 @@ func (b *BlockPackBinder) BindDeleteMyBlockPackById(controllerFunc controllers.F
 	}
 }
 
-func (b *BlockPackBinder) BindDeleteMyBlockPacksByIds(controllerFunc controllers.Func[*apicontract.DeleteMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindDeleteMyBlockPacksByIds(controllerFunc controllers.Func[*capi.DeleteMyBlockPacksByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.DeleteMyBlockPacksByIdsRequestDto
+		var requestDto capi.DeleteMyBlockPacksByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exception := exceptions.InvalidDto("BlockPack").WithOrigin(err)
+			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}

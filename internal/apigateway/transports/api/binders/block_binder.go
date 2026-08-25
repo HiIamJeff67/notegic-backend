@@ -4,19 +4,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
 
 type BlockBinderInterface interface {
-	BindGetMyBlockById(controllerFunc controllers.Func[*apicontract.GetMyBlockByIdRequestDto]) gin.HandlerFunc
-	BindGetMyBlocksByIds(controllerFunc controllers.Func[*apicontract.GetMyBlocksByIdsRequestDto]) gin.HandlerFunc
-	BindGetMyBlocksByBlockPackId(controllerFunc controllers.Func[*apicontract.GetMyBlocksByBlockPackIdRequestDto]) gin.HandlerFunc
+	BindGetMyBlockById(controllerFunc controllers.Func[*capi.GetMyBlockByIdRequestDto]) gin.HandlerFunc
+	BindGetMyBlocksByIds(controllerFunc controllers.Func[*capi.GetMyBlocksByIdsRequestDto]) gin.HandlerFunc
+	BindGetMyBlocksByBlockPackId(controllerFunc controllers.Func[*capi.GetMyBlocksByBlockPackIdRequestDto]) gin.HandlerFunc
 }
 
 type BlockBinder struct{}
@@ -25,14 +25,14 @@ func NewBlockBinder() BlockBinderInterface {
 	return &BlockBinder{}
 }
 
-func (b *BlockBinder) BindGetMyBlockById(controllerFunc controllers.Func[*apicontract.GetMyBlockByIdRequestDto]) gin.HandlerFunc {
+func (b *BlockBinder) BindGetMyBlockById(controllerFunc controllers.Func[*capi.GetMyBlockByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetMyBlockByIdRequestDto{}
+		requestDto := &capi.GetMyBlockByIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		blockId, err := uuid.Parse(ctx.Param("block-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Block").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockId = blockId
@@ -41,13 +41,13 @@ func (b *BlockBinder) BindGetMyBlockById(controllerFunc controllers.Func[*apicon
 	}
 }
 
-func (b *BlockBinder) BindGetMyBlocksByIds(controllerFunc controllers.Func[*apicontract.GetMyBlocksByIdsRequestDto]) gin.HandlerFunc {
+func (b *BlockBinder) BindGetMyBlocksByIds(controllerFunc controllers.Func[*capi.GetMyBlocksByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetMyBlocksByIdsRequestDto{}
+		requestDto := &capi.GetMyBlocksByIdsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindQuery(&requestDto.Param); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Block").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Block").WithOrigin(err), ctx)
 			return
 		}
 
@@ -55,14 +55,14 @@ func (b *BlockBinder) BindGetMyBlocksByIds(controllerFunc controllers.Func[*apic
 	}
 }
 
-func (b *BlockBinder) BindGetMyBlocksByBlockPackId(controllerFunc controllers.Func[*apicontract.GetMyBlocksByBlockPackIdRequestDto]) gin.HandlerFunc {
+func (b *BlockBinder) BindGetMyBlocksByBlockPackId(controllerFunc controllers.Func[*capi.GetMyBlocksByBlockPackIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetMyBlocksByBlockPackIdRequestDto{}
+		requestDto := &capi.GetMyBlocksByBlockPackIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		blockPackId, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Block").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = blockPackId

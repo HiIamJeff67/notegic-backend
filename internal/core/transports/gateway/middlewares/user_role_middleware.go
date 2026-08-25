@@ -7,13 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
@@ -21,14 +21,14 @@ func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
 		currentUserRoleValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Role.String())
 		currentUserRole, ok := currentUserRoleValue.(enums.UserRole)
 		if !exists || !ok {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"AuthenticationContextInvalid",
 					"Core",
 					"AuthorizeRequest",
@@ -50,14 +50,14 @@ func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
 				return
 			}
 			if userRole == atLeastUserRole {
-				ctx.AbortWithStatusJSON(http.StatusForbidden, gatewaycontract.Response[struct{}]{
-					Version: gatewaycontract.Version,
-					Metadata: gatewaycontract.ResponseMetadata{
+				ctx.AbortWithStatusJSON(http.StatusForbidden, cgateway.Response[struct{}]{
+					Version: cgateway.Version,
+					Metadata: cgateway.ResponseMetadata{
 						RequestId:   ctx.GetHeader("X-Request-Id"),
 						RespondedAt: time.Now(),
 					},
 					Data: struct{}{},
-					Exception: exceptions.New(
+					Exception: cexceptions.New(
 						"PermissionDeniedDueToUserRole",
 						"Auth",
 						"AuthorizeRequest",
@@ -69,14 +69,14 @@ func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
 			}
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   ctx.GetHeader("X-Request-Id"),
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"AuthenticationContextInvalid",
 				"Core",
 				"AuthorizeRequest",

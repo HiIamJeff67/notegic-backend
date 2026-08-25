@@ -1,31 +1,31 @@
 package repositories
 
 import (
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type UserRepositoryInterface interface {
-	GetOneById(id uuid.UUID, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *exceptions.Exception)
-	GetOneByPublicId(publicId uuid.UUID, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *exceptions.Exception)
-	GetOneByName(name string, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *exceptions.Exception)
-	GetOneByEmail(email string, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *exceptions.Exception)
-	GetAll(opts ...options.RepositoryOptions) ([]schemas.User, *exceptions.Exception)
-	CreateOne(input inputs.CreateUserInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, input inputs.PartialUpdateUserInput, opts ...options.RepositoryOptions) (*schemas.User, *exceptions.Exception)
+	GetOneById(id uuid.UUID, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *cexceptions.Exception)
+	GetOneByPublicId(publicId uuid.UUID, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *cexceptions.Exception)
+	GetOneByName(name string, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *cexceptions.Exception)
+	GetOneByEmail(email string, preloads []schemas.UserRelation, opts ...options.RepositoryOptions) (*schemas.User, *cexceptions.Exception)
+	GetAll(opts ...options.RepositoryOptions) ([]schemas.User, *cexceptions.Exception)
+	CreateOne(input inputs.CreateUserInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, input inputs.PartialUpdateUserInput, opts ...options.RepositoryOptions) (*schemas.User, *cexceptions.Exception)
 }
 
 type UserRepository struct{}
@@ -38,7 +38,7 @@ func (r *UserRepository) GetOneById(
 	id uuid.UUID,
 	preloads []schemas.UserRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.User, *exceptions.Exception) {
+) (*schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	user := schemas.User{}
@@ -53,7 +53,7 @@ func (r *UserRepository) GetOneById(
 	result := db.Where("id = ?", id).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&user)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().NotFound().WithOrigin(result.Error)},
 		{First: user.Id == uuid.Nil, Second: apiexceptions.NewUserException().NotFound()},
 	}); exception != nil {
@@ -67,7 +67,7 @@ func (r *UserRepository) GetOneByPublicId(
 	publicId uuid.UUID,
 	preloads []schemas.UserRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.User, *exceptions.Exception) {
+) (*schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	user := schemas.User{}
@@ -80,7 +80,7 @@ func (r *UserRepository) GetOneByPublicId(
 		Where("public_id = ?", publicId).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&user)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().NotFound().WithOrigin(result.Error)},
 		{First: user.Id == uuid.Nil, Second: apiexceptions.NewUserException().NotFound()},
 	}); exception != nil {
@@ -94,7 +94,7 @@ func (r *UserRepository) GetOneByName(
 	name string,
 	preloads []schemas.UserRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.User, *exceptions.Exception) {
+) (*schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	user := schemas.User{}
@@ -109,7 +109,7 @@ func (r *UserRepository) GetOneByName(
 	result := db.Where("name = ?", name).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&user)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().NotFound().WithOrigin(result.Error)},
 		{First: user.Id == uuid.Nil, Second: apiexceptions.NewUserException().NotFound()},
 	}); exception != nil {
@@ -123,7 +123,7 @@ func (r *UserRepository) GetOneByEmail(
 	email string,
 	preloads []schemas.UserRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.User, *exceptions.Exception) {
+) (*schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	user := schemas.User{}
@@ -138,7 +138,7 @@ func (r *UserRepository) GetOneByEmail(
 	result := query.Where("email = ?", email).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&user)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().NotFound().WithOrigin(result.Error)},
 		{First: user.Id == uuid.Nil, Second: apiexceptions.NewUserException().NotFound()},
 	}); exception != nil {
@@ -150,7 +150,7 @@ func (r *UserRepository) GetOneByEmail(
 
 func (r *UserRepository) GetAll(
 	opts ...options.RepositoryOptions,
-) ([]schemas.User, *exceptions.Exception) {
+) ([]schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	users := []schemas.User{}
@@ -161,7 +161,7 @@ func (r *UserRepository) GetAll(
 		Preload("Badges").
 		Preload("Themes").
 		Find(&users)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().NotFound().WithOrigin(result.Error)},
 		{First: len(users) == 0, Second: apiexceptions.NewUserException().NotFound()},
 	}); exception != nil {
@@ -173,7 +173,7 @@ func (r *UserRepository) GetAll(
 func (r *UserRepository) CreateOne(
 	input inputs.CreateUserInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	// note that the create operation in gorm will NOT return anything
@@ -212,7 +212,7 @@ func (r *UserRepository) UpdateOneById(
 	id uuid.UUID,
 	input inputs.PartialUpdateUserInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.User, *exceptions.Exception) {
+) (*schemas.User, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	existingUser, exception := r.GetOneById(
@@ -226,14 +226,14 @@ func (r *UserRepository) UpdateOneById(
 
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingUser)
 	if err != nil {
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.User{}).
 		Where("id = ?", id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewUserException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewUserException().NoChanges()},
 	}); exception != nil {

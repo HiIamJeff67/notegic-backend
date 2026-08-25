@@ -13,7 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	authcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
 
@@ -21,17 +22,13 @@ import (
 	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	platformrepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	constraints "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/constraints"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	triggers "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/triggers"
-	views "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/views"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/seeds"
 	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
@@ -46,9 +43,6 @@ import (
 	shelfservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/shelves"
 	userservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/user"
 	coretransports "github.com/HiIamJeff67/notegic-backend/internal/core/transports"
-	durablejobtransport "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob"
-	durablejobconsumers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/consumers"
-	durablejobproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/producers"
 	durablejobrouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/routers"
 	emailtransport "github.com/HiIamJeff67/notegic-backend/internal/core/transports/email"
 	coremiddlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
@@ -59,6 +53,7 @@ import (
 	yjsworkerproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker/producers"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/core/validations"
 	coreworkers "github.com/HiIamJeff67/notegic-backend/internal/core/workers"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type Application struct {
@@ -76,7 +71,7 @@ type ApplicationInterface interface {
 	initializeCacheClients(coreconfig.Config, *platformredis.ClientSet, func()) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient)
 	initializeYjsClient(coreconfig.Config) *yjsworkertransport.DocumentInitializationClient
 	initializeKafka(platformkafka.ConnectionConfig) (*platformkafka.Producer, bool)
-	initializeWorkers(coreconfig.Config, platformkafka.ConnectionConfig, *platformkafka.Producer, *yjsworkertransport.DocumentInitializationClient) func()
+	initializeWorkers(coreconfig.Config, platformkafka.ConnectionConfig, *platformkafka.Producer) func()
 	buildRouter(coreconfig.Config, *platformkafka.Producer, *userdata.UserDataCacheClient, *yjsworkertransport.DocumentInitializationClient, *apikeycache.APIKeyCacheClient) *gin.Engine
 	startHTTP(coreconfig.Config, *platformredis.ClientSet, *platformkafka.Producer, bool, func(), *gin.Engine, func()) func()
 	Start() func()
@@ -112,10 +107,10 @@ func (a *Application) buildRouter(
 	subShelfScope := scopes.NewSubShelfScope()
 	materialScope := scopes.NewMaterialScope()
 	routineScope := scopes.NewRoutineScope()
-	routineTagScope := scopes.NewRoutineTagScope()
-	routineTaskScope := scopes.NewRoutineTaskScope()
-	routineTaskRecordScope := scopes.NewRoutineTaskRecordScope()
-	itemScope := scopes.NewItemScope()
+	routineTagScope := corescopes.NewRoutineTagScope()
+	routineTaskScope := corescopes.NewRoutineTaskScope()
+	routineTaskRecordScope := corescopes.NewRoutineTaskRecordScope()
+	itemScope := corescopes.NewItemScope()
 
 	userRepository := repositories.NewUserRepository()
 	userInfoRepository := repositories.NewUserInfoRepository()
@@ -368,16 +363,18 @@ func (a *Application) initializeDatabase(
 	config platformpostgres.Config,
 	shutdownObservability func(),
 ) {
-	data.DB = data.Connect(config)
+	if _, err := data.Connect(config); err != nil {
+		shutdownObservability()
+		panic(fmt.Errorf("failed to connect Core database: %w", err))
+	}
+	platformrepositories.SetDefaultDB(data.DB)
 	for _, migrate := range []func() error{
-		func() error { return platformpostgres.MigrateEnumsToDatabase(data.DB, enums.MigratingEnums) },
-		func() error { return platformpostgres.MigrateTablesToDatabase(data.DB, schemas.MigratingTables) },
-		func() error { return platformpostgres.MigrateViewsToDatabase(data.DB, views.MigratingViewSQLs) },
 		func() error {
-			return platformpostgres.MigrateTriggersToDatabase(data.DB, triggers.MigratingTriggerSQLs)
-		},
-		func() error {
-			return platformpostgres.MigrateConstraintsToDatabase(data.DB, constraints.MigratingConstraintSQLs)
+			return platformpostgres.Migrate(
+				data.DB,
+				types.Runtime_Core,
+				data.DatabaseMigrationManifest,
+			)
 		},
 		func() error { return platformpostgres.SeedDefaultDataToDatabase(data.DB, seeds.SeedingDefaultDataSQLs) },
 	} {
@@ -408,7 +405,7 @@ func (a *Application) initializeCacheClients(
 ) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient) {
 	userDataCacheStore, err := userdata.Register(context.Background(), redisClientSet)
 	if err != nil {
-		exception := exceptions.New(
+		exception := cexceptions.New(
 			"ConnectionFailed",
 			"Cache",
 			"Start",
@@ -426,7 +423,7 @@ func (a *Application) initializeCacheClients(
 	}
 	apiKeyCacheStore := apikeycache.Register(context.Background(), redisClientSet)
 	if err := apiKeyCacheStore.Initialize(context.Background()); err != nil {
-		exception := exceptions.New(
+		exception := cexceptions.New(
 			"ConnectionFailed",
 			"Cache",
 			"Start",
@@ -467,7 +464,6 @@ func (a *Application) initializeWorkers(
 	config coreconfig.Config,
 	kafkaConnection platformkafka.ConnectionConfig,
 	kafkaProducer *platformkafka.Producer,
-	yjsDocumentInitializationClient *yjsworkertransport.DocumentInitializationClient,
 ) func() {
 	outboxRelay := coretransports.NewOutboxRelay(
 		data.DB,
@@ -479,90 +475,26 @@ func (a *Application) initializeWorkers(
 		data.DB,
 		repositories.NewOutboxEventRepository(),
 	)
+	yjsMaintenanceWorker := coreworkers.NewYjsMaintenanceWorker(
+		data.DB,
+		yjsworkerproducers.NewYjsMaintenanceCommandProducer(kafkaProducer),
+		config.YjsMaintenanceStrategy,
+		platformkafka.ConsumerConfig{
+			ClientConfig: platformkafka.ClientConfig{
+				ConnectionConfig: kafkaConnection,
+				ClientId:         "notegic-core-yjs-maintenance",
+			},
+			ConsumerGroup:       "notegic-core-yjs-maintenance-v1",
+			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
+			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
+			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
+			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
+		},
+	)
 	quotaCycleWorker := coreworkers.NewQuotaCycleWorker(
 		data.DB,
 		config.QuotaCycleWorker,
 		repositories.NewUserQuotaRepository(),
-	)
-	routineTaskExecutionService := routineservices.NewRoutineTaskExecutionService(
-		validation.New(),
-		data.DB,
-		yjsDocumentInitializationClient,
-	)
-	routineTaskClaimConsumer := durablejobconsumers.NewDurableJobRoutineTaskClaimConsumer(
-		routineservices.NewRoutineTaskService(
-			validation.New(),
-			data.DB,
-			scopes.NewRoutineTaskScope(),
-			repositories.NewRoutineTaskRepository(scopes.NewRoutineTaskScope()),
-			repositories.NewRoutineTaskRecordRepository(scopes.NewRoutineTaskRecordScope()),
-			repositories.NewUserQuotaRepository(),
-			routineTaskExecutionService,
-		),
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-core-durablejob-routine-task",
-			},
-			ConsumerGroup:       durablejobtransport.RoutineTaskClaimConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-	)
-	routineTaskResultConsumer := durablejobconsumers.NewDurableJobRoutineTaskResultConsumer(
-		routineservices.NewRoutineTaskService(
-			validation.New(),
-			data.DB,
-			scopes.NewRoutineTaskScope(),
-			repositories.NewRoutineTaskRepository(scopes.NewRoutineTaskScope()),
-			repositories.NewRoutineTaskRecordRepository(scopes.NewRoutineTaskRecordScope()),
-			repositories.NewUserQuotaRepository(),
-			routineTaskExecutionService,
-		),
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-core-durablejob-routine-task-result",
-			},
-			ConsumerGroup:       durablejobtransport.RoutineTaskResultConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-		routineTaskExecutionService,
-	)
-	yjsMaintenanceRequestConsumer := durablejobconsumers.NewYjsMaintenanceRequestConsumer(
-		data.DB,
-		yjsworkerproducers.NewYjsMaintenanceCommandProducer(kafkaProducer),
-		durablejobproducers.NewYjsMaintenanceResultProducer(kafkaProducer),
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-core-durablejob-yjs-maintenance",
-			},
-			ConsumerGroup:       durablejobtransport.YjsMaintenanceRequestConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-	)
-	yjsMaintenanceResultConsumer := yjsworkerconsumers.NewYjsMaintenanceResultConsumer(
-		durablejobproducers.NewYjsMaintenanceResultProducer(kafkaProducer),
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-core-durablejob-yjs-maintenance-result",
-			},
-			ConsumerGroup:       yjsworkertransport.MaintenanceResultConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
 	)
 	yjsCommandConsumer := yjsworkerconsumers.NewYjsCommandConsumer(
 		data.DB,
@@ -590,20 +522,14 @@ func (a *Application) initializeWorkers(
 	)
 	shutdownOutboxRelay := outboxRelay.Start(context.Background())
 	shutdownYjsMaintenanceReconciliationWorker := yjsMaintenanceReconciliationWorker.Start(context.Background())
+	shutdownYjsMaintenanceWorker := yjsMaintenanceWorker.Start(context.Background())
 	shutdownQuotaCycleWorker := quotaCycleWorker.Start(context.Background())
-	shutdownRoutineTaskClaimConsumer := routineTaskClaimConsumer.Start(context.Background())
-	shutdownRoutineTaskResultConsumer := routineTaskResultConsumer.Start(context.Background())
-	shutdownYjsMaintenanceRequestConsumer := yjsMaintenanceRequestConsumer.Start(context.Background())
-	shutdownYjsMaintenanceResultConsumer := yjsMaintenanceResultConsumer.Start(context.Background())
 	shutdownYjsCommandConsumer := yjsCommandConsumer.Start(context.Background())
 	return func() {
 		shutdownYjsCommandConsumer()
-		shutdownYjsMaintenanceResultConsumer()
-		shutdownYjsMaintenanceRequestConsumer()
+		shutdownYjsMaintenanceWorker()
 		shutdownYjsMaintenanceReconciliationWorker()
 		shutdownQuotaCycleWorker()
-		shutdownRoutineTaskResultConsumer()
-		shutdownRoutineTaskClaimConsumer()
 		shutdownOutboxRelay()
 	}
 }
@@ -653,6 +579,7 @@ func (a *Application) startHTTP(
 		if err := redisClientSet.Close(); err != nil {
 			fmt.Println("Failed to disconnect Core cache servers: ", err)
 		}
+		platformrepositories.SetDefaultDB(nil)
 		_ = data.Disconnect(data.DB)
 		shutdownObservability()
 	}
@@ -668,7 +595,7 @@ func (a *Application) Start() func() {
 	userDataCacheClient, apiKeyCacheClient := a.initializeCacheClients(config, redisClientSet, shutdownObservability)
 	yjsDocumentInitializationClient := a.initializeYjsClient(config)
 	kafkaProducer, kafkaReady := a.initializeKafka(kafkaConnectionConfig)
-	shutdownWorkers := a.initializeWorkers(config, kafkaConnectionConfig, kafkaProducer, yjsDocumentInitializationClient)
+	shutdownWorkers := a.initializeWorkers(config, kafkaConnectionConfig, kafkaProducer)
 	router := a.buildRouter(config, kafkaProducer, userDataCacheClient, yjsDocumentInitializationClient, apiKeyCacheClient)
 	return a.startHTTP(config, redisClientSet, kafkaProducer, kafkaReady, shutdownWorkers, router, shutdownObservability)
 }

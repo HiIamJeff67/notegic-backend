@@ -12,8 +12,8 @@ import (
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
@@ -23,33 +23,33 @@ func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.Handl
 	return func(ctx *gin.Context) {
 		actorUserName, exception := contexts.GetActorUserName(ctx.Request.Context())
 		if exception != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version:   gatewaycontract.Version,
-				Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version:   cgateway.Version,
+				Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 				Data:      struct{}{},
 				Exception: exception.ToPublic(),
 			})
 			return
 		}
-		request := &gatewaycontract.Request[json.RawMessage]{}
+		request := &cgateway.Request[json.RawMessage]{}
 		if ctx.Request.ContentLength != 0 {
 			_ = ctx.ShouldBindBodyWithJSON(request)
 		}
 		csrfToken := request.Tokens.CSRFToken
 		if strings.TrimSpace(csrfToken) == "" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version:   gatewaycontract.Version,
-				Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version:   cgateway.Version,
+				Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 				Data:      struct{}{},
-				Exception: exceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is missing or invalid", http.StatusUnauthorized),
+				Exception: cexceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is missing or invalid", http.StatusUnauthorized),
 			})
 			return
 		}
 		userDataCache, exception := userDataCacheClient.Get(actorUserName)
 		if exception != nil {
-			ctx.AbortWithStatusJSON(exception.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-				Version:   gatewaycontract.Version,
-				Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+			ctx.AbortWithStatusJSON(exception.HTTPStatusCode(), cgateway.Response[struct{}]{
+				Version:   cgateway.Version,
+				Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 				Data:      struct{}{},
 				Exception: exception.ToPublic(),
 			})
@@ -58,11 +58,11 @@ func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.Handl
 		expectedToken := userDataCache.CSRFToken
 		isPreviousToken := userDataCache.PreviousCSRFToken != "" && csrfToken == userDataCache.PreviousCSRFToken
 		if csrfToken != userDataCache.CSRFToken && !isPreviousToken {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version:   gatewaycontract.Version,
-				Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version:   cgateway.Version,
+				Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 				Data:      struct{}{},
-				Exception: exceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is invalid", http.StatusUnauthorized),
+				Exception: cexceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is invalid", http.StatusUnauthorized),
 			})
 			return
 		}
@@ -72,11 +72,11 @@ func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.Handl
 
 		claims, err := sharedtokens.ValidateCSRFToken(csrfToken, expectedToken)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version:   gatewaycontract.Version,
-				Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version:   cgateway.Version,
+				Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 				Data:      struct{}{},
-				Exception: exceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is invalid", http.StatusUnauthorized).WithOrigin(err),
+				Exception: cexceptions.New("InvalidCSRFToken", "Token", "ValidateCSRFToken", "the CSRF token is invalid", http.StatusUnauthorized).WithOrigin(err),
 			})
 			return
 		}
@@ -86,11 +86,11 @@ func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.Handl
 		} else if sharedtokens.IsCSRFTokenExpiringSoon(claims) {
 			newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
 			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-					Version:   gatewaycontract.Version,
-					Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+					Version:   cgateway.Version,
+					Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 					Data:      struct{}{},
-					Exception: exceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "failed to generate a CSRF token", http.StatusInternalServerError, true).WithOrigin(err),
+					Exception: cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "failed to generate a CSRF token", http.StatusInternalServerError, true).WithOrigin(err),
 				})
 				return
 			}
@@ -100,9 +100,9 @@ func CSRFMiddleware(userDataCacheClient *userdata.UserDataCacheClient) gin.Handl
 				*newCSRFToken,
 			)
 			if exception != nil {
-				ctx.AbortWithStatusJSON(exception.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-					Version:   gatewaycontract.Version,
-					Metadata:  gatewaycontract.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
+				ctx.AbortWithStatusJSON(exception.HTTPStatusCode(), cgateway.Response[struct{}]{
+					Version:   cgateway.Version,
+					Metadata:  cgateway.ResponseMetadata{RequestId: ctx.GetHeader("X-Request-Id"), RespondedAt: time.Now()},
 					Data:      struct{}{},
 					Exception: exception.ToPublic(),
 				})

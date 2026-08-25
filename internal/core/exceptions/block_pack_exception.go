@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type BlockPackException struct {
@@ -19,8 +19,8 @@ func NewBlockPackException() BlockPackException {
 	}
 }
 
-func (BlockPackException) NoRootBlockInBlockPack(blockPackId uuid.UUID) *exceptions.Exception {
-	return exceptions.New(
+func (BlockPackException) NoRootBlockInBlockPack(blockPackId uuid.UUID) *cexceptions.Exception {
+	return cexceptions.New(
 		"NoRootBlockInBlockPack",
 		"BlockPack",
 		"Project",

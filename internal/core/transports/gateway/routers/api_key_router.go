@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
 
 	apikeyservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/apikey"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -25,19 +25,19 @@ func configureAPIKeyRoutes(
 	{
 		routes.POST(
 			"/create",
-			middlewares.DelegationAuthenticatedMiddleware(apicontract.CreateMyAPIKeyOperation),
+			middlewares.DelegationAuthenticatedMiddleware(capi.CreateMyAPIKeyOperation),
 			authMiddleware,
 			endpoint.CreateMyAPIKey,
 		)
 		routes.POST(
 			"/list",
-			middlewares.DelegationAuthenticatedMiddleware(apicontract.ListMyAPIKeysOperation),
+			middlewares.DelegationAuthenticatedMiddleware(capi.ListMyAPIKeysOperation),
 			authMiddleware,
 			endpoint.ListMyAPIKeys,
 		)
 		routes.POST(
 			"/revoke",
-			middlewares.DelegationAuthenticatedMiddleware(apicontract.RevokeMyAPIKeyOperation),
+			middlewares.DelegationAuthenticatedMiddleware(capi.RevokeMyAPIKeyOperation),
 			authMiddleware,
 			endpoint.RevokeMyAPIKey,
 		)

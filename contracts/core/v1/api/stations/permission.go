@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type StationPermissionResponseDto struct {
@@ -16,7 +16,7 @@ type StationPermissionResponseDto struct {
 }
 
 type GetMyStationPermissionRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -32,7 +32,7 @@ type GetMyStationPermissionRequestDto struct {
 type GetMyStationPermissionResponseDto = StationPermissionResponseDto
 
 type CreateMyStationPermissionRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -59,7 +59,7 @@ type UpsertableStationPermission struct {
 }
 
 type UpsertMyStationPermissionsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -78,7 +78,7 @@ type UpsertMyStationPermissionsResponseDto struct {
 }
 
 type DeleteMyStationPermissionRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -94,7 +94,7 @@ type DeleteMyStationPermissionRequestDto struct {
 type DeleteMyStationPermissionResponseDto struct{}
 
 type DeleteMyStationPermissionsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

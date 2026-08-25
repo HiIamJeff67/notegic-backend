@@ -3,7 +3,7 @@ package inputs
 import (
 	"time"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type UpdateUserDataCacheInput struct {

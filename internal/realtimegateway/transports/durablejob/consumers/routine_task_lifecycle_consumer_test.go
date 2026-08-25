@@ -10,9 +10,9 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 
-	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
@@ -47,7 +47,7 @@ func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *te
 	}
 	defer shutdown()
 
-	data := durablejobeventscontract.RoutineTaskRunningData{
+	data := cdurablejobevents.RoutineTaskRunningData{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
@@ -64,10 +64,10 @@ func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *te
 	if err := consumer.consume(
 		context.Background(),
 		platformkafka.ConsumerRecord{},
-		eventcontract.EventEnvelope[json.RawMessage]{
+		cevent.EventEnvelope[json.RawMessage]{
 			EventId:       uuid.New(),
-			EventType:     durablejobeventscontract.EventType_RoutineTaskRunning,
-			AggregateType: durablejobeventscontract.AggregateType_RoutineTask,
+			EventType:     cdurablejobevents.EventType_RoutineTaskRunning,
+			AggregateType: cdurablejobevents.AggregateType_RoutineTask,
 			AggregateId:   data.RoutineTaskId,
 			Data:          payload,
 		},

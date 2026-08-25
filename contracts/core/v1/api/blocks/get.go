@@ -6,11 +6,11 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type GetMyBlockByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -38,7 +38,7 @@ type BlockResponseDto struct {
 type GetMyBlockByIdResponseDto = BlockResponseDto
 
 type GetMyBlocksByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -53,7 +53,7 @@ type GetMyBlocksByIdsRequestDto struct {
 type GetMyBlocksByIdsResponseDto []BlockResponseDto
 
 type GetMyBlocksByBlockPackIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

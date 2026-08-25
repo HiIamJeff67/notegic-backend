@@ -5,16 +5,16 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type UserAccountControllerInterface interface {
-	GetMyAccount(ctx *gin.Context, requestDto *apicontract.GetMyAccountRequestDto)
-	UpdateMyAccount(ctx *gin.Context, requestDto *apicontract.UpdateMyAccountRequestDto)
-	BindGoogleAccount(ctx *gin.Context, requestDto *apicontract.BindGoogleAccountRequestDto)
-	UnbindGoogleAccount(ctx *gin.Context, requestDto *apicontract.UnbindGoogleAccountRequestDto)
+	GetMyAccount(ctx *gin.Context, requestDto *capi.GetMyAccountRequestDto)
+	UpdateMyAccount(ctx *gin.Context, requestDto *capi.UpdateMyAccountRequestDto)
+	BindGoogleAccount(ctx *gin.Context, requestDto *capi.BindGoogleAccountRequestDto)
+	UnbindGoogleAccount(ctx *gin.Context, requestDto *capi.UnbindGoogleAccountRequestDto)
 }
 
 type UserAccountController struct {
@@ -29,16 +29,16 @@ func NewUserAccountController(coreAdapter *coreadapters.CoreAdapter) UserAccount
 
 func (c *UserAccountController) GetMyAccount(
 	ctx *gin.Context,
-	requestDto *apicontract.GetMyAccountRequestDto,
+	requestDto *capi.GetMyAccountRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyAccountRequestDto,
-		apicontract.GetMyAccountResponseDto,
+		capi.GetMyAccountRequestDto,
+		capi.GetMyAccountResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyAccountOperation,
+		capi.GetMyAccountOperation,
 		"/core/v1/user-accounts/get",
 	)
 	if exception != nil {
@@ -51,16 +51,16 @@ func (c *UserAccountController) GetMyAccount(
 
 func (c *UserAccountController) UpdateMyAccount(
 	ctx *gin.Context,
-	requestDto *apicontract.UpdateMyAccountRequestDto,
+	requestDto *capi.UpdateMyAccountRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyAccountRequestDto,
-		apicontract.UpdateMyAccountResponseDto,
+		capi.UpdateMyAccountRequestDto,
+		capi.UpdateMyAccountResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMyAccountOperation,
+		capi.UpdateMyAccountOperation,
 		"/core/v1/user-accounts/update",
 	)
 	if exception != nil {
@@ -73,16 +73,16 @@ func (c *UserAccountController) UpdateMyAccount(
 
 func (c *UserAccountController) BindGoogleAccount(
 	ctx *gin.Context,
-	requestDto *apicontract.BindGoogleAccountRequestDto,
+	requestDto *capi.BindGoogleAccountRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.BindGoogleAccountRequestDto,
-		apicontract.BindGoogleAccountResponseDto,
+		capi.BindGoogleAccountRequestDto,
+		capi.BindGoogleAccountResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.BindGoogleAccountOperation,
+		capi.BindGoogleAccountOperation,
 		"/core/v1/user-accounts/google/bind",
 	)
 	if exception != nil {
@@ -95,16 +95,16 @@ func (c *UserAccountController) BindGoogleAccount(
 
 func (c *UserAccountController) UnbindGoogleAccount(
 	ctx *gin.Context,
-	requestDto *apicontract.UnbindGoogleAccountRequestDto,
+	requestDto *capi.UnbindGoogleAccountRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UnbindGoogleAccountRequestDto,
-		apicontract.UnbindGoogleAccountResponseDto,
+		capi.UnbindGoogleAccountRequestDto,
+		capi.UnbindGoogleAccountResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UnbindGoogleAccountOperation,
+		capi.UnbindGoogleAccountOperation,
 		"/core/v1/user-accounts/google/unbind",
 	)
 	if exception != nil {

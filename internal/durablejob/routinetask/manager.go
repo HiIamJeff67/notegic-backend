@@ -9,10 +9,10 @@ import (
 
 	"github.com/google/uuid"
 
-	durablejobcontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
-	durablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
+	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
@@ -53,16 +53,16 @@ type ResultPublisher func(context.Context, RoutineTaskResult) error
 
 type RoutineTaskRunningPublisher func(
 	context.Context,
-	durablejobroutinetasktypes.RoutineTaskAssignment,
+	cdurablejobroutinetasktypes.RoutineTaskAssignment,
 ) error
 
 type preparedRoutineTask struct {
-	preparedTask durablejobroutinetasktypes.PreparedRoutineTask
+	preparedTask cdurablejobroutinetasktypes.PreparedRoutineTask
 	completedAt  time.Time
 }
 
 type failedRoutineTask struct {
-	assignment  durablejobroutinetasktypes.RoutineTaskAssignment
+	assignment  cdurablejobroutinetasktypes.RoutineTaskAssignment
 	failedAt    time.Time
 	errorCode   enums.RoutineTaskRecordErrorCode
 	errorReason string
@@ -124,7 +124,7 @@ func (hm *HandlerManager) SetRoutineTaskRunningPublisher(
 
 func (hm *HandlerManager) Manage(
 	ctx context.Context,
-	assignments []durablejobroutinetasktypes.RoutineTaskAssignment,
+	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
 ) error {
 	if len(assignments) == 0 {
 		return nil
@@ -169,7 +169,7 @@ func (hm *HandlerManager) Manage(
 				errorCode := enums.RoutineTaskRecordErrorCode_HandlerFailed
 				errorReason := "routine task preparation failed"
 				if err != nil {
-					var durableJobError *exceptions.Exception
+					var durableJobError *cexceptions.Exception
 					if errors.As(err, &durableJobError) {
 						switch durableJobError.Reason {
 						case "Canceled":
@@ -257,12 +257,12 @@ func (hm *HandlerManager) publishResults(ctx context.Context) error {
 
 	correlationId := uuid.New().String()
 	if len(successes) > 0 {
-		request := durablejobcontract.MarkCompletedRoutineTasksRequestDto{
+		request := cdurablejob.MarkCompletedRoutineTasksRequestDto{
 			WorkerId: hm.workerId,
-			Tasks:    make([]durablejobroutinetasktypes.CompletedRoutineTask, len(successes)),
+			Tasks:    make([]cdurablejobroutinetasktypes.CompletedRoutineTask, len(successes)),
 		}
 		for index, result := range successes {
-			request.Tasks[index] = durablejobroutinetasktypes.CompletedRoutineTask{
+			request.Tasks[index] = cdurablejobroutinetasktypes.CompletedRoutineTask{
 				RoutineTaskId:       result.preparedTask.RoutineTaskId,
 				RoutineTaskRecordId: result.preparedTask.RoutineTaskRecordId,
 				CompletedAt:         result.completedAt,
@@ -280,12 +280,12 @@ func (hm *HandlerManager) publishResults(ctx context.Context) error {
 	}
 
 	if len(failures) > 0 {
-		request := durablejobcontract.MarkFailedRoutineTasksRequestDto{
+		request := cdurablejob.MarkFailedRoutineTasksRequestDto{
 			WorkerId: hm.workerId,
-			Tasks:    make([]durablejobroutinetasktypes.FailedRoutineTask, len(failures)),
+			Tasks:    make([]cdurablejobroutinetasktypes.FailedRoutineTask, len(failures)),
 		}
 		for index, failure := range failures {
-			request.Tasks[index] = durablejobroutinetasktypes.FailedRoutineTask{
+			request.Tasks[index] = cdurablejobroutinetasktypes.FailedRoutineTask{
 				RoutineTaskId:       failure.assignment.RoutineTaskId,
 				RoutineTaskRecordId: failure.assignment.RoutineTaskRecordId,
 				FailedAt:            failure.failedAt,

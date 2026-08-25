@@ -10,6 +10,7 @@ clients, workers, transports, and services.
 | Owner | Config file | Examples |
 | --- | --- | --- |
 | Core PostgreSQL connection | `internal/core/configs/postgres.go` | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DOCKER_DB_PORT` |
+| DurableJob PostgreSQL connection | `internal/durablejob/configs/postgres.go` | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DOCKER_DB_PORT` |
 | Notification PostgreSQL connection | `internal/notification/configs/postgres.go` | `NOTIFICATION_DB_HOST`, `NOTIFICATION_DB_USER`, `NOTIFICATION_DB_PASSWORD`, `NOTIFICATION_DB_NAME`, `NOTIFICATION_DB_PORT` |
 | Redis connection | `shared/platform/redis/config.go` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_INIT_DB` |
 | Kafka connection and TLS | `shared/platform/kafka/config.go` | `KAFKA_BROKERS`, `KAFKA_DIAL_TIMEOUT`, `KAFKA_TLS_*`, `KAFKA_SASL_*` |
@@ -17,7 +18,7 @@ clients, workers, transports, and services.
 | ClientGateway | `internal/clientgateway/configs/` | `CLIENT_GATEWAY_LISTEN_ADDRESS`, legacy `GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
 | APIGateway | `internal/apigateway/configs/` | `API_GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
 | Core | `internal/core/configs/` | `CORE_LISTEN_ADDRESS`, `OAUTH_GOOGLE_*`, `STORAGE_KEY_SALT`, `OUTBOX_RELAY_*`, user-data cache TTL, quota-cycle worker interval, Yjs document initialization endpoint/timeout |
-| DurableJob | `internal/durablejob/configs/` | `DURABLEJOB_LISTEN_ADDRESS`, runtime Kafka and maintenance strategy settings |
+| DurableJob | `internal/durablejob/configs/` | `DURABLEJOB_LISTEN_ADDRESS`, runtime Kafka and Yjs document initialization settings |
 | Email | `internal/email/configs/` | `EMAIL_LISTEN_ADDRESS`, `SMTP_*`, `NOTEGIC_OFFICIAL_*`, `KAFKA_*` consumer settings |
 | RealtimeGateway | `internal/realtimegateway/configs/` | `REALTIME_GATEWAY_LISTEN_ADDRESS`, `REALTIME_ENABLED`, `YJS_WORKER_URLS` |
 
@@ -25,15 +26,29 @@ clients, workers, transports, and services.
 only its infrastructure connection configuration; runtime policy remains with
 the runtime that uses it.
 
-DurableJob owns the Yjs maintenance strategy policy. Its composition root loads
-these values through `internal/durablejob/configs.LoadConfig` and injects one
-immutable `YjsMaintenanceStrategyConfig` into the strategy:
+Each runtime's `configs/postgres.go` explicitly reads the environment variables
+for its own connection and passes the five values to
+`shared/platform/postgres.LoadConfig(host, user, password, name, port)`. The
+shared loader validates values only; it does not derive environment-variable
+names from a prefix. This allows a runtime such as Notification to add another
+independent PostgreSQL connection with its own complete host, user, password,
+name, and port fields.
+
+PostgreSQL database names and roles use lowercase `snake_case`, for example
+`notegic_db` and `notegic_notification`. Docker Compose service names,
+container names, and internal hostnames remain lowercase `kebab-case`, for
+example `notegic-db` and `notegic-notification-db`; they are DNS names rather
+than PostgreSQL identifiers.
+
+Core owns the Yjs maintenance strategy policy. Its composition root loads these
+values through `internal/core/configs.LoadConfig` and injects one immutable
+`YjsMaintenanceStrategyConfig` into the Core worker:
 
 ```dotenv
-DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS=1000
-DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH=32
-DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS=8
-DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS=3
+CORE_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS=1000
+CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH=32
+CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS=8
+CORE_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS=3
 ```
 
 ## Canonical duration names

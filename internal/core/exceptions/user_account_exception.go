@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type UserAccountException struct {
@@ -14,8 +14,8 @@ func NewUserAccountException() UserAccountException {
 	return UserAccountException{CoreException: NewCoreException("UserAccount")}
 }
 
-func (UserAccountException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (UserAccountException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"UserAccount",
 		"Repository",
@@ -24,8 +24,8 @@ func (UserAccountException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (UserAccountException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (UserAccountException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"UserAccount",
 		"Repository",
@@ -35,8 +35,8 @@ func (UserAccountException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (UserAccountException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (UserAccountException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"UserAccount",
 		"Repository",
@@ -46,8 +46,8 @@ func (UserAccountException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (UserAccountException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (UserAccountException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"UserAccount",
 		"Repository",

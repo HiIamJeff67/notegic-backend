@@ -10,11 +10,15 @@ import (
 
 	"golang.org/x/oauth2"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cauthdto "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type OAuthServiceInterface interface {
-	GetGoogleUserInfo(ctx context.Context, authenticationCode string) (*googleUserInfo, *exceptions.Exception)
+	GetGoogleUserInfo(
+		ctx context.Context,
+		request *cauthdto.GetGoogleUserInfoRequestDto,
+	) (*cauthdto.GetGoogleUserInfoResponseDto, *cexceptions.Exception)
 }
 
 type OAuthService struct {
@@ -29,27 +33,17 @@ func NewOAuthService(oauthGoogleConfig *oauth2.Config) OAuthServiceInterface {
 
 /* ============================== Service Methods for OAuth ============================== */
 
-type googleUserInfo struct {
-	Id            string `json:"id"`
-	Email         string `json:"email"`
-	VerifiedEmail bool   `json:"verifiedEmail"`
-	Name          string `json:"name"`
-	GivenName     string `json:"givenName"`
-	FamilyName    string `json:"familyName"`
-	Picture       string `json:"picture"`
-	Locale        string `json:"locale"`
-}
-
 func (s *OAuthService) GetGoogleUserInfo(
-	ctx context.Context, authenticationCode string,
-) (*googleUserInfo, *exceptions.Exception) {
-	token, err := s.oauthGoogleConfig.Exchange(ctx, authenticationCode)
+	ctx context.Context,
+	request *cauthdto.GetGoogleUserInfoRequestDto,
+) (*cauthdto.GetGoogleUserInfoResponseDto, *cexceptions.Exception) {
+	token, err := s.oauthGoogleConfig.Exchange(ctx, request.AuthenticationCode)
 	if err != nil {
 		var retrieveError *oauth2.RetrieveError
 		if errors.As(err, &retrieveError) && retrieveError.Response != nil &&
 			retrieveError.Response.StatusCode >= http.StatusBadRequest &&
 			retrieveError.Response.StatusCode < http.StatusInternalServerError {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"InvalidAuthenticationCode",
 				"OAuth",
 				"GetGoogleUserInfo",
@@ -58,7 +52,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 			).WithOrigin(err)
 		}
 
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TokenExchangeFailed",
 			"OAuth",
 			"GetGoogleUserInfo",
@@ -71,7 +65,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 	client := s.oauthGoogleConfig.Client(ctx, token)
 	response, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidAuthenticationCode",
 			"OAuth",
 			"GetGoogleUserInfo",
@@ -82,7 +76,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 	defer response.Body.Close()
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		if response.StatusCode >= http.StatusBadRequest && response.StatusCode < http.StatusInternalServerError {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"InvalidAuthenticationCode",
 				"OAuth",
 				"GetGoogleUserInfo",
@@ -93,7 +87,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 			)
 		}
 
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"OAuthProviderUnavailable",
 			"OAuth",
 			"GetGoogleUserInfo",
@@ -107,7 +101,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ResponseReadFailed",
 			"OAuth",
 			"GetGoogleUserInfo",
@@ -117,9 +111,9 @@ func (s *OAuthService) GetGoogleUserInfo(
 		).WithOrigin(err)
 	}
 
-	var userInfo googleUserInfo
+	var userInfo cauthdto.GetGoogleUserInfoResponseDto
 	if err := json.Unmarshal(data, &userInfo); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidResponse",
 			"OAuth",
 			"GetGoogleUserInfo",
@@ -129,7 +123,7 @@ func (s *OAuthService) GetGoogleUserInfo(
 		).WithOrigin(err)
 	}
 	if userInfo.Id == "" || userInfo.Email == "" {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidResponse",
 			"OAuth",
 			"GetGoogleUserInfo",

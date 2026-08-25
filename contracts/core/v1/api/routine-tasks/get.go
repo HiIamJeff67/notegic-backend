@@ -3,11 +3,11 @@ package apicontract
 import (
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type GetMyRoutineTaskByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -21,7 +21,7 @@ type GetMyRoutineTaskByIdRequestDto struct {
 }
 type GetMyRoutineTaskByIdResponseDto = RoutineTaskResponseDto
 type GetAllMyRoutineTasksByRoutineIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -35,7 +35,7 @@ type GetAllMyRoutineTasksByRoutineIdsRequestDto struct {
 }
 type GetAllMyRoutineTasksByRoutineIdsResponseDto []RoutineTaskResponseDto
 type GetAllMyRoutineTasksRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

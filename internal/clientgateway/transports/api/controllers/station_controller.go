@@ -7,39 +7,39 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type StationControllerInterface interface {
-	GetMyStationById(ctx *gin.Context, request *apicontract.GetMyStationByIdRequestDto)
-	GetAllMyStations(ctx *gin.Context, request *apicontract.GetAllMyStationsRequestDto)
-	CreateStation(ctx *gin.Context, request *apicontract.CreateStationRequestDto)
-	CreateStations(ctx *gin.Context, request *apicontract.CreateStationsRequestDto)
-	UpdateMyStationById(ctx *gin.Context, request *apicontract.UpdateMyStationByIdRequestDto)
-	UpdateMyStationsByIds(ctx *gin.Context, request *apicontract.UpdateMyStationsByIdsRequestDto)
-	RestoreMyStationById(ctx *gin.Context, request *apicontract.RestoreMyStationByIdRequestDto)
-	RestoreMyStationsByIds(ctx *gin.Context, request *apicontract.RestoreMyStationsByIdsRequestDto)
-	DeleteMyStationById(ctx *gin.Context, request *apicontract.DeleteMyStationByIdRequestDto)
-	DeleteMyStationsByIds(ctx *gin.Context, request *apicontract.DeleteMyStationsByIdsRequestDto)
-	HardDeleteMyStationById(ctx *gin.Context, request *apicontract.HardDeleteMyStationByIdRequestDto)
-	HardDeleteMyStationsByIds(ctx *gin.Context, request *apicontract.HardDeleteMyStationsByIdsRequestDto)
+	GetMyStationById(ctx *gin.Context, request *capi.GetMyStationByIdRequestDto)
+	GetAllMyStations(ctx *gin.Context, request *capi.GetAllMyStationsRequestDto)
+	CreateStation(ctx *gin.Context, request *capi.CreateStationRequestDto)
+	CreateStations(ctx *gin.Context, request *capi.CreateStationsRequestDto)
+	UpdateMyStationById(ctx *gin.Context, request *capi.UpdateMyStationByIdRequestDto)
+	UpdateMyStationsByIds(ctx *gin.Context, request *capi.UpdateMyStationsByIdsRequestDto)
+	RestoreMyStationById(ctx *gin.Context, request *capi.RestoreMyStationByIdRequestDto)
+	RestoreMyStationsByIds(ctx *gin.Context, request *capi.RestoreMyStationsByIdsRequestDto)
+	DeleteMyStationById(ctx *gin.Context, request *capi.DeleteMyStationByIdRequestDto)
+	DeleteMyStationsByIds(ctx *gin.Context, request *capi.DeleteMyStationsByIdsRequestDto)
+	HardDeleteMyStationById(ctx *gin.Context, request *capi.HardDeleteMyStationByIdRequestDto)
+	HardDeleteMyStationsByIds(ctx *gin.Context, request *capi.HardDeleteMyStationsByIdsRequestDto)
 
 	/* ============================== Visualization Methods ============================== */
-	VisualizeMyTotalCount(ctx *gin.Context, request *apicontract.VisualizeMyTotalCountRequestDto)
+	VisualizeMyTotalCount(ctx *gin.Context, request *capi.VisualizeMyTotalCountRequestDto)
 
 	/* ============================== Station Permission Methods ============================== */
-	GetMyStationPermission(ctx *gin.Context, request *apicontract.GetMyStationPermissionRequestDto)
-	CreateMyStationPermission(ctx *gin.Context, request *apicontract.CreateMyStationPermissionRequestDto)
-	UpsertMyStationPermission(ctx *gin.Context, request *apicontract.UpsertMyStationPermissionRequestDto)
-	UpsertMyStationPermissions(ctx *gin.Context, request *apicontract.UpsertMyStationPermissionsRequestDto)
-	UpdateMyStationPermission(ctx *gin.Context, request *apicontract.UpdateMyStationPermissionRequestDto)
-	TransferMyStationOwnership(ctx *gin.Context, request *apicontract.TransferMyStationOwnershipRequestDto)
-	DeleteMyStationPermission(ctx *gin.Context, request *apicontract.DeleteMyStationPermissionRequestDto)
-	DeleteMyStationPermissions(ctx *gin.Context, request *apicontract.DeleteMyStationPermissionsRequestDto)
-	LeaveMyStation(ctx *gin.Context, request *apicontract.LeaveMyStationRequestDto)
-	LeaveMyStations(ctx *gin.Context, request *apicontract.LeaveMyStationsRequestDto)
+	GetMyStationPermission(ctx *gin.Context, request *capi.GetMyStationPermissionRequestDto)
+	CreateMyStationPermission(ctx *gin.Context, request *capi.CreateMyStationPermissionRequestDto)
+	UpsertMyStationPermission(ctx *gin.Context, request *capi.UpsertMyStationPermissionRequestDto)
+	UpsertMyStationPermissions(ctx *gin.Context, request *capi.UpsertMyStationPermissionsRequestDto)
+	UpdateMyStationPermission(ctx *gin.Context, request *capi.UpdateMyStationPermissionRequestDto)
+	TransferMyStationOwnership(ctx *gin.Context, request *capi.TransferMyStationOwnershipRequestDto)
+	DeleteMyStationPermission(ctx *gin.Context, request *capi.DeleteMyStationPermissionRequestDto)
+	DeleteMyStationPermissions(ctx *gin.Context, request *capi.DeleteMyStationPermissionsRequestDto)
+	LeaveMyStation(ctx *gin.Context, request *capi.LeaveMyStationRequestDto)
+	LeaveMyStations(ctx *gin.Context, request *capi.LeaveMyStationsRequestDto)
 }
 
 type StationController struct {
@@ -52,15 +52,15 @@ func NewStationController(coreAdapter *coreadapters.CoreAdapter) StationControll
 	}
 }
 
-func (c *StationController) GetMyStationById(ctx *gin.Context, request *apicontract.GetMyStationByIdRequestDto) {
+func (c *StationController) GetMyStationById(ctx *gin.Context, request *capi.GetMyStationByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyStationByIdRequestDto,
-		apicontract.GetMyStationByIdResponseDto,
+		capi.GetMyStationByIdRequestDto,
+		capi.GetMyStationByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.GetMyStationByIdOperation,
+		capi.GetMyStationByIdOperation,
 		"/core/v1/stations/get-by-id",
 	)
 	if exception != nil {
@@ -71,15 +71,15 @@ func (c *StationController) GetMyStationById(ctx *gin.Context, request *apicontr
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) GetAllMyStations(ctx *gin.Context, request *apicontract.GetAllMyStationsRequestDto) {
+func (c *StationController) GetAllMyStations(ctx *gin.Context, request *capi.GetAllMyStationsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetAllMyStationsRequestDto,
-		apicontract.GetAllMyStationsResponseDto,
+		capi.GetAllMyStationsRequestDto,
+		capi.GetAllMyStationsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.GetAllMyStationsOperation,
+		capi.GetAllMyStationsOperation,
 		"/core/v1/stations/get-all",
 	)
 	if exception != nil {
@@ -90,15 +90,15 @@ func (c *StationController) GetAllMyStations(ctx *gin.Context, request *apicontr
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) CreateStation(ctx *gin.Context, request *apicontract.CreateStationRequestDto) {
+func (c *StationController) CreateStation(ctx *gin.Context, request *capi.CreateStationRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateStationRequestDto,
-		apicontract.CreateStationResponseDto,
+		capi.CreateStationRequestDto,
+		capi.CreateStationResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.CreateStationOperation,
+		capi.CreateStationOperation,
 		"/core/v1/stations/create",
 	)
 	if exception != nil {
@@ -109,15 +109,15 @@ func (c *StationController) CreateStation(ctx *gin.Context, request *apicontract
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) CreateStations(ctx *gin.Context, request *apicontract.CreateStationsRequestDto) {
+func (c *StationController) CreateStations(ctx *gin.Context, request *capi.CreateStationsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateStationsRequestDto,
-		apicontract.CreateStationsResponseDto,
+		capi.CreateStationsRequestDto,
+		capi.CreateStationsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.CreateStationsOperation,
+		capi.CreateStationsOperation,
 		"/core/v1/stations/create-many",
 	)
 	if exception != nil {
@@ -128,15 +128,15 @@ func (c *StationController) CreateStations(ctx *gin.Context, request *apicontrac
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *apicontract.UpdateMyStationByIdRequestDto) {
+func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *capi.UpdateMyStationByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyStationByIdRequestDto,
-		apicontract.UpdateMyStationByIdResponseDto,
+		capi.UpdateMyStationByIdRequestDto,
+		capi.UpdateMyStationByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpdateMyStationByIdOperation,
+		capi.UpdateMyStationByIdOperation,
 		"/core/v1/stations/update",
 	)
 	if exception != nil {
@@ -147,15 +147,15 @@ func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *apico
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *apicontract.UpdateMyStationsByIdsRequestDto) {
+func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *capi.UpdateMyStationsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyStationsByIdsRequestDto,
-		apicontract.UpdateMyStationsByIdsResponseDto,
+		capi.UpdateMyStationsByIdsRequestDto,
+		capi.UpdateMyStationsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpdateMyStationsByIdsOperation,
+		capi.UpdateMyStationsByIdsOperation,
 		"/core/v1/stations/update-many",
 	)
 	if exception != nil {
@@ -166,15 +166,15 @@ func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *api
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *apicontract.RestoreMyStationByIdRequestDto) {
+func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *capi.RestoreMyStationByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMyStationByIdRequestDto,
-		apicontract.RestoreMyStationByIdResponseDto,
+		capi.RestoreMyStationByIdRequestDto,
+		capi.RestoreMyStationByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.RestoreMyStationByIdOperation,
+		capi.RestoreMyStationByIdOperation,
 		"/core/v1/stations/restore",
 	)
 	if exception != nil {
@@ -185,15 +185,15 @@ func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *apic
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *apicontract.RestoreMyStationsByIdsRequestDto) {
+func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *capi.RestoreMyStationsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMyStationsByIdsRequestDto,
-		apicontract.RestoreMyStationsByIdsResponseDto,
+		capi.RestoreMyStationsByIdsRequestDto,
+		capi.RestoreMyStationsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.RestoreMyStationsByIdsOperation,
+		capi.RestoreMyStationsByIdsOperation,
 		"/core/v1/stations/restore-many",
 	)
 	if exception != nil {
@@ -204,15 +204,15 @@ func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *ap
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *apicontract.DeleteMyStationByIdRequestDto) {
+func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *capi.DeleteMyStationByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyStationByIdRequestDto,
-		apicontract.DeleteMyStationByIdResponseDto,
+		capi.DeleteMyStationByIdRequestDto,
+		capi.DeleteMyStationByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.DeleteMyStationByIdOperation,
+		capi.DeleteMyStationByIdOperation,
 		"/core/v1/stations/delete",
 	)
 	if exception != nil {
@@ -223,15 +223,15 @@ func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *apico
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *apicontract.DeleteMyStationsByIdsRequestDto) {
+func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *capi.DeleteMyStationsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyStationsByIdsRequestDto,
-		apicontract.DeleteMyStationsByIdsResponseDto,
+		capi.DeleteMyStationsByIdsRequestDto,
+		capi.DeleteMyStationsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.DeleteMyStationsByIdsOperation,
+		capi.DeleteMyStationsByIdsOperation,
 		"/core/v1/stations/delete-many",
 	)
 	if exception != nil {
@@ -242,15 +242,15 @@ func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *api
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *apicontract.HardDeleteMyStationByIdRequestDto) {
+func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *capi.HardDeleteMyStationByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.HardDeleteMyStationByIdRequestDto,
-		apicontract.HardDeleteMyStationByIdResponseDto,
+		capi.HardDeleteMyStationByIdRequestDto,
+		capi.HardDeleteMyStationByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.HardDeleteMyStationByIdOperation,
+		capi.HardDeleteMyStationByIdOperation,
 		"/core/v1/stations/hard-delete",
 	)
 	if exception != nil {
@@ -261,15 +261,15 @@ func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *a
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request *apicontract.HardDeleteMyStationsByIdsRequestDto) {
+func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request *capi.HardDeleteMyStationsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.HardDeleteMyStationsByIdsRequestDto,
-		apicontract.HardDeleteMyStationsByIdsResponseDto,
+		capi.HardDeleteMyStationsByIdsRequestDto,
+		capi.HardDeleteMyStationsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.HardDeleteMyStationsByIdsOperation,
+		capi.HardDeleteMyStationsByIdsOperation,
 		"/core/v1/stations/hard-delete-many",
 	)
 	if exception != nil {
@@ -282,15 +282,15 @@ func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request 
 
 /* ============================== Controller Methods for Visualization ============================== */
 
-func (c *StationController) VisualizeMyTotalCount(ctx *gin.Context, request *apicontract.VisualizeMyTotalCountRequestDto) {
+func (c *StationController) VisualizeMyTotalCount(ctx *gin.Context, request *capi.VisualizeMyTotalCountRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.VisualizeMyTotalCountRequestDto,
-		apicontract.VisualizeMyTotalCountResponseDto,
+		capi.VisualizeMyTotalCountRequestDto,
+		capi.VisualizeMyTotalCountResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.VisualizeMyTotalCountOperation,
+		capi.VisualizeMyTotalCountOperation,
 		"/core/v1/stations/visualizations/total-count",
 	)
 	if exception != nil {
@@ -303,15 +303,15 @@ func (c *StationController) VisualizeMyTotalCount(ctx *gin.Context, request *api
 
 /* ============================== Controller Methods for Station Permissions ============================== */
 
-func (c *StationController) GetMyStationPermission(ctx *gin.Context, request *apicontract.GetMyStationPermissionRequestDto) {
+func (c *StationController) GetMyStationPermission(ctx *gin.Context, request *capi.GetMyStationPermissionRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyStationPermissionRequestDto,
-		apicontract.GetMyStationPermissionResponseDto,
+		capi.GetMyStationPermissionRequestDto,
+		capi.GetMyStationPermissionResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.GetMyStationPermissionOperation,
+		capi.GetMyStationPermissionOperation,
 		"/core/v1/stations/permissions/get",
 	)
 	if exception != nil {
@@ -322,15 +322,15 @@ func (c *StationController) GetMyStationPermission(ctx *gin.Context, request *ap
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request *apicontract.CreateMyStationPermissionRequestDto) {
+func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request *capi.CreateMyStationPermissionRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateMyStationPermissionRequestDto,
-		apicontract.CreateMyStationPermissionResponseDto,
+		capi.CreateMyStationPermissionRequestDto,
+		capi.CreateMyStationPermissionResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.CreateMyStationPermissionOperation,
+		capi.CreateMyStationPermissionOperation,
 		"/core/v1/stations/permissions/create",
 	)
 	if exception != nil {
@@ -342,16 +342,16 @@ func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request 
 }
 
 func (c *StationController) UpsertMyStationPermission(
-	ctx *gin.Context, request *apicontract.UpsertMyStationPermissionRequestDto,
+	ctx *gin.Context, request *capi.UpsertMyStationPermissionRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpsertMyStationPermissionRequestDto,
-		apicontract.UpsertMyStationPermissionResponseDto,
+		capi.UpsertMyStationPermissionRequestDto,
+		capi.UpsertMyStationPermissionResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpsertMyStationPermissionOperation,
+		capi.UpsertMyStationPermissionOperation,
 		"/core/v1/stations/permissions/upsert",
 	)
 	if exception != nil {
@@ -363,16 +363,16 @@ func (c *StationController) UpsertMyStationPermission(
 }
 
 func (c *StationController) UpsertMyStationPermissions(
-	ctx *gin.Context, request *apicontract.UpsertMyStationPermissionsRequestDto,
+	ctx *gin.Context, request *capi.UpsertMyStationPermissionsRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpsertMyStationPermissionsRequestDto,
-		apicontract.UpsertMyStationPermissionsResponseDto,
+		capi.UpsertMyStationPermissionsRequestDto,
+		capi.UpsertMyStationPermissionsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpsertMyStationPermissionsOperation,
+		capi.UpsertMyStationPermissionsOperation,
 		"/core/v1/stations/permissions/upsert-many",
 	)
 	if exception != nil {
@@ -383,15 +383,15 @@ func (c *StationController) UpsertMyStationPermissions(
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request *apicontract.UpdateMyStationPermissionRequestDto) {
+func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request *capi.UpdateMyStationPermissionRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyStationPermissionRequestDto,
-		apicontract.UpdateMyStationPermissionResponseDto,
+		capi.UpdateMyStationPermissionRequestDto,
+		capi.UpdateMyStationPermissionResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpdateMyStationPermissionOperation,
+		capi.UpdateMyStationPermissionOperation,
 		"/core/v1/stations/permissions/update",
 	)
 	if exception != nil {
@@ -403,16 +403,16 @@ func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request 
 }
 
 func (c *StationController) TransferMyStationOwnership(
-	ctx *gin.Context, request *apicontract.TransferMyStationOwnershipRequestDto,
+	ctx *gin.Context, request *capi.TransferMyStationOwnershipRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.TransferMyStationOwnershipRequestDto,
-		apicontract.TransferMyStationOwnershipResponseDto,
+		capi.TransferMyStationOwnershipRequestDto,
+		capi.TransferMyStationOwnershipResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.TransferMyStationOwnershipOperation,
+		capi.TransferMyStationOwnershipOperation,
 		"/core/v1/stations/ownership/transfer",
 	)
 	if exception != nil {
@@ -424,16 +424,16 @@ func (c *StationController) TransferMyStationOwnership(
 }
 
 func (c *StationController) DeleteMyStationPermission(
-	ctx *gin.Context, request *apicontract.DeleteMyStationPermissionRequestDto,
+	ctx *gin.Context, request *capi.DeleteMyStationPermissionRequestDto,
 ) {
 	_, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyStationPermissionRequestDto,
-		apicontract.DeleteMyStationPermissionResponseDto,
+		capi.DeleteMyStationPermissionRequestDto,
+		capi.DeleteMyStationPermissionResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.DeleteMyStationPermissionOperation,
+		capi.DeleteMyStationPermissionOperation,
 		"/core/v1/stations/permissions/delete",
 	)
 	if exception != nil {
@@ -441,20 +441,20 @@ func (c *StationController) DeleteMyStationPermission(
 		return
 	}
 
-	writeClientResponse(ctx, apicontract.DeleteMyStationPermissionResponseDto{})
+	writeClientResponse(ctx, capi.DeleteMyStationPermissionResponseDto{})
 }
 
 func (c *StationController) DeleteMyStationPermissions(
-	ctx *gin.Context, request *apicontract.DeleteMyStationPermissionsRequestDto,
+	ctx *gin.Context, request *capi.DeleteMyStationPermissionsRequestDto,
 ) {
 	_, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyStationPermissionsRequestDto,
-		apicontract.DeleteMyStationPermissionsResponseDto,
+		capi.DeleteMyStationPermissionsRequestDto,
+		capi.DeleteMyStationPermissionsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.DeleteMyStationPermissionsOperation,
+		capi.DeleteMyStationPermissionsOperation,
 		"/core/v1/stations/permissions/delete-many",
 	)
 	if exception != nil {
@@ -465,15 +465,15 @@ func (c *StationController) DeleteMyStationPermissions(
 	ctx.Status(http.StatusNoContent)
 }
 
-func (c *StationController) LeaveMyStation(ctx *gin.Context, request *apicontract.LeaveMyStationRequestDto) {
+func (c *StationController) LeaveMyStation(ctx *gin.Context, request *capi.LeaveMyStationRequestDto) {
 	_, exception := coreadapters.CallSecurly[
-		apicontract.LeaveMyStationRequestDto,
-		apicontract.LeaveMyStationResponseDto,
+		capi.LeaveMyStationRequestDto,
+		capi.LeaveMyStationResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.LeaveMyStationOperation,
+		capi.LeaveMyStationOperation,
 		"/core/v1/stations/memberships/leave",
 	)
 	if exception != nil {
@@ -484,15 +484,15 @@ func (c *StationController) LeaveMyStation(ctx *gin.Context, request *apicontrac
 	ctx.Status(http.StatusNoContent)
 }
 
-func (c *StationController) LeaveMyStations(ctx *gin.Context, request *apicontract.LeaveMyStationsRequestDto) {
+func (c *StationController) LeaveMyStations(ctx *gin.Context, request *capi.LeaveMyStationsRequestDto) {
 	_, exception := coreadapters.CallSecurly[
-		apicontract.LeaveMyStationsRequestDto,
-		apicontract.LeaveMyStationsResponseDto,
+		capi.LeaveMyStationsRequestDto,
+		capi.LeaveMyStationsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.LeaveMyStationsOperation,
+		capi.LeaveMyStationsOperation,
 		"/core/v1/stations/memberships/leave-many",
 	)
 	if exception != nil {

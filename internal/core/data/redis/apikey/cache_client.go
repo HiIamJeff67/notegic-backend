@@ -10,7 +10,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 )
@@ -41,9 +41,9 @@ func NewAPIKeyCacheClient(cacheStore *APIKeyCacheStore) *APIKeyCacheClient {
 
 /* ============================== Auxiliary Methods ============================== */
 
-func (s *APIKeyCacheClient) getRedisClient(identifier string) (*redis.Client, int, *exceptions.Exception) {
+func (s *APIKeyCacheClient) getRedisClient(identifier string) (*redis.Client, int, *cexceptions.Exception) {
 	if s == nil || s.cacheStore == nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -55,7 +55,7 @@ func (s *APIKeyCacheClient) getRedisClient(identifier string) (*redis.Client, in
 
 	redisClient, shardIndex, err := s.cacheStore.ClientSet().ClientForKey(identifier)
 	if err != nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -74,7 +74,7 @@ func (s *APIKeyCacheClient) formatAPIKeyCacheKey(keyHash string) string {
 
 /* ============================== CRUD Method ============================== */
 
-func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *exceptions.Exception) {
+func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *cexceptions.Exception) {
 	redisClient, shardIndex, exception := s.getRedisClient(keyHash)
 	if exception != nil {
 		return nil, exception
@@ -85,7 +85,7 @@ func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *exceptions.Excep
 		return nil, nil
 	}
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"Cache",
 			"GetAPIKey",
@@ -97,7 +97,7 @@ func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *exceptions.Excep
 
 	var apiKeyCache APIKeyCache
 	if err := json.Unmarshal([]byte(cacheString), &apiKeyCache); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"DeserializationFailed",
 			"Cache",
 			"GetAPIKey",
@@ -111,7 +111,7 @@ func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *exceptions.Excep
 	return &apiKeyCache, nil
 }
 
-func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *exceptions.Exception {
+func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *cexceptions.Exception {
 	redisClient, shardIndex, exception := s.getRedisClient(keyHash)
 	if exception != nil {
 		return exception
@@ -119,7 +119,7 @@ func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *except
 
 	value, err := json.Marshal(apiKeyCache)
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"SetAPIKey",
@@ -130,7 +130,7 @@ func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *except
 	}
 
 	if err := redisClient.Set(s.formatAPIKeyCacheKey(keyHash), string(value), s.expiresIn).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToCreate",
 			"Cache",
 			"SetAPIKey",
@@ -144,14 +144,14 @@ func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *except
 	return nil
 }
 
-func (s *APIKeyCacheClient) Delete(keyHash string) *exceptions.Exception {
+func (s *APIKeyCacheClient) Delete(keyHash string) *cexceptions.Exception {
 	redisClient, shardIndex, exception := s.getRedisClient(keyHash)
 	if exception != nil {
 		return exception
 	}
 
 	if err := redisClient.Del(s.formatAPIKeyCacheKey(keyHash)).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToDelete",
 			"Cache",
 			"DeleteAPIKey",

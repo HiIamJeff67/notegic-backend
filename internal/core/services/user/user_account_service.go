@@ -2,31 +2,33 @@ package user
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"time"
 
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cauthdto "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserAccountServiceInterface interface {
-	GetMyAccount(ctx context.Context, requestDto *apicontract.GetMyAccountRequestDto) (*apicontract.GetMyAccountResponseDto, *exceptions.Exception)
-	UpdateMyAccount(ctx context.Context, requestDto *apicontract.UpdateMyAccountRequestDto) (*apicontract.UpdateMyAccountResponseDto, *exceptions.Exception)
-	BindGoogleAccount(ctx context.Context, requestDto *apicontract.BindGoogleAccountRequestDto) (*apicontract.BindGoogleAccountResponseDto, *exceptions.Exception)
-	UnbindGoogleAccount(ctx context.Context, requestDto *apicontract.UnbindGoogleAccountRequestDto) (*apicontract.UnbindGoogleAccountResponseDto, *exceptions.Exception)
+	GetMyAccount(ctx context.Context, requestDto *capi.GetMyAccountRequestDto) (*capi.GetMyAccountResponseDto, *cexceptions.Exception)
+	UpdateMyAccount(ctx context.Context, requestDto *capi.UpdateMyAccountRequestDto) (*capi.UpdateMyAccountResponseDto, *cexceptions.Exception)
+	BindGoogleAccount(ctx context.Context, requestDto *capi.BindGoogleAccountRequestDto) (*capi.BindGoogleAccountResponseDto, *cexceptions.Exception)
+	UnbindGoogleAccount(ctx context.Context, requestDto *capi.UnbindGoogleAccountRequestDto) (*capi.UnbindGoogleAccountResponseDto, *cexceptions.Exception)
 }
 
 type UserAccountService struct {
@@ -62,10 +64,10 @@ func NewUserAccountService(
 /* ============================== Service Methods for UserAccount ============================== */
 
 func (s *UserAccountService) GetMyAccount(
-	ctx context.Context, requestDto *apicontract.GetMyAccountRequestDto,
-) (*apicontract.GetMyAccountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyAccountRequestDto,
+) (*capi.GetMyAccountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserAccount",
 			"GetMyAccount",
@@ -96,10 +98,10 @@ func (s *UserAccountService) GetMyAccount(
 
 	var countryCode *string
 	if userAccount.CountryCode != nil {
-		countryCodeString := userAccount.CountryCode.String()
+		countryCodeString := string(*userAccount.CountryCode)
 		countryCode = &countryCodeString
 	}
-	return &apicontract.GetMyAccountResponseDto{
+	return &capi.GetMyAccountResponseDto{
 		CountryCode:              countryCode,
 		PhoneNumber:              userAccount.PhoneNumber,
 		GoogleCredential:         userAccount.GoogleCredential,
@@ -119,10 +121,10 @@ func (s *UserAccountService) GetMyAccount(
 }
 
 func (s *UserAccountService) UpdateMyAccount(
-	ctx context.Context, requestDto *apicontract.UpdateMyAccountRequestDto,
-) (*apicontract.UpdateMyAccountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UpdateMyAccountRequestDto,
+) (*capi.UpdateMyAccountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserAccount",
 			"UpdateMyAccount",
@@ -138,18 +140,19 @@ func (s *UserAccountService) UpdateMyAccount(
 	if requestDto.Body.Values.CountryCode != nil {
 		parsedCountryCode, err := enums.ConvertStringToCountryCode(*requestDto.Body.Values.CountryCode)
 		if err != nil {
-			return nil, exceptions.InvalidInput("UserAccount").WithOrigin(err)
+			return nil, cexceptions.InvalidInput("UserAccount").WithOrigin(err)
 		}
-		countryCode = parsedCountryCode
+		contractCountryCode := enums.CountryCode(*parsedCountryCode)
+		countryCode = &contractCountryCode
 	}
 
 	db := s.db.WithContext(ctx)
 
-	result := db.Model(&schemas.UserAccount{}).
+	result := db.Model(&platformschemas.UserAccount{}).
 		Where("user_id = ? AND auth_code = ?", actorUserId, requestDto.Body.AuthCode).
-		First(&schemas.UserAccount{})
+		First(&platformschemas.UserAccount{})
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"UserAccount",
 			"UpdateMyAccount",
@@ -174,7 +177,7 @@ func (s *UserAccountService) UpdateMyAccount(
 		return nil, exception
 	}
 
-	return &apicontract.UpdateMyAccountResponseDto{
+	return &capi.UpdateMyAccountResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
@@ -182,10 +185,10 @@ func (s *UserAccountService) UpdateMyAccount(
 /* ============================== Service Methods for Binding Accounts ============================== */
 
 func (s *UserAccountService) BindGoogleAccount(
-	ctx context.Context, requestDto *apicontract.BindGoogleAccountRequestDto,
-) (*apicontract.BindGoogleAccountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.BindGoogleAccountRequestDto,
+) (*capi.BindGoogleAccountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserAccount",
 			"BindGoogleAccount",
@@ -201,7 +204,12 @@ func (s *UserAccountService) BindGoogleAccount(
 	// Start transaction
 	db := s.db.WithContext(ctx)
 
-	userInfo, exception := s.oauthService.GetGoogleUserInfo(ctx, requestDto.Body.AuthorizationCode)
+	userInfo, exception := s.oauthService.GetGoogleUserInfo(
+		ctx,
+		&cauthdto.GetGoogleUserInfoRequestDto{
+			AuthenticationCode: requestDto.Body.AuthorizationCode,
+		},
+	)
 	if exception != nil {
 		return nil, exception
 	}
@@ -216,7 +224,7 @@ func (s *UserAccountService) BindGoogleAccount(
 	}
 
 	if user.UserAccount.GoogleCredential != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GoogleCredentialAlreadyBound",
 			"UserAccount",
 			"BindGoogleAccount",
@@ -239,16 +247,16 @@ func (s *UserAccountService) BindGoogleAccount(
 		return nil, exception
 	}
 
-	return &apicontract.BindGoogleAccountResponseDto{
+	return &capi.BindGoogleAccountResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *UserAccountService) UnbindGoogleAccount(
-	ctx context.Context, requestDto *apicontract.UnbindGoogleAccountRequestDto,
-) (*apicontract.UnbindGoogleAccountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UnbindGoogleAccountRequestDto,
+) (*capi.UnbindGoogleAccountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserAccount",
 			"UnbindGoogleAccount",
@@ -264,11 +272,11 @@ func (s *UserAccountService) UnbindGoogleAccount(
 	// Start transaction
 	db := s.db.WithContext(ctx)
 
-	result := db.Model(&schemas.UserAccount{}).
+	result := db.Model(&platformschemas.UserAccount{}).
 		Where("user_id = ? AND auth_code = ?", actorUserId, requestDto.Body.AuthCode).
-		First(&schemas.UserAccount{})
+		First(&platformschemas.UserAccount{})
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"UserAccount",
 			"UnbindGoogleAccount",
@@ -293,7 +301,7 @@ func (s *UserAccountService) UnbindGoogleAccount(
 		return nil, exception
 	}
 
-	return &apicontract.UnbindGoogleAccountResponseDto{
+	return &capi.UnbindGoogleAccountResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }

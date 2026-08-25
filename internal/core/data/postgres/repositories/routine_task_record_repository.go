@@ -2,40 +2,41 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RoutineTaskRecordRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.RoutineTaskRecord, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.RoutineTaskRecord, *exceptions.Exception)
-	GetAllByRoutineTaskId(routineTaskId uuid.UUID, userId uuid.UUID, limit int, preloads []schemas.RoutineTaskRecordRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTaskRecord, *exceptions.Exception)
-	UpdateManyAsFailed(failureInputs []inputs.UpdateRoutineTaskRecordFailureInput, failedAt time.Time, opts ...options.RepositoryOptions) (int64, *exceptions.Exception)
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.RoutineTaskRecord, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.RoutineTaskRecord, *cexceptions.Exception)
+	GetAllByRoutineTaskId(routineTaskId uuid.UUID, userId uuid.UUID, limit int, preloads []schemas.RoutineTaskRecordRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTaskRecord, *cexceptions.Exception)
+	UpdateManyAsFailed(failureInputs []inputs.UpdateRoutineTaskRecordFailureInput, failedAt time.Time, opts ...options.RepositoryOptions) (int64, *cexceptions.Exception)
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 }
 
 type RoutineTaskRecordRepository struct {
-	routineTaskRecordScope scopes.RoutineTaskRecordScopeInterface
+	routineTaskRecordScope corescopes.RoutineTaskRecordScopeInterface
 }
 
 func NewRoutineTaskRecordRepository(
-	routineTaskRecordScope scopes.RoutineTaskRecordScopeInterface,
+	routineTaskRecordScope corescopes.RoutineTaskRecordScopeInterface,
 ) RoutineTaskRecordRepositoryInterface {
 	return &RoutineTaskRecordRepository{
 		routineTaskRecordScope: routineTaskRecordScope,
@@ -93,7 +94,7 @@ func (r *RoutineTaskRecordRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.RoutineTaskRecordRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.RoutineTaskRecord, *exceptions.Exception) {
+) (*schemas.RoutineTaskRecord, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var routineTaskRecord schemas.RoutineTaskRecord
@@ -110,7 +111,7 @@ func (r *RoutineTaskRecordRepository) CheckPermissionAndGetOneById(
 		Scopes(r.routineTaskRecordScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&routineTaskRecord)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(result.Error)},
 		{First: routineTaskRecord.Id == uuid.Nil, Second: apiexceptions.NewRoutineTaskException().NotFound()},
 	}); exception != nil {
@@ -126,7 +127,7 @@ func (r *RoutineTaskRecordRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.RoutineTaskRecordRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RoutineTaskRecord, *exceptions.Exception) {
+) ([]schemas.RoutineTaskRecord, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return []schemas.RoutineTaskRecord{}, nil
 	}
@@ -140,7 +141,7 @@ func (r *RoutineTaskRecordRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.routineTaskRecordScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&routineTaskRecords)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(result.Error)},
 		{First: len(routineTaskRecords) == 0, Second: apiexceptions.NewRoutineTaskException().NotFound()},
 	}); exception != nil {
@@ -156,7 +157,7 @@ func (r *RoutineTaskRecordRepository) GetAllByRoutineTaskId(
 	limit int,
 	preloads []schemas.RoutineTaskRecordRelation,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RoutineTaskRecord, *exceptions.Exception) {
+) ([]schemas.RoutineTaskRecord, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if limit <= 0 {
 		limit = 100
@@ -186,7 +187,7 @@ func (r *RoutineTaskRecordRepository) UpdateManyAsFailed(
 	failureInputs []inputs.UpdateRoutineTaskRecordFailureInput,
 	failedAt time.Time,
 	opts ...options.RepositoryOptions,
-) (int64, *exceptions.Exception) {
+) (int64, *cexceptions.Exception) {
 	if len(failureInputs) == 0 {
 		return 0, nil
 	}
@@ -238,14 +239,14 @@ func (r *RoutineTaskRecordRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTaskRecord{}).
 		Scopes(r.routineTaskRecordScope.PassPermissionCheck(id, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskRecordTable".id = ?`, id).
 		Delete(&schemas.RoutineTaskRecord{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTaskException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTaskException().NoChanges()},
 	}); exception != nil {
@@ -259,7 +260,7 @@ func (r *RoutineTaskRecordRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewRoutineTaskException().NoChanges()
 	}
@@ -270,7 +271,7 @@ func (r *RoutineTaskRecordRepository) HardDeleteManyByIds(
 		Scopes(r.routineTaskRecordScope.PassPermissionChecks(ids, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskRecordTable".id IN ?`, ids).
 		Delete(&schemas.RoutineTaskRecord{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTaskException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTaskException().NoChanges()},
 	}); exception != nil {

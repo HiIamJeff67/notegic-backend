@@ -3,7 +3,7 @@ package resolvers
 import (
 	"context"
 
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 type ThemeResolverInterface interface{}
@@ -22,6 +22,6 @@ func NewThemeResolver(resolver *Resolver) ThemeResolverInterface {
 // [MainSchema(as the filename) ---Indicator of MainSchema---> RelativeSchema(has the relationship between the MainSchema)]
 
 // [PublicTheme ---PublicTheme.PublicId---> PublicUser]
-func (r *ThemeResolver) Author(ctx context.Context, obj *gqlmodels.PublicTheme) (*gqlmodels.PublicUser, error) {
+func (r *ThemeResolver) Author(ctx context.Context, obj *cgqlmodels.PublicTheme) (*cgqlmodels.PublicUser, error) {
 	return r.dataloader.UserDataLoader.LoadByThemePublicId(ctx, obj.PublicID)
 }

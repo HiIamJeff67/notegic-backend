@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
@@ -55,7 +55,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindGetAllMyRoutineTaskRecordsByRoutineTaskId(routineTaskRecordController.GetAllMyRoutineTaskRecordsByRoutineTaskId),
 			)...,
@@ -84,7 +84,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindVisualizeMyRoutineTaskRecordStatusCount(routineTaskRecordController.VisualizeMyRoutineTaskRecordStatusCount),
 			)...,
@@ -98,7 +98,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindVisualizeMyRoutineTaskRecordPurposeCount(routineTaskRecordController.VisualizeMyRoutineTaskRecordPurposeCount),
 			)...,
@@ -112,7 +112,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindVisualizeMyRoutineTaskRecordScheduledAtCount(routineTaskRecordController.VisualizeMyRoutineTaskRecordScheduledAtCount),
 			)...,
@@ -126,7 +126,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindVisualizeMyRoutineTaskRecordActualStartedAtCount(routineTaskRecordController.VisualizeMyRoutineTaskRecordActualStartedAtCount),
 			)...,
@@ -140,7 +140,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskRecordBinder.BindVisualizeMyRoutineTaskRecordActualEndedAtCount(routineTaskRecordController.VisualizeMyRoutineTaskRecordActualEndedAtCount),
 			)...,

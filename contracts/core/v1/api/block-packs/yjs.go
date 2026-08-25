@@ -1,9 +1,9 @@
 package apicontract
 
-import blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+import cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
 
 type InitializeBlockPackYjsDocumentReqDto struct {
-	Blocks []blocknote.ArborizedEditableBlock `json:"blocks"`
+	Blocks []cblocknote.ArborizedEditableBlock `json:"blocks"`
 }
 
 type InitializeBlockPackYjsDocumentResDto struct {

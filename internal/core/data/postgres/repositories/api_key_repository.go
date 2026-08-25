@@ -6,18 +6,18 @@ import (
 
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type APIKeyRepositoryInterface interface {
-	GetOneByKeyHash(keyHash string, opts ...options.RepositoryOptions) (*schemas.APIKey, *exceptions.Exception)
-	GetAllByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.APIKey, *exceptions.Exception)
-	Create(apiKey *schemas.APIKey, opts ...options.RepositoryOptions) (*schemas.APIKey, *exceptions.Exception)
-	MarkUsed(id uuid.UUID, usedAt time.Time, opts ...options.RepositoryOptions) *exceptions.Exception
-	Revoke(id uuid.UUID, revokedAt time.Time, opts ...options.RepositoryOptions) *exceptions.Exception
+	GetOneByKeyHash(keyHash string, opts ...options.RepositoryOptions) (*schemas.APIKey, *cexceptions.Exception)
+	GetAllByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.APIKey, *cexceptions.Exception)
+	Create(apiKey *schemas.APIKey, opts ...options.RepositoryOptions) (*schemas.APIKey, *cexceptions.Exception)
+	MarkUsed(id uuid.UUID, usedAt time.Time, opts ...options.RepositoryOptions) *cexceptions.Exception
+	Revoke(id uuid.UUID, revokedAt time.Time, opts ...options.RepositoryOptions) *cexceptions.Exception
 }
 
 type APIKeyRepository struct{}
@@ -29,7 +29,7 @@ func NewAPIKeyRepository() APIKeyRepositoryInterface {
 func (r *APIKeyRepository) GetOneByKeyHash(
 	keyHash string,
 	opts ...options.RepositoryOptions,
-) (*schemas.APIKey, *exceptions.Exception) {
+) (*schemas.APIKey, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	apiKey := &schemas.APIKey{}
@@ -38,7 +38,7 @@ func (r *APIKeyRepository) GetOneByKeyHash(
 		Where("key_hash = ?", keyHash).
 		First(apiKey)
 	if result.Error != nil || apiKey.Id == uuid.Nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"APIKeyNotFound",
 			"Repository",
 			"GetOneByKeyHash",
@@ -53,7 +53,7 @@ func (r *APIKeyRepository) GetOneByKeyHash(
 func (r *APIKeyRepository) GetAllByUserId(
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.APIKey, *exceptions.Exception) {
+) ([]schemas.APIKey, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	apiKeys := []schemas.APIKey{}
@@ -63,7 +63,7 @@ func (r *APIKeyRepository) GetAllByUserId(
 		Order("created_at DESC").
 		Find(&apiKeys)
 	if result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"APIKeyListFailed",
 			"Repository",
 			"GetAllByUserId",
@@ -79,9 +79,9 @@ func (r *APIKeyRepository) GetAllByUserId(
 func (r *APIKeyRepository) Create(
 	apiKey *schemas.APIKey,
 	opts ...options.RepositoryOptions,
-) (*schemas.APIKey, *exceptions.Exception) {
+) (*schemas.APIKey, *cexceptions.Exception) {
 	if apiKey == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"APIKeyRequired",
 			"Repository",
 			"Create",
@@ -96,7 +96,7 @@ func (r *APIKeyRepository) Create(
 		Model(&schemas.APIKey{}).
 		Create(apiKey)
 	if result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"APIKeyCreateFailed",
 			"Repository",
 			"Create",
@@ -113,7 +113,7 @@ func (r *APIKeyRepository) MarkUsed(
 	id uuid.UUID,
 	usedAt time.Time,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	result := parsedOptions.DB.
@@ -121,7 +121,7 @@ func (r *APIKeyRepository) MarkUsed(
 		Where("id = ? AND revoked_at IS NULL", id).
 		Update("last_used_at", usedAt)
 	if result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"APIKeyUsageUpdateFailed",
 			"Repository",
 			"MarkUsed",
@@ -138,7 +138,7 @@ func (r *APIKeyRepository) Revoke(
 	id uuid.UUID,
 	revokedAt time.Time,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	result := parsedOptions.DB.
@@ -146,7 +146,7 @@ func (r *APIKeyRepository) Revoke(
 		Where("id = ? AND revoked_at IS NULL", id).
 		Update("revoked_at", revokedAt)
 	if result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"APIKeyRevokeFailed",
 			"Repository",
 			"Revoke",

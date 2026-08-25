@@ -12,12 +12,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 	redislibraries "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/libraries"
 )
@@ -63,9 +63,9 @@ func NewUserDataCacheClient(config coreconfig.UserDataCacheConfig, cacheStore *U
 
 /* ============================== Auxiliary Methods ============================== */
 
-func (s *UserDataCacheClient) getRedisClient(identifier string) (*redis.Client, int, *exceptions.Exception) {
+func (s *UserDataCacheClient) getRedisClient(identifier string) (*redis.Client, int, *cexceptions.Exception) {
 	if s == nil || s.cacheStore == nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -76,7 +76,7 @@ func (s *UserDataCacheClient) getRedisClient(identifier string) (*redis.Client, 
 	}
 	redisClient, shardIndex, err := s.cacheStore.ClientSet().ClientForKey(identifier)
 	if err != nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -94,7 +94,7 @@ func (s *UserDataCacheClient) formatUserDataKey(identifier string) string {
 
 /* ============================== Extend Methods ============================== */
 
-func (s *UserDataCacheClient) Extend(identifier string) *exceptions.Exception {
+func (s *UserDataCacheClient) Extend(identifier string) *cexceptions.Exception {
 	redisClient, _, exception := s.getRedisClient(identifier)
 	if exception != nil {
 		return exception
@@ -102,7 +102,7 @@ func (s *UserDataCacheClient) Extend(identifier string) *exceptions.Exception {
 
 	updated, err := redisClient.Expire(s.formatUserDataKey(identifier), s.cacheExpiresIn).Result()
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToExtendTTL",
 			"Cache",
 			"ExtendUserData",
@@ -112,7 +112,7 @@ func (s *UserDataCacheClient) Extend(identifier string) *exceptions.Exception {
 		).WithOrigin(err)
 	}
 	if !updated {
-		return exceptions.New(
+		return cexceptions.New(
 			"NotFound",
 			"Cache",
 			"ExtendUserData",
@@ -130,7 +130,7 @@ func (s *UserDataCacheClient) Extend(identifier string) *exceptions.Exception {
 func (s *UserDataCacheClient) CheckAndUpdateQuota(
 	identifier string,
 	input cacheinputs.CheckAndUpdateUserQuotaInput,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	redisClient, _, exception := s.getRedisClient(identifier)
 	if exception != nil {
 		return exception
@@ -147,7 +147,7 @@ func (s *UserDataCacheClient) CheckAndUpdateQuota(
 		int(time.Until(input.ExpiresIn).Seconds()),
 	}
 	if _, err := redisClient.Do(arguments...).Result(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToUpdate",
 			"Cache",
 			"CheckAndUpdateUserQuota",
@@ -162,7 +162,7 @@ func (s *UserDataCacheClient) CheckAndUpdateQuota(
 
 func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotas(
 	inputs []cacheinputs.BatchCheckAndUpdateUserQuotaInput,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(inputs) == 0 {
 		return nil
 	}
@@ -202,7 +202,7 @@ func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotas(
 		command = append(command, keys...)
 		command = append(command, arguments...)
 		if _, err := redisClient.Do(command...).Result(); err != nil {
-			return exceptions.New(
+			return cexceptions.New(
 				"FailedToUpdate",
 				"Cache",
 				"BestEffortBatchCheckAndUpdateUserQuotas",
@@ -219,7 +219,7 @@ func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotas(
 func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotasByIdentifier(
 	identifier string,
 	inputs []cacheinputs.CheckAndUpdateUserQuotaInput,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(inputs) == 0 {
 		return nil
 	}
@@ -247,7 +247,7 @@ func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotasByIdentifier(
 	}
 	command = append(command, arguments...)
 	if _, err := redisClient.Do(command...).Result(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToUpdate",
 			"Cache",
 			"BestEffortBatchCheckAndUpdateUserQuotasByIdentifier",
@@ -262,7 +262,7 @@ func (s *UserDataCacheClient) BestEffortBatchCheckAndUpdateQuotasByIdentifier(
 
 /* ============================== CRUD Method ============================== */
 
-func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *exceptions.Exception) {
+func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *cexceptions.Exception) {
 	redisClient, serverNumber, exception := s.getRedisClient(identifier)
 	if exception != nil {
 		return nil, exception
@@ -270,7 +270,7 @@ func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *exception
 
 	cacheString, err := redisClient.Get(s.formatUserDataKey(identifier)).Result()
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"Cache",
 			"GetUserData",
@@ -282,7 +282,7 @@ func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *exception
 
 	var userDataCache UserDataCache
 	if err := json.Unmarshal([]byte(cacheString), &userDataCache); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"DeserializationFailed",
 			"Cache",
 			"GetUserData",
@@ -296,7 +296,7 @@ func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *exception
 	return &userDataCache, nil
 }
 
-func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache) *exceptions.Exception {
+func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache) *cexceptions.Exception {
 	if userDataCache.PublicId == uuid.Nil ||
 		strings.TrimSpace(userDataCache.Name) == "" ||
 		strings.TrimSpace(userDataCache.DisplayName) == "" ||
@@ -305,7 +305,7 @@ func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache
 		!userDataCache.Role.IsValidEnum() ||
 		!userDataCache.Plan.IsValidEnum() ||
 		!userDataCache.Status.IsValidEnum() {
-		return exceptions.New(
+		return cexceptions.New(
 			"InvalidCacheData",
 			"Cache",
 			"SetUserData",
@@ -322,7 +322,7 @@ func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache
 
 	value, err := json.Marshal(userDataCache)
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"SetUserData",
@@ -333,7 +333,7 @@ func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache
 	}
 
 	if err := redisClient.Set(s.formatUserDataKey(identifier), string(value), s.cacheExpiresIn).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToCreate",
 			"Cache",
 			"SetUserData",
@@ -347,7 +347,7 @@ func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache
 	return nil
 }
 
-func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.UpdateUserDataCacheInput) *exceptions.Exception {
+func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.UpdateUserDataCacheInput) *cexceptions.Exception {
 	userDataCache, exception := s.Get(identifier)
 	if exception != nil {
 		return exception
@@ -355,7 +355,7 @@ func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.Update
 
 	userDataCache.UpdatedAt = time.Now()
 	if err := copier.Copy(userDataCache, &input); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"UpdateUserData",
@@ -372,7 +372,7 @@ func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.Update
 
 	value, err := json.Marshal(userDataCache)
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"UpdateUserData",
@@ -383,7 +383,7 @@ func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.Update
 	}
 
 	if err := redisClient.Set(s.formatUserDataKey(identifier), string(value), s.cacheExpiresIn).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToUpdate",
 			"Cache",
 			"UpdateUserData",
@@ -404,11 +404,11 @@ func (s *UserDataCacheClient) RotateCSRFToken(
 	identifier string,
 	expectedToken string,
 	replacementToken string,
-) (string, bool, *exceptions.Exception) {
+) (string, bool, *cexceptions.Exception) {
 	if strings.TrimSpace(identifier) == "" ||
 		strings.TrimSpace(expectedToken) == "" ||
 		strings.TrimSpace(replacementToken) == "" {
-		return "", false, exceptions.New(
+		return "", false, cexceptions.New(
 			"InvalidInput",
 			"Cache",
 			"RotateCSRFToken",
@@ -463,7 +463,7 @@ func (s *UserDataCacheClient) RotateCSRFToken(
 			continue
 		}
 		if err != nil {
-			return "", false, exceptions.New(
+			return "", false, cexceptions.New(
 				"FailedToRotate",
 				"Cache",
 				"RotateCSRFToken",
@@ -485,14 +485,14 @@ func (s *UserDataCacheClient) RotateCSRFToken(
 	return userDataCache.CSRFToken, false, nil
 }
 
-func (s *UserDataCacheClient) Delete(identifier string) *exceptions.Exception {
+func (s *UserDataCacheClient) Delete(identifier string) *cexceptions.Exception {
 	redisClient, serverNumber, exception := s.getRedisClient(identifier)
 	if exception != nil {
 		return exception
 	}
 
 	if err := redisClient.Del(s.formatUserDataKey(identifier)).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToDelete",
 			"Cache",
 			"DeleteUserData",

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type RoutineTaskException struct {
@@ -15,8 +15,8 @@ func NewRoutineTaskException(domain string) RoutineTaskException {
 	return RoutineTaskException{DurableJobException: NewDurableJobException(domain)}
 }
 
-func (e RoutineTaskException) InvalidPayload(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) InvalidPayload(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"InvalidRoutineTaskPayload",
 		e.Domain,
 		"PrepareRoutineTask",
@@ -25,8 +25,8 @@ func (e RoutineTaskException) InvalidPayload(cause error) *exceptions.Exception 
 	).WithOrigin(cause)
 }
 
-func (e RoutineTaskException) Canceled(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) Canceled(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"Canceled",
 		e.Domain,
 		"ExecuteRoutineTask",
@@ -35,8 +35,8 @@ func (e RoutineTaskException) Canceled(cause error) *exceptions.Exception {
 	).WithOrigin(cause)
 }
 
-func (e RoutineTaskException) Timeout(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) Timeout(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"Timeout",
 		e.Domain,
 		"ExecuteRoutineTask",
@@ -46,8 +46,8 @@ func (e RoutineTaskException) Timeout(cause error) *exceptions.Exception {
 	).WithOrigin(cause)
 }
 
-func (e RoutineTaskException) TargetNotFound(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) TargetNotFound(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"TargetNotFound",
 		e.Domain,
 		"ExecuteRoutineTask",
@@ -56,8 +56,8 @@ func (e RoutineTaskException) TargetNotFound(cause error) *exceptions.Exception 
 	).WithOrigin(cause)
 }
 
-func (e RoutineTaskException) PermissionDenied(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) PermissionDenied(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"PermissionDenied",
 		e.Domain,
 		"ExecuteRoutineTask",
@@ -66,8 +66,8 @@ func (e RoutineTaskException) PermissionDenied(cause error) *exceptions.Exceptio
 	).WithOrigin(cause)
 }
 
-func (e RoutineTaskException) HandlerFailed(cause error) *exceptions.Exception {
-	return exceptions.New(
+func (e RoutineTaskException) HandlerFailed(cause error) *cexceptions.Exception {
+	return cexceptions.New(
 		"HandlerFailed",
 		e.Domain,
 		"ExecuteRoutineTask",

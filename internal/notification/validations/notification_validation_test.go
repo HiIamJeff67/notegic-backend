@@ -5,7 +5,7 @@ import (
 
 	validator "github.com/go-playground/validator/v10"
 
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 )
 
@@ -18,14 +18,14 @@ func TestRegisterNotificationValidations(t *testing.T) {
 	RegisterWarningValidation(validate)
 	RegisterImportantValidation(validate)
 
-	if err := validate.Struct(notificationtypescontract.NotificationMetadata{
+	if err := validate.Struct(cnotificationtypes.NotificationMetadata{
 		Type:            "news",
 		Priority:        "normal",
 		TemplateVersion: 1,
 	}); err != nil {
 		t.Fatalf("expected valid notification metadata, got %v", err)
 	}
-	if err := validate.Struct(notificationtypescontract.NotificationMetadata{
+	if err := validate.Struct(cnotificationtypes.NotificationMetadata{
 		Type:            "unknown",
 		Priority:        "normal",
 		TemplateVersion: 1,
@@ -33,14 +33,14 @@ func TestRegisterNotificationValidations(t *testing.T) {
 		t.Fatal("expected notification metadata validation error")
 	}
 
-	if err := validate.Struct(notificationtypescontract.NewsPayload{
+	if err := validate.Struct(cnotificationtypes.NewsPayload{
 		Title:   "Release update",
 		Summary: "A new release is available.",
 		Body:    "Read the release notes for more details.",
 	}); err != nil {
 		t.Fatalf("expected valid news payload, got %v", err)
 	}
-	if err := validate.Struct(notificationtypescontract.WarningPayload{Title: "Security warning"}); err == nil {
+	if err := validate.Struct(cnotificationtypes.WarningPayload{Title: "Security warning"}); err == nil {
 		t.Fatal("expected warning payload validation error")
 	}
 }

@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
@@ -54,7 +54,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlockById(blockController.GetMyBlockById),
 			)...,
@@ -68,7 +68,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlocksByIds(blockController.GetMyBlocksByIds),
 			)...,
@@ -82,7 +82,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlocksByBlockPackId(blockController.GetMyBlocksByBlockPackId),
 			)...,

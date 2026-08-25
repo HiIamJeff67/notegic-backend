@@ -11,14 +11,19 @@ import (
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	platformrepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+
+	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
+	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/internal/durablejob/configs"
+	data "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres"
 	routinetask "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask"
-	coreconsumers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/core/consumers"
-	coreproducers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/core/producers"
-	corestrategies "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/core/strategies"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/realtimegateway/producers"
 	status "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/status"
+	validation "github.com/HiIamJeff67/notegic-backend/internal/durablejob/validations"
 )
 
 type Application struct {
@@ -100,75 +105,50 @@ func (a *Application) initializeWorkers(
 	kafkaConnection platformkafka.ConnectionConfig,
 	kafkaProducer *platformkafka.Producer,
 ) func() {
-	// Construct and start the durable-job workers that consume and publish tasks.
+	db, err := data.Connect(config.Postgres)
+	if err != nil {
+		panic(err)
+	}
+	if err := platformpostgres.Migrate(
+		db,
+		types.Runtime_DurableJob,
+		data.DatabaseMigrationManifest,
+	); err != nil {
+		_ = data.Disconnect(db)
+		panic(fmt.Errorf("failed to initialize DurableJob database schema: %w", err))
+	}
+	platformrepositories.SetDefaultDB(db)
+
+	// Construct and start the durable-job workers that claim and execute tasks.
 	routineTaskEngine := routinetask.NewEngine(config)
 	a.routineTaskEngine = routineTaskEngine
-	routineTaskClaimProducer := coreproducers.NewRoutineTaskClaimProducer(kafkaProducer)
-	routineTaskResultProducer := coreproducers.NewRoutineTaskResultProducer(kafkaProducer)
 	routineTaskLifecycleProducer := realtimegatewayproducers.NewRoutineTaskLifecycleProducer(kafkaProducer)
-	routineTaskEngine.SetResultPublisher(routineTaskResultProducer.Produce)
+	routineTaskClaimer := routinetask.NewClaimer(db, validation.New())
+	routineTaskExecutionService := routineexecution.NewRoutineTaskExecutionService(
+		validation.New(),
+		db,
+		routinetask.NewDocumentInitializationClient(config.YjsDocumentInitialization),
+	)
+	routineTaskResultWriter := routinetask.NewRoutineTaskResultWriter(db, routineTaskExecutionService)
+	routineTaskEngine.SetResultPublisher(routineTaskResultWriter.Write)
 	routineTaskEngine.SetRoutineTaskRunningPublisher(
 		routineTaskLifecycleProducer.ProduceRoutineTaskRunning,
 	)
-	routineTaskAssignmentConsumer := coreconsumers.NewRoutineTaskAssignmentConsumer(
-		routineTaskEngine,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-durable-job-routine-task",
-			},
-			ConsumerGroup:       durablejobconfig.RoutineTaskConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-	)
-	shutdownRoutineTaskAssignmentConsumer := routineTaskAssignmentConsumer.Start(context.Background())
 	shutdownRoutineTaskEngine := routineTaskEngine.Start(
 		context.Background(),
-		routineTaskClaimProducer.Produce,
-	)
-
-	yjsMaintenanceStrategy := corestrategies.NewYjsMaintenanceStrategy(config.YjsMaintenanceStrategy)
-	yjsMaintenanceRequestProducer := coreproducers.NewYjsMaintenanceRequestProducer(kafkaProducer)
-	yjsMaintenanceHintConsumer := coreconsumers.NewYjsMaintenanceHintConsumer(
-		yjsMaintenanceRequestProducer,
-		yjsMaintenanceStrategy,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-durable-job-yjs-maintenance",
-			},
-			ConsumerGroup:       durablejobconfig.YjsMaintenanceHintConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
+		func(ctx context.Context, request cdurablejob.ClaimRoutineTasksRequestDto) error {
+			response, exception := routineTaskClaimer.ClaimRoutineTasks(ctx, request)
+			if exception != nil {
+				return exception
+			}
+			return routineTaskEngine.HandleRoutineTaskAssignments(ctx, response.Assignments)
 		},
 	)
-	shutdownYjsMaintenanceHintConsumer := yjsMaintenanceHintConsumer.Start(context.Background())
-	yjsMaintenanceResultConsumer := coreconsumers.NewYjsMaintenanceResultConsumer(
-		yjsMaintenanceStrategy,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-durable-job-yjs-maintenance-result",
-			},
-			ConsumerGroup:       durablejobconfig.YjsMaintenanceResultConsumerGroup,
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-	)
-	shutdownYjsMaintenanceResultConsumer := yjsMaintenanceResultConsumer.Start(context.Background())
 
 	return func() {
-		shutdownYjsMaintenanceResultConsumer()
-		shutdownYjsMaintenanceHintConsumer()
 		shutdownRoutineTaskEngine()
-		shutdownRoutineTaskAssignmentConsumer()
+		_ = data.Disconnect(db)
+		platformrepositories.SetDefaultDB(nil)
 	}
 }
 

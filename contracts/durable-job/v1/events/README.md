@@ -2,18 +2,15 @@
 
 This package owns the Kafka protocols coordinated by DurableJob:
 
-- RoutineTask claim, assignment, completion, and failure messages.
-- `RoutineTaskRunning` messages sent directly to RealtimeGateway. They are
+- `RoutineTaskRunning` lifecycle hints sent directly to RealtimeGateway. They are
   transient execution hints emitted immediately before a DurableJob handler
   begins; a Kafka delivery failure does not cancel the claimed task.
-- Yjs maintenance requests and results exchanged with Core.
-
-Core publishes Yjs maintenance hints from `contracts/core/v1/events`. YjsWorker
+Core owns Yjs maintenance scheduling and publishes its own hints. YjsWorker
 owns the maintenance operation, command, and worker-result contracts in
 `contracts/yjs-worker/v1/events`.
 
 The generic envelope is imported from `contracts/types/events/`; this package owns the
 topics, event types, and payloads. Consumer groups remain runtime deployment
-configuration and are defined by the DurableJob/Core transport composition
-roots. This package does not import Core repositories, database schemas, or
+configuration and are defined by the runtime transport composition roots. This
+package does not import Core repositories, database schemas, or
 Kafka clients.

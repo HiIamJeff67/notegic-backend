@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestGetOptionalAllowedPermissionsReturnsNilWhenRouteHasNoScope(t *testing.T) {
@@ -18,8 +18,8 @@ func TestGetOptionalAllowedPermissionsReturnsNilWhenRouteHasNoScope(t *testing.T
 }
 
 func TestGetOptionalAllowedPermissionsClonesRouteScope(t *testing.T) {
-	original := []enumcontract.AccessControlPermission{
-		enumcontract.AccessControlPermission_Read,
+	original := []enums.AccessControlPermission{
+		enums.AccessControlPermission_Read,
 	}
 	allowedPermissions, exception := GetOptionalAllowedPermissions(
 		WithAllowedPermissions(context.Background(), original),
@@ -27,8 +27,8 @@ func TestGetOptionalAllowedPermissionsClonesRouteScope(t *testing.T) {
 	if exception != nil {
 		t.Fatalf("expected optional scope to be valid: %v", exception)
 	}
-	allowedPermissions[0] = enumcontract.AccessControlPermission_Admin
-	if original[0] != enumcontract.AccessControlPermission_Read {
+	allowedPermissions[0] = enums.AccessControlPermission_Admin
+	if original[0] != enums.AccessControlPermission_Read {
 		t.Fatal("expected optional permissions to be cloned")
 	}
 }

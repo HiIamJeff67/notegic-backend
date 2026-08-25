@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -12,36 +13,35 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type YjsDocumentInitializer interface {
 	InitializeDocuments(
 		context.Context,
-		[]apicontract.InitializeBlockPackYjsDocumentReqDto,
-	) ([]apicontract.InitializeBlockPackYjsDocumentResDto, error)
+		[]capi.InitializeBlockPackYjsDocumentReqDto,
+	) ([]capi.InitializeBlockPackYjsDocumentResDto, error)
 }
 
 type BlockPackHandlerInterface interface {
-	HandleCreateBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleUpdateBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleResetBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
+	HandleCreateBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleUpdateBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleResetBlockPack(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 }
 
 type BlockPackHandler struct {
@@ -86,21 +86,21 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.CreateBlockPackRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.CreateBlockPackRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
 		if !exists {
 			continue
 		}
-		payload, exception := parsers.DecodePayload[routinetasktypes.CreateBlockPackRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.CreateBlockPackRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -128,7 +128,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 
 	blockPackInputs := make([]inputs.BulkCreateBlockPackInput, 0, len(candidateTasks))
 	blockContentInputs := make([]inputs.BulkCreateBlockPackContentInput, 0, len(candidateTasks))
-	initializationReqDtos := make([]apicontract.InitializeBlockPackYjsDocumentReqDto, 0, len(candidateTasks))
+	initializationReqDtos := make([]capi.InitializeBlockPackYjsDocumentReqDto, 0, len(candidateTasks))
 	preparedTaskIndexes := make([]int, 0, len(candidateTasks))
 
 	for candidateIndex, payload := range candidatePayloads {
@@ -141,7 +141,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 		var prevRootId *uuid.UUID
 		taskFailed := false
 		taskBlocks := make([]inputs.CreateBlockInput, 0)
-		matchedRootBlocks := make([]blocknote.ArborizedEditableBlock, 0, len(payload.Template.Blocks))
+		matchedRootBlocks := make([]cblocknote.ArborizedEditableBlock, 0, len(payload.Template.Blocks))
 		prevRootInputIndex := -1
 		for _, block := range payload.Template.Blocks {
 			matchedBlock, exception := s.templateBlockMatcher.MatchArborizedEditableBlock(block.ArborizedEditableBlock, patternValues)
@@ -183,7 +183,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 			Id:                  &blockPackId,
 			ParentSubShelfId:    payload.TargetSubShelfId,
 			Name:                name,
-			Icon:                (*coreenums.SupportedIcon)(payload.Template.Icon),
+			Icon:                (*enums.SupportedIcon)(payload.Template.Icon),
 			HeaderBackgroundURL: payload.Template.HeaderBackgroundURL,
 		})
 		blockContentInputs = append(blockContentInputs, inputs.BulkCreateBlockPackContentInput{
@@ -191,7 +191,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 			BlockPackId: blockPackId,
 			Blocks:      taskBlocks,
 		})
-		initializationReqDtos = append(initializationReqDtos, apicontract.InitializeBlockPackYjsDocumentReqDto{
+		initializationReqDtos = append(initializationReqDtos, capi.InitializeBlockPackYjsDocumentReqDto{
 			Blocks: matchedRootBlocks,
 		})
 		preparedTaskIndexes = append(preparedTaskIndexes, candidateTaskIndexes[candidateIndex])
@@ -200,7 +200,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 		return successes, nil
 	}
 	if s.yjsWorkerClient == nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"DependencyUnavailable",
 			"BlockPack",
 			"Create",
@@ -211,7 +211,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 	}
 	initializationResDtos, err := s.yjsWorkerClient.InitializeDocuments(ctx, initializationReqDtos)
 	if err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"FailedToCreate",
 			"BlockPack",
 			"Create",
@@ -234,7 +234,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 	}
 
 	successfulBlockContentInputs := make([]inputs.BulkCreateBlockPackContentInput, 0, len(blockContentInputs))
-	successfulInitializationResDtos := make([]apicontract.InitializeBlockPackYjsDocumentResDto, 0, len(initializationResDtos))
+	successfulInitializationResDtos := make([]capi.InitializeBlockPackYjsDocumentResDto, 0, len(initializationResDtos))
 	successfulTaskIndexes := make([]int, 0, len(preparedTaskIndexes))
 	for index, success := range blockPackSuccesses {
 		if success {
@@ -257,7 +257,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 		}
 	}
 	if err := tx.CreateInBatches(&documents, constants.MaxBatchCreateBlockSize).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"FailedToCreate",
 			"BlockPack",
 			"Create",
@@ -294,21 +294,21 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.UpdateBlockPackRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.UpdateBlockPackRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
 		if !exists {
 			continue
 		}
-		payload, exception := parsers.DecodePayload[routinetasktypes.UpdateBlockPackRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.UpdateBlockPackRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -389,7 +389,7 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 		INNER JOIN "BlockTable" b ON b.id = p.block_id::uuid AND b.block_pack_id = p.block_pack_id::uuid
 	`, strings.Join(pairPlaceholders, ","))
 	if err := db.WithContext(ctx).Raw(sql, pairArgs...).Scan(&validRows).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"QueryFailed",
 			"Block",
 			"Update",
@@ -436,8 +436,8 @@ func (s *BlockPackHandler) HandleResetBlockPack(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	checkInputs := make([]inputs.BulkCheckBlockPackPermissionInput, 0, len(tasks))
 	taskIndexes := make([]int, 0, len(tasks))
@@ -448,7 +448,7 @@ func (s *BlockPackHandler) HandleResetBlockPack(
 		if !exists {
 			continue
 		}
-		payload, exception := parsers.DecodePayload[routinetasktypes.ResetBlockPackRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.ResetBlockPackRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -491,7 +491,7 @@ func (s *BlockPackHandler) HandleResetBlockPack(
 	if err := tx.Model(&schemas.Block{}).
 		Where("block_pack_id IN ? AND deleted_at IS NULL", validBlockPackIds).
 		Updates(map[string]any{"deleted_at": time.Now(), "prev_block_id": nil, "next_block_id": nil}).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"FailedToUpdate",
 			"Block",
 			"Reset",

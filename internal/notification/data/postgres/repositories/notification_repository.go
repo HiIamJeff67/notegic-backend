@@ -11,18 +11,18 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	notificationeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
-	cinputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cnotificationevents "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type NotificationRepository interface {
-	CreateFromRequest(ctx context.Context, event eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]) error
+	CreateFromRequest(ctx context.Context, event cevent.EventEnvelope[coreevents.NotificationRequestedData]) error
 	List(
 		ctx context.Context,
 		userPublicId uuid.UUID,
@@ -35,7 +35,7 @@ type NotificationRepository interface {
 	SoftDelete(ctx context.Context, userPublicId uuid.UUID, notificationIds []uuid.UUID) (int64, error)
 	DeleteForUser(ctx context.Context, userPublicId uuid.UUID) (int64, error)
 	DeleteExpired(ctx context.Context, now time.Time, retention time.Duration) (int64, error)
-	ClaimOutbox(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration) ([]cmodels.OutboxEvent, error)
+	ClaimOutbox(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration) ([]platformschemas.OutboxEvent, error)
 	MarkOutboxPublished(ctx context.Context, workerId string, eventIds []uuid.UUID) error
 	MarkOutboxFailed(ctx context.Context, workerId string, eventIds []uuid.UUID, message string, availableAt time.Time) error
 	DeletePublishedOutbox(ctx context.Context, publishedBefore time.Time) (int64, error)
@@ -51,7 +51,7 @@ func NewNotificationRepository(db *gorm.DB) NotificationRepository {
 
 func (r *NotificationRepositoryImpl) CreateFromRequest(
 	ctx context.Context,
-	event eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData],
+	event cevent.EventEnvelope[coreevents.NotificationRequestedData],
 ) error {
 	if r == nil || r.db == nil {
 		return errors.New("notification repository database is required")
@@ -103,7 +103,7 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 			return nil
 		}
 
-		createdData := notificationeventscontract.NotificationCreatedData{
+		createdData := cnotificationevents.NotificationCreatedData{
 			NotificationId:        notification.Id,
 			RecipientUserPublicId: notification.RecipientUserPublicId,
 			Type:                  notification.Type,
@@ -114,11 +114,11 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 			CreatedAt:             notification.CreatedAt,
 			ExpiresAt:             notification.ExpiresAt,
 		}
-		createdEvent := eventcontract.EventEnvelope[notificationeventscontract.NotificationCreatedData]{
-			SchemaVersion: eventcontract.Version,
+		createdEvent := cevent.EventEnvelope[cnotificationevents.NotificationCreatedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     notificationeventscontract.EventType_NotificationCreated,
-			AggregateType: notificationeventscontract.AggregateType_Notification,
+			EventType:     cnotificationevents.EventType_NotificationCreated,
+			AggregateType: cnotificationevents.AggregateType_Notification,
 			AggregateId:   notification.Id,
 			KafkaKey:      notification.Id.String(),
 			OccurredAt:    time.Now().UTC(),
@@ -132,7 +132,7 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 			return err
 		}
 		metadata, err := json.Marshal(map[string]any{
-			"schemaVersion": eventcontract.Version,
+			"schemaVersion": cevent.Version,
 			"correlationId": event.CorrelationId,
 			"causationId":   event.EventId,
 			"occurredAt":    createdEvent.OccurredAt,
@@ -142,12 +142,12 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 			return err
 		}
 
-		return tx.Create(&cmodels.OutboxEvent{
+		return tx.Create(&platformschemas.OutboxEvent{
 			Id:            createdEvent.EventId,
 			AggregateType: createdEvent.AggregateType,
 			AggregateId:   createdEvent.AggregateId,
 			EventType:     createdEvent.EventType,
-			Topic:         notificationeventscontract.NotificationTopic,
+			Topic:         cnotificationevents.NotificationTopic,
 			KafkaKey:      createdEvent.KafkaKey,
 			Payload:       datatypes.JSON(payload),
 			Metadata:      datatypes.JSON(metadata),
@@ -272,12 +272,12 @@ func (r *NotificationRepositoryImpl) ClaimOutbox(
 	workerId string,
 	batchSize int,
 	claimTimeout time.Duration,
-) ([]cmodels.OutboxEvent, error) {
+) ([]platformschemas.OutboxEvent, error) {
 	if batchSize <= 0 {
 		return nil, nil
 	}
 
-	var events []cmodels.OutboxEvent
+	var events []platformschemas.OutboxEvent
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		claimBefore := time.Now().UTC().Add(-claimTimeout)
 		query := tx.Where("published_at IS NULL").
@@ -298,7 +298,7 @@ func (r *NotificationRepositoryImpl) ClaimOutbox(
 			ids[index] = event.Id
 		}
 		claimedAt := time.Now().UTC()
-		result := tx.Model(&cmodels.OutboxEvent{}).
+		result := tx.Model(&platformschemas.OutboxEvent{}).
 			Where("id IN ?", ids).
 			Updates(map[string]any{
 				"claimed_by": workerId,
@@ -323,7 +323,7 @@ func (r *NotificationRepositoryImpl) MarkOutboxPublished(
 	}
 	now := time.Now().UTC()
 	return r.db.WithContext(ctx).
-		Model(&cmodels.OutboxEvent{}).
+		Model(&platformschemas.OutboxEvent{}).
 		Where("id IN ? AND claimed_by = ? AND published_at IS NULL", eventIds, workerId).
 		Updates(map[string]any{
 			"published_at":  now,
@@ -344,7 +344,7 @@ func (r *NotificationRepositoryImpl) MarkOutboxFailed(
 		return nil
 	}
 	return r.db.WithContext(ctx).
-		Model(&cmodels.OutboxEvent{}).
+		Model(&platformschemas.OutboxEvent{}).
 		Where("id IN ? AND claimed_by = ? AND published_at IS NULL", eventIds, workerId).
 		Updates(map[string]any{
 			"last_error":    message,
@@ -361,7 +361,7 @@ func (r *NotificationRepositoryImpl) DeletePublishedOutbox(
 ) (int64, error) {
 	result := r.db.WithContext(ctx).
 		Where("published_at IS NOT NULL AND published_at < ?", publishedBefore).
-		Delete(&cmodels.OutboxEvent{})
+		Delete(&platformschemas.OutboxEvent{})
 
 	return result.RowsAffected, result.Error
 }

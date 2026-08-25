@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	userservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/user"
 )
@@ -29,7 +29,7 @@ func NewUserInfoEndpoint(userInfoService userservices.UserInfoServiceInterface) 
 }
 
 func (t *UserInfoEndpoint) GetMyInfo(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetMyInfoRequestDto]{}
+	request := &cgateway.Request[capi.GetMyInfoRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -38,9 +38,9 @@ func (t *UserInfoEndpoint) GetMyInfo(ctx *gin.Context) {
 	responseDto, exception := t.userInfoService.GetMyInfo(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -50,9 +50,9 @@ func (t *UserInfoEndpoint) GetMyInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetMyInfoResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyInfoResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -61,7 +61,7 @@ func (t *UserInfoEndpoint) GetMyInfo(ctx *gin.Context) {
 }
 
 func (t *UserInfoEndpoint) UpdateMyInfo(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.UpdateMyInfoRequestDto]{}
+	request := &cgateway.Request[capi.UpdateMyInfoRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -70,9 +70,9 @@ func (t *UserInfoEndpoint) UpdateMyInfo(ctx *gin.Context) {
 	responseDto, exception := t.userInfoService.UpdateMyInfo(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -82,9 +82,9 @@ func (t *UserInfoEndpoint) UpdateMyInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.UpdateMyInfoResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.UpdateMyInfoResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

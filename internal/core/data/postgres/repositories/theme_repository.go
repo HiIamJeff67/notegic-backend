@@ -1,29 +1,29 @@
 package repositories
 
 import (
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type ThemeRepositoryInterface interface {
-	GetOneById(id uuid.UUID, preloads []schemas.ThemeRelation, opts ...options.RepositoryOptions) (*schemas.Theme, *exceptions.Exception)
-	GetAll(opts ...options.RepositoryOptions) ([]schemas.Theme, *exceptions.Exception)
-	CreateOneByAuthorId(authorId uuid.UUID, input inputs.CreateThemeInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, authorId uuid.UUID, input inputs.PartialUpdateThemeInput, opts ...options.RepositoryOptions) (*schemas.Theme, *exceptions.Exception)
-	DeleteOneById(id uuid.UUID, authorId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	GetOneById(id uuid.UUID, preloads []schemas.ThemeRelation, opts ...options.RepositoryOptions) (*schemas.Theme, *cexceptions.Exception)
+	GetAll(opts ...options.RepositoryOptions) ([]schemas.Theme, *cexceptions.Exception)
+	CreateOneByAuthorId(authorId uuid.UUID, input inputs.CreateThemeInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, authorId uuid.UUID, input inputs.PartialUpdateThemeInput, opts ...options.RepositoryOptions) (*schemas.Theme, *cexceptions.Exception)
+	DeleteOneById(id uuid.UUID, authorId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 }
 
 type ThemeRepository struct{}
@@ -36,7 +36,7 @@ func (r *ThemeRepository) GetOneById(
 	id uuid.UUID,
 	preloads []schemas.ThemeRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.Theme, *exceptions.Exception) {
+) (*schemas.Theme, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var theme schemas.Theme
@@ -60,7 +60,7 @@ func (r *ThemeRepository) GetOneById(
 
 func (r *ThemeRepository) GetAll(
 	opts ...options.RepositoryOptions,
-) ([]schemas.Theme, *exceptions.Exception) {
+) ([]schemas.Theme, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var themes []schemas.Theme
@@ -77,7 +77,7 @@ func (r *ThemeRepository) CreateOneByAuthorId(
 	authorId uuid.UUID,
 	input inputs.CreateThemeInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var newTheme schemas.Theme
@@ -102,7 +102,7 @@ func (r *ThemeRepository) UpdateOneById(
 	authorId uuid.UUID,
 	input inputs.PartialUpdateThemeInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.Theme, *exceptions.Exception) {
+) (*schemas.Theme, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	existingTheme, exception := r.GetOneById(
@@ -116,7 +116,7 @@ func (r *ThemeRepository) UpdateOneById(
 
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingTheme)
 	if err != nil {
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.Theme{}).
@@ -137,7 +137,7 @@ func (r *ThemeRepository) DeleteOneById(
 	id uuid.UUID,
 	authorId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	// * If you need to use the functionality of RETURNING from PostgreSQL

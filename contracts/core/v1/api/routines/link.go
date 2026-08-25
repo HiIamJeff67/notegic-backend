@@ -5,13 +5,13 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/routines"
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type LinkRoutineTagByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -28,7 +28,7 @@ type LinkRoutineTagByIdResponseDto struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 type LinkRoutineTagsByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -44,15 +44,15 @@ type LinkRoutineTagsByIdsResponseDto struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 type LinkRoutineItemByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
 		struct {
-			RoutineId uuid.UUID             `json:"routineId" validate:"required"`
-			ItemId    uuid.UUID             `json:"itemId" validate:"required"`
-			ItemType  enumcontract.ItemType `json:"itemType" validate:"required,isitemtype"`
-			IsUnlink  bool                  `json:"isUnlink"`
+			RoutineId uuid.UUID      `json:"routineId" validate:"required"`
+			ItemId    uuid.UUID      `json:"itemId" validate:"required"`
+			ItemType  enums.ItemType `json:"itemType" validate:"required,isitemtype"`
+			IsUnlink  bool           `json:"isUnlink"`
 		},
 		struct{},
 		struct{},
@@ -62,7 +62,7 @@ type LinkRoutineItemByIdResponseDto struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 type LinkRoutineItemsByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

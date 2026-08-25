@@ -3,8 +3,8 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -12,10 +12,10 @@ import (
 )
 
 type NotificationBinderInterface interface {
-	BindSearch(controllers.Func[*notificationscontract.SearchPrivateNotificationsRequestDto]) gin.HandlerFunc
-	BindCountUnread(controllers.Func[*notificationscontract.CountUnreadNotificationsRequestDto]) gin.HandlerFunc
-	BindMarkRead(controllers.Func[*notificationscontract.MarkNotificationsReadRequestDto]) gin.HandlerFunc
-	BindDelete(controllers.Func[*notificationscontract.DeleteNotificationsRequestDto]) gin.HandlerFunc
+	BindSearch(controllers.Func[*cnotifications.SearchPrivateNotificationsRequestDto]) gin.HandlerFunc
+	BindCountUnread(controllers.Func[*cnotifications.CountUnreadNotificationsRequestDto]) gin.HandlerFunc
+	BindMarkRead(controllers.Func[*cnotifications.MarkNotificationsReadRequestDto]) gin.HandlerFunc
+	BindDelete(controllers.Func[*cnotifications.DeleteNotificationsRequestDto]) gin.HandlerFunc
 }
 
 type NotificationBinder struct{}
@@ -25,12 +25,12 @@ func NewNotificationBinder() NotificationBinderInterface {
 }
 
 func (b *NotificationBinder) BindSearch(
-	controllerFunc controllers.Func[*notificationscontract.SearchPrivateNotificationsRequestDto],
+	controllerFunc controllers.Func[*cnotifications.SearchPrivateNotificationsRequestDto],
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &notificationscontract.SearchPrivateNotificationsRequestDto{}
+		requestDto := &cnotifications.SearchPrivateNotificationsRequestDto{}
 		if err := ctx.ShouldBindQuery(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)
@@ -38,20 +38,20 @@ func (b *NotificationBinder) BindSearch(
 }
 
 func (b *NotificationBinder) BindCountUnread(
-	controllerFunc controllers.Func[*notificationscontract.CountUnreadNotificationsRequestDto],
+	controllerFunc controllers.Func[*cnotifications.CountUnreadNotificationsRequestDto],
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		controllerFunc(ctx, &notificationscontract.CountUnreadNotificationsRequestDto{})
+		controllerFunc(ctx, &cnotifications.CountUnreadNotificationsRequestDto{})
 	}
 }
 
 func (b *NotificationBinder) BindMarkRead(
-	controllerFunc controllers.Func[*notificationscontract.MarkNotificationsReadRequestDto],
+	controllerFunc controllers.Func[*cnotifications.MarkNotificationsReadRequestDto],
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &notificationscontract.MarkNotificationsReadRequestDto{}
+		requestDto := &cnotifications.MarkNotificationsReadRequestDto{}
 		if err := ctx.ShouldBindJSON(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)
@@ -59,12 +59,12 @@ func (b *NotificationBinder) BindMarkRead(
 }
 
 func (b *NotificationBinder) BindDelete(
-	controllerFunc controllers.Func[*notificationscontract.DeleteNotificationsRequestDto],
+	controllerFunc controllers.Func[*cnotifications.DeleteNotificationsRequestDto],
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &notificationscontract.DeleteNotificationsRequestDto{}
+		requestDto := &cnotifications.DeleteNotificationsRequestDto{}
 		if err := ctx.ShouldBindJSON(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)

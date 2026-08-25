@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
@@ -13,10 +13,10 @@ import (
 )
 
 type NotificationControllerInterface interface {
-	Search(ctx *gin.Context, requestDto *notificationscontract.SearchPrivateNotificationsRequestDto)
-	CountUnread(ctx *gin.Context, requestDto *notificationscontract.CountUnreadNotificationsRequestDto)
-	MarkRead(ctx *gin.Context, requestDto *notificationscontract.MarkNotificationsReadRequestDto)
-	Delete(ctx *gin.Context, requestDto *notificationscontract.DeleteNotificationsRequestDto)
+	Search(ctx *gin.Context, requestDto *cnotifications.SearchPrivateNotificationsRequestDto)
+	CountUnread(ctx *gin.Context, requestDto *cnotifications.CountUnreadNotificationsRequestDto)
+	MarkRead(ctx *gin.Context, requestDto *cnotifications.MarkNotificationsReadRequestDto)
+	Delete(ctx *gin.Context, requestDto *cnotifications.DeleteNotificationsRequestDto)
 }
 
 type NotificationController struct {
@@ -31,7 +31,7 @@ func NewNotificationController(
 
 func (c *NotificationController) Search(
 	ctx *gin.Context,
-	requestDto *notificationscontract.SearchPrivateNotificationsRequestDto,
+	requestDto *cnotifications.SearchPrivateNotificationsRequestDto,
 ) {
 	recipientUserPublicId, exception := gatewaycontexts.GetAndConvertContextFieldToUUID(
 		ctx,
@@ -44,9 +44,9 @@ func (c *NotificationController) Search(
 	requestDto.RecipientUserPublicId = *recipientUserPublicId
 
 	response, exception := notificationadapters.CallSecurly[
-		notificationscontract.SearchPrivateNotificationsRequestDto,
-		notificationscontract.SearchPrivateNotificationsResponseDto,
-	](ctx, c.notificationClient, requestDto, notificationscontract.SearchPrivateNotificationsOperation, "/internal/v1/notifications/search")
+		cnotifications.SearchPrivateNotificationsRequestDto,
+		cnotifications.SearchPrivateNotificationsResponseDto,
+	](ctx, c.notificationClient, requestDto, cnotifications.SearchPrivateNotificationsOperation, "/internal/v1/notifications/search")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -56,7 +56,7 @@ func (c *NotificationController) Search(
 
 func (c *NotificationController) CountUnread(
 	ctx *gin.Context,
-	requestDto *notificationscontract.CountUnreadNotificationsRequestDto,
+	requestDto *cnotifications.CountUnreadNotificationsRequestDto,
 ) {
 	recipientUserPublicId, exception := gatewaycontexts.GetAndConvertContextFieldToUUID(
 		ctx,
@@ -69,9 +69,9 @@ func (c *NotificationController) CountUnread(
 	requestDto.RecipientUserPublicId = *recipientUserPublicId
 
 	response, exception := notificationadapters.CallSecurly[
-		notificationscontract.CountUnreadNotificationsRequestDto,
-		notificationscontract.CountUnreadNotificationsResponseDto,
-	](ctx, c.notificationClient, requestDto, notificationscontract.CountMyUnreadNotificationsOperation, "/internal/v1/notifications/unread-count")
+		cnotifications.CountUnreadNotificationsRequestDto,
+		cnotifications.CountUnreadNotificationsResponseDto,
+	](ctx, c.notificationClient, requestDto, cnotifications.CountMyUnreadNotificationsOperation, "/internal/v1/notifications/unread-count")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -81,7 +81,7 @@ func (c *NotificationController) CountUnread(
 
 func (c *NotificationController) MarkRead(
 	ctx *gin.Context,
-	requestDto *notificationscontract.MarkNotificationsReadRequestDto,
+	requestDto *cnotifications.MarkNotificationsReadRequestDto,
 ) {
 	recipientUserPublicId, exception := gatewaycontexts.GetAndConvertContextFieldToUUID(
 		ctx,
@@ -94,9 +94,9 @@ func (c *NotificationController) MarkRead(
 	requestDto.RecipientUserPublicId = *recipientUserPublicId
 
 	response, exception := notificationadapters.CallSecurly[
-		notificationscontract.MarkNotificationsReadRequestDto,
-		notificationscontract.MarkNotificationsReadResponseDto,
-	](ctx, c.notificationClient, requestDto, notificationscontract.MarkMyNotificationsReadOperation, "/internal/v1/notifications/read")
+		cnotifications.MarkNotificationsReadRequestDto,
+		cnotifications.MarkNotificationsReadResponseDto,
+	](ctx, c.notificationClient, requestDto, cnotifications.MarkMyNotificationsReadOperation, "/internal/v1/notifications/read")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -106,7 +106,7 @@ func (c *NotificationController) MarkRead(
 
 func (c *NotificationController) Delete(
 	ctx *gin.Context,
-	requestDto *notificationscontract.DeleteNotificationsRequestDto,
+	requestDto *cnotifications.DeleteNotificationsRequestDto,
 ) {
 	recipientUserPublicId, exception := gatewaycontexts.GetAndConvertContextFieldToUUID(
 		ctx,
@@ -119,9 +119,9 @@ func (c *NotificationController) Delete(
 	requestDto.RecipientUserPublicId = *recipientUserPublicId
 
 	response, exception := notificationadapters.CallSecurly[
-		notificationscontract.DeleteNotificationsRequestDto,
-		notificationscontract.DeleteNotificationsResponseDto,
-	](ctx, c.notificationClient, requestDto, notificationscontract.DeleteMyNotificationsOperation, "/internal/v1/notifications/delete")
+		cnotifications.DeleteNotificationsRequestDto,
+		cnotifications.DeleteNotificationsResponseDto,
+	](ctx, c.notificationClient, requestDto, cnotifications.DeleteMyNotificationsOperation, "/internal/v1/notifications/delete")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return

@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
 )
@@ -39,7 +39,7 @@ func NewAuthEndpoint(
 }
 
 func (t *AuthEndpoint) Register(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.RegisterRequestDto]{}
+	request := &cgateway.Request[capi.RegisterRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -48,9 +48,9 @@ func (t *AuthEndpoint) Register(ctx *gin.Context) {
 	responseDto, exception := t.authService.Register(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -60,9 +60,9 @@ func (t *AuthEndpoint) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.RegisterResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.RegisterResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -71,7 +71,7 @@ func (t *AuthEndpoint) Register(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) RegisterViaGoogle(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.RegisterViaGoogleRequestDto]{}
+	request := &cgateway.Request[capi.RegisterViaGoogleRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -80,9 +80,9 @@ func (t *AuthEndpoint) RegisterViaGoogle(ctx *gin.Context) {
 	responseDto, exception := t.authService.RegisterViaGoogle(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -92,9 +92,9 @@ func (t *AuthEndpoint) RegisterViaGoogle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.RegisterViaGoogleResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.RegisterViaGoogleResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -103,7 +103,7 @@ func (t *AuthEndpoint) RegisterViaGoogle(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) Login(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.LoginRequestDto]{}
+	request := &cgateway.Request[capi.LoginRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -112,9 +112,9 @@ func (t *AuthEndpoint) Login(ctx *gin.Context) {
 	responseDto, exception := t.authService.Login(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -124,9 +124,9 @@ func (t *AuthEndpoint) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.LoginResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.LoginResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -135,7 +135,7 @@ func (t *AuthEndpoint) Login(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) LoginViaGoogle(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.LoginViaGoogleRequestDto]{}
+	request := &cgateway.Request[capi.LoginViaGoogleRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -144,9 +144,9 @@ func (t *AuthEndpoint) LoginViaGoogle(ctx *gin.Context) {
 	responseDto, exception := t.authService.LoginViaGoogle(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -156,9 +156,9 @@ func (t *AuthEndpoint) LoginViaGoogle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.LoginViaGoogleResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.LoginViaGoogleResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -167,7 +167,7 @@ func (t *AuthEndpoint) LoginViaGoogle(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) Logout(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.LogoutRequestDto]{}
+	request := &cgateway.Request[capi.LogoutRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -176,9 +176,9 @@ func (t *AuthEndpoint) Logout(ctx *gin.Context) {
 	responseDto, exception := t.authService.Logout(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -188,9 +188,9 @@ func (t *AuthEndpoint) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.LogoutResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.LogoutResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -199,7 +199,7 @@ func (t *AuthEndpoint) Logout(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) SendAuthCode(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.SendAuthCodeRequestDto]{}
+	request := &cgateway.Request[capi.SendAuthCodeRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -208,9 +208,9 @@ func (t *AuthEndpoint) SendAuthCode(ctx *gin.Context) {
 	responseDto, exception := t.authService.SendAuthCode(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -220,9 +220,9 @@ func (t *AuthEndpoint) SendAuthCode(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.SendAuthCodeResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.SendAuthCodeResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -231,7 +231,7 @@ func (t *AuthEndpoint) SendAuthCode(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) ValidateEmail(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.ValidateEmailRequestDto]{}
+	request := &cgateway.Request[capi.ValidateEmailRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -240,9 +240,9 @@ func (t *AuthEndpoint) ValidateEmail(ctx *gin.Context) {
 	responseDto, exception := t.authService.ValidateEmail(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -252,9 +252,9 @@ func (t *AuthEndpoint) ValidateEmail(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.ValidateEmailResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.ValidateEmailResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -263,7 +263,7 @@ func (t *AuthEndpoint) ValidateEmail(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) ResetEmail(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.ResetEmailRequestDto]{}
+	request := &cgateway.Request[capi.ResetEmailRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -272,9 +272,9 @@ func (t *AuthEndpoint) ResetEmail(ctx *gin.Context) {
 	responseDto, exception := t.authService.ResetEmail(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -284,9 +284,9 @@ func (t *AuthEndpoint) ResetEmail(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.ResetEmailResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.ResetEmailResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -295,7 +295,7 @@ func (t *AuthEndpoint) ResetEmail(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) ForgetPassword(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.ForgetPasswordRequestDto]{}
+	request := &cgateway.Request[capi.ForgetPasswordRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -304,9 +304,9 @@ func (t *AuthEndpoint) ForgetPassword(ctx *gin.Context) {
 	responseDto, exception := t.authService.ForgetPassword(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -316,9 +316,9 @@ func (t *AuthEndpoint) ForgetPassword(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.ForgetPasswordResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.ForgetPasswordResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -327,7 +327,7 @@ func (t *AuthEndpoint) ForgetPassword(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) ResetMe(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.ResetMeRequestDto]{}
+	request := &cgateway.Request[capi.ResetMeRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -336,9 +336,9 @@ func (t *AuthEndpoint) ResetMe(ctx *gin.Context) {
 	responseDto, exception := t.authService.ResetMe(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -348,9 +348,9 @@ func (t *AuthEndpoint) ResetMe(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.ResetMeResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.ResetMeResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -359,7 +359,7 @@ func (t *AuthEndpoint) ResetMe(ctx *gin.Context) {
 }
 
 func (t *AuthEndpoint) DeleteMe(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.DeleteMeRequestDto]{}
+	request := &cgateway.Request[capi.DeleteMeRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -368,9 +368,9 @@ func (t *AuthEndpoint) DeleteMe(ctx *gin.Context) {
 	responseDto, exception := t.authService.DeleteMe(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -380,9 +380,9 @@ func (t *AuthEndpoint) DeleteMe(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.DeleteMeResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.DeleteMeResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

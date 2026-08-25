@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/gateway/endpoints"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/gateway/middlewares"
@@ -16,22 +16,22 @@ func ConfigureNotificationRoutes(
 	notificationRoutes := router.Group("/notifications")
 	notificationRoutes.POST(
 		"/search",
-		middlewares.DelegationAuthenticatedMiddleware(notificationscontract.SearchPrivateNotificationsOperation),
+		middlewares.DelegationAuthenticatedMiddleware(cnotifications.SearchPrivateNotificationsOperation),
 		endpoint.Search,
 	)
 	notificationRoutes.POST(
 		"/unread-count",
-		middlewares.DelegationAuthenticatedMiddleware(notificationscontract.CountMyUnreadNotificationsOperation),
+		middlewares.DelegationAuthenticatedMiddleware(cnotifications.CountMyUnreadNotificationsOperation),
 		endpoint.CountUnread,
 	)
 	notificationRoutes.POST(
 		"/read",
-		middlewares.DelegationAuthenticatedMiddleware(notificationscontract.MarkMyNotificationsReadOperation),
+		middlewares.DelegationAuthenticatedMiddleware(cnotifications.MarkMyNotificationsReadOperation),
 		endpoint.MarkRead,
 	)
 	notificationRoutes.POST(
 		"/delete",
-		middlewares.DelegationAuthenticatedMiddleware(notificationscontract.DeleteMyNotificationsOperation),
+		middlewares.DelegationAuthenticatedMiddleware(cnotifications.DeleteMyNotificationsOperation),
 		endpoint.Delete,
 	)
 }

@@ -3,7 +3,7 @@ package senders
 import (
 	"context"
 
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 
 	emailrenderers "github.com/HiIamJeff67/notegic-backend/internal/email/renderers"
 	emailtypes "github.com/HiIamJeff67/notegic-backend/internal/email/types"
@@ -12,8 +12,8 @@ import (
 const welcomeEmailSubject = "Welcome to Notegic - Thanks for the Registration"
 
 type WelcomeEmailSenderInterface interface {
-	Send(context.Context, emaileventscontract.SendWelcomeEmailRequestDto) error
-	SendAsync(context.Context, emaileventscontract.SendWelcomeEmailRequestDto) error
+	Send(context.Context, cemailevents.SendWelcomeEmailRequestDto) error
+	SendAsync(context.Context, cemailevents.SendWelcomeEmailRequestDto) error
 }
 
 type WelcomeEmailSender struct {
@@ -27,7 +27,7 @@ func NewWelcomeEmailSender(renderer emailrenderers.RendererInterface, enqueueFun
 
 func (s *WelcomeEmailSender) Send(
 	_ context.Context,
-	request emaileventscontract.SendWelcomeEmailRequestDto,
+	request cemailevents.SendWelcomeEmailRequestDto,
 ) error {
 	body, err := s.renderer.Render(map[string]any{
 		"UserName": request.UserName,
@@ -53,7 +53,7 @@ func (s *WelcomeEmailSender) Send(
 
 func (s *WelcomeEmailSender) SendAsync(
 	ctx context.Context,
-	request emaileventscontract.SendWelcomeEmailRequestDto,
+	request cemailevents.SendWelcomeEmailRequestDto,
 ) error {
 	return s.Send(ctx, request)
 }

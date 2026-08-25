@@ -5,14 +5,14 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type UserSettingControllerInterface interface {
-	GetMySetting(ctx *gin.Context, requestDto *apicontract.GetMySettingRequestDto)
-	UpdateMySetting(ctx *gin.Context, requestDto *apicontract.UpdateMySettingRequestDto)
+	GetMySetting(ctx *gin.Context, requestDto *capi.GetMySettingRequestDto)
+	UpdateMySetting(ctx *gin.Context, requestDto *capi.UpdateMySettingRequestDto)
 }
 
 type UserSettingController struct {
@@ -25,15 +25,15 @@ func NewUserSettingController(coreAdapter *coreadapters.CoreAdapter) UserSetting
 	}
 }
 
-func (c *UserSettingController) GetMySetting(ctx *gin.Context, requestDto *apicontract.GetMySettingRequestDto) {
+func (c *UserSettingController) GetMySetting(ctx *gin.Context, requestDto *capi.GetMySettingRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMySettingRequestDto,
-		apicontract.GetMySettingResponseDto,
+		capi.GetMySettingRequestDto,
+		capi.GetMySettingResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMySettingOperation,
+		capi.GetMySettingOperation,
 		"/core/v1/user-settings/get",
 	)
 	if exception != nil {
@@ -44,15 +44,15 @@ func (c *UserSettingController) GetMySetting(ctx *gin.Context, requestDto *apico
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *UserSettingController) UpdateMySetting(ctx *gin.Context, requestDto *apicontract.UpdateMySettingRequestDto) {
+func (c *UserSettingController) UpdateMySetting(ctx *gin.Context, requestDto *capi.UpdateMySettingRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMySettingRequestDto,
-		apicontract.UpdateMySettingResponseDto,
+		capi.UpdateMySettingRequestDto,
+		capi.UpdateMySettingResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMySettingOperation,
+		capi.UpdateMySettingOperation,
 		"/core/v1/user-settings/update",
 	)
 	if exception != nil {

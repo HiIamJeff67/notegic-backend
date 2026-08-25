@@ -11,9 +11,9 @@ import (
 
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	rootshelvescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
-	stationscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
+	cstations "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	corerouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/routers"
 )
@@ -28,7 +28,7 @@ func TestRouterValidatesRootShelfEnvelopeBeforeCallingService(t *testing.T) {
 		Actor:              "gateway",
 		UserSubject:        "83bdeac1-02de-42fe-a7a8-4e1a83174866",
 		AllowedPermissions: []string{"Read"},
-		Operation:          rootshelvescontract.GetMyRootShelfByIdOperation,
+		Operation:          crootshelves.GetMyRootShelfByIdOperation,
 		RequestId:          "request-id",
 	})
 	if err != nil {
@@ -74,7 +74,7 @@ func TestRouterValidatesStationEnvelopeBeforeCallingService(t *testing.T) {
 		Actor:              "gateway",
 		UserSubject:        "83bdeac1-02de-42fe-a7a8-4e1a83174866",
 		AllowedPermissions: []string{"Read"},
-		Operation:          stationscontract.GetMyStationByIdOperation,
+		Operation:          cstations.GetMyStationByIdOperation,
 		RequestId:          "request-id",
 	})
 	if err != nil {
@@ -126,10 +126,10 @@ func TestRouterRejectsDelegationForAnotherOperation(t *testing.T) {
 		t.Fatalf("issue delegation token: %v", err)
 	}
 	tokenString := *tokenValue
-	requestBody, err := json.Marshal(gatewaycontract.Request[struct{}]{
-		Version:   gatewaycontract.Version,
-		Operation: rootshelvescontract.GetMyRootShelfByIdOperation,
-		Metadata: gatewaycontract.RequestMetadata{
+	requestBody, err := json.Marshal(cgateway.Request[struct{}]{
+		Version:   cgateway.Version,
+		Operation: crootshelves.GetMyRootShelfByIdOperation,
+		Metadata: cgateway.RequestMetadata{
 			RequestId: "request-id",
 		},
 		Dto: struct{}{},

@@ -13,7 +13,7 @@ import (
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type YjsMaintenanceReconciliationWorkerInterface interface {
@@ -43,19 +43,6 @@ const (
 	yjsMaintenanceReconciliationInterval  = time.Hour
 )
 
-/* ============================== Auxiliary Functions ============================== */
-
-func (w *YjsMaintenanceReconciliationWorker) reconcile(ctx context.Context) {
-	if err := w.Reconcile(ctx); err != nil && ctx.Err() == nil {
-		// Reconciliation is a safety net. The normal outbox path remains available
-		// when a scan fails, so the next interval can retry without stopping Core.
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Yjs maintenance reconciliation failed")
-		}
-		return
-	}
-}
-
 /* ============================== Worker Methods ============================== */
 
 func (w *YjsMaintenanceReconciliationWorker) Start(ctx context.Context) func() {
@@ -64,7 +51,9 @@ func (w *YjsMaintenanceReconciliationWorker) Start(ctx context.Context) func() {
 
 	go func() {
 		defer close(done)
-		w.reconcile(workerCtx)
+		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
+			logs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
+		}
 
 		ticker := time.NewTicker(yjsMaintenanceReconciliationInterval)
 		defer ticker.Stop()
@@ -73,7 +62,9 @@ func (w *YjsMaintenanceReconciliationWorker) Start(ctx context.Context) func() {
 			case <-workerCtx.Done():
 				return
 			case <-ticker.C:
-				w.reconcile(workerCtx)
+				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
+					logs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
+				}
 			}
 		}
 	}()

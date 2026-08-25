@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 
@@ -21,12 +21,12 @@ type notificationServiceStub struct {
 	services.NotificationServiceInterface
 	consumeCalls          int
 	consumeErr            error
-	lastNotificationEvent eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]
+	lastNotificationEvent cevent.EventEnvelope[coreevents.NotificationRequestedData]
 }
 
 func (s *notificationServiceStub) ConsumeNotificationRequested(
 	_ context.Context,
-	event eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData],
+	event cevent.EventEnvelope[coreevents.NotificationRequestedData],
 ) error {
 	s.consumeCalls++
 	s.lastNotificationEvent = event
@@ -37,18 +37,18 @@ func TestNotificationRequestConsumerConsumesNotificationRequestedEvent(t *testin
 	recipientUserPublicId := uuid.New()
 	service := &notificationServiceStub{}
 	consumer := &NotificationRequestConsumer{service: service}
-	event := eventcontract.EventEnvelope[json.RawMessage]{
-		SchemaVersion: eventcontract.Version,
+	event := cevent.EventEnvelope[json.RawMessage]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   recipientUserPublicId,
 		KafkaKey:      recipientUserPublicId.String(),
 		OccurredAt:    time.Now().UTC(),
-		Data: mustMarshalNotificationRequest(t, coreeventscontract.NotificationRequestedData{
+		Data: mustMarshalNotificationRequest(t, coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
 			TemplateKey:           "news",
 			TemplateVersion:       1,
 			Payload:               json.RawMessage(`{"title":"Release"}`),
@@ -71,17 +71,17 @@ func TestNotificationRequestConsumerClassifiesServiceFailureAsTransient(t *testi
 	service := &notificationServiceStub{consumeErr: errors.New("database unavailable")}
 	consumer := &NotificationRequestConsumer{service: service}
 	recipientUserPublicId := uuid.New()
-	event := eventcontract.EventEnvelope[json.RawMessage]{
-		SchemaVersion: eventcontract.Version,
+	event := cevent.EventEnvelope[json.RawMessage]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   recipientUserPublicId,
 		KafkaKey:      recipientUserPublicId.String(),
-		Data: mustMarshalNotificationRequest(t, coreeventscontract.NotificationRequestedData{
+		Data: mustMarshalNotificationRequest(t, coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
 			TemplateKey:           "news",
 			TemplateVersion:       1,
 			Payload:               json.RawMessage(`{"title":"Release"}`),
@@ -99,7 +99,7 @@ func TestNotificationRequestConsumerClassifiesServiceFailureAsTransient(t *testi
 	}
 }
 
-func mustMarshalNotificationRequest(t *testing.T, data coreeventscontract.NotificationRequestedData) json.RawMessage {
+func mustMarshalNotificationRequest(t *testing.T, data coreevents.NotificationRequestedData) json.RawMessage {
 	t.Helper()
 	encoded, err := json.Marshal(data)
 	if err != nil {

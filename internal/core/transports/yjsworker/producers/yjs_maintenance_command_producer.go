@@ -7,9 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	yjsworkereventscontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
@@ -24,28 +23,26 @@ func NewYjsMaintenanceCommandProducer(producer *platformkafka.Producer) *YjsMain
 
 func (p *YjsMaintenanceCommandProducer) Produce(
 	ctx context.Context,
-	source eventcontract.EventEnvelope[json.RawMessage],
-	request durablejobeventscontract.YjsMaintenanceRequestData,
-	documentId uuid.UUID,
-	targetSequence int64,
+	source cevent.EventEnvelope[json.RawMessage],
+	request cyjsworkerevents.YjsMaintenanceCommandData,
 ) error {
-	command := eventcontract.EventEnvelope[yjsworkereventscontract.YjsMaintenanceCommandData]{
-		SchemaVersion: eventcontract.Version,
+	command := cevent.EventEnvelope[cyjsworkerevents.YjsMaintenanceCommandData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     yjsworkereventscontract.EventType_YjsMaintenanceCommand,
-		AggregateType: yjsworkereventscontract.AggregateType_BlockPack,
+		EventType:     cyjsworkerevents.EventType_YjsMaintenanceCommand,
+		AggregateType: cyjsworkerevents.AggregateType_BlockPack,
 		AggregateId:   request.BlockPackId,
 		KafkaKey:      request.BlockPackId.String(),
 		OccurredAt:    time.Now().UTC(),
 		CorrelationId: request.CorrelationId,
 		CausationId:   &source.EventId,
 		Trace:         source.Trace,
-		Data: yjsworkereventscontract.YjsMaintenanceCommandData{
+		Data: cyjsworkerevents.YjsMaintenanceCommandData{
 			RequestId:      request.RequestId,
 			BlockPackId:    request.BlockPackId,
-			DocumentId:     documentId,
+			DocumentId:     request.DocumentId,
 			Operation:      request.Operation,
-			TargetSequence: targetSequence,
+			TargetSequence: request.TargetSequence,
 			CorrelationId:  request.CorrelationId,
 		},
 	}
@@ -56,7 +53,7 @@ func (p *YjsMaintenanceCommandProducer) Produce(
 
 	return p.producer.Produce(
 		ctx,
-		yjsworkereventscontract.YjsWorkerCoreMaintenanceCommandTopic.String(),
+		cyjsworkerevents.YjsWorkerCoreMaintenanceCommandTopic.String(),
 		request.BlockPackId.String(),
 		payload,
 	)

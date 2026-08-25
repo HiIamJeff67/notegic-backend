@@ -7,7 +7,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	graphql "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql"
 	interceptors "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/interceptors"
@@ -37,7 +37,7 @@ func configureDevelopmentGraphQLRoutes(
 		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
 		middlewares.TimeoutMiddleware(3*time.Second),
 		middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
-		middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+		middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.RefreshTokenInterceptor(accessTokenCookieHandler),
 			interceptors.EmbeddedInterceptor,

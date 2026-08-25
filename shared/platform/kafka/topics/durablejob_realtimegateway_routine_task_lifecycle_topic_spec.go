@@ -3,12 +3,12 @@ package topics
 import (
 	"time"
 
-	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
+	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
 )
 
 func DurableJobRealtimeGatewayRoutineTaskLifecycleTopicSpec() TopicSpec {
 	return TopicSpec{
-		Name:                durablejobeventscontract.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
+		Name:                cdurablejobevents.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
 		Partitions:          3,
 		ReplicationFactor:   1,
 		Retention:           7 * 24 * time.Hour,

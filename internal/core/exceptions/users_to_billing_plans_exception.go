@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type UsersToBillingPlansException struct {
@@ -14,8 +14,8 @@ func NewUsersToBillingPlansException() UsersToBillingPlansException {
 	return UsersToBillingPlansException{CoreException: NewCoreException("UsersToBillingPlans")}
 }
 
-func (UsersToBillingPlansException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (UsersToBillingPlansException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"UsersToBillingPlans",
 		"Repository",
@@ -24,8 +24,8 @@ func (UsersToBillingPlansException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (UsersToBillingPlansException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (UsersToBillingPlansException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"UsersToBillingPlans",
 		"Repository",
@@ -35,8 +35,8 @@ func (UsersToBillingPlansException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (UsersToBillingPlansException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (UsersToBillingPlansException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"UsersToBillingPlans",
 		"Repository",
@@ -46,8 +46,8 @@ func (UsersToBillingPlansException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (UsersToBillingPlansException) FailedToDelete() *exceptions.Exception {
-	return exceptions.New(
+func (UsersToBillingPlansException) FailedToDelete() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToDelete",
 		"UsersToBillingPlans",
 		"Repository",
@@ -57,8 +57,8 @@ func (UsersToBillingPlansException) FailedToDelete() *exceptions.Exception {
 	)
 }
 
-func (UsersToBillingPlansException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (UsersToBillingPlansException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"UsersToBillingPlans",
 		"Repository",

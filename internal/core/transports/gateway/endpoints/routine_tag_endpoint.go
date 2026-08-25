@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	routineservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines"
 )
@@ -39,7 +39,7 @@ func NewRoutineTagEndpoint(
 }
 
 func (t *RoutineTagEndpoint) GetMyRoutineTagById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetMyRoutineTagByIdRequestDto]{}
+	request := &cgateway.Request[capi.GetMyRoutineTagByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -48,9 +48,9 @@ func (t *RoutineTagEndpoint) GetMyRoutineTagById(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.GetMyRoutineTagById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -60,9 +60,9 @@ func (t *RoutineTagEndpoint) GetMyRoutineTagById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetMyRoutineTagByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutineTagByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -71,7 +71,7 @@ func (t *RoutineTagEndpoint) GetMyRoutineTagById(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) GetAllMyRoutineTags(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetAllMyRoutineTagsRequestDto]{}
+	request := &cgateway.Request[capi.GetAllMyRoutineTagsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -80,9 +80,9 @@ func (t *RoutineTagEndpoint) GetAllMyRoutineTags(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.GetAllMyRoutineTags(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -92,9 +92,9 @@ func (t *RoutineTagEndpoint) GetAllMyRoutineTags(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetAllMyRoutineTagsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyRoutineTagsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -103,7 +103,7 @@ func (t *RoutineTagEndpoint) GetAllMyRoutineTags(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) CreateRoutineTag(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.CreateRoutineTagRequestDto]{}
+	request := &cgateway.Request[capi.CreateRoutineTagRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -112,9 +112,9 @@ func (t *RoutineTagEndpoint) CreateRoutineTag(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.CreateRoutineTag(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -124,9 +124,9 @@ func (t *RoutineTagEndpoint) CreateRoutineTag(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.CreateRoutineTagResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.CreateRoutineTagResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -135,7 +135,7 @@ func (t *RoutineTagEndpoint) CreateRoutineTag(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) CreateRoutineTags(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.CreateRoutineTagsRequestDto]{}
+	request := &cgateway.Request[capi.CreateRoutineTagsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -144,9 +144,9 @@ func (t *RoutineTagEndpoint) CreateRoutineTags(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.CreateRoutineTags(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -156,9 +156,9 @@ func (t *RoutineTagEndpoint) CreateRoutineTags(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.CreateRoutineTagsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.CreateRoutineTagsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -167,7 +167,7 @@ func (t *RoutineTagEndpoint) CreateRoutineTags(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) UpdateMyRoutineTagById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.UpdateMyRoutineTagByIdRequestDto]{}
+	request := &cgateway.Request[capi.UpdateMyRoutineTagByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -176,9 +176,9 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagById(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.UpdateMyRoutineTagById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -188,9 +188,9 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.UpdateMyRoutineTagByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.UpdateMyRoutineTagByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -199,7 +199,7 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagById(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) UpdateMyRoutineTagsByIds(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.UpdateMyRoutineTagsByIdsRequestDto]{}
+	request := &cgateway.Request[capi.UpdateMyRoutineTagsByIdsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -208,9 +208,9 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagsByIds(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.UpdateMyRoutineTagsByIds(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -220,9 +220,9 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagsByIds(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.UpdateMyRoutineTagsByIdsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.UpdateMyRoutineTagsByIdsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -231,7 +231,7 @@ func (t *RoutineTagEndpoint) UpdateMyRoutineTagsByIds(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.HardDeleteMyRoutineTagByIdRequestDto]{}
+	request := &cgateway.Request[capi.HardDeleteMyRoutineTagByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -240,9 +240,9 @@ func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagById(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.HardDeleteMyRoutineTagById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -252,9 +252,9 @@ func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.HardDeleteMyRoutineTagByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.HardDeleteMyRoutineTagByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -263,7 +263,7 @@ func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagById(ctx *gin.Context) {
 }
 
 func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagsByIds(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.HardDeleteMyRoutineTagsByIdsRequestDto]{}
+	request := &cgateway.Request[capi.HardDeleteMyRoutineTagsByIdsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -272,9 +272,9 @@ func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagsByIds(ctx *gin.Context) {
 	responseDto, exception := t.routineTagService.HardDeleteMyRoutineTagsByIds(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -284,9 +284,9 @@ func (t *RoutineTagEndpoint) HardDeleteMyRoutineTagsByIds(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.HardDeleteMyRoutineTagsByIdsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.HardDeleteMyRoutineTagsByIdsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

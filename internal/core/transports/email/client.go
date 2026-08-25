@@ -8,18 +8,18 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type ClientInterface interface {
-	SendWelcomeEmail(ctx context.Context, requestDto emaileventscontract.SendWelcomeEmailRequestDto) *exceptions.Exception
-	SendValidationEmail(ctx context.Context, requestDto emaileventscontract.SendValidationEmailRequestDto) *exceptions.Exception
-	SendSecurityAlertEmail(ctx context.Context, requestDto emaileventscontract.SendSecurityAlertEmailRequestDto) *exceptions.Exception
+	SendWelcomeEmail(ctx context.Context, requestDto cemailevents.SendWelcomeEmailRequestDto) *cexceptions.Exception
+	SendValidationEmail(ctx context.Context, requestDto cemailevents.SendValidationEmailRequestDto) *cexceptions.Exception
+	SendSecurityAlertEmail(ctx context.Context, requestDto cemailevents.SendSecurityAlertEmailRequestDto) *cexceptions.Exception
 }
 
 type Client struct {
@@ -32,30 +32,30 @@ func NewClient(db *gorm.DB) ClientInterface {
 
 func (c *Client) SendWelcomeEmail(
 	ctx context.Context,
-	requestDto emaileventscontract.SendWelcomeEmailRequestDto,
-) *exceptions.Exception {
+	requestDto cemailevents.SendWelcomeEmailRequestDto,
+) *cexceptions.Exception {
 	requestDto.RequestId = uuid.New()
-	requestDto.Operation = emailcontract.SendWelcomeEmailOperation
+	requestDto.Operation = cemail.SendWelcomeEmailOperation
 	requestDto.OccurredAt = time.Now().UTC()
 	return enqueue(c, ctx, requestDto.RequestId, requestDto.OccurredAt, requestDto)
 }
 
 func (c *Client) SendValidationEmail(
 	ctx context.Context,
-	requestDto emaileventscontract.SendValidationEmailRequestDto,
-) *exceptions.Exception {
+	requestDto cemailevents.SendValidationEmailRequestDto,
+) *cexceptions.Exception {
 	requestDto.RequestId = uuid.New()
-	requestDto.Operation = emailcontract.SendValidationEmailOperation
+	requestDto.Operation = cemail.SendValidationEmailOperation
 	requestDto.OccurredAt = time.Now().UTC()
 	return enqueue(c, ctx, requestDto.RequestId, requestDto.OccurredAt, requestDto)
 }
 
 func (c *Client) SendSecurityAlertEmail(
 	ctx context.Context,
-	requestDto emaileventscontract.SendSecurityAlertEmailRequestDto,
-) *exceptions.Exception {
+	requestDto cemailevents.SendSecurityAlertEmailRequestDto,
+) *cexceptions.Exception {
 	requestDto.RequestId = uuid.New()
-	requestDto.Operation = emailcontract.SendSecurityAlertEmailOperation
+	requestDto.Operation = cemail.SendSecurityAlertEmailOperation
 	requestDto.OccurredAt = time.Now().UTC()
 	return enqueue(c, ctx, requestDto.RequestId, requestDto.OccurredAt, requestDto)
 }
@@ -66,9 +66,9 @@ func enqueue[D any](
 	requestID uuid.UUID,
 	occurredAt time.Time,
 	requestDto D,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if c == nil || c.db == nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"EmailServiceUnavailable",
 			"Email",
 			"Publish",
@@ -78,11 +78,11 @@ func enqueue[D any](
 		)
 	}
 
-	envelope := eventcontract.EventEnvelope[D]{
-		SchemaVersion: eventcontract.Version,
+	envelope := cevent.EventEnvelope[D]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     emaileventscontract.EventType_EmailRequested,
-		AggregateType: emaileventscontract.AggregateType_EmailRequest,
+		EventType:     cemailevents.EventType_EmailRequested,
+		AggregateType: cemailevents.AggregateType_EmailRequest,
 		AggregateId:   requestID,
 		KafkaKey:      requestID.String(),
 		OccurredAt:    occurredAt,
@@ -91,7 +91,7 @@ func enqueue[D any](
 	}
 	tx := c.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"EmailServiceUnavailable",
 			"Email",
 			"Publish",
@@ -102,11 +102,11 @@ func enqueue[D any](
 	}
 	if err := crepositories.EnqueueOutboxEvents(
 		tx,
-		emaileventscontract.CoreEmailRequestTopic,
-		[]eventcontract.EventEnvelope[D]{envelope},
+		cemailevents.CoreEmailRequestTopic,
+		[]cevent.EventEnvelope[D]{envelope},
 	); err != nil {
 		tx.Rollback()
-		return exceptions.New(
+		return cexceptions.New(
 			"EmailServiceUnavailable",
 			"Email",
 			"Enqueue",
@@ -117,7 +117,7 @@ func enqueue[D any](
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return exceptions.New(
+		return cexceptions.New(
 			"EmailServiceUnavailable",
 			"Email",
 			"Enqueue",

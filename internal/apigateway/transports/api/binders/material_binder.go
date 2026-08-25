@@ -7,29 +7,29 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
 
 type MaterialBinderInterface interface {
-	BindGetMyMaterialById(controllerFunc controllers.Func[*apicontract.GetMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindGetMyMaterialAndItsParentById(controllerFunc controllers.Func[*apicontract.GetMyMaterialAndItsParentByIdRequestDto]) gin.HandlerFunc
-	BindGetMyMaterialsByParentSubShelfId(controllerFunc controllers.Func[*apicontract.GetMyMaterialsByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*apicontract.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc
-	BindCreateMyMaterial(controllerFunc controllers.Func[*apicontract.CreateMyMaterialRequestDto]) gin.HandlerFunc
-	BindUpdateMyMaterialById(controllerFunc controllers.Func[*apicontract.UpdateMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindSaveMyMaterialById(controllerFunc controllers.Func[*apicontract.SaveMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindMoveMyMaterialById(controllerFunc controllers.Func[*apicontract.MoveMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindMoveMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.MoveMyMaterialsByIdsRequestDto]) gin.HandlerFunc
-	BindRestoreMyMaterialById(controllerFunc controllers.Func[*apicontract.RestoreMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindRestoreMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.RestoreMyMaterialsByIdsRequestDto]) gin.HandlerFunc
-	BindDeleteMyMaterialById(controllerFunc controllers.Func[*apicontract.DeleteMyMaterialByIdRequestDto]) gin.HandlerFunc
-	BindDeleteMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.DeleteMyMaterialsByIdsRequestDto]) gin.HandlerFunc
+	BindGetMyMaterialById(controllerFunc controllers.Func[*capi.GetMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindGetMyMaterialAndItsParentById(controllerFunc controllers.Func[*capi.GetMyMaterialAndItsParentByIdRequestDto]) gin.HandlerFunc
+	BindGetMyMaterialsByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyMaterialsByParentSubShelfIdRequestDto]) gin.HandlerFunc
+	BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc
+	BindCreateMyMaterial(controllerFunc controllers.Func[*capi.CreateMyMaterialRequestDto]) gin.HandlerFunc
+	BindUpdateMyMaterialById(controllerFunc controllers.Func[*capi.UpdateMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindSaveMyMaterialById(controllerFunc controllers.Func[*capi.SaveMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindMoveMyMaterialById(controllerFunc controllers.Func[*capi.MoveMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindMoveMyMaterialsByIds(controllerFunc controllers.Func[*capi.MoveMyMaterialsByIdsRequestDto]) gin.HandlerFunc
+	BindRestoreMyMaterialById(controllerFunc controllers.Func[*capi.RestoreMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindRestoreMyMaterialsByIds(controllerFunc controllers.Func[*capi.RestoreMyMaterialsByIdsRequestDto]) gin.HandlerFunc
+	BindDeleteMyMaterialById(controllerFunc controllers.Func[*capi.DeleteMyMaterialByIdRequestDto]) gin.HandlerFunc
+	BindDeleteMyMaterialsByIds(controllerFunc controllers.Func[*capi.DeleteMyMaterialsByIdsRequestDto]) gin.HandlerFunc
 }
 
 type MaterialBinder struct{}
@@ -38,9 +38,9 @@ func NewMaterialBinder() MaterialBinderInterface {
 	return &MaterialBinder{}
 }
 
-func (b *MaterialBinder) BindGetMyMaterialById(controllerFunc controllers.Func[*apicontract.GetMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindGetMyMaterialById(controllerFunc controllers.Func[*capi.GetMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyMaterialByIdRequestDto
+		var requestDto capi.GetMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -48,7 +48,7 @@ func (b *MaterialBinder) BindGetMyMaterialById(controllerFunc controllers.Func[*
 		if valueString != "" {
 			value, err := strconv.ParseBool(valueString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -56,7 +56,7 @@ func (b *MaterialBinder) BindGetMyMaterialById(controllerFunc controllers.Func[*
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -65,9 +65,9 @@ func (b *MaterialBinder) BindGetMyMaterialById(controllerFunc controllers.Func[*
 	}
 }
 
-func (b *MaterialBinder) BindGetMyMaterialAndItsParentById(controllerFunc controllers.Func[*apicontract.GetMyMaterialAndItsParentByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindGetMyMaterialAndItsParentById(controllerFunc controllers.Func[*capi.GetMyMaterialAndItsParentByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyMaterialAndItsParentByIdRequestDto
+		var requestDto capi.GetMyMaterialAndItsParentByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -75,7 +75,7 @@ func (b *MaterialBinder) BindGetMyMaterialAndItsParentById(controllerFunc contro
 		if valueString != "" {
 			value, err := strconv.ParseBool(valueString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -83,7 +83,7 @@ func (b *MaterialBinder) BindGetMyMaterialAndItsParentById(controllerFunc contro
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -92,9 +92,9 @@ func (b *MaterialBinder) BindGetMyMaterialAndItsParentById(controllerFunc contro
 	}
 }
 
-func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc controllers.Func[*apicontract.GetMyMaterialsByParentSubShelfIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyMaterialsByParentSubShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetMyMaterialsByParentSubShelfIdRequestDto
+		var requestDto capi.GetMyMaterialsByParentSubShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -102,7 +102,7 @@ func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc con
 		if valueString != "" {
 			value, err := strconv.ParseBool(valueString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -110,7 +110,7 @@ func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc con
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.ParentSubShelfId = value
@@ -119,9 +119,9 @@ func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc con
 	}
 }
 
-func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*apicontract.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.GetAllMyMaterialsByRootShelfIdRequestDto
+		var requestDto capi.GetAllMyMaterialsByRootShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
@@ -129,7 +129,7 @@ func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc contr
 		if valueString != "" {
 			value, err := strconv.ParseBool(valueString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -137,7 +137,7 @@ func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc contr
 
 		value, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = value
@@ -146,20 +146,20 @@ func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc contr
 	}
 }
 
-func (b *MaterialBinder) BindCreateMyMaterial(controllerFunc controllers.Func[*apicontract.CreateMyMaterialRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindCreateMyMaterial(controllerFunc controllers.Func[*capi.CreateMyMaterialRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.CreateMyMaterialRequestDto
+		var requestDto capi.CreateMyMaterialRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.ParentSubShelfId = value
@@ -168,20 +168,20 @@ func (b *MaterialBinder) BindCreateMyMaterial(controllerFunc controllers.Func[*a
 	}
 }
 
-func (b *MaterialBinder) BindUpdateMyMaterialById(controllerFunc controllers.Func[*apicontract.UpdateMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindUpdateMyMaterialById(controllerFunc controllers.Func[*capi.UpdateMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.UpdateMyMaterialByIdRequestDto
+		var requestDto capi.UpdateMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -190,34 +190,34 @@ func (b *MaterialBinder) BindUpdateMyMaterialById(controllerFunc controllers.Fun
 	}
 }
 
-func (b *MaterialBinder) BindSaveMyMaterialById(controllerFunc controllers.Func[*apicontract.SaveMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindSaveMyMaterialById(controllerFunc controllers.Func[*capi.SaveMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.SaveMyMaterialByIdRequestDto
+		var requestDto capi.SaveMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		fileHeader, err := ctx.FormFile("contentFile")
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 		file, err := fileHeader.Open()
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 		defer file.Close()
 
 		contentFile, err := io.ReadAll(file)
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.ContentFile = contentFile
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -226,14 +226,14 @@ func (b *MaterialBinder) BindSaveMyMaterialById(controllerFunc controllers.Func[
 	}
 }
 
-func (b *MaterialBinder) BindMoveMyMaterialById(controllerFunc controllers.Func[*apicontract.MoveMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindMoveMyMaterialById(controllerFunc controllers.Func[*capi.MoveMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.MoveMyMaterialByIdRequestDto
+		var requestDto capi.MoveMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 
@@ -241,14 +241,14 @@ func (b *MaterialBinder) BindMoveMyMaterialById(controllerFunc controllers.Func[
 	}
 }
 
-func (b *MaterialBinder) BindMoveMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.MoveMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindMoveMyMaterialsByIds(controllerFunc controllers.Func[*capi.MoveMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.MoveMyMaterialsByIdsRequestDto
+		var requestDto capi.MoveMyMaterialsByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 
@@ -256,15 +256,15 @@ func (b *MaterialBinder) BindMoveMyMaterialsByIds(controllerFunc controllers.Fun
 	}
 }
 
-func (b *MaterialBinder) BindRestoreMyMaterialById(controllerFunc controllers.Func[*apicontract.RestoreMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindRestoreMyMaterialById(controllerFunc controllers.Func[*capi.RestoreMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.RestoreMyMaterialByIdRequestDto
+		var requestDto capi.RestoreMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -273,14 +273,14 @@ func (b *MaterialBinder) BindRestoreMyMaterialById(controllerFunc controllers.Fu
 	}
 }
 
-func (b *MaterialBinder) BindRestoreMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.RestoreMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindRestoreMyMaterialsByIds(controllerFunc controllers.Func[*capi.RestoreMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.RestoreMyMaterialsByIdsRequestDto
+		var requestDto capi.RestoreMyMaterialsByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 
@@ -288,15 +288,15 @@ func (b *MaterialBinder) BindRestoreMyMaterialsByIds(controllerFunc controllers.
 	}
 }
 
-func (b *MaterialBinder) BindDeleteMyMaterialById(controllerFunc controllers.Func[*apicontract.DeleteMyMaterialByIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindDeleteMyMaterialById(controllerFunc controllers.Func[*capi.DeleteMyMaterialByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.DeleteMyMaterialByIdRequestDto
+		var requestDto capi.DeleteMyMaterialByIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		value, err := uuid.Parse(ctx.Param("material-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Material").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.MaterialId = value
@@ -305,14 +305,14 @@ func (b *MaterialBinder) BindDeleteMyMaterialById(controllerFunc controllers.Fun
 	}
 }
 
-func (b *MaterialBinder) BindDeleteMyMaterialsByIds(controllerFunc controllers.Func[*apicontract.DeleteMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindDeleteMyMaterialsByIds(controllerFunc controllers.Func[*capi.DeleteMyMaterialsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto apicontract.DeleteMyMaterialsByIdsRequestDto
+		var requestDto capi.DeleteMyMaterialsByIdsRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Material").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Material").WithOrigin(err), ctx)
 			return
 		}
 

@@ -5,7 +5,7 @@
 - Every Go file must be formatable by `gofmt`; the workspace runs the Go formatter on save.
 - Use `snake_case.go` filenames named after their responsibility, such as `root_shelf_service.go` and `root_shelf_controller_test.go`.
 - Keep package names lowercase and singular unless an established plural convention exists; do not create a package for a single use. Each directory under `contracts/core/v1/types/<domain>/` is an independent Go package, but its package clause consistently uses `coretypes`; when a file imports multiple domains, use domain-prefixed aliases to avoid collisions.
-- Let `gofmt` order imports and group them by responsibility with blank lines: standard library, third-party Go modules, `shared/` (excluding `lib`/`util`), `shared/lib`, `shared/util`, `contracts`, platform, and runtime-owned imports. Every project import must use an explicit, accurate package alias such as `dtos`, `schemas`, `exceptions`, `types`, `apitransport`, or `coreadapters`; do not rely on the implicit name derived from the final import-path segment.
+- Let `gofmt` order imports and group them by responsibility with blank lines: standard library, third-party Go modules, `shared/` (excluding `lib`/`util`), `shared/lib`, `shared/util`, `contracts`, platform, and runtime-owned imports. Every project import must use an explicit, accurate package alias such as `dtos`, `schemas`, `exceptions`, `types`, `apitransport`, or `coreadapters`; do not rely on the implicit name derived from the final import-path segment. Use the package's real singular/plural form: `enums` for `contracts/types/enums` and `schemas` for schema packages; do not invent `cenum`, `cenums`, or other aliases that change the package's cardinality. Other `/contracts/` imports still use an explicit `c...` alias, such as `cmodels`, `cinputs`, `cauthdto`, or `cexceptions`; never use an unaliased contracts import or an alias ending in `contract` without the leading `c`.
 - Expand every non-empty struct literal across multiple lines, with one field per line and a trailing comma. Do not put DTO, response, or even a one-field struct literal on one line. This also applies to struct literals in `return` statements and nested struct literals.
 
   ```go
@@ -42,11 +42,11 @@ station, permission, exception := s.stationRepository.CheckPermissionAndGetOneBy
 
 ## Service DTO and Repository Input Boundaries
 
-- `XxxInput` under `internal/<service>/data/.../inputs` is a repository persistence contract: it describes data for create, update, partial-update, or bulk SQL and may only be used as repository input. Services, controllers, and Gateways must not use it as a transport request/response contract.
+- `XxxInput` under `internal/<service>/data/postgres/repositories/inputs/` is a repository persistence contract: it describes data for create, update, partial-update, or bulk SQL and may only be used as repository input. Services import it as `inputs`; controllers and Gateways must not use it as a transport request/response contract.
 - When a service method has many parameters, represents one complete intent, or receives a Gateway request that must produce an external response, use `*XxxRequestDto` as the single request parameter and return `*XxxResponseDto`. Name variables `request` and `response`; do not introduce unclear `req` or `res` abbreviations.
 - Service-only or Gateway-only workflows may also use concrete `XxxRequestDto`/`XxxResponseDto` types to group related data, context, and output instead of long parameter lists or anonymous structs. The name must describe the operation; do not use generic names such as `Data`, `Params`, or `Payload`.
 - Keep direct parameters when there are few and their meaning is clear; do not force a DTO merely to apply a pattern. Create one only when parameter count, shared lifecycle, or a call boundary materially improves readability.
-- A service is the conversion boundary between the two contracts: map the validated `request` to `inputs.CreateXxxInput`, `inputs.PartialUpdateXxxInput`, or a bulk input, then call the repository. Repositories must not import or depend on transport request/response types.
+- A service is the conversion boundary between the two contracts: map the validated `request` to `inputs.CreateXxxInput`, `inputs.PartialUpdateXxxInput`, or a bulk input, then call the repository. Repositories import the same runtime's `inputs` package; they must not import or depend on transport request/response types.
 
 ```go
 func (s *StationService) UpdateMyStationById(

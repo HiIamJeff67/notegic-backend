@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type UserSettingException struct {
@@ -14,8 +14,8 @@ func NewUserSettingException() UserSettingException {
 	return UserSettingException{CoreException: NewCoreException("UserSetting")}
 }
 
-func (UserSettingException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (UserSettingException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"UserSetting",
 		"Repository",
@@ -24,8 +24,8 @@ func (UserSettingException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (UserSettingException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (UserSettingException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"UserSetting",
 		"Repository",
@@ -35,8 +35,8 @@ func (UserSettingException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (UserSettingException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (UserSettingException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"UserSetting",
 		"Repository",
@@ -46,8 +46,8 @@ func (UserSettingException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (UserSettingException) FailedToDelete() *exceptions.Exception {
-	return exceptions.New(
+func (UserSettingException) FailedToDelete() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToDelete",
 		"UserSetting",
 		"Repository",
@@ -57,8 +57,8 @@ func (UserSettingException) FailedToDelete() *exceptions.Exception {
 	)
 }
 
-func (UserSettingException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (UserSettingException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"UserSetting",
 		"Repository",

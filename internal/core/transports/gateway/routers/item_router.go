@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
 
 	shelfservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/shelves"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureItemRoutes(
 		itemRoutes.POST(
 			"/graphql/search",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SearchItemsOperation,
+				capi.SearchItemsOperation,
 			),
 			authMiddleware,
 			endpoint.SearchItems,

@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
@@ -28,19 +28,19 @@ func NewRoutineTaskLifecycleProducer(
 
 func (p *RoutineTaskLifecycleProducer) ProduceRoutineTaskRunning(
 	ctx context.Context,
-	assignment routinetasktypes.RoutineTaskAssignment,
+	assignment croutinetasktypes.RoutineTaskAssignment,
 ) error {
 	now := time.Now().UTC()
-	payload, err := json.Marshal(eventcontract.EventEnvelope[durablejobeventscontract.RoutineTaskRunningData]{
-		SchemaVersion: eventcontract.Version,
+	payload, err := json.Marshal(cevent.EventEnvelope[cdurablejobevents.RoutineTaskRunningData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     durablejobeventscontract.EventType_RoutineTaskRunning,
-		AggregateType: durablejobeventscontract.AggregateType_RoutineTask,
+		EventType:     cdurablejobevents.EventType_RoutineTaskRunning,
+		AggregateType: cdurablejobevents.AggregateType_RoutineTask,
 		AggregateId:   assignment.RoutineTaskId,
 		KafkaKey:      assignment.RoutineTaskId.String(),
 		OccurredAt:    now,
 		CorrelationId: assignment.RoutineTaskRecordId.String(),
-		Data: durablejobeventscontract.RoutineTaskRunningData{
+		Data: cdurablejobevents.RoutineTaskRunningData{
 			RoutineTaskId:       assignment.RoutineTaskId,
 			RoutineTaskRecordId: assignment.RoutineTaskRecordId,
 			RoutineId:           assignment.RoutineId,
@@ -56,7 +56,7 @@ func (p *RoutineTaskLifecycleProducer) ProduceRoutineTaskRunning(
 
 	return p.producer.Produce(
 		ctx,
-		durablejobeventscontract.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
+		cdurablejobevents.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
 		assignment.RoutineTaskId.String(),
 		payload,
 	)

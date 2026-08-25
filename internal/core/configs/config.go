@@ -17,11 +17,12 @@ type Config struct {
 	QuotaCycleWorker          QuotaCycleWorkerConfig
 	UserDataCache             UserDataCacheConfig
 	YjsDocumentInitialization YjsDocumentInitializationConfig
+	YjsMaintenanceStrategy    YjsMaintenanceStrategyConfig
 	StorageKeySalt            string
 }
 
 func LoadConfig() (Config, error) {
-	postgres, err := LoadPostgresConfig()
+	postgres, err := loadPostgresConfig()
 	if err != nil {
 		return Config{}, err
 	}
@@ -57,6 +58,10 @@ func LoadConfig() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	yjsMaintenanceStrategy, err := loadYjsMaintenanceStrategyConfig()
+	if err != nil {
+		return Config{}, err
+	}
 	return Config{
 		Postgres:                  postgres,
 		ListenAddress:             listenAddress,
@@ -66,6 +71,7 @@ func LoadConfig() (Config, error) {
 		QuotaCycleWorker:          quotaCycleWorker,
 		UserDataCache:             userDataCache,
 		YjsDocumentInitialization: yjsDocumentInitialization,
+		YjsMaintenanceStrategy:    yjsMaintenanceStrategy,
 		StorageKeySalt:            storageKeySalt,
 	}, nil
 }

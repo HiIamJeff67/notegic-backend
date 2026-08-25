@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 
 	emailrenderers "github.com/HiIamJeff67/notegic-backend/internal/email/renderers"
 	emailtypes "github.com/HiIamJeff67/notegic-backend/internal/email/types"
@@ -13,8 +13,8 @@ import (
 const validationEmailSubject = "Verify Your Identity - Notegic Authentication Code"
 
 type ValidationEmailSenderInterface interface {
-	Send(context.Context, emaileventscontract.SendValidationEmailRequestDto) error
-	SendAsync(context.Context, emaileventscontract.SendValidationEmailRequestDto) error
+	Send(context.Context, cemailevents.SendValidationEmailRequestDto) error
+	SendAsync(context.Context, cemailevents.SendValidationEmailRequestDto) error
 }
 
 type ValidationEmailSender struct {
@@ -28,7 +28,7 @@ func NewValidationEmailSender(renderer emailrenderers.RendererInterface, enqueue
 
 func (s *ValidationEmailSender) Send(
 	_ context.Context,
-	request emaileventscontract.SendValidationEmailRequestDto,
+	request cemailevents.SendValidationEmailRequestDto,
 ) error {
 	body, err := s.renderer.Render(map[string]any{
 		"UserName":      request.UserName,
@@ -57,7 +57,7 @@ func (s *ValidationEmailSender) Send(
 
 func (s *ValidationEmailSender) SendAsync(
 	ctx context.Context,
-	request emaileventscontract.SendValidationEmailRequestDto,
+	request cemailevents.SendValidationEmailRequestDto,
 ) error {
 	return s.Send(ctx, request)
 }

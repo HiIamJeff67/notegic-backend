@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
@@ -24,14 +24,14 @@ func KeyMiddleware() gin.HandlerFunc {
 		}
 		key := strings.TrimSpace(ctx.GetHeader("X-API-Key"))
 		if key == "" || sharedtokens.ValidateAPIKeyFormat(key) != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"Unauthorized",
 					"Gateway",
 					"AuthenticateAPIKey",

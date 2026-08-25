@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
@@ -23,7 +23,7 @@ func EmbeddedInterceptor(responseWriterKey string) gin.HandlerFunc {
 		var writer *responsewriter.ResponseWriter
 		existingWriter, exist := ctx.Get(responseWriterKey)
 		if !exist || existingWriter == nil {
-			exceptions.New(
+			cexceptions.New(
 				"WrongInterceptorOrder",
 				"Context",
 				"Interceptor",
@@ -50,7 +50,7 @@ func EmbeddedInterceptor(responseWriterKey string) gin.HandlerFunc {
 			return
 		}
 
-		var originalResponse gatewaycontract.ClientResponse[json.RawMessage]
+		var originalResponse cgateway.ClientResponse[json.RawMessage]
 		if err := json.Unmarshal(writer.Body.Bytes(), &originalResponse); err != nil {
 			return
 		}
@@ -60,7 +60,7 @@ func EmbeddedInterceptor(responseWriterKey string) gin.HandlerFunc {
 			return
 		}
 
-		originalResponse.Embedded = &gatewaycontract.EmbeddedResponse{
+		originalResponse.Embedded = &cgateway.EmbeddedResponse{
 			PublicId: *publicId,
 		}
 		modifiedResponse, err := json.Marshal(originalResponse)

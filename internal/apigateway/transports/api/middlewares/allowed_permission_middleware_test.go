@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
 )
@@ -18,33 +18,33 @@ func TestAllowedPermissionsMiddleware(t *testing.T) {
 	testCases := []struct {
 		name                string
 		middleware          gin.HandlerFunc
-		expectedPermissions []enumcontract.AccessControlPermission
+		expectedPermissions []enums.AccessControlPermission
 	}{
 		{
 			name:       "above includes the requested permission",
-			middleware: AllowedPermissionsAbove(enumcontract.AccessControlPermission_Admin),
-			expectedPermissions: []enumcontract.AccessControlPermission{
-				enumcontract.AccessControlPermission_Admin,
-				enumcontract.AccessControlPermission_Owner,
+			middleware: AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+			expectedPermissions: []enums.AccessControlPermission{
+				enums.AccessControlPermission_Admin,
+				enums.AccessControlPermission_Owner,
 			},
 		},
 		{
 			name:       "below includes the requested permission",
-			middleware: AllowedPermissionsBelow(enumcontract.AccessControlPermission_Write),
-			expectedPermissions: []enumcontract.AccessControlPermission{
-				enumcontract.AccessControlPermission_Read,
-				enumcontract.AccessControlPermission_Write,
+			middleware: AllowedPermissionsBelow(enums.AccessControlPermission_Write),
+			expectedPermissions: []enums.AccessControlPermission{
+				enums.AccessControlPermission_Read,
+				enums.AccessControlPermission_Write,
 			},
 		},
 		{
 			name: "within preserves the explicit permission set",
 			middleware: AllowedPermissionsWithin(
-				enumcontract.AccessControlPermission_Owner,
-				enumcontract.AccessControlPermission_Write,
+				enums.AccessControlPermission_Owner,
+				enums.AccessControlPermission_Write,
 			),
-			expectedPermissions: []enumcontract.AccessControlPermission{
-				enumcontract.AccessControlPermission_Owner,
-				enumcontract.AccessControlPermission_Write,
+			expectedPermissions: []enums.AccessControlPermission{
+				enums.AccessControlPermission_Owner,
+				enums.AccessControlPermission_Write,
 			},
 		},
 	}

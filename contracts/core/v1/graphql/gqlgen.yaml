@@ -165,242 +165,242 @@ models:
   # ============================== Corresponded Enums Which Have Prebuilt in Gorm ============================== #
 
   AccessControlPermission:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.AccessControlPermission"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.AccessControlPermission"
   BadgeType:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BadgeType"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BadgeType"
   BlockType:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType"
     enum_values:
       BlockType_Paragraph:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Paragraph"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Paragraph"
       BlockType_Heading:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Heading"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Heading"
       BlockType_Quote:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Quote"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Quote"
       BlockType_BulletListItem:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_BulletListItem"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_BulletListItem"
       BlockType_NumberedListItem:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_NumberedListItem"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_NumberedListItem"
       BlockType_CheckListItem:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_CheckListItem"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_CheckListItem"
       BlockType_ToggleListItem:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_ToggleListItem"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_ToggleListItem"
       BlockType_Image:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Image"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Image"
       BlockType_Video:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Video"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Video"
       BlockType_Audio:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Audio"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Audio"
       BlockType_File:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_File"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_File"
       BlockType_Table:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Table"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Table"
       BlockType_CodeBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_CodeBlock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_CodeBlock"
       BlockType_MathBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_MathBlock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_MathBlock"
       BlockType_Diagram:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Diagram"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Diagram"
       BlockType_Calendar:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.BlockType_Calendar"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.BlockType_Calendar"
   CountryCode:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode"
     enum_values:
       COUNTRY_CODE_886:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_Taiwan"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_Taiwan"
       COUNTRY_CODE_81:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_Japan"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_Japan"
       COUNTRY_CODE_60:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_Malaysia"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_Malaysia"
       COUNTRY_CODE_65:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_Singapore"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_Singapore"
       COUNTRY_CODE_86:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_China"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_China"
       COUNTRY_CODE_1:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_NANP"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_NANP"
       COUNTRY_CODE_44:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_UnitedKingdom"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_UnitedKingdom"
       COUNTRY_CODE_61:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.CountryCode_Australia"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.CountryCode_Australia"
   Country:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.Country"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.Country"
   ItemType:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.ItemType"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.ItemType"
     enum_values:
       ItemType_BlockPack:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.ItemType_BlockPack"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.ItemType_BlockPack"
       ItemType_Material:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.ItemType_Material"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.ItemType_Material"
   Language:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.Language"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.Language"
   MaterialContentType:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType"
     enum_values:
       None:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_None"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_None"
       Application_JSON:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_JSON"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_JSON"
       Application_PDF:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_PDF"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_PDF"
       Text_Plain:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_PlainText"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_PlainText"
       Text_HTML:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_HTML"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_HTML"
       Text_Markdown:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_Markdown"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_Markdown"
       Image_PNG:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_PNG"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_PNG"
       Image_JPG:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_JPG"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_JPG"
       Image_JPEG:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_JPEG"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_JPEG"
       Image_GIF:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_GIF"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_GIF"
       Image_SVG:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_SVG"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_SVG"
       Image_WebP:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_WebP"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_WebP"
       Video_MP4:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_MP4"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_MP4"
       Video_WebM:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_WebM"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_WebM"
       Audio_Mpeg:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.MaterialContentType_Mpeg"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.MaterialContentType_Mpeg"
   RoutinePeriod:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutinePeriod"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePeriod"
     enum_values:
       RoutinePeriod_Daily:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutinePeriod_Daily"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePeriod_Daily"
       RoutinePeriod_Weekly:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutinePeriod_Weekly"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePeriod_Weekly"
       RoutinePeriod_Monthly:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutinePeriod_Monthly"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePeriod_Monthly"
   RoutineStatus:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineStatus"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus"
     enum_values:
       RoutineStatus_Scheduled:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineStatus_Scheduled"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_Scheduled"
       RoutineStatus_InProgress:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineStatus_InProgress"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_InProgress"
       RoutineStatus_Completed:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineStatus_Completed"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_Completed"
       RoutineStatus_OverDue:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineStatus_OverDue"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_OverDue"
   RoutineTaskPurpose:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose"
     enum_values:
       RoutineTaskPurpose_CreateRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_CreateRootShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateRootShelf"
       RoutineTaskPurpose_UpdateRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_UpdateRootShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateRootShelf"
       RoutineTaskPurpose_ResetRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_ResetRootShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetRootShelf"
       RoutineTaskPurpose_CreateSubShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_CreateSubShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateSubShelf"
       RoutineTaskPurpose_UpdateSubShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_UpdateSubShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateSubShelf"
       RoutineTaskPurpose_ResetSubShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_ResetSubShelf"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetSubShelf"
       RoutineTaskPurpose_CreateBlockPack:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_CreateBlockPack"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateBlockPack"
       RoutineTaskPurpose_UpdateBlockPack:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_UpdateBlockPack"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateBlockPack"
       RoutineTaskPurpose_ResetBlockPack:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_ResetBlockPack"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetBlockPack"
       RoutineTaskPurpose_AppendBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_AppendBlock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_AppendBlock"
       RoutineTaskPurpose_UpdateBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_UpdateBlock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateBlock"
       RoutineTaskPurpose_ResetBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_ResetBlock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetBlock"
       RoutineTaskPurpose_CreateRoutine:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_CreateRoutine"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateRoutine"
       RoutineTaskPurpose_UpdateRoutine:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskPurpose_UpdateRoutine"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateRoutine"
   RoutineTaskStatus:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskStatus"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus"
     enum_values:
       RoutineTaskStatus_Idle:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskStatus_Idle"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Idle"
       RoutineTaskStatus_Waiting:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskStatus_Waiting"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Waiting"
       RoutineTaskStatus_Running:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskStatus_Running"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Running"
       RoutineTaskStatus_Pause:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskStatus_Pause"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Pause"
   RoutineTaskRecordStatus:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordStatus"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus"
     enum_values:
       RoutineTaskRecordStatus_Running:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordStatus_Running"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Running"
       RoutineTaskRecordStatus_Success:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordStatus_Success"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Success"
       RoutineTaskRecordStatus_Failed:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordStatus_Failed"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Failed"
       RoutineTaskRecordStatus_Cancel:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordStatus_Cancel"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Cancel"
   RoutineTaskRecordErrorCode:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode"
     enum_values:
       RoutineTaskRecordErrorCode_PermissionDenied:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_PermissionDenied"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_PermissionDenied"
       RoutineTaskRecordErrorCode_PayloadInvalid:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_PayloadInvalid"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_PayloadInvalid"
       RoutineTaskRecordErrorCode_TargetNotFound:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_TargetNotFound"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_TargetNotFound"
       RoutineTaskRecordErrorCode_PlanLimitExceeded:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_PlanLimitExceeded"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_PlanLimitExceeded"
       RoutineTaskRecordErrorCode_HandlerFailed:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_HandlerFailed"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_HandlerFailed"
       RoutineTaskRecordErrorCode_DatabaseError:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_DatabaseError"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_DatabaseError"
       RoutineTaskRecordErrorCode_Timeout:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_Timeout"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_Timeout"
       RoutineTaskRecordErrorCode_Canceled:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_Canceled"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_Canceled"
       RoutineTaskRecordErrorCode_Unknown:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.RoutineTaskRecordErrorCode_Unknown"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordErrorCode_Unknown"
   SupportedIcon:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon"
     enum_values:
       SupportedIcon_GrinningFace:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_GrinningFace"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_GrinningFace"
       SupportedIcon_SmilingFaceWithSmilingEyes:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_SmilingFaceWithSmilingEyes"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_SmilingFaceWithSmilingEyes"
       SupportedIcon_RedHeart:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_RedHeart"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_RedHeart"
       SupportedIcon_Fire:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Fire"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Fire"
       SupportedIcon_Star:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Star"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Star"
       SupportedIcon_Books:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Books"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Books"
       SupportedIcon_Notebook:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Notebook"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Notebook"
       SupportedIcon_PencilPaper:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_PencilPaper"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_PencilPaper"
       SupportedIcon_Lightbulb:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Lightbulb"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Lightbulb"
       SupportedIcon_Rocket:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Rocket"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Rocket"
       SupportedIcon_CheckMark:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_CheckMark"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_CheckMark"
       SupportedIcon_Pin:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Pin"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Pin"
       SupportedIcon_FolderOpen:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_FolderOpen"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_FolderOpen"
       SupportedIcon_Calendar:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Calendar"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Calendar"
       SupportedIcon_Clock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.SupportedIcon_Clock"
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.SupportedIcon_Clock"
   UserRole:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.UserRole"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.UserRole"
   UserPlan:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.UserPlan"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.UserPlan"
   UserStatus:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.UserStatus"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.UserStatus"
   UserGender:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums.UserGender"
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.UserGender"
 
   # ============================== Corresponded Schemas Which Have Prebuilt in Gorm ============================== #
 

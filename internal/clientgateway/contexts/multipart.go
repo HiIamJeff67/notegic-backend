@@ -6,15 +6,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 )
 
-func GetAndConvertContextToMultipartFileHeaders(ctx *gin.Context) ([]*multipart.FileHeader, *exceptions.Exception) {
+func GetAndConvertContextToMultipartFileHeaders(ctx *gin.Context) ([]*multipart.FileHeader, *cexceptions.Exception) {
 	value, exists := ctx.Get(sharedcontexts.ContextFieldName_FormDataFileHeaders.String())
 	if !exists {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldMissing",
 			"Gateway",
 			"ReadFormData",
@@ -26,7 +26,7 @@ func GetAndConvertContextToMultipartFileHeaders(ctx *gin.Context) ([]*multipart.
 
 	fileHeaders, ok := value.([]*multipart.FileHeader)
 	if !ok {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadFormData",

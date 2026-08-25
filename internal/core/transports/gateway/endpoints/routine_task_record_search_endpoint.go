@@ -6,14 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 )
 
 func (t *RoutineTaskRecordEndpoint) SearchRoutineTaskRecords(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.SearchRoutineTaskRecordsRequestDto]{}
+	request := &cgateway.Request[capi.SearchRoutineTaskRecordsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -22,9 +22,9 @@ func (t *RoutineTaskRecordEndpoint) SearchRoutineTaskRecords(ctx *gin.Context) {
 	userId, exception := contexts.GetActorUserId(ctx.Request.Context())
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -37,9 +37,9 @@ func (t *RoutineTaskRecordEndpoint) SearchRoutineTaskRecords(ctx *gin.Context) {
 	responseDto, exception := t.routineTaskRecordService.SearchPrivateRoutineTaskRecords(ctx.Request.Context(), userId, request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -49,9 +49,9 @@ func (t *RoutineTaskRecordEndpoint) SearchRoutineTaskRecords(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.SearchRoutineTaskRecordsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.SearchRoutineTaskRecordsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

@@ -5,15 +5,15 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type UserControllerInterface interface {
-	GetUserData(ctx *gin.Context, requestDto *apicontract.GetUserDataRequestDto)
-	GetMe(ctx *gin.Context, requestDto *apicontract.GetMeRequestDto)
-	UpdateMe(ctx *gin.Context, requestDto *apicontract.UpdateMeRequestDto)
+	GetUserData(ctx *gin.Context, requestDto *capi.GetUserDataRequestDto)
+	GetMe(ctx *gin.Context, requestDto *capi.GetMeRequestDto)
+	UpdateMe(ctx *gin.Context, requestDto *capi.UpdateMeRequestDto)
 }
 type UserController struct {
 	coreAdapter *coreadapters.CoreAdapter
@@ -25,9 +25,9 @@ func NewUserController(coreAdapter *coreadapters.CoreAdapter) UserControllerInte
 	}
 }
 
-func (c *UserController) GetUserData(ctx *gin.Context, requestDto *apicontract.GetUserDataRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.GetUserDataRequestDto, apicontract.GetUserDataResponseDto](
-		ctx, c.coreAdapter, requestDto, apicontract.GetUserDataOperation, "/core/v1/users/data",
+func (c *UserController) GetUserData(ctx *gin.Context, requestDto *capi.GetUserDataRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.GetUserDataRequestDto, capi.GetUserDataResponseDto](
+		ctx, c.coreAdapter, requestDto, capi.GetUserDataOperation, "/core/v1/users/data",
 	)
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
@@ -36,9 +36,9 @@ func (c *UserController) GetUserData(ctx *gin.Context, requestDto *apicontract.G
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *UserController) GetMe(ctx *gin.Context, requestDto *apicontract.GetMeRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.GetMeRequestDto, apicontract.GetMeResponseDto](
-		ctx, c.coreAdapter, requestDto, apicontract.GetMeOperation, "/core/v1/users/me",
+func (c *UserController) GetMe(ctx *gin.Context, requestDto *capi.GetMeRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.GetMeRequestDto, capi.GetMeResponseDto](
+		ctx, c.coreAdapter, requestDto, capi.GetMeOperation, "/core/v1/users/me",
 	)
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
@@ -47,9 +47,9 @@ func (c *UserController) GetMe(ctx *gin.Context, requestDto *apicontract.GetMeRe
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *UserController) UpdateMe(ctx *gin.Context, requestDto *apicontract.UpdateMeRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.UpdateMeRequestDto, apicontract.UpdateMeResponseDto](
-		ctx, c.coreAdapter, requestDto, apicontract.UpdateMeOperation, "/core/v1/users/me/update",
+func (c *UserController) UpdateMe(ctx *gin.Context, requestDto *capi.UpdateMeRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.UpdateMeRequestDto, capi.UpdateMeResponseDto](
+		ctx, c.coreAdapter, requestDto, capi.UpdateMeOperation, "/core/v1/users/me/update",
 	)
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

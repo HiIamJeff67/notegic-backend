@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func WithGatewaySource(ctx context.Context, source string) context.Context {
@@ -47,10 +47,10 @@ func WithDelegationMetadata(ctx context.Context, claims *sharedtokens.Delegation
 	return ctx
 }
 
-func GetGatewaySource(ctx context.Context) (string, *exceptions.Exception) {
+func GetGatewaySource(ctx context.Context) (string, *cexceptions.Exception) {
 	source, err := sharedcontexts.GetValue[string](ctx, sharedcontexts.ContextFieldName_Gateway_Source)
 	if err != nil || (source != sharedtokens.GatewaySourceClient && source != sharedtokens.GatewaySourceAPI) {
-		return "", exceptions.New(
+		return "", cexceptions.New(
 			"DelegationClaimsInvalid", "API", "ReadGatewaySource",
 			"The verified delegation context does not contain a valid gateway source",
 			http.StatusInternalServerError, true,
@@ -64,10 +64,10 @@ func IsClientGateway(ctx context.Context) bool {
 	return err == nil && source == sharedtokens.GatewaySourceClient
 }
 
-func GetAuthMethod(ctx context.Context) (string, *exceptions.Exception) {
+func GetAuthMethod(ctx context.Context) (string, *cexceptions.Exception) {
 	method, err := sharedcontexts.GetValue[string](ctx, sharedcontexts.ContextFieldName_Auth_Method)
 	if err != nil || (method != sharedtokens.AuthMethodJWT && method != sharedtokens.AuthMethodAPIKey) {
-		return "", exceptions.New(
+		return "", cexceptions.New(
 			"DelegationClaimsInvalid", "API", "ReadAuthMethod",
 			"The verified delegation context does not contain a valid authentication method",
 			http.StatusInternalServerError, true,
@@ -76,10 +76,10 @@ func GetAuthMethod(ctx context.Context) (string, *exceptions.Exception) {
 	return method, nil
 }
 
-func GetAPIKeyId(ctx context.Context) (string, *exceptions.Exception) {
+func GetAPIKeyId(ctx context.Context) (string, *cexceptions.Exception) {
 	apiKeyId, err := sharedcontexts.GetValue[string](ctx, sharedcontexts.ContextFieldName_API_Key_Id)
 	if err != nil || apiKeyId == "" {
-		return "", exceptions.New(
+		return "", cexceptions.New(
 			"DelegationClaimsInvalid", "API", "ReadAPIKeyId",
 			"The verified delegation context does not contain a valid API key ID",
 			http.StatusInternalServerError, true,
@@ -125,13 +125,13 @@ func WithActorUserPublicId(ctx context.Context, actorUserPublicId uuid.UUID) con
 
 func GetAllowedPermissions(
 	ctx context.Context,
-) ([]enums.AccessControlPermission, *exceptions.Exception) {
+) ([]enums.AccessControlPermission, *cexceptions.Exception) {
 	allowedPermissions, err := sharedcontexts.GetValue[[]enums.AccessControlPermission](
 		ctx,
 		sharedcontexts.ContextFieldName_Allowed_Permissions,
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"DelegationClaimsInvalid",
 			"API",
 			"ReadAllowedPermissions",
@@ -144,13 +144,13 @@ func GetAllowedPermissions(
 	return slices.Clone(allowedPermissions), nil
 }
 
-func GetActorUserId(ctx context.Context) (uuid.UUID, *exceptions.Exception) {
+func GetActorUserId(ctx context.Context) (uuid.UUID, *cexceptions.Exception) {
 	actorUserId, err := sharedcontexts.GetValue[uuid.UUID](
 		ctx,
 		sharedcontexts.ContextFieldName_User_Id,
 	)
 	if err != nil || actorUserId == uuid.Nil {
-		return uuid.Nil, exceptions.New(
+		return uuid.Nil, cexceptions.New(
 			"DelegationClaimsInvalid",
 			"API",
 			"ReadActorUserId",
@@ -163,13 +163,13 @@ func GetActorUserId(ctx context.Context) (uuid.UUID, *exceptions.Exception) {
 	return actorUserId, nil
 }
 
-func GetActorUserName(ctx context.Context) (string, *exceptions.Exception) {
+func GetActorUserName(ctx context.Context) (string, *cexceptions.Exception) {
 	actorUserName, err := sharedcontexts.GetValue[string](
 		ctx,
 		sharedcontexts.ContextFieldName_User_Name,
 	)
 	if err != nil || actorUserName == "" {
-		return "", exceptions.New(
+		return "", cexceptions.New(
 			"DelegationClaimsInvalid",
 			"API",
 			"ReadActorUserName",
@@ -182,13 +182,13 @@ func GetActorUserName(ctx context.Context) (string, *exceptions.Exception) {
 	return actorUserName, nil
 }
 
-func GetActorUserPublicId(ctx context.Context) (uuid.UUID, *exceptions.Exception) {
+func GetActorUserPublicId(ctx context.Context) (uuid.UUID, *cexceptions.Exception) {
 	actorUserPublicId, err := sharedcontexts.GetValue[uuid.UUID](
 		ctx,
 		sharedcontexts.ContextFieldName_User_PublicId,
 	)
 	if err != nil || actorUserPublicId == uuid.Nil {
-		return uuid.Nil, exceptions.New(
+		return uuid.Nil, cexceptions.New(
 			"DelegationClaimsInvalid",
 			"API",
 			"ReadActorUserPublicId",

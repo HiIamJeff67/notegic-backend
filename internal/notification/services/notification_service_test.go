@@ -9,15 +9,15 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	notificationvalidations "github.com/HiIamJeff67/notegic-backend/internal/notification/validations"
 )
 
@@ -31,7 +31,7 @@ type notificationRepositoryStub struct {
 
 func (r *notificationRepositoryStub) CreateFromRequest(
 	context.Context,
-	eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData],
+	cevent.EventEnvelope[coreevents.NotificationRequestedData],
 ) error {
 	r.createCalls++
 	return r.createErr
@@ -62,7 +62,7 @@ func (r *notificationRepositoryStub) DeleteExpired(context.Context, time.Time, t
 	return 0, nil
 }
 
-func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]cmodels.OutboxEvent, error) {
+func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]platformschemas.OutboxEvent, error) {
 	return nil, nil
 }
 
@@ -94,7 +94,7 @@ func TestConsumeRequestedValidatesPayloadBeforePersisting(t *testing.T) {
 	repository := &notificationRepositoryStub{}
 	service := newNotificationServiceForTest(repository)
 	recipientUserPublicId := uuid.New()
-	payload, err := json.Marshal(notificationtypescontract.NewsPayload{
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
 		Title:   "Release update",
 		Summary: "A new release is available.",
 		Body:    "Read the release notes for more details.",
@@ -103,20 +103,20 @@ func TestConsumeRequestedValidatesPayloadBeforePersisting(t *testing.T) {
 		t.Fatalf("failed to encode payload: %v", err)
 	}
 
-	event := eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{
-		SchemaVersion: eventcontract.Version,
+	event := cevent.EventEnvelope[coreevents.NotificationRequestedData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   recipientUserPublicId,
 		KafkaKey:      recipientUserPublicId.String(),
 		OccurredAt:    time.Now().UTC(),
 		CorrelationId: "request-id",
-		Data: coreeventscontract.NotificationRequestedData{
+		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
-			TemplateKey:           notificationtypescontract.TemplateKey_News,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
+			TemplateKey:           cnotificationtypes.TemplateKey_News,
 			TemplateVersion:       1,
 			Payload:               payload,
 			DedupeKey:             "welcome:" + recipientUserPublicId.String(),
@@ -135,23 +135,23 @@ func TestConsumeRequestedRejectsInvalidPayloadBeforePersisting(t *testing.T) {
 	repository := &notificationRepositoryStub{}
 	service := newNotificationServiceForTest(repository)
 	recipientUserPublicId := uuid.New()
-	payload, err := json.Marshal(notificationtypescontract.NewsPayload{Title: ""})
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{Title: ""})
 	if err != nil {
 		t.Fatalf("failed to encode payload: %v", err)
 	}
 
-	event := eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{
+	event := cevent.EventEnvelope[coreevents.NotificationRequestedData]{
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   recipientUserPublicId,
 		KafkaKey:      recipientUserPublicId.String(),
 		OccurredAt:    time.Now().UTC(),
-		Data: coreeventscontract.NotificationRequestedData{
+		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
-			TemplateKey:           notificationtypescontract.TemplateKey_News,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
+			TemplateKey:           cnotificationtypes.TemplateKey_News,
 			TemplateVersion:       1,
 			Payload:               payload,
 			DedupeKey:             "invalid:" + recipientUserPublicId.String(),
@@ -207,7 +207,7 @@ func TestSearchPrivateNotificationsReturnsGraphQLStyleCursorPage(t *testing.T) {
 	}
 	service := newNotificationServiceForTest(repository)
 
-	response, err := service.SearchPrivateNotifications(context.Background(), &notificationscontract.SearchPrivateNotificationsRequestDto{
+	response, err := service.SearchPrivateNotifications(context.Background(), &cnotifications.SearchPrivateNotificationsRequestDto{
 		RecipientUserPublicId: recipientUserPublicId,
 		First:                 1,
 	})

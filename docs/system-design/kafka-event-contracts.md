@@ -113,29 +113,24 @@ reply causes the affected room to resync, while a retried command reuses its
 persistence batch ID. Invalid envelopes are routed to the normal command DLQ.
 RealtimeGateway does not relay Yjs persistence or projection HTTP requests.
 
-## DurableJob Yjs maintenance coordination
+## Core Yjs maintenance coordination
 
-The contract ownership follows the direction of the protocol rather than the
-consumer implementation: Core owns the maintenance hint, DurableJob owns the
-request/result it sends to and receives from Core, and YjsWorker owns the
-maintenance operation plus the command/result exchanged with Core. This keeps
-each runtime's public contract independent from its database or implementation
-packages.
+Core owns the maintenance worker. DurableJob does not consume Yjs maintenance
+hints and does not exchange Yjs maintenance requests or results with Core.
+Core's worker consumes the Core-owned hint, reads the shared PostgreSQL state,
+and sends the minimal command directly to YjsWorker.
 
 Core writes `YjsMaintenanceHint` to
-`notegic.core.durablejob.yjs-maintenance-hint.v1` in the same transaction as a
-new BlockPack Yjs document or accepted update. DurableJob coalesces and
+`notegic.core.yjs-maintenance-hint.v1` in the same transaction as a
+new BlockPack Yjs document or accepted update. Core's worker coalesces and
 prioritizes those hints by BlockPack partition key, then publishes a compact or
-project request to `notegic.durablejob.core.yjs-maintenance-request.v1`.
+project request to `notegic.core.yjsworker.maintenance-command.v1`.
 
-Core consumes that request and forwards a minimal maintenance command to the
-Yjs Worker on `notegic.core.yjsworker.maintenance-command.v1`. The worker reads
-and computes against Core through the existing command/reply boundary; it does
-not receive a snapshot in the maintenance event. The result is published on
-`notegic.yjsworker.core.maintenance-result.v1`, Core forwards it to
-`notegic.core.durablejob.yjs-maintenance-result.v1`, and DurableJob uses it to
-complete or boundedly retry the strategy item. All five topics use the
-BlockPack UUID as the key and have local DLQ counterparts.
+The worker reads and computes against Core through the existing command/reply
+boundary; it does not receive a snapshot in the maintenance event. The result
+is published on `notegic.yjsworker.core.maintenance-result.v1` and consumed by
+Core's worker for bounded retry. The two Core/YjsWorker topics use the BlockPack
+UUID as the key and have local DLQ counterparts.
 
 Maintenance events contain only IDs, watermarks, sizes, operation and status.
 They never carry raw Yjs updates, snapshots, state vectors, or BlockNote block
@@ -176,19 +171,17 @@ internal/core/transports/
   outbox_relay.go
 ```
 
-DurableJob's Core-facing consumers and producers live beside one another:
+DurableJob has no Core-facing Kafka transport:
 
 ```text
 internal/durablejob/transports/core/
-  consumers/
-  producers/
-  strategies/
+  (empty)
 ```
 
-The routine-task engine and Yjs maintenance strategy do not construct Kafka
-clients or encode event envelopes. Transport constructors receive those local
-engines as dependencies; this keeps scheduling and business execution
-independent from delivery, retry, and offset mechanics.
+The routine-task engine and executor do not construct Kafka clients or encode
+Core event envelopes. DurableJob writes execution results and business
+mutations through its own PostgreSQL connection. Kafka remains only for the
+RealtimeGateway lifecycle hint.
 
 Core transport code distinguishes two event-construction roles:
 
@@ -205,32 +198,22 @@ claims its persisted envelope and is the component that calls the platform
 producer. This distinction is intentional and must remain visible in the
 folder and file names.
 
-### Core/DurableJob direction map
+### Core/DurableJob boundary
 
-The Core/DurableJob transport now has an explicit producer/consumer pair for
-every event direction:
+There is no Core/DurableJob Kafka producer/consumer pair for routine tasks or
+Yjs maintenance:
 
-| Direction | Producer | Consumer |
+| Concern | Owner | Boundary |
 | --- | --- | --- |
-| DurableJob → Core | `routine_task_claim_producer.go` | `routine_task_claim_consumer.go` |
-| DurableJob → Core | `routine_task_result_producer.go` | `routine_task_result_consumer.go` |
-| DurableJob → Core | `yjs_maintenance_request_producer.go` | `yjs_maintenance_request_consumer.go` |
-| Core → DurableJob | `routine_task_assignment_event_builder.go` + `outbox_relay.go` | `routine_task_assignment_consumer.go` |
-| Core → DurableJob | `yjs_maintenance_hint_event_builder.go` + `outbox_relay.go` | `yjs_maintenance_hint_consumer.go` |
-| Core → DurableJob | `yjs_maintenance_result_producer.go` | `yjs_maintenance_result_consumer.go` |
+| RoutineTask claim, quota, execution, finalization | DurableJob | Shared PostgreSQL, DurableJob-owned pool |
+| Yjs maintenance scheduling and retry | Core | Core worker + Core-owned outbox hint |
+| Yjs maintenance operation | YjsWorker | Core↔YjsWorker Kafka |
+| RoutineTask lifecycle hint | DurableJob | DurableJob→RealtimeGateway Kafka |
 
-The Core assignment and maintenance-hint event builders originate inside a
-database transaction and create Outbox envelopes. `OutboxRelay` is the shared
-Kafka publisher for those rows; it does not replace the directional
-producer/consumer contract. The maintenance-result producer publishes a
-forwarded result directly because it is not coupled to a Core mutation
-transaction.
-
-The DurableJob completion consumer follows the same rule: Core records the
-incoming result in `InboxEvent`, applies the prepared mutation, finalizes the
-task lifecycle, and enqueues one Core-owned `RoutineTaskCompleted` lifecycle
-event per task in the same transaction. The event contains only task identity,
-worker, attempt, and completion metadata.
+RoutineTask claim, assignment, execution, business mutation, and lifecycle
+finalization all happen in DurableJob through its own PostgreSQL connection.
+Completion also writes the shared outbox row in the same database flow, so Core
+does not consume a DurableJob result event.
 
 Kafka and the Core outbox are at-least-once. The consumer platform cannot
 atomically mark an arbitrary runtime side effect as complete, so it must not

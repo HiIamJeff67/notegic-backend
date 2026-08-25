@@ -3,7 +3,7 @@ package realtimegatewaycontract
 import (
 	"time"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type RequestEnvelope interface {
@@ -37,10 +37,10 @@ type RequestMetadata struct {
 }
 
 type Response[D any] struct {
-	Version   string                `json:"version"`
-	Metadata  ResponseMetadata      `json:"metadata"`
-	Data      D                     `json:"data"`
-	Exception *exceptions.Exception `json:"exception,omitempty"`
+	Version   string                 `json:"version"`
+	Metadata  ResponseMetadata       `json:"metadata"`
+	Data      D                      `json:"data"`
+	Exception *cexceptions.Exception `json:"exception,omitempty"`
 }
 
 type ResponseMetadata struct {

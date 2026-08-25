@@ -11,7 +11,7 @@ import (
 
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	coremiddlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
 )
 
@@ -47,13 +47,13 @@ func TestAuthenticationMiddlewareValidatesForwardedAccessToken(t *testing.T) {
 		ctx.Status(http.StatusNoContent)
 	})
 
-	payload, err := json.Marshal(gatewaycontract.Request[struct{}]{
-		Version:   gatewaycontract.Version,
+	payload, err := json.Marshal(cgateway.Request[struct{}]{
+		Version:   cgateway.Version,
 		Operation: "station.get",
-		Metadata: gatewaycontract.RequestMetadata{
+		Metadata: cgateway.RequestMetadata{
 			RequestId: "request-id",
 		},
-		Tokens: gatewaycontract.Tokens{
+		Tokens: cgateway.Tokens{
 			AccessToken: *accessToken,
 		},
 	})

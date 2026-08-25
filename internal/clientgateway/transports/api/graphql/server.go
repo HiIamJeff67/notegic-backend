@@ -9,7 +9,7 @@ import (
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	generated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
+	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
 
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql/resolvers"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
@@ -17,7 +17,7 @@ import (
 
 func GraphQLHandler(coreAdapter *coreadapters.CoreAdapter) gin.HandlerFunc {
 	resolver := resolvers.NewResolver(coreAdapter)
-	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
+	server := handler.NewDefaultServer(cgenerated.NewExecutableSchema(cgenerated.Config{
 		Resolvers: resolver,
 	}))
 

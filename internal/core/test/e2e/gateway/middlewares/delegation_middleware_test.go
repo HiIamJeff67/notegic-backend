@@ -12,7 +12,7 @@ import (
 
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	coremiddlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
 )
@@ -107,10 +107,10 @@ func TestDelegationMiddlewarePreservesBodyForEndpointBinding(t *testing.T) {
 	}
 	tokenString := *tokenValue
 
-	payload, err := json.Marshal(gatewaycontract.Request[map[string]string]{
-		Version:   gatewaycontract.Version,
+	payload, err := json.Marshal(cgateway.Request[map[string]string]{
+		Version:   cgateway.Version,
 		Operation: operation,
-		Metadata: gatewaycontract.RequestMetadata{
+		Metadata: cgateway.RequestMetadata{
 			RequestId: "request-id",
 		},
 		Dto: map[string]string{"name": "station"},
@@ -125,7 +125,7 @@ func TestDelegationMiddlewarePreservesBodyForEndpointBinding(t *testing.T) {
 		"/",
 		coremiddlewares.DelegationMiddleware(operation),
 		func(ctx *gin.Context) {
-			request := &gatewaycontract.Request[map[string]string]{}
+			request := &cgateway.Request[map[string]string]{}
 			if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 				t.Fatalf("bind request after delegation middleware: %v", err)
 			}

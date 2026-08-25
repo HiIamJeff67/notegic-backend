@@ -10,10 +10,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
@@ -23,24 +23,24 @@ import (
 type NotificationServiceInterface interface {
 	ConsumeNotificationRequested(
 		ctx context.Context,
-		event eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData],
+		event cevent.EventEnvelope[coreevents.NotificationRequestedData],
 	) error
 	SearchPrivateNotifications(
 		ctx context.Context,
-		request *notificationscontract.SearchPrivateNotificationsRequestDto,
-	) (*notificationscontract.SearchPrivateNotificationsResponseDto, error)
+		request *cnotifications.SearchPrivateNotificationsRequestDto,
+	) (*cnotifications.SearchPrivateNotificationsResponseDto, error)
 	CountMyUnreadNotifications(
 		ctx context.Context,
-		request *notificationscontract.CountUnreadNotificationsRequestDto,
-	) (*notificationscontract.CountUnreadNotificationsResponseDto, error)
+		request *cnotifications.CountUnreadNotificationsRequestDto,
+	) (*cnotifications.CountUnreadNotificationsResponseDto, error)
 	MarkMyNotificationsRead(
 		ctx context.Context,
-		request *notificationscontract.MarkNotificationsReadRequestDto,
-	) (*notificationscontract.MarkNotificationsReadResponseDto, error)
+		request *cnotifications.MarkNotificationsReadRequestDto,
+	) (*cnotifications.MarkNotificationsReadResponseDto, error)
 	SoftDeleteMyNotifications(
 		ctx context.Context,
-		request *notificationscontract.DeleteNotificationsRequestDto,
-	) (*notificationscontract.DeleteNotificationsResponseDto, error)
+		request *cnotifications.DeleteNotificationsRequestDto,
+	) (*cnotifications.DeleteNotificationsResponseDto, error)
 	HardDeleteExpiredNotifications(ctx context.Context, now time.Time, retention time.Duration) (int64, error)
 	DeleteAllNotificationsForUser(ctx context.Context, userPublicId uuid.UUID) error
 }
@@ -64,15 +64,15 @@ func NewNotificationService(
 
 func (s *NotificationService) ConsumeNotificationRequested(
 	ctx context.Context,
-	event eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData],
+	event cevent.EventEnvelope[coreevents.NotificationRequestedData],
 ) error {
-	if event.EventType != coreeventscontract.EventType_NotificationRequested {
+	if event.EventType != coreevents.EventType_NotificationRequested {
 		return notificationexceptions.NewEventException("Notification").UnsupportedEventType()
 	}
 	if event.AggregateId != event.Data.RecipientUserPublicId {
 		return notificationexceptions.NewEventException("Notification").AggregateRecipientMismatch()
 	}
-	if err := s.validator.Struct(notificationtypescontract.NotificationMetadata{
+	if err := s.validator.Struct(cnotificationtypes.NotificationMetadata{
 		Type:            string(event.Data.Type),
 		Priority:        string(event.Data.Priority),
 		TemplateVersion: event.Data.TemplateVersion,
@@ -85,33 +85,33 @@ func (s *NotificationService) ConsumeNotificationRequested(
 		)
 	}
 	switch event.Data.Type {
-	case coreeventscontract.NotificationType_News:
-		if event.Data.TemplateKey != notificationtypescontract.TemplateKey_News {
+	case coreevents.NotificationType_News:
+		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_News {
 			return notificationexceptions.NewEventException("Notification").InvalidNewsTemplateKey()
 		}
-		var payload notificationtypescontract.NewsPayload
+		var payload cnotificationtypes.NewsPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
 			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
 		}
 		if err := s.validator.Struct(payload); err != nil {
 			return notificationexceptions.NewPayloadException("Notification").InvalidNewsPayload(err)
 		}
-	case coreeventscontract.NotificationType_Warning:
-		if event.Data.TemplateKey != notificationtypescontract.TemplateKey_Warning {
+	case coreevents.NotificationType_Warning:
+		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_Warning {
 			return notificationexceptions.NewEventException("Notification").InvalidWarningTemplateKey()
 		}
-		var payload notificationtypescontract.WarningPayload
+		var payload cnotificationtypes.WarningPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
 			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
 		}
 		if err := s.validator.Struct(payload); err != nil {
 			return notificationexceptions.NewPayloadException("Notification").InvalidWarningPayload(err)
 		}
-	case coreeventscontract.NotificationType_Important:
-		if event.Data.TemplateKey != notificationtypescontract.TemplateKey_Important {
+	case coreevents.NotificationType_Important:
+		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_Important {
 			return notificationexceptions.NewEventException("Notification").InvalidImportantTemplateKey()
 		}
-		var payload notificationtypescontract.ImportantPayload
+		var payload cnotificationtypes.ImportantPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
 			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
 		}
@@ -132,8 +132,8 @@ func (s *NotificationService) ConsumeNotificationRequested(
 
 func (s *NotificationService) SearchPrivateNotifications(
 	ctx context.Context,
-	request *notificationscontract.SearchPrivateNotificationsRequestDto,
-) (*notificationscontract.SearchPrivateNotificationsResponseDto, error) {
+	request *cnotifications.SearchPrivateNotificationsRequestDto,
+) (*cnotifications.SearchPrivateNotificationsResponseDto, error) {
 	startTime := time.Now()
 
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
@@ -148,9 +148,9 @@ func (s *NotificationService) SearchPrivateNotifications(
 		limit = 50
 	}
 
-	var cursor *searchcursor.SearchCursor[notificationscontract.SearchNotificationCursorFields]
+	var cursor *searchcursor.SearchCursor[cnotifications.SearchNotificationCursorFields]
 	if request.After != nil && strings.TrimSpace(*request.After) != "" {
-		decodedCursor, err := searchcursor.Decode[notificationscontract.SearchNotificationCursorFields](*request.After)
+		decodedCursor, err := searchcursor.Decode[cnotifications.SearchNotificationCursorFields](*request.After)
 		if err != nil {
 			return nil, notificationexceptions.NewRequestException("Notification").InvalidSearchRequest(err)
 		}
@@ -185,9 +185,9 @@ func (s *NotificationService) SearchPrivateNotifications(
 		notifications = notifications[:limit]
 	}
 
-	response := &notificationscontract.SearchPrivateNotificationsResponseDto{
-		SearchEdges: make([]notificationscontract.SearchPrivateNotificationEdge, len(notifications)),
-		SearchPageInfo: notificationscontract.SearchNotificationPageInfo{
+	response := &cnotifications.SearchPrivateNotificationsResponseDto{
+		SearchEdges: make([]cnotifications.SearchPrivateNotificationEdge, len(notifications)),
+		SearchPageInfo: cnotifications.SearchNotificationPageInfo{
 			HasNextPage:     hasNextPage,
 			HasPreviousPage: cursor != nil,
 		},
@@ -199,7 +199,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 				return nil, notificationexceptions.NewPayloadException("Notification").ResponsePayloadDecodeFailed(err)
 			}
 		}
-		notificationResponse := notificationscontract.NotificationResponseDto{
+		notificationResponse := cnotifications.NotificationResponseDto{
 			Id:                    notification.Id,
 			RecipientUserPublicId: notification.RecipientUserPublicId,
 			Type:                  notification.Type,
@@ -212,7 +212,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 			DeletedAt:             notification.DeletedAt,
 			ExpiresAt:             notification.ExpiresAt,
 		}
-		encodedCursor, err := searchcursor.EncodeFromData(notificationscontract.SearchNotificationCursorFields{
+		encodedCursor, err := searchcursor.EncodeFromData(cnotifications.SearchNotificationCursorFields{
 			CreatedAt: notification.CreatedAt,
 			Id:        notification.Id,
 		})
@@ -222,7 +222,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 			}
 			return nil, notificationexceptions.NewOperationException("Notification").SearchFailed(err)
 		}
-		response.SearchEdges[index] = notificationscontract.SearchPrivateNotificationEdge{
+		response.SearchEdges[index] = cnotifications.SearchPrivateNotificationEdge{
 			EncodedSearchCursor: *encodedCursor,
 			Node:                notificationResponse,
 		}
@@ -239,8 +239,8 @@ func (s *NotificationService) SearchPrivateNotifications(
 
 func (s *NotificationService) CountMyUnreadNotifications(
 	ctx context.Context,
-	request *notificationscontract.CountUnreadNotificationsRequestDto,
-) (*notificationscontract.CountUnreadNotificationsResponseDto, error) {
+	request *cnotifications.CountUnreadNotificationsRequestDto,
+) (*cnotifications.CountUnreadNotificationsResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
 		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
 	}
@@ -252,13 +252,13 @@ func (s *NotificationService) CountMyUnreadNotifications(
 		return nil, notificationexceptions.NewOperationException("Notification").CountUnreadFailed(err)
 	}
 
-	return &notificationscontract.CountUnreadNotificationsResponseDto{Count: count}, nil
+	return &cnotifications.CountUnreadNotificationsResponseDto{Count: count}, nil
 }
 
 func (s *NotificationService) MarkMyNotificationsRead(
 	ctx context.Context,
-	request *notificationscontract.MarkNotificationsReadRequestDto,
-) (*notificationscontract.MarkNotificationsReadResponseDto, error) {
+	request *cnotifications.MarkNotificationsReadRequestDto,
+) (*cnotifications.MarkNotificationsReadResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
 		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
 	}
@@ -270,13 +270,13 @@ func (s *NotificationService) MarkMyNotificationsRead(
 		return nil, notificationexceptions.NewOperationException("Notification").MarkReadFailed(err)
 	}
 
-	return &notificationscontract.MarkNotificationsReadResponseDto{UpdatedCount: count}, nil
+	return &cnotifications.MarkNotificationsReadResponseDto{UpdatedCount: count}, nil
 }
 
 func (s *NotificationService) SoftDeleteMyNotifications(
 	ctx context.Context,
-	request *notificationscontract.DeleteNotificationsRequestDto,
-) (*notificationscontract.DeleteNotificationsResponseDto, error) {
+	request *cnotifications.DeleteNotificationsRequestDto,
+) (*cnotifications.DeleteNotificationsResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
 		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
 	}
@@ -288,7 +288,7 @@ func (s *NotificationService) SoftDeleteMyNotifications(
 		return nil, notificationexceptions.NewOperationException("Notification").DeleteFailed(err)
 	}
 
-	return &notificationscontract.DeleteNotificationsResponseDto{DeletedCount: count}, nil
+	return &cnotifications.DeleteNotificationsResponseDto{DeletedCount: count}, nil
 }
 
 func (s *NotificationService) HardDeleteExpiredNotifications(

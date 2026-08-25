@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -30,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateMaterial_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -74,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_id(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_parentSubShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -118,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_parentSubShelfId(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -162,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_name(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_size(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_size(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_size(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -206,7 +206,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_size(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_contentType(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_contentType(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_contentType(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -250,7 +250,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_contentType(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_parseMediaType(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_parseMediaType(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_parseMediaType(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -294,7 +294,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_parseMediaType(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -335,7 +335,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_deletedAt(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -379,7 +379,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_updatedAt(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateMaterial_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateMaterial_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateMaterial) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateMaterial_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -437,7 +437,7 @@ func (ec *executionContext) fieldContext_PrivateMaterial_createdAt(_ context.Con
 
 var privateMaterialImplementors = []string{"PrivateMaterial"}
 
-func (ec *executionContext) _PrivateMaterial(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateMaterial) graphql.Marshaler {
+func (ec *executionContext) _PrivateMaterial(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateMaterial) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateMaterialImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -515,7 +515,7 @@ func (ec *executionContext) _PrivateMaterial(ctx context.Context, sel ast.Select
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateMaterial2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateMaterial(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateMaterial) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateMaterial2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateMaterial(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateMaterial) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

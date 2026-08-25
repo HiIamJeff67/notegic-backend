@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type ThemeException struct {
@@ -14,8 +14,8 @@ func NewThemeException() ThemeException {
 	return ThemeException{CoreException: NewCoreException("Theme")}
 }
 
-func (ThemeException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (ThemeException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"Theme",
 		"Repository",
@@ -24,8 +24,8 @@ func (ThemeException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (ThemeException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (ThemeException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"Theme",
 		"Repository",
@@ -35,8 +35,8 @@ func (ThemeException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (ThemeException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (ThemeException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"Theme",
 		"Repository",
@@ -46,8 +46,8 @@ func (ThemeException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (ThemeException) FailedToDelete() *exceptions.Exception {
-	return exceptions.New(
+func (ThemeException) FailedToDelete() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToDelete",
 		"Theme",
 		"Repository",
@@ -57,8 +57,8 @@ func (ThemeException) FailedToDelete() *exceptions.Exception {
 	)
 }
 
-func (ThemeException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (ThemeException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"Theme",
 		"Repository",

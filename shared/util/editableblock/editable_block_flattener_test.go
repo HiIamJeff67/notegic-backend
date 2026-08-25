@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
 )
 
 func TestFlattenEditableBlocksPreservesTreeRelationships(t *testing.T) {
@@ -29,7 +29,7 @@ func TestFlattenEditableBlocksPreservesTreeRelationships(t *testing.T) {
 		{"id": "` + secondRootId.String() + `", "type": "paragraph", "props": {"backgroundColor":"default","textColor":"default","textAlignment":"left"}, "content": [], "children": []}
 	]`)
 
-	var roots []blocknote.ArborizedEditableBlock
+	var roots []cblocknote.ArborizedEditableBlock
 	if err := json.Unmarshal(payload, &roots); err != nil {
 		t.Fatalf("unmarshal arborized blocks: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestFlattenEditableBlocksPreservesTreeRelationships(t *testing.T) {
 		t.Fatalf("expected 4 flattened blocks, got %d", len(blocks))
 	}
 
-	blocksById := make(map[uuid.UUID]blocknote.RawFlattenedEditableBlock, len(blocks))
+	blocksById := make(map[uuid.UUID]cblocknote.RawFlattenedEditableBlock, len(blocks))
 	for _, block := range blocks {
 		blocksById[block.Id] = block
 	}

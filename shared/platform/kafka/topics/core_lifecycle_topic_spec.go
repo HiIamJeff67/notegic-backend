@@ -3,12 +3,12 @@ package topics
 import (
 	"time"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 )
 
 func CoreLifecycleTopicSpec() TopicSpec {
 	return TopicSpec{
-		Name:                coreeventscontract.CoreLifecycleTopic.String(),
+		Name:                coreevents.CoreLifecycleTopic.String(),
 		Partitions:          3,
 		ReplicationFactor:   1,
 		Retention:           7 * 24 * time.Hour,

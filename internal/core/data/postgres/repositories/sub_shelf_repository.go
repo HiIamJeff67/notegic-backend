@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -10,44 +11,43 @@ import (
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type SubShelfRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.SubShelf, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, opts ...options.RepositoryOptions) (*schemas.SubShelf, *exceptions.Exception)
-	GetAllByRootShelfId(rootShelfId uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *exceptions.Exception)
-	CreateOneByRootShelfId(rootShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateSubShelfInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	CreateManyByRootShelfIds(userId uuid.UUID, input []inputs.CreateSubShelfByRootShelfIdInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateSubShelfInput, opts ...options.RepositoryOptions) (*schemas.SubShelf, *exceptions.Exception)
-	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateSubShelfByIdInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.SubShelf, *exceptions.Exception)
-	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *exceptions.Exception)
-	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.SubShelf, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, opts ...options.RepositoryOptions) (*schemas.SubShelf, *cexceptions.Exception)
+	GetAllByRootShelfId(rootShelfId uuid.UUID, userId uuid.UUID, preloads []schemas.SubShelfRelation, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *cexceptions.Exception)
+	CreateOneByRootShelfId(rootShelfId uuid.UUID, userId uuid.UUID, input inputs.CreateSubShelfInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	CreateManyByRootShelfIds(userId uuid.UUID, input []inputs.CreateSubShelfByRootShelfIdInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateSubShelfInput, opts ...options.RepositoryOptions) (*schemas.SubShelf, *cexceptions.Exception)
+	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateSubShelfByIdInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.SubShelf, *cexceptions.Exception)
+	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.SubShelf, *cexceptions.Exception)
+	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 
 	/* ============================== System Only Method ============================== */
 
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckSubShelfPermissionInput, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.SubShelf, *exceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckSubShelfPermissionInput, preloads []schemas.SubShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.SubShelf, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(inputs []inputs.BulkDeleteSubShelfInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type SubShelfRepository struct {
@@ -113,7 +113,7 @@ func (r *SubShelfRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.SubShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.SubShelf, *exceptions.Exception) {
+) (*schemas.SubShelf, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	subShelf := schemas.SubShelf{}
@@ -131,7 +131,7 @@ func (r *SubShelfRepository) CheckPermissionAndGetOneById(
 		Scopes(r.subShelfScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&subShelf)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 		{First: subShelf.Id == uuid.Nil, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
@@ -147,7 +147,7 @@ func (r *SubShelfRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.SubShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.SubShelf, *exceptions.Exception) {
+) ([]schemas.SubShelf, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	subShelves := []schemas.SubShelf{}
@@ -158,7 +158,7 @@ func (r *SubShelfRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.subShelfScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&subShelves)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 		{First: len(subShelves) == 0, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
@@ -173,7 +173,7 @@ func (r *SubShelfRepository) GetOneById(
 	userId uuid.UUID,
 	preloads []schemas.SubShelfRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.SubShelf, *exceptions.Exception) {
+) (*schemas.SubShelf, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -188,7 +188,7 @@ func (r *SubShelfRepository) GetAllByRootShelfId(
 	userId uuid.UUID,
 	preloads []schemas.SubShelfRelation,
 	opts ...options.RepositoryOptions,
-) ([]schemas.SubShelf, *exceptions.Exception) {
+) ([]schemas.SubShelf, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -210,7 +210,7 @@ func (r *SubShelfRepository) GetAllByRootShelfId(
 	}
 
 	result := query.Find(&subShelves)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 		{First: len(subShelves) == 0, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
@@ -225,7 +225,7 @@ func (r *SubShelfRepository) CreateOneByRootShelfId(
 	userId uuid.UUID,
 	input inputs.CreateSubShelfInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -245,7 +245,7 @@ func (r *SubShelfRepository) CreateOneByRootShelfId(
 			parsedOptions.AllowedPermissions,
 			opts...,
 		)
-		if exception = exceptions.Cover(exception, []exceptions.Pair{
+		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 			{First: prevSubShelf.RootShelfId != rootShelfId, Second: apiexceptions.NewShelfException().InvalidDto("the given prev sub shelf is not one of the children of the given root shelf")},
 		}); exception != nil {
 			parsedOptions.DB.Rollback()
@@ -278,7 +278,7 @@ func (r *SubShelfRepository) CreateOneByRootShelfId(
 
 	result := parsedOptions.DB.Model(&schemas.SubShelf{}).
 		Create(&newSubShelf)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToCreate().WithOrigin(result.Error)},
 		{First: newSubShelf.Id == uuid.Nil, Second: apiexceptions.NewShelfException().FailedToCreate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
@@ -301,7 +301,7 @@ func (r *SubShelfRepository) CreateManyByRootShelfIds(
 	userId uuid.UUID,
 	input []inputs.CreateSubShelfByRootShelfIdInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(input) == 0 {
 		return nil, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -387,7 +387,7 @@ func (r *SubShelfRepository) CreateManyByRootShelfIds(
 
 	result := parsedOptions.DB.Model(&schemas.SubShelf{}).
 		CreateInBatches(&newSubShelves, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -415,7 +415,7 @@ func (r *SubShelfRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateSubShelfInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.SubShelf, *exceptions.Exception) {
+) (*schemas.SubShelf, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -441,14 +441,14 @@ func (r *SubShelfRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingSubShelf)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.SubShelf{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -470,7 +470,7 @@ func (r *SubShelfRepository) UpdateManyByIds(
 	userId uuid.UUID,
 	input []inputs.UpdateSubShelfByIdInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -527,7 +527,7 @@ func (r *SubShelfRepository) UpdateManyByIds(
 		WHERE s.id = v.id::uuid AND s.deleted_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
 	result := parsedOptions.DB.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -549,7 +549,7 @@ func (r *SubShelfRepository) RestoreSoftDeletedOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.SubShelf, *exceptions.Exception) {
+) (*schemas.SubShelf, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -560,7 +560,7 @@ func (r *SubShelfRepository) RestoreSoftDeletedOneById(
 		Clauses(clause.Returning{}).
 		Where(`"SubShelfTable".id = ?`, id).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: restoredSubShelf.Id == uuid.Nil, Second: apiexceptions.NewShelfException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
@@ -575,7 +575,7 @@ func (r *SubShelfRepository) RestoreSoftDeletedManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.SubShelf, *exceptions.Exception) {
+) ([]schemas.SubShelf, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return nil, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -590,7 +590,7 @@ func (r *SubShelfRepository) RestoreSoftDeletedManyByIds(
 		Clauses(clause.Returning{}).
 		Where(`"SubShelfTable".id IN ?`, ids).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: len(restoredSubShelves) == 0, Second: apiexceptions.NewShelfException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
@@ -605,7 +605,7 @@ func (r *SubShelfRepository) SoftDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -614,7 +614,7 @@ func (r *SubShelfRepository) SoftDeleteOneById(
 		Scopes(r.subShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"SubShelfTable".id = ?`, id).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -628,7 +628,7 @@ func (r *SubShelfRepository) SoftDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewShelfException().NoChanges()
 	}
@@ -641,7 +641,7 @@ func (r *SubShelfRepository) SoftDeleteManyByIds(
 		Scopes(r.subShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"SubShelfTable".id IN ?`, ids).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -655,7 +655,7 @@ func (r *SubShelfRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -664,7 +664,7 @@ func (r *SubShelfRepository) HardDeleteOneById(
 		Scopes(r.subShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"SubShelfTable".id = ?`, id).
 		Delete(&schemas.SubShelf{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -678,7 +678,7 @@ func (r *SubShelfRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewShelfException().NoChanges()
 	}
@@ -691,7 +691,7 @@ func (r *SubShelfRepository) HardDeleteManyByIds(
 		Scopes(r.subShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"SubShelfTable".id IN ?`, ids).
 		Delete(&schemas.SubShelf{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -708,7 +708,7 @@ func (r *SubShelfRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.SubShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.SubShelf, *exceptions.Exception) {
+) ([]bool, []schemas.SubShelf, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, []schemas.SubShelf{}, nil
 	}
@@ -798,7 +798,7 @@ func (r *SubShelfRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *SubShelfRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateSubShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -914,7 +914,7 @@ func (r *SubShelfRepository) BulkCreateMany(
 func (r *SubShelfRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateSubShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -1016,7 +1016,7 @@ func (r *SubShelfRepository) BulkUpdateMany(
 func (r *SubShelfRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteSubShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewShelfException().NoChanges()
 	}

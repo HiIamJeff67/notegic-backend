@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 )
 
 func TestCoreAdapterForwardsVersionedEnvelopeAndMetadata(t *testing.T) {
@@ -23,11 +23,11 @@ func TestCoreAdapterForwardsVersionedEnvelopeAndMetadata(t *testing.T) {
 			t.Fatal("cookies must not cross the Gateway/Core boundary")
 		}
 
-		requestEnvelope := gatewaycontract.Request[struct{}]{}
+		requestEnvelope := cgateway.Request[struct{}]{}
 		if err := json.NewDecoder(request.Body).Decode(&requestEnvelope); err != nil {
 			t.Fatalf("decode request envelope: %v", err)
 		}
-		if requestEnvelope.Version != gatewaycontract.Version || requestEnvelope.Operation != "station.get" {
+		if requestEnvelope.Version != cgateway.Version || requestEnvelope.Operation != "station.get" {
 			t.Fatal("expected versioned station request envelope")
 		}
 		if requestEnvelope.Tokens.AccessToken != "access-token" {
@@ -35,9 +35,9 @@ func TestCoreAdapterForwardsVersionedEnvelopeAndMetadata(t *testing.T) {
 		}
 
 		responseWriter.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(responseWriter).Encode(&gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		if err := json.NewEncoder(responseWriter).Encode(&cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId: requestEnvelope.Metadata.RequestId,
 			},
 			Data: struct{}{},
@@ -59,13 +59,13 @@ func TestCoreAdapterForwardsVersionedEnvelopeAndMetadata(t *testing.T) {
 			"User-Agent": []string{"test-agent"},
 			"X-Real-IP":  []string{"192.0.2.1"},
 		},
-		&gatewaycontract.Request[struct{}]{
+		&cgateway.Request[struct{}]{
 			Operation: "station.get",
-			Metadata: gatewaycontract.RequestMetadata{
+			Metadata: cgateway.RequestMetadata{
 				RequestId:   "request-id",
 				TraceParent: "00-trace",
 			},
-			Tokens: gatewaycontract.Tokens{
+			Tokens: cgateway.Tokens{
 				AccessToken: "access-token",
 			},
 		},

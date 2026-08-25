@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	durablejobeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -52,7 +52,7 @@ func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
 		consumer, err := platformkafka.NewConsumer(
 			c.kafkaConfig,
-			durablejobeventscontract.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
+			cdurablejobevents.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
 		)
 		if err == nil {
 			err = consumer.Run(ctx, c.consume)
@@ -80,17 +80,17 @@ func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
 func (c *RoutineTaskLifecycleConsumer) consume(
 	_ context.Context,
 	_ platformkafka.ConsumerRecord,
-	envelope eventcontract.EventEnvelope[json.RawMessage],
+	envelope cevent.EventEnvelope[json.RawMessage],
 ) error {
-	if envelope.EventType != durablejobeventscontract.EventType_RoutineTaskRunning ||
-		envelope.AggregateType != durablejobeventscontract.AggregateType_RoutineTask {
+	if envelope.EventType != cdurablejobevents.EventType_RoutineTaskRunning ||
+		envelope.AggregateType != cdurablejobevents.AggregateType_RoutineTask {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_PoisonMessage,
 			Origin:         errors.New("Kafka DurableJob RoutineTask lifecycle event is unsupported"),
 		}
 	}
 
-	var data durablejobeventscontract.RoutineTaskRunningData
+	var data cdurablejobevents.RoutineTaskRunningData
 	if err := json.Unmarshal(envelope.Data, &data); err != nil {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_SchemaIncompatible,

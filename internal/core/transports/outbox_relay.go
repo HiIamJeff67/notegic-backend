@@ -11,16 +11,16 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
+	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type OutboxRelay struct {
@@ -116,7 +116,7 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 	}
 
 	publishedEventIds := make([]uuid.UUID, 0, len(events))
-	failureInputs := make([]inputs.FailedOutboxEventInput, 0)
+	failureInputs := make([]cinputs.FailedOutboxEventInput, 0)
 	for _, event := range events {
 		payload, err := crepositories.SerializeOutboxEvent(event)
 		if err == nil && r.producer == nil {
@@ -137,7 +137,7 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		if backoff > r.config.MaximumBackoff {
 			backoff = r.config.MaximumBackoff
 		}
-		failureInputs = append(failureInputs, inputs.FailedOutboxEventInput{
+		failureInputs = append(failureInputs, cinputs.FailedOutboxEventInput{
 			Id:          event.Id,
 			LastError:   err.Error(),
 			AvailableAt: time.Now().Add(backoff),

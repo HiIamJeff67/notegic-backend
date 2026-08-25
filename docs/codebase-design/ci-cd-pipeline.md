@@ -20,7 +20,7 @@ when manually triggered or scheduled. It first starts the PostgreSQL, Redis,
 and Kafka services defined by
 `infra/docker/docker-compose.integration.yaml` through the root
 `Makefile`'s `compose-integration-up`, runs root integration and
-Core/DurableJob broker-flow tests, and finally cleans up with
+runtime Kafka integration tests, and finally cleans up with
 `compose-integration-down`. Local development can use the same root targets;
 when Compose is already running, `make test-integration` or
 `make test-integration-kafka` runs tests without taking over container

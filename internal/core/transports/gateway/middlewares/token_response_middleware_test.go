@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 )
 
@@ -20,8 +20,8 @@ func TestTokenResponseMiddlewareAddsInternalTokenEnvelope(t *testing.T) {
 		ctx.Set(sharedcontexts.ContextFieldName_IsNewTokens.String(), true)
 		ctx.Set(sharedcontexts.ContextFieldName_AccessToken.String(), "access-token")
 		ctx.Set(sharedcontexts.ContextFieldName_CSRFToken.String(), "csrf-token")
-		ctx.JSON(http.StatusOK, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
+		ctx.JSON(http.StatusOK, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
 			Data:    struct{}{},
 		})
 	})
@@ -30,7 +30,7 @@ func TestTokenResponseMiddlewareAddsInternalTokenEnvelope(t *testing.T) {
 	responseRecorder := httptest.NewRecorder()
 	router.ServeHTTP(responseRecorder, request)
 
-	response := gatewaycontract.Response[struct{}]{}
+	response := cgateway.Response[struct{}]{}
 	if err := json.Unmarshal(responseRecorder.Body.Bytes(), &response); err != nil {
 		t.Fatalf("decode internal response: %v", err)
 	}

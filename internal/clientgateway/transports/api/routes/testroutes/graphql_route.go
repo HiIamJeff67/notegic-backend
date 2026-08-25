@@ -5,7 +5,7 @@ import (
 
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	graphql "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/middlewares"
@@ -27,7 +27,7 @@ func ConfigureTestGraphQLRoutes(
 
 	graphqlRoutes.Use(
 		middlewares.JWTMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
-		middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+		middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 	)
 	{
 		graphqlRoutes.POST("/", graphql.GraphQLHandler(coreAdapter))

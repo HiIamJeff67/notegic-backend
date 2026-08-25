@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
@@ -36,7 +36,7 @@ func NewRouter(deps RouterDependencies) *gin.Engine {
 	router := logs.WithGinLogger(gin.New())
 	router.Use(middlewares.TokenResponseMiddleware())
 
-	coreRouterGroup := router.Group("/core/" + gatewaycontract.Version)
+	coreRouterGroup := router.Group("/core/" + cgateway.Version)
 	anonymousCoreRouterGroup := coreRouterGroup.Group("")
 	secureCoreRouterGroup := coreRouterGroup.Group("")
 

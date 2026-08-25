@@ -4,22 +4,23 @@ This directory is the versioned boundary owned by the DurableJob service. A
 caller uses these contracts when it invokes DurableJob; the path does not encode
 the caller or transport direction.
 
-Routine task scheduling uses the following Kafka directions:
+Routine task execution uses the shared PostgreSQL instance directly:
 
 ```text
-Core <-> DurableJob: CoreDurableJobRoutineTaskTopic
+DurableJob -> PostgreSQL: claim, quota, execute, finalize
 
-The event type distinguishes claim requests, assignments, completed results,
-and failed results on this single topic.
+DurableJob claims tasks through its own PostgreSQL connection, executes the
+runtime-owned handlers, and writes business mutations plus RoutineTask and
+RoutineTaskRecord state in the same database flow. Core is not involved in
+routine-task execution.
 ```
 
 `ClaimRoutineTasksRequestDto` is a capacity request, not a request for one
-specific task. Core owns task claiming, task records, scheduling state, and the
-transactional outbox. It responds with one `RoutineTaskAssignment` per task
-claimed within the requested batch size.
+specific task. DurableJob owns task claiming, quota consumption, task records,
+and scheduling state. It returns one `RoutineTaskAssignment` per task claimed
+within the requested batch size.
 
-The service owns its runtime, handlers, validation, and execution state. It does
-not own Core database schemas or repositories. DurableJob publishes execution
-results after its handlers finish. Core consumes those results and is the only
-runtime that finalizes RoutineTask and RoutineTaskRecord state. The InboxEvent
-table makes result consumption idempotent.
+The service owns its runtime, handlers, validation, and execution state. Its
+claim persistence models are runtime-owned and are accessed through the shared
+PostgreSQL instance. Realtime lifecycle notifications remain a separate
+DurableJob-to-RealtimeGateway Kafka concern.

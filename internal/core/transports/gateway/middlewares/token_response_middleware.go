@@ -9,7 +9,7 @@ import (
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 )
 
 func TokenResponseMiddleware() gin.HandlerFunc {
@@ -26,12 +26,12 @@ func TokenResponseMiddleware() gin.HandlerFunc {
 			accessToken, accessTokenExists := ctx.Get(sharedcontexts.ContextFieldName_AccessToken.String())
 			csrfToken, csrfTokenExists := ctx.Get(sharedcontexts.ContextFieldName_CSRFToken.String())
 			if accessTokenExists && csrfTokenExists {
-				response := &gatewaycontract.Response[json.RawMessage]{}
+				response := &cgateway.Response[json.RawMessage]{}
 				if err := json.Unmarshal(body.Bytes(), response); err == nil {
 					accessTokenString, accessTokenIsString := accessToken.(string)
 					csrfTokenString, csrfTokenIsString := csrfToken.(string)
 					if accessTokenIsString && csrfTokenIsString {
-						response.Tokens = &gatewaycontract.Tokens{
+						response.Tokens = &cgateway.Tokens{
 							AccessToken: accessTokenString,
 							CSRFToken:   csrfTokenString,
 						}

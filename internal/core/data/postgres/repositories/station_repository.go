@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -10,44 +11,43 @@ import (
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type StationRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Station, enums.AccessControlPermission, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Station, []enums.AccessControlPermission, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, opts ...options.RepositoryOptions) (*schemas.Station, enums.AccessControlPermission, *exceptions.Exception)
-	GetAllByUserId(userId uuid.UUID, preloads []schemas.StationRelation, opts ...options.RepositoryOptions) ([]schemas.Station, []enums.AccessControlPermission, *exceptions.Exception)
-	CreateOne(ownerId uuid.UUID, input inputs.CreateStationInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	CreateMany(ownerId uuid.UUID, input []inputs.CreateStationInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateStationInput, opts ...options.RepositoryOptions) (*schemas.Station, *exceptions.Exception)
-	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateStationByIdInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Station, *exceptions.Exception)
-	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.Station, *exceptions.Exception)
-	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Station, enums.AccessControlPermission, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Station, []enums.AccessControlPermission, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.StationRelation, opts ...options.RepositoryOptions) (*schemas.Station, enums.AccessControlPermission, *cexceptions.Exception)
+	GetAllByUserId(userId uuid.UUID, preloads []schemas.StationRelation, opts ...options.RepositoryOptions) ([]schemas.Station, []enums.AccessControlPermission, *cexceptions.Exception)
+	CreateOne(ownerId uuid.UUID, input inputs.CreateStationInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	CreateMany(ownerId uuid.UUID, input []inputs.CreateStationInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateStationInput, opts ...options.RepositoryOptions) (*schemas.Station, *cexceptions.Exception)
+	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateStationByIdInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.Station, *cexceptions.Exception)
+	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.Station, *cexceptions.Exception)
+	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 
 	/* ============================== System Only Method ============================== */
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckStationPermissionInput, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Station, *exceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateStationInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateStationInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckStationPermissionInput, preloads []schemas.StationRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Station, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateStationInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateStationInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type StationRepository struct {
@@ -113,7 +113,7 @@ func (r *StationRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.StationRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.Station, enums.AccessControlPermission, *exceptions.Exception) {
+) (*schemas.Station, enums.AccessControlPermission, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	type stationWithPermission struct {
@@ -142,7 +142,7 @@ func (r *StationRepository) CheckPermissionAndGetOneById(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&station)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().NotFound().WithOrigin(result.Error)},
 		{First: station.Id == uuid.Nil, Second: apiexceptions.NewStationException().NotFound()},
 	}); exception != nil {
@@ -158,7 +158,7 @@ func (r *StationRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.StationRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Station, []enums.AccessControlPermission, *exceptions.Exception) {
+) ([]schemas.Station, []enums.AccessControlPermission, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var stations []schemas.Station
@@ -169,7 +169,7 @@ func (r *StationRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&stations)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().NotFound().WithOrigin(result.Error)},
 		{First: len(stations) == 0, Second: apiexceptions.NewStationException().NotFound()},
 	}); exception != nil {
@@ -190,7 +190,7 @@ func (r *StationRepository) CheckPermissionsAndGetManyByIds(
 			).
 			Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 			Find(&usersToStations)
-		if exception := exceptions.Cover(nil, []exceptions.Pair{
+		if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 			{First: result.Error != nil, Second: apiexceptions.NewStationException().NotFound().WithOrigin(result.Error)},
 			{First: len(usersToStations) == 0, Second: apiexceptions.NewStationException().NotFound()},
 		}); exception != nil {
@@ -219,7 +219,7 @@ func (r *StationRepository) GetOneById(
 	userId uuid.UUID,
 	preloads []schemas.StationRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.Station, enums.AccessControlPermission, *exceptions.Exception) {
+) (*schemas.Station, enums.AccessControlPermission, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -233,7 +233,7 @@ func (r *StationRepository) GetAllByUserId(
 	userId uuid.UUID,
 	preloads []schemas.StationRelation,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Station, []enums.AccessControlPermission, *exceptions.Exception) {
+) ([]schemas.Station, []enums.AccessControlPermission, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	type stationWithPermission struct {
@@ -273,7 +273,7 @@ func (r *StationRepository) CreateOne(
 	ownerId uuid.UUID,
 	input inputs.CreateStationInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -297,7 +297,7 @@ func (r *StationRepository) CreateOne(
 	result := parsedOptions.DB.Model(&schemas.Station{}).
 		Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}}).
 		Create(&newStation)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToCreate().WithOrigin(result.Error)},
 		{First: newStation.Id == uuid.Nil, Second: apiexceptions.NewStationException().FailedToCreate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
@@ -313,7 +313,7 @@ func (r *StationRepository) CreateOne(
 	}
 	result = parsedOptions.DB.Model(&schemas.UsersToStations{}).
 		Create(&newUsersToStations)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -335,7 +335,7 @@ func (r *StationRepository) CreateMany(
 	ownerId uuid.UUID,
 	input []inputs.CreateStationInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(input) == 0 {
 		return nil, apiexceptions.NewStationException().NoChanges()
 	}
@@ -366,7 +366,7 @@ func (r *StationRepository) CreateMany(
 
 	result := parsedOptions.DB.Model(&schemas.Station{}).
 		CreateInBatches(&newStations, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -386,7 +386,7 @@ func (r *StationRepository) CreateMany(
 	}
 	result = parsedOptions.DB.Model(&schemas.UsersToStations{}).
 		CreateInBatches(&newUsersToStations, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -409,7 +409,7 @@ func (r *StationRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateStationInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.Station, *exceptions.Exception) {
+) (*schemas.Station, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -435,14 +435,14 @@ func (r *StationRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingStation)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.Station{}).
 		Where(`"StationTable".id = ? AND "StationTable".deleted_at IS NULL`, id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -464,7 +464,7 @@ func (r *StationRepository) UpdateManyByIds(
 	userId uuid.UUID,
 	input []inputs.UpdateStationByIdInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(input) == 0 {
 		return apiexceptions.NewStationException().NoChanges()
 	}
@@ -548,7 +548,7 @@ func (r *StationRepository) UpdateManyByIds(
 		WHERE s.id = v.id::uuid AND s.deleted_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
 	result := parsedOptions.DB.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -570,7 +570,7 @@ func (r *StationRepository) RestoreSoftDeletedOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.Station, *exceptions.Exception) {
+) (*schemas.Station, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -581,7 +581,7 @@ func (r *StationRepository) RestoreSoftDeletedOneById(
 		Clauses(clause.Returning{}).
 		Where(`"StationTable".id = ?`, id).
 		Updates(map[string]interface{}{"deleted_at": nil})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: restoredStation.Id == uuid.Nil, Second: apiexceptions.NewStationException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
@@ -596,7 +596,7 @@ func (r *StationRepository) RestoreSoftDeletedManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Station, *exceptions.Exception) {
+) ([]schemas.Station, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return nil, apiexceptions.NewStationException().NoChanges()
 	}
@@ -611,7 +611,7 @@ func (r *StationRepository) RestoreSoftDeletedManyByIds(
 		Clauses(clause.Returning{}).
 		Where(`"StationTable".id IN ?`, ids).
 		Updates(map[string]interface{}{"deleted_at": nil})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: len(restoredStations) == 0, Second: apiexceptions.NewStationException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
@@ -626,7 +626,7 @@ func (r *StationRepository) SoftDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -635,7 +635,7 @@ func (r *StationRepository) SoftDeleteOneById(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"StationTable".id = ?`, id).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -649,7 +649,7 @@ func (r *StationRepository) SoftDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewStationException().NoChanges()
 	}
@@ -662,7 +662,7 @@ func (r *StationRepository) SoftDeleteManyByIds(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"StationTable".id IN ?`, ids).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -675,7 +675,7 @@ func (r *StationRepository) SoftDeleteManyByIds(
 func (r *StationRepository) SoftDeleteManyByUserId(
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -683,7 +683,7 @@ func (r *StationRepository) SoftDeleteManyByUserId(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where("owner_id = ?", userId).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -697,7 +697,7 @@ func (r *StationRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -706,7 +706,7 @@ func (r *StationRepository) HardDeleteOneById(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"StationTable".id = ?`, id).
 		Delete(&schemas.Station{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -720,7 +720,7 @@ func (r *StationRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewStationException().NoChanges()
 	}
@@ -733,7 +733,7 @@ func (r *StationRepository) HardDeleteManyByIds(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where(`"StationTable".id IN ?`, ids).
 		Delete(&schemas.Station{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -746,7 +746,7 @@ func (r *StationRepository) HardDeleteManyByIds(
 func (r *StationRepository) HardDeleteManyByUserId(
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -754,7 +754,7 @@ func (r *StationRepository) HardDeleteManyByUserId(
 		Scopes(r.stationScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where("owner_id = ?", userId).
 		Delete(&schemas.Station{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewStationException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewStationException().NoChanges()},
 	}); exception != nil {
@@ -771,7 +771,7 @@ func (r *StationRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.StationRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.Station, *exceptions.Exception) {
+) ([]bool, []schemas.Station, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, []schemas.Station{}, nil
 	}
@@ -860,7 +860,7 @@ func (r *StationRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *StationRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateStationInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, apiexceptions.NewStationException().NoChanges()
 	}
@@ -922,7 +922,7 @@ func (r *StationRepository) BulkCreateMany(
 func (r *StationRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateStationInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewStationException().NoChanges()
 	}

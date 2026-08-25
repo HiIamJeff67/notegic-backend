@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
@@ -41,9 +41,9 @@ func CallSecurly[RequestDto any, ResponseDto any](
 	requestDto *RequestDto,
 	operation string,
 	path string,
-) (*gatewaycontract.Response[ResponseDto], *exceptions.Exception) {
+) (*cgateway.Response[ResponseDto], *cexceptions.Exception) {
 	if client == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationAdapterRequired",
 			"Gateway",
 			operation,
@@ -53,7 +53,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		)
 	}
 	if requestDto == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"Gateway",
 			operation,
@@ -70,7 +70,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		return nil, exception
 	}
 	if userSubject == nil || *userSubject == uuid.Nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			operation,
@@ -91,7 +91,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		RequestId:   requestId,
 	})
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationDelegationFailed",
 			"Gateway",
 			operation,
@@ -101,9 +101,9 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		).WithOrigin(err)
 	}
 
-	request := &gatewaycontract.Request[RequestDto]{
+	request := &cgateway.Request[RequestDto]{
 		Operation: operation,
-		Metadata: gatewaycontract.RequestMetadata{
+		Metadata: cgateway.RequestMetadata{
 			RequestId:      requestId,
 			TraceParent:    ctx.GetHeader("Traceparent"),
 			IdempotencyKey: ctx.GetHeader("Idempotency-Key"),
@@ -112,7 +112,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 	}
 	body, err := json.Marshal(request)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationRequestEncodingFailed",
 			"Gateway",
 			operation,
@@ -129,7 +129,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		bytes.NewReader(body),
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationRequestCreationFailed",
 			"Gateway",
 			operation,
@@ -155,7 +155,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 
 	httpResponse, err := client.httpClient.Do(httpRequest)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationRequestFailed",
 			"Gateway",
 			operation,
@@ -167,7 +167,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 	defer httpResponse.Body.Close()
 	responseBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationResponseReadFailed",
 			"Gateway",
 			operation,
@@ -177,11 +177,11 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		).WithOrigin(err)
 	}
 	if httpResponse.StatusCode < http.StatusOK || httpResponse.StatusCode >= http.StatusMultipleChoices {
-		response := &gatewaycontract.Response[ResponseDto]{}
+		response := &cgateway.Response[ResponseDto]{}
 		if err := json.Unmarshal(responseBody, response); err == nil && response.Exception != nil {
 			return nil, response.Exception.Clone(httpResponse.StatusCode)
 		}
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationResponseFailed",
 			"Gateway",
 			operation,
@@ -190,9 +190,9 @@ func CallSecurly[RequestDto any, ResponseDto any](
 			true,
 		).WithOrigin(fmt.Errorf("status %d: %s", httpResponse.StatusCode, strings.TrimSpace(string(responseBody))))
 	}
-	response := &gatewaycontract.Response[ResponseDto]{}
+	response := &cgateway.Response[ResponseDto]{}
 	if err := json.Unmarshal(responseBody, response); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationResponseDecodingFailed",
 			"Gateway",
 			operation,
@@ -201,8 +201,8 @@ func CallSecurly[RequestDto any, ResponseDto any](
 			true,
 		).WithOrigin(err)
 	}
-	if response.Version != gatewaycontract.Version {
-		return nil, exceptions.New(
+	if response.Version != cgateway.Version {
+		return nil, cexceptions.New(
 			"NotificationResponseVersionInvalid",
 			"Gateway",
 			operation,
@@ -212,7 +212,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 		)
 	}
 	if response.Metadata.RequestId != requestId {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotificationResponseRequestIdInvalid",
 			"Gateway",
 			operation,

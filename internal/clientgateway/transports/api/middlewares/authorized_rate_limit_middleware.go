@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
@@ -29,7 +29,7 @@ func InitAuthorizedRateLimiter(config gatewayconfig.RateLimitConfig) *ratelimit.
 func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if rateLimiter == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"RateLimiterRequired",
 				"Gateway",
 				"RateLimit",
@@ -42,7 +42,7 @@ func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin
 
 		userId, exception := contexts.GetAndConvertContextFieldToUUID(ctx, sharedcontexts.ContextFieldName_User_Id)
 		if exception != nil || userId == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"WrongMiddlewareOrder",
 				"Context",
 				"Middleware",
@@ -58,7 +58,7 @@ func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin
 		if !allowed {
 			setRateLimitHeaders(ctx, remaining, rateLimiter)
 			logs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for user: %s", userId.String()))
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"PermissionDeniedDueToTooManyRequests",
 				"Auth",
 				"Authorize",

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type AuthException struct {
@@ -18,8 +18,8 @@ func NewAuthException() AuthException {
 	}
 }
 
-func (AuthException) WrongPassword() *exceptions.Exception {
-	return exceptions.New(
+func (AuthException) WrongPassword() *cexceptions.Exception {
+	return cexceptions.New(
 		"WrongPassword",
 		"Auth",
 		"Authenticate",
@@ -28,8 +28,8 @@ func (AuthException) WrongPassword() *exceptions.Exception {
 	)
 }
 
-func (AuthException) WrongAuthCode() *exceptions.Exception {
-	return exceptions.New(
+func (AuthException) WrongAuthCode() *cexceptions.Exception {
+	return cexceptions.New(
 		"WrongAuthCode",
 		"Auth",
 		"Authenticate",
@@ -38,8 +38,8 @@ func (AuthException) WrongAuthCode() *exceptions.Exception {
 	)
 }
 
-func (AuthException) LoginBlockedDueToTryingTooManyTimes(blockedUntil time.Time) *exceptions.Exception {
-	return exceptions.New(
+func (AuthException) LoginBlockedDueToTryingTooManyTimes(blockedUntil time.Time) *cexceptions.Exception {
+	return cexceptions.New(
 		"LoginBlockedDueToTryingTooManyTimes",
 		"Auth",
 		"Authenticate",
@@ -48,8 +48,8 @@ func (AuthException) LoginBlockedDueToTryingTooManyTimes(blockedUntil time.Time)
 	)
 }
 
-func (AuthException) AuthCodeBlockedDueToTryingTooManyTimes(blockedUntil time.Time) *exceptions.Exception {
-	return exceptions.New(
+func (AuthException) AuthCodeBlockedDueToTryingTooManyTimes(blockedUntil time.Time) *cexceptions.Exception {
+	return cexceptions.New(
 		"AuthCodeBlockedDueToTryingTooManyTimes",
 		"Auth",
 		"Authenticate",

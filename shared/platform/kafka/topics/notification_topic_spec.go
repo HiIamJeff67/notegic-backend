@@ -3,12 +3,12 @@ package topics
 import (
 	"time"
 
-	notificationeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
+	cnotificationevents "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
 )
 
 func NotificationTopicSpec() TopicSpec {
 	return TopicSpec{
-		Name:                notificationeventscontract.NotificationTopic.String(),
+		Name:                cnotificationevents.NotificationTopic.String(),
 		Partitions:          3,
 		ReplicationFactor:   1,
 		Retention:           7 * 24 * time.Hour,

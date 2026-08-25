@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	materialservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/material"
 )
@@ -44,7 +44,7 @@ func NewMaterialEndpoint(
 }
 
 func (t *MaterialEndpoint) GetMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.GetMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -53,9 +53,9 @@ func (t *MaterialEndpoint) GetMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.GetMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -65,9 +65,9 @@ func (t *MaterialEndpoint) GetMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -76,7 +76,7 @@ func (t *MaterialEndpoint) GetMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) GetMyMaterialAndItsParentById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetMyMaterialAndItsParentByIdRequestDto]{}
+	request := &cgateway.Request[capi.GetMyMaterialAndItsParentByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -85,9 +85,9 @@ func (t *MaterialEndpoint) GetMyMaterialAndItsParentById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.GetMyMaterialAndItsParentById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -97,9 +97,9 @@ func (t *MaterialEndpoint) GetMyMaterialAndItsParentById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetMyMaterialAndItsParentByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyMaterialAndItsParentByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -108,7 +108,7 @@ func (t *MaterialEndpoint) GetMyMaterialAndItsParentById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) GetMyMaterialsByParentSubShelfId(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetMyMaterialsByParentSubShelfIdRequestDto]{}
+	request := &cgateway.Request[capi.GetMyMaterialsByParentSubShelfIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -117,9 +117,9 @@ func (t *MaterialEndpoint) GetMyMaterialsByParentSubShelfId(ctx *gin.Context) {
 	responseDto, exception := t.materialService.GetMyMaterialsByParentSubShelfId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -129,9 +129,9 @@ func (t *MaterialEndpoint) GetMyMaterialsByParentSubShelfId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetMyMaterialsByParentSubShelfIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyMaterialsByParentSubShelfIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -140,7 +140,7 @@ func (t *MaterialEndpoint) GetMyMaterialsByParentSubShelfId(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.GetAllMyMaterialsByRootShelfIdRequestDto]{}
+	request := &cgateway.Request[capi.GetAllMyMaterialsByRootShelfIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -149,9 +149,9 @@ func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
 	responseDto, exception := t.materialService.GetAllMyMaterialsByRootShelfId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -161,9 +161,9 @@ func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.GetAllMyMaterialsByRootShelfIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyMaterialsByRootShelfIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -172,7 +172,7 @@ func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) CreateMyMaterial(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.CreateMyMaterialRequestDto]{}
+	request := &cgateway.Request[capi.CreateMyMaterialRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -181,9 +181,9 @@ func (t *MaterialEndpoint) CreateMyMaterial(ctx *gin.Context) {
 	responseDto, exception := t.materialService.CreateMyMaterial(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -193,9 +193,9 @@ func (t *MaterialEndpoint) CreateMyMaterial(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.CreateMyMaterialResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.CreateMyMaterialResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -204,7 +204,7 @@ func (t *MaterialEndpoint) CreateMyMaterial(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) UpdateMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.UpdateMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.UpdateMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -213,9 +213,9 @@ func (t *MaterialEndpoint) UpdateMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.UpdateMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -225,9 +225,9 @@ func (t *MaterialEndpoint) UpdateMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.UpdateMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.UpdateMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -236,7 +236,7 @@ func (t *MaterialEndpoint) UpdateMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) SaveMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.SaveMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.SaveMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -245,9 +245,9 @@ func (t *MaterialEndpoint) SaveMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.SaveMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -257,9 +257,9 @@ func (t *MaterialEndpoint) SaveMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.SaveMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.SaveMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -268,7 +268,7 @@ func (t *MaterialEndpoint) SaveMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) MoveMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.MoveMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.MoveMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -277,9 +277,9 @@ func (t *MaterialEndpoint) MoveMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.MoveMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -289,9 +289,9 @@ func (t *MaterialEndpoint) MoveMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.MoveMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.MoveMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -300,7 +300,7 @@ func (t *MaterialEndpoint) MoveMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) MoveMyMaterialsByIds(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.MoveMyMaterialsByIdsRequestDto]{}
+	request := &cgateway.Request[capi.MoveMyMaterialsByIdsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -309,9 +309,9 @@ func (t *MaterialEndpoint) MoveMyMaterialsByIds(ctx *gin.Context) {
 	responseDto, exception := t.materialService.MoveMyMaterialsByIds(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -321,9 +321,9 @@ func (t *MaterialEndpoint) MoveMyMaterialsByIds(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.MoveMyMaterialsByIdsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.MoveMyMaterialsByIdsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -332,7 +332,7 @@ func (t *MaterialEndpoint) MoveMyMaterialsByIds(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) RestoreMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.RestoreMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.RestoreMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -341,9 +341,9 @@ func (t *MaterialEndpoint) RestoreMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.RestoreMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -353,9 +353,9 @@ func (t *MaterialEndpoint) RestoreMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.RestoreMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.RestoreMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -364,7 +364,7 @@ func (t *MaterialEndpoint) RestoreMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) RestoreMyMaterialsByIds(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.RestoreMyMaterialsByIdsRequestDto]{}
+	request := &cgateway.Request[capi.RestoreMyMaterialsByIdsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -373,9 +373,9 @@ func (t *MaterialEndpoint) RestoreMyMaterialsByIds(ctx *gin.Context) {
 	responseDto, exception := t.materialService.RestoreMyMaterialsByIds(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -385,9 +385,9 @@ func (t *MaterialEndpoint) RestoreMyMaterialsByIds(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.RestoreMyMaterialsByIdsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.RestoreMyMaterialsByIdsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -396,7 +396,7 @@ func (t *MaterialEndpoint) RestoreMyMaterialsByIds(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) DeleteMyMaterialById(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.DeleteMyMaterialByIdRequestDto]{}
+	request := &cgateway.Request[capi.DeleteMyMaterialByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -405,9 +405,9 @@ func (t *MaterialEndpoint) DeleteMyMaterialById(ctx *gin.Context) {
 	responseDto, exception := t.materialService.DeleteMyMaterialById(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -417,9 +417,9 @@ func (t *MaterialEndpoint) DeleteMyMaterialById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.DeleteMyMaterialByIdResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.DeleteMyMaterialByIdResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -428,7 +428,7 @@ func (t *MaterialEndpoint) DeleteMyMaterialById(ctx *gin.Context) {
 }
 
 func (t *MaterialEndpoint) DeleteMyMaterialsByIds(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.DeleteMyMaterialsByIdsRequestDto]{}
+	request := &cgateway.Request[capi.DeleteMyMaterialsByIdsRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -437,9 +437,9 @@ func (t *MaterialEndpoint) DeleteMyMaterialsByIds(ctx *gin.Context) {
 	responseDto, exception := t.materialService.DeleteMyMaterialsByIds(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -449,9 +449,9 @@ func (t *MaterialEndpoint) DeleteMyMaterialsByIds(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[apicontract.DeleteMyMaterialsByIdsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.DeleteMyMaterialsByIdsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

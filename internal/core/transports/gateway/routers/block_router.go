@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	blockservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/blocks"
@@ -35,7 +35,7 @@ func configureBlockRoutes(
 		blockRoutes.POST(
 			"/get-by-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyBlockByIdOperation,
+				capi.GetMyBlockByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyBlockById,
@@ -43,7 +43,7 @@ func configureBlockRoutes(
 		blockRoutes.POST(
 			"/get-by-ids",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyBlocksByIdsOperation,
+				capi.GetMyBlocksByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyBlocksByIds,
@@ -51,7 +51,7 @@ func configureBlockRoutes(
 		blockRoutes.POST(
 			"/get-by-block-pack-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyBlocksByBlockPackIdOperation,
+				capi.GetMyBlocksByBlockPackIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyBlocksByBlockPackId,
@@ -59,7 +59,7 @@ func configureBlockRoutes(
 		blockRoutes.POST(
 			"/graphql/search",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SearchBlocksOperation,
+				capi.SearchBlocksOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.SearchBlocks,

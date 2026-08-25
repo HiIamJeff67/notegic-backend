@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
 
 	realtimeservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/realtime"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureRealtimeRoutes(
 		realtimeRoutes.POST(
 			"/connection-ticket/create",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.CreateMyRealtimeConnectionTicketOperation,
+				capi.CreateMyRealtimeConnectionTicketOperation,
 			),
 			authMiddleware,
 			endpoint.CreateMyRealtimeConnectionTicket,
@@ -34,7 +34,7 @@ func configureRealtimeRoutes(
 		realtimeRoutes.POST(
 			"/block-pack-channel-ticket/create",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.CreateMyBlockPackChannelTicketOperation,
+				capi.CreateMyBlockPackChannelTicketOperation,
 			),
 			authMiddleware,
 			endpoint.CreateMyBlockPackChannelTicket,

@@ -18,7 +18,7 @@ contracts/types/exceptions.Exception
 | Runtime | Local error ownership | Boundary mapping |
 | --- | --- | --- |
 | Core | `internal/core/exceptions/` domain factories | Core Gateway endpoint／transport response |
-| DurableJob | `internal/durablejob/exceptions/` execution helpers | RoutineTask result producer 讀取 shared exception 的 reason/retryable，再映射成穩定 event error 欄位 |
+| DurableJob | `internal/durablejob/exceptions/` execution helpers | RoutineTask executor 讀取 shared exception 的 reason/retryable，再映射成穩定的本地結果與資料庫狀態 |
 | Email | `internal/email/exceptions/` renderer、queue、delivery helpers | Core email Kafka consumer 讀取 shared exception 的 transient/schema 語意 |
 | RealtimeGateway | `internal/realtimegateway/exceptions/` cache/data helpers | API/protocol boundary 使用 shared exception；rate limiter 可將 cache failure 視為 unavailable |
 | Notification | `internal/notification/exceptions/` event、payload、repository、request helpers | Gateway endpoint 使用 shared exception 並轉成 public contract |

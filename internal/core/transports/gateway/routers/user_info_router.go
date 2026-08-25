@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
 
 	userservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/user"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureUserInfoRoutes(
 		userInfoRoutes.POST(
 			"/get",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyInfoOperation,
+				capi.GetMyInfoOperation,
 			),
 			authMiddleware,
 			endpoint.GetMyInfo,
@@ -34,7 +34,7 @@ func configureUserInfoRoutes(
 		userInfoRoutes.POST(
 			"/update",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMyInfoOperation,
+				capi.UpdateMyInfoOperation,
 			),
 			authMiddleware,
 			endpoint.UpdateMyInfo,
@@ -42,7 +42,7 @@ func configureUserInfoRoutes(
 		userInfoRoutes.POST(
 			"/graphql/load",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LoadUserInfosOperation,
+				capi.LoadUserInfosOperation,
 			),
 			authMiddleware,
 			endpoint.LoadUserInfos,

@@ -5,14 +5,14 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type RealtimeControllerInterface interface {
-	CreateMyRealtimeConnectionTicket(ctx *gin.Context, requestDto *apicontract.CreateMyRealtimeConnectionTicketRequestDto)
-	CreateMyBlockPackChannelTicket(ctx *gin.Context, requestDto *apicontract.CreateMyBlockPackChannelTicketRequestDto)
+	CreateMyRealtimeConnectionTicket(ctx *gin.Context, requestDto *capi.CreateMyRealtimeConnectionTicketRequestDto)
+	CreateMyBlockPackChannelTicket(ctx *gin.Context, requestDto *capi.CreateMyBlockPackChannelTicketRequestDto)
 }
 
 type RealtimeController struct {
@@ -29,16 +29,16 @@ func NewRealtimeController(
 
 func (c *RealtimeController) CreateMyRealtimeConnectionTicket(
 	ctx *gin.Context,
-	requestDto *apicontract.CreateMyRealtimeConnectionTicketRequestDto,
+	requestDto *capi.CreateMyRealtimeConnectionTicketRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateMyRealtimeConnectionTicketRequestDto,
-		apicontract.CreateMyRealtimeConnectionTicketResponseDto,
+		capi.CreateMyRealtimeConnectionTicketRequestDto,
+		capi.CreateMyRealtimeConnectionTicketResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateMyRealtimeConnectionTicketOperation,
+		capi.CreateMyRealtimeConnectionTicketOperation,
 		"/core/v1/realtime/connection-ticket/create",
 	)
 	if exception != nil {
@@ -51,16 +51,16 @@ func (c *RealtimeController) CreateMyRealtimeConnectionTicket(
 
 func (c *RealtimeController) CreateMyBlockPackChannelTicket(
 	ctx *gin.Context,
-	requestDto *apicontract.CreateMyBlockPackChannelTicketRequestDto,
+	requestDto *capi.CreateMyBlockPackChannelTicketRequestDto,
 ) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateMyBlockPackChannelTicketRequestDto,
-		apicontract.CreateMyBlockPackChannelTicketResponseDto,
+		capi.CreateMyBlockPackChannelTicketRequestDto,
+		capi.CreateMyBlockPackChannelTicketResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateMyBlockPackChannelTicketOperation,
+		capi.CreateMyBlockPackChannelTicketOperation,
 		"/core/v1/realtime/block-pack-channel-ticket/create",
 	)
 	if exception != nil {

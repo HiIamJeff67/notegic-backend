@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
@@ -22,7 +22,7 @@ func MultipartMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		form, err := ctx.MultipartForm()
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"InvalidMultipartForm",
 				"Multipart",
 				"Bind",
@@ -52,7 +52,7 @@ func MultipartMiddleware() gin.HandlerFunc {
 		for _, fileHeadersSlice := range form.File {
 			for _, fileHeader := range fileHeadersSlice {
 				if fileHeader.Size > constants.MaxNonVideoFileSize.ToInt64() {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FileTooLarge",
 						"Multipart",
 						"Bind",

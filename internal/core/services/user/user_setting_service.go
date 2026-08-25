@@ -2,26 +2,26 @@ package user
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type UserSettingServiceInterface interface {
-	GetMySetting(ctx context.Context, requestDto *apicontract.GetMySettingRequestDto) (*apicontract.GetMySettingResponseDto, *exceptions.Exception)
-	UpdateMySetting(ctx context.Context, requestDto *apicontract.UpdateMySettingRequestDto) (*apicontract.UpdateMySettingResponseDto, *exceptions.Exception)
+	GetMySetting(ctx context.Context, requestDto *capi.GetMySettingRequestDto) (*capi.GetMySettingResponseDto, *cexceptions.Exception)
+	UpdateMySetting(ctx context.Context, requestDto *capi.UpdateMySettingRequestDto) (*capi.UpdateMySettingResponseDto, *cexceptions.Exception)
 }
 
 type UserSettingService struct {
@@ -49,10 +49,10 @@ func NewUserSettingService(
 
 func (s *UserSettingService) GetMySetting(
 	ctx context.Context,
-	requestDto *apicontract.GetMySettingRequestDto,
-) (*apicontract.GetMySettingResponseDto, *exceptions.Exception) {
+	requestDto *capi.GetMySettingRequestDto,
+) (*capi.GetMySettingResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserSetting",
 			"GetMySetting",
@@ -75,10 +75,10 @@ func (s *UserSettingService) GetMySetting(
 		return nil, exception
 	}
 
-	return &apicontract.GetMySettingResponseDto{
-		Language:             *userSetting.Language.ToContractable(),
-		Density:              *userSetting.Density.ToContractable(),
-		StartSurface:         *userSetting.StartSurface.ToContractable(),
+	return &capi.GetMySettingResponseDto{
+		Language:             userSetting.Language,
+		Density:              userSetting.Density,
+		StartSurface:         userSetting.StartSurface,
 		ReduceMotion:         userSetting.ReduceMotion,
 		LineWrap:             userSetting.LineWrap,
 		QuickInsert:          userSetting.QuickInsert,
@@ -93,10 +93,10 @@ func (s *UserSettingService) GetMySetting(
 
 func (s *UserSettingService) UpdateMySetting(
 	ctx context.Context,
-	requestDto *apicontract.UpdateMySettingRequestDto,
-) (*apicontract.UpdateMySettingResponseDto, *exceptions.Exception) {
+	requestDto *capi.UpdateMySettingRequestDto,
+) (*capi.UpdateMySettingResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserSetting",
 			"UpdateMySetting",
@@ -112,15 +112,15 @@ func (s *UserSettingService) UpdateMySetting(
 	db := s.db.WithContext(ctx)
 	var language *enums.Language
 	if requestDto.Body.Values.Language != nil {
-		language = enums.LanguageToStorable(requestDto.Body.Values.Language)
+		language = requestDto.Body.Values.Language
 	}
 	var density *enums.UserSettingDensity
 	if requestDto.Body.Values.Density != nil {
-		density = enums.UserSettingDensityToStorable(requestDto.Body.Values.Density)
+		density = requestDto.Body.Values.Density
 	}
 	var startSurface *enums.UserSettingStartSurface
 	if requestDto.Body.Values.StartSurface != nil {
-		startSurface = enums.UserSettingStartSurfaceToStorable(requestDto.Body.Values.StartSurface)
+		startSurface = requestDto.Body.Values.StartSurface
 	}
 	updatedUserSetting, exception := s.userSettingRepository.UpdateOneByUserId(
 		actorUserId,
@@ -147,7 +147,7 @@ func (s *UserSettingService) UpdateMySetting(
 		return nil, exception
 	}
 
-	return &apicontract.UpdateMySettingResponseDto{
+	return &capi.UpdateMySettingResponseDto{
 		UpdatedAt: updatedUserSetting.UpdatedAt,
 	}, nil
 }

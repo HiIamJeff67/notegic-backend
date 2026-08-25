@@ -3,6 +3,7 @@ package shelves
 import (
 	"context"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -12,46 +13,45 @@ import (
 	pg "github.com/lib/pq"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	blockpackscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	subshelvescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	csubshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	storage "github.com/HiIamJeff67/notegic-backend/internal/core/data/storage"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type SubShelfServiceInterface interface {
-	GetMySubShelfById(ctx context.Context, requestDto *subshelvescontract.GetMySubShelfByIdRequestDto) (*subshelvescontract.GetMySubShelfByIdResponseDto, *exceptions.Exception)
-	GetMySubShelvesByPrevSubShelfId(ctx context.Context, requestDto *subshelvescontract.GetMySubShelvesByPrevSubShelfIdRequestDto) (*subshelvescontract.GetMySubShelvesByPrevSubShelfIdResponseDto, *exceptions.Exception)
-	GetAllMySubShelvesByRootShelfId(ctx context.Context, requestDto *subshelvescontract.GetAllMySubShelvesByRootShelfIdRequestDto) (*subshelvescontract.GetAllMySubShelvesByRootShelfIdResponseDto, *exceptions.Exception)
-	GetMySubShelvesAndItemsByPrevSubShelfId(ctx context.Context, requestDto *subshelvescontract.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) (*subshelvescontract.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *exceptions.Exception)
-	CreateSubShelfByRootShelfId(ctx context.Context, requestDto *subshelvescontract.CreateSubShelfByRootShelfIdRequestDto) (*subshelvescontract.CreateSubShelfByRootShelfIdResponseDto, *exceptions.Exception)
-	CreateSubShelvesByRootShelfIds(ctx context.Context, requestDto *subshelvescontract.CreateSubShelvesByRootShelfIdsRequestDto) (*subshelvescontract.CreateSubShelvesByRootShelfIdsResponseDto, *exceptions.Exception)
-	UpdateMySubShelfById(ctx context.Context, requestDto *subshelvescontract.UpdateMySubShelfByIdRequestDto) (*subshelvescontract.UpdateMySubShelfByIdResponseDto, *exceptions.Exception)
-	UpdateMySubShelvesByIds(ctx context.Context, requestDto *subshelvescontract.UpdateMySubShelvesByIdsRequestDto) (*subshelvescontract.UpdateMySubShelvesByIdsResponseDto, *exceptions.Exception)
-	MoveMySubShelfByRootShelfId(ctx context.Context, requestDto *subshelvescontract.MoveMySubShelfByRootShelfIdRequestDto) (*subshelvescontract.MoveMySubShelfByRootShelfIdResponseDto, *exceptions.Exception)
-	MoveMySubShelvesByRootShelfId(ctx context.Context, requestDto *subshelvescontract.MoveMySubShelvesByRootShelfIdRequestDto) (*subshelvescontract.MoveMySubShelvesByRootShelfIdResponseDto, *exceptions.Exception)
-	MoveMySubShelvesByRootShelfIds(ctx context.Context, requestDto *subshelvescontract.MoveMySubShelvesByRootShelfIdsRequestDto) (*subshelvescontract.MoveMySubShelvesByRootShelfIdsResponseDto, *exceptions.Exception)
-	RestoreMySubShelfById(ctx context.Context, requestDto *subshelvescontract.RestoreMySubShelfByIdRequestDto) (*subshelvescontract.RestoreMySubShelfByIdResponseDto, *exceptions.Exception)
-	RestoreMySubShelvesByIds(ctx context.Context, requestDto *subshelvescontract.RestoreMySubShelvesByIdsRequestDto) (*subshelvescontract.RestoreMySubShelvesByIdsResponseDto, *exceptions.Exception)
-	DeleteMySubShelfById(ctx context.Context, requestDto *subshelvescontract.DeleteMySubShelfByIdRequestDto) (*subshelvescontract.DeleteMySubShelfByIdResponseDto, *exceptions.Exception)
-	DeleteMySubShelvesByIds(ctx context.Context, requestDto *subshelvescontract.DeleteMySubShelvesByIdsRequestDto) (*subshelvescontract.DeleteMySubShelvesByIdsResponseDto, *exceptions.Exception)
+	GetMySubShelfById(ctx context.Context, requestDto *csubshelves.GetMySubShelfByIdRequestDto) (*csubshelves.GetMySubShelfByIdResponseDto, *cexceptions.Exception)
+	GetMySubShelvesByPrevSubShelfId(ctx context.Context, requestDto *csubshelves.GetMySubShelvesByPrevSubShelfIdRequestDto) (*csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, *cexceptions.Exception)
+	GetAllMySubShelvesByRootShelfId(ctx context.Context, requestDto *csubshelves.GetAllMySubShelvesByRootShelfIdRequestDto) (*csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception)
+	GetMySubShelvesAndItemsByPrevSubShelfId(ctx context.Context, requestDto *csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) (*csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *cexceptions.Exception)
+	CreateSubShelfByRootShelfId(ctx context.Context, requestDto *csubshelves.CreateSubShelfByRootShelfIdRequestDto) (*csubshelves.CreateSubShelfByRootShelfIdResponseDto, *cexceptions.Exception)
+	CreateSubShelvesByRootShelfIds(ctx context.Context, requestDto *csubshelves.CreateSubShelvesByRootShelfIdsRequestDto) (*csubshelves.CreateSubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception)
+	UpdateMySubShelfById(ctx context.Context, requestDto *csubshelves.UpdateMySubShelfByIdRequestDto) (*csubshelves.UpdateMySubShelfByIdResponseDto, *cexceptions.Exception)
+	UpdateMySubShelvesByIds(ctx context.Context, requestDto *csubshelves.UpdateMySubShelvesByIdsRequestDto) (*csubshelves.UpdateMySubShelvesByIdsResponseDto, *cexceptions.Exception)
+	MoveMySubShelfByRootShelfId(ctx context.Context, requestDto *csubshelves.MoveMySubShelfByRootShelfIdRequestDto) (*csubshelves.MoveMySubShelfByRootShelfIdResponseDto, *cexceptions.Exception)
+	MoveMySubShelvesByRootShelfId(ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdRequestDto) (*csubshelves.MoveMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception)
+	MoveMySubShelvesByRootShelfIds(ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdsRequestDto) (*csubshelves.MoveMySubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception)
+	RestoreMySubShelfById(ctx context.Context, requestDto *csubshelves.RestoreMySubShelfByIdRequestDto) (*csubshelves.RestoreMySubShelfByIdResponseDto, *cexceptions.Exception)
+	RestoreMySubShelvesByIds(ctx context.Context, requestDto *csubshelves.RestoreMySubShelvesByIdsRequestDto) (*csubshelves.RestoreMySubShelvesByIdsResponseDto, *cexceptions.Exception)
+	DeleteMySubShelfById(ctx context.Context, requestDto *csubshelves.DeleteMySubShelfByIdRequestDto) (*csubshelves.DeleteMySubShelfByIdResponseDto, *cexceptions.Exception)
+	DeleteMySubShelvesByIds(ctx context.Context, requestDto *csubshelves.DeleteMySubShelvesByIdsRequestDto) (*csubshelves.DeleteMySubShelvesByIdsResponseDto, *cexceptions.Exception)
 
-	SearchPrivateSubShelves(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchSubShelfInput) (*gqlmodels.SearchSubShelfConnection, *exceptions.Exception)
+	SearchPrivateSubShelves(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchSubShelfInput) (*cgqlmodels.SearchSubShelfConnection, *cexceptions.Exception)
 }
 
 type SubShelfService struct {
@@ -92,8 +92,8 @@ func NewSubShelfService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func newSubShelfResponseDto(subShelf schemas.SubShelf) subshelvescontract.SubShelfResponseDto {
-	return subshelvescontract.SubShelfResponseDto{
+func newSubShelfResponseDto(subShelf schemas.SubShelf) csubshelves.SubShelfResponseDto {
+	return csubshelves.SubShelfResponseDto{
 		Id:             subShelf.Id,
 		Name:           subShelf.Name,
 		RootShelfId:    subShelf.RootShelfId,
@@ -108,8 +108,8 @@ func newSubShelfResponseDto(subShelf schemas.SubShelf) subshelvescontract.SubShe
 /* ============================== Service Methods for SubShelf ============================== */
 
 func (s *SubShelfService) GetMySubShelfById(
-	ctx context.Context, requestDto *subshelvescontract.GetMySubShelfByIdRequestDto,
-) (*subshelvescontract.GetMySubShelfByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.GetMySubShelfByIdRequestDto,
+) (*csubshelves.GetMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -150,8 +150,8 @@ func (s *SubShelfService) GetMySubShelfById(
 }
 
 func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
-	ctx context.Context, requestDto *subshelvescontract.GetMySubShelvesByPrevSubShelfIdRequestDto,
-) (*subshelvescontract.GetMySubShelvesByPrevSubShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.GetMySubShelvesByPrevSubShelfIdRequestDto,
+) (*csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -176,7 +176,7 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 	if exception != nil {
 		return nil, exception
 	}
-	responseDto := make(subshelvescontract.GetMySubShelvesByPrevSubShelfIdResponseDto, 0)
+	responseDto := make(csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, 0)
 	subQuery := db.Model(&schemas.UsersToShelves{}).
 		Select("1").
 		Where(`root_shelf_id = "SubShelfTable".root_shelf_id AND user_id = ? AND permission IN ?`,
@@ -199,8 +199,8 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 }
 
 func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
-	ctx context.Context, requestDto *subshelvescontract.GetAllMySubShelvesByRootShelfIdRequestDto,
-) (*subshelvescontract.GetAllMySubShelvesByRootShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.GetAllMySubShelvesByRootShelfIdRequestDto,
+) (*csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -242,7 +242,7 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
 	}
 
-	responseDto := make(subshelvescontract.GetAllMySubShelvesByRootShelfIdResponseDto, 0, len(subShelves))
+	responseDto := make(csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, 0, len(subShelves))
 	for _, subShelf := range subShelves {
 		responseDto = append(responseDto, newSubShelfResponseDto(subShelf))
 	}
@@ -250,8 +250,8 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 }
 
 func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
-	ctx context.Context, requestDto *subshelvescontract.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto,
-) (*subshelvescontract.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto,
+) (*csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -277,7 +277,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		return nil, exception
 	}
 
-	resDto := subshelvescontract.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto{}
+	resDto := csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto{}
 	subQuery := db.Model(&schemas.UsersToShelves{}).
 		Select("1").
 		Where(`root_shelf_id = "SubShelfTable".root_shelf_id AND user_id = ? AND permission IN ?`,
@@ -319,7 +319,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		if err != nil {
 			return nil, apiexceptions.NewStorageException().FailedToPresignedGetObject(material.ContentKey).WithOrigin(err)
 		}
-		resDto.Materials = append(resDto.Materials, subshelvescontract.SubShelfMaterialResponseDto{
+		resDto.Materials = append(resDto.Materials, csubshelves.SubShelfMaterialResponseDto{
 			Id:               material.Id,
 			ParentSubShelfId: material.ParentSubShelfId,
 			Name:             material.Name,
@@ -333,7 +333,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		})
 	}
 
-	var blockPacks []blockpackscontract.GetMyBlockPackByIdResponseDto
+	var blockPacks []cblockpacks.GetMyBlockPackByIdResponseDto
 	resultOfGettingBlockPacks := db.Model(&schemas.BlockPack{}).
 		Joins(`LEFT JOIN "SubShelfTable" ss ON "BlockPackTable".parent_sub_shelf_id = ss.id`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
@@ -355,7 +355,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 			value := string(*blockPack.Icon)
 			icon = &value
 		}
-		resDto.BlockPacks = append(resDto.BlockPacks, subshelvescontract.SubShelfBlockPackResponseDto{
+		resDto.BlockPacks = append(resDto.BlockPacks, csubshelves.SubShelfBlockPackResponseDto{
 			Id:                     blockPack.Id,
 			ParentSubShelfId:       blockPack.ParentSubShelfId,
 			Name:                   blockPack.Name,
@@ -376,8 +376,8 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 }
 
 func (s *SubShelfService) CreateSubShelfByRootShelfId(
-	ctx context.Context, requestDto *subshelvescontract.CreateSubShelfByRootShelfIdRequestDto,
-) (*subshelvescontract.CreateSubShelfByRootShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.CreateSubShelfByRootShelfIdRequestDto,
+) (*csubshelves.CreateSubShelfByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -406,15 +406,15 @@ func (s *SubShelfService) CreateSubShelfByRootShelfId(
 		return nil, exception
 	}
 
-	return &subshelvescontract.CreateSubShelfByRootShelfIdResponseDto{
+	return &csubshelves.CreateSubShelfByRootShelfIdResponseDto{
 		Id:        *newSubShelfId,
 		CreatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) CreateSubShelvesByRootShelfIds(
-	ctx context.Context, requestDto *subshelvescontract.CreateSubShelvesByRootShelfIdsRequestDto,
-) (*subshelvescontract.CreateSubShelvesByRootShelfIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.CreateSubShelvesByRootShelfIdsRequestDto,
+) (*csubshelves.CreateSubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -448,15 +448,15 @@ func (s *SubShelfService) CreateSubShelvesByRootShelfIds(
 		return nil, exception
 	}
 
-	return &subshelvescontract.CreateSubShelvesByRootShelfIdsResponseDto{
+	return &csubshelves.CreateSubShelvesByRootShelfIdsResponseDto{
 		Ids:       newSubShelfIds,
 		CreatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) UpdateMySubShelfById(
-	ctx context.Context, requestDto *subshelvescontract.UpdateMySubShelfByIdRequestDto,
-) (*subshelvescontract.UpdateMySubShelfByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.UpdateMySubShelfByIdRequestDto,
+) (*csubshelves.UpdateMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -487,14 +487,14 @@ func (s *SubShelfService) UpdateMySubShelfById(
 		return nil, exception
 	}
 
-	return &subshelvescontract.UpdateMySubShelfByIdResponseDto{
+	return &csubshelves.UpdateMySubShelfByIdResponseDto{
 		UpdatedAt: subShelf.UpdatedAt,
 	}, nil
 }
 
 func (s *SubShelfService) UpdateMySubShelvesByIds(
-	ctx context.Context, requestDto *subshelvescontract.UpdateMySubShelvesByIdsRequestDto,
-) (*subshelvescontract.UpdateMySubShelvesByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.UpdateMySubShelvesByIdsRequestDto,
+) (*csubshelves.UpdateMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -531,14 +531,14 @@ func (s *SubShelfService) UpdateMySubShelvesByIds(
 		return nil, exception
 	}
 
-	return &subshelvescontract.UpdateMySubShelvesByIdsResponseDto{
+	return &csubshelves.UpdateMySubShelvesByIdsResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) MoveMySubShelfByRootShelfId(
-	ctx context.Context, requestDto *subshelvescontract.MoveMySubShelfByRootShelfIdRequestDto,
-) (*subshelvescontract.MoveMySubShelfByRootShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.MoveMySubShelfByRootShelfIdRequestDto,
+) (*csubshelves.MoveMySubShelfByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -568,7 +568,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
 		options.WithOnlyDeleted(types.Ternary_Negative),
 	)
-	if exception = exceptions.Cover(exception, []exceptions.Pair{
+	if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 		{First: from.RootShelfId != requestDto.Body.SourceRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
 		tx.Rollback()
@@ -595,7 +595,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
 			options.WithOnlyDeleted(types.Ternary_Negative),
 		)
-		if exception = exceptions.Cover(exception, []exceptions.Pair{
+		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
 			{
 				First: len(from.Path)+len(to.Path) > int(data.MaxSubShelvesOfRootShelf),
@@ -649,10 +649,10 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		requestDto.Body.SourceSubShelfId.String(),
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMySubShelfByRootShelfId",
@@ -667,14 +667,14 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &subshelvescontract.MoveMySubShelfByRootShelfIdResponseDto{
+	return &csubshelves.MoveMySubShelfByRootShelfIdResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
-	ctx context.Context, requestDto *subshelvescontract.MoveMySubShelvesByRootShelfIdRequestDto,
-) (*subshelvescontract.MoveMySubShelvesByRootShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdRequestDto,
+) (*csubshelves.MoveMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -735,7 +735,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
 			options.WithOnlyDeleted(types.Ternary_Negative),
 		)
-		if exception = exceptions.Cover(exception, []exceptions.Pair{
+		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
 		}); exception != nil {
 			tx.Rollback()
@@ -812,10 +812,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		"sub-shelf-bulk-move",
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMySubShelvesByRootShelfId",
@@ -830,14 +830,14 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &subshelvescontract.MoveMySubShelvesByRootShelfIdResponseDto{
+	return &csubshelves.MoveMySubShelvesByRootShelfIdResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
-	ctx context.Context, requestDto *subshelvescontract.MoveMySubShelvesByRootShelfIdsRequestDto,
-) (*subshelvescontract.MoveMySubShelvesByRootShelfIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdsRequestDto,
+) (*csubshelves.MoveMySubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -1033,7 +1033,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		WHERE s.id = v.source_id::uuid AND s.deleted_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
 	result := tx.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -1045,10 +1045,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		"sub-shelf-multi-root-move",
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMySubShelvesByRootShelfIds",
@@ -1063,14 +1063,14 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &subshelvescontract.MoveMySubShelvesByRootShelfIdsResponseDto{
+	return &csubshelves.MoveMySubShelvesByRootShelfIdsResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) RestoreMySubShelfById(
-	ctx context.Context, requestDto *subshelvescontract.RestoreMySubShelfByIdRequestDto,
-) (*subshelvescontract.RestoreMySubShelfByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.RestoreMySubShelfByIdRequestDto,
+) (*csubshelves.RestoreMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -1100,8 +1100,8 @@ func (s *SubShelfService) RestoreMySubShelfById(
 }
 
 func (s *SubShelfService) RestoreMySubShelvesByIds(
-	ctx context.Context, requestDto *subshelvescontract.RestoreMySubShelvesByIdsRequestDto,
-) (*subshelvescontract.RestoreMySubShelvesByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.RestoreMySubShelvesByIdsRequestDto,
+) (*csubshelves.RestoreMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
@@ -1126,7 +1126,7 @@ func (s *SubShelfService) RestoreMySubShelvesByIds(
 		return nil, exception
 	}
 
-	resDto := subshelvescontract.RestoreMySubShelvesByIdsResponseDto{}
+	resDto := csubshelves.RestoreMySubShelvesByIdsResponseDto{}
 	for _, restoredSubShelf := range restoredSubShelves {
 		resDto = append(resDto, newSubShelfResponseDto(restoredSubShelf))
 	}
@@ -1134,15 +1134,15 @@ func (s *SubShelfService) RestoreMySubShelvesByIds(
 }
 
 func (s *SubShelfService) DeleteMySubShelfById(
-	ctx context.Context, requestDto *subshelvescontract.DeleteMySubShelfByIdRequestDto,
-) (*subshelvescontract.DeleteMySubShelfByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.DeleteMySubShelfByIdRequestDto,
+) (*csubshelves.DeleteMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"SubShelf",
 			"DeleteMySubShelfById",
@@ -1184,10 +1184,10 @@ func (s *SubShelfService) DeleteMySubShelfById(
 		requestDto.Param.SubShelfId.String(),
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMySubShelfById",
@@ -1198,7 +1198,7 @@ func (s *SubShelfService) DeleteMySubShelfById(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"SubShelf",
 			"DeleteMySubShelfById",
@@ -1208,21 +1208,21 @@ func (s *SubShelfService) DeleteMySubShelfById(
 		).WithOrigin(err)
 	}
 
-	return &subshelvescontract.DeleteMySubShelfByIdResponseDto{
+	return &csubshelves.DeleteMySubShelfByIdResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
 
 func (s *SubShelfService) DeleteMySubShelvesByIds(
-	ctx context.Context, requestDto *subshelvescontract.DeleteMySubShelvesByIdsRequestDto,
-) (*subshelvescontract.DeleteMySubShelvesByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *csubshelves.DeleteMySubShelvesByIdsRequestDto,
+) (*csubshelves.DeleteMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"SubShelf",
 			"DeleteMySubShelvesByIds",
@@ -1264,10 +1264,10 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 		"sub-shelf-bulk-delete",
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMySubShelvesByIds",
@@ -1278,7 +1278,7 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"SubShelf",
 			"DeleteMySubShelvesByIds",
@@ -1288,7 +1288,7 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 		).WithOrigin(err)
 	}
 
-	return &subshelvescontract.DeleteMySubShelvesByIdsResponseDto{
+	return &csubshelves.DeleteMySubShelvesByIdsResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
@@ -1296,8 +1296,8 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 /* ============================== Service Methods for GraphQL SubShelf ============================== */
 
 func (s *SubShelfService) SearchPrivateSubShelves(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchSubShelfInput,
-) (*gqlmodels.SearchSubShelfConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchSubShelfInput,
+) (*cgqlmodels.SearchSubShelfConnection, *cexceptions.Exception) {
 	startTime := time.Now()
 	db := s.db.WithContext(ctx)
 
@@ -1338,7 +1338,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchSubShelfCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchSubShelfCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1347,28 +1347,28 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		cending := gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		cending := cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchSubShelfSortByName:
+		case cgqlmodels.SearchSubShelfSortByName:
 			query = query.Order(`"SubShelfTable".name ` + cending).
 				Order(`cardinality("SubShelfTable".path) ` + cending).
 				Order(`"SubShelfTable".updated_at ` + cending).
 				Order(`"SubShelfTable".created_at ` + cending)
-		case gqlmodels.SearchSubShelfSortByPathLength:
+		case cgqlmodels.SearchSubShelfSortByPathLength:
 			query = query.Order(`cardinality("SubShelfTable".path) ` + cending).
 				Order(`"SubShelfTable".name ` + cending).
 				Order(`"SubShelfTable".updated_at ` + cending).
 				Order(`"SubShelfTable".created_at ` + cending)
-		case gqlmodels.SearchSubShelfSortByLastUpdate:
+		case cgqlmodels.SearchSubShelfSortByLastUpdate:
 			query = query.Order(`"SubShelfTable".updated_at ` + cending).
 				Order(`"SubShelfTable".name ` + cending).
 				Order(`cardinality("SubShelfTable".path) ` + cending).
 				Order(`"SubShelfTable".created_at ` + cending)
-		case gqlmodels.SearchSubShelfSortByCreatedAt:
+		case cgqlmodels.SearchSubShelfSortByCreatedAt:
 			query = query.Order(`"SubShelfTable".created_at ` + cending).
 				Order(`"SubShelfTable".name ` + cending).
 				Order(`cardinality("SubShelfTable".path) ` + cending).
@@ -1399,11 +1399,11 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 	}
 
 	hasNextPage := len(subShelves) > limit
-	searchEdges := make([]*gqlmodels.SearchSubShelfEdge, len(subShelves))
+	searchEdges := make([]*cgqlmodels.SearchSubShelfEdge, len(subShelves))
 
 	for index, subShelf := range subShelves {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchSubShelfCursorFields]{
-			Fields: gqlmodels.SearchSubShelfCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchSubShelfCursorFields]{
+			Fields: cgqlmodels.SearchSubShelfCursorFields{
 				ID: subShelf.Id,
 			},
 		}
@@ -1415,7 +1415,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
 		}
 
-		searchEdges[index] = &gqlmodels.SearchSubShelfEdge{
+		searchEdges[index] = &cgqlmodels.SearchSubShelfEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                subShelf.ToPrivateSubShelf(),
 		}
@@ -1425,7 +1425,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		searchEdges = searchEdges[:limit]
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -1437,7 +1437,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 
 	searchTime := float64(time.Since(startTime).Nanoseconds()) / 1e6
 
-	return &gqlmodels.SearchSubShelfConnection{
+	return &cgqlmodels.SearchSubShelfConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

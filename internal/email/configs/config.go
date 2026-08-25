@@ -32,7 +32,7 @@ func LoadConfig() (Config, error) {
 	return Config{
 		ListenAddress: listenAddress,
 		SMTP:          smtp,
-		Renderers:     loadRendererConfigs(),
+		Renderers:     loadRendererConfig(),
 		Kafka:         kafka,
 		KafkaConsumer: kafkaConsumer,
 	}, nil

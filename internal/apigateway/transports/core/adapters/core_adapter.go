@@ -14,8 +14,8 @@ import (
 
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type CoreAdapter struct {
@@ -70,10 +70,10 @@ func call[RequestDto any, ResponseDto any](
 	path string,
 	delegationToken string,
 	forwardedHeaders http.Header,
-	request *gatewaycontract.Request[RequestDto],
-) (*gatewaycontract.Response[ResponseDto], *exceptions.Exception) {
+	request *cgateway.Request[RequestDto],
+) (*cgateway.Response[ResponseDto], *cexceptions.Exception) {
 	if client == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreAdapterRequired",
 			"Gateway",
 			"CallCore",
@@ -83,7 +83,7 @@ func call[RequestDto any, ResponseDto any](
 		)
 	}
 	if request == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"Gateway",
 			"CallCore",
@@ -93,12 +93,12 @@ func call[RequestDto any, ResponseDto any](
 		)
 	}
 	if request.Version == "" {
-		request.Version = gatewaycontract.Version
+		request.Version = cgateway.Version
 	}
 
 	body, err := json.Marshal(request)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreRequestEncodingFailed",
 			"Gateway",
 			"CallCore",
@@ -114,7 +114,7 @@ func call[RequestDto any, ResponseDto any](
 		bytes.NewReader(body),
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreRequestCreationFailed",
 			"Gateway",
 			"CallCore",
@@ -143,7 +143,7 @@ func call[RequestDto any, ResponseDto any](
 
 	httpResponse, err := client.httpClient.Do(httpRequest)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreRequestFailed",
 			"Gateway",
 			"CallCore",
@@ -155,7 +155,7 @@ func call[RequestDto any, ResponseDto any](
 	defer httpResponse.Body.Close()
 	responseBody, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreResponseReadFailed",
 			"Gateway",
 			"CallCore",
@@ -164,9 +164,9 @@ func call[RequestDto any, ResponseDto any](
 			true,
 		).WithOrigin(err)
 	}
-	response := &gatewaycontract.Response[ResponseDto]{}
+	response := &cgateway.Response[ResponseDto]{}
 	if err := json.Unmarshal(responseBody, response); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreResponseDecodingFailed",
 			"Gateway",
 			"CallCore",
@@ -175,8 +175,8 @@ func call[RequestDto any, ResponseDto any](
 			true,
 		).WithOrigin(err)
 	}
-	if response.Version != gatewaycontract.Version {
-		return nil, exceptions.New(
+	if response.Version != cgateway.Version {
+		return nil, cexceptions.New(
 			"CoreResponseVersionInvalid",
 			"Gateway",
 			"CallCore",
@@ -186,7 +186,7 @@ func call[RequestDto any, ResponseDto any](
 		)
 	}
 	if response.Metadata.RequestId != request.Metadata.RequestId {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreResponseRequestIdInvalid",
 			"Gateway",
 			"CallCore",
@@ -199,7 +199,7 @@ func call[RequestDto any, ResponseDto any](
 		if response.Exception != nil {
 			return nil, response.Exception.Clone(httpResponse.StatusCode)
 		}
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreResponseFailed",
 			"Gateway",
 			"CallCore",
@@ -221,9 +221,9 @@ func CallAsAPIKey[RequestDto any, ResponseDto any](
 	requestDto *RequestDto,
 	operation string,
 	path string,
-) (*gatewaycontract.Response[ResponseDto], *exceptions.Exception) {
+) (*cgateway.Response[ResponseDto], *cexceptions.Exception) {
 	if requestDto == nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"Gateway",
 			operation,
@@ -246,7 +246,7 @@ func CallAsAPIKey[RequestDto any, ResponseDto any](
 		"",
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"CoreDelegationFailed",
 			"Gateway",
 			operation,
@@ -268,9 +268,9 @@ func CallAsAPIKey[RequestDto any, ResponseDto any](
 		path,
 		delegationToken,
 		forwardedHeaders,
-		&gatewaycontract.Request[RequestDto]{
+		&cgateway.Request[RequestDto]{
 			Operation: operation,
-			Metadata: gatewaycontract.RequestMetadata{
+			Metadata: cgateway.RequestMetadata{
 				RequestId:      requestId,
 				TraceParent:    ctx.GetHeader("Traceparent"),
 				IdempotencyKey: ctx.GetHeader("Idempotency-Key"),
@@ -286,7 +286,7 @@ func CallSecurly[RequestDto any, ResponseDto any](
 	requestDto *RequestDto,
 	operation string,
 	path string,
-) (*gatewaycontract.Response[ResponseDto], *exceptions.Exception) {
+) (*cgateway.Response[ResponseDto], *cexceptions.Exception) {
 	// APIGateway never falls back to the ClientGateway JWT delegation path.
 	// Core authenticates the forwarded API key and hydrates the actor context.
 	return CallAsAPIKey[RequestDto, ResponseDto](ctx, client, requestDto, operation, path)

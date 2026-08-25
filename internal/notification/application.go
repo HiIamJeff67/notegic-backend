@@ -13,6 +13,7 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
+	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -82,6 +83,15 @@ func (a *Application) initializeDatabase(config platformpostgres.Config, shutdow
 	if err != nil {
 		shutdownObservability()
 		panic(err)
+	}
+	if err := platformpostgres.Migrate(
+		db,
+		types.Runtime_Notification,
+		postgres.DatabaseMigrationManifest,
+	); err != nil {
+		_ = postgres.Disconnect(db)
+		shutdownObservability()
+		panic(fmt.Errorf("failed to initialize Notification database schema: %w", err))
 	}
 	return db
 }

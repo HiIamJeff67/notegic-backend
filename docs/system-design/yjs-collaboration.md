@@ -141,24 +141,20 @@ worker 僅在 room 沒有尚未持久化的 update 時，將目前 `LastUpdateSe
 
 外部 editor 不讀取 `BlockPackYjsDocument` 或 `BlockPackYjsUpdate` rows，也不自行合併 update tail；加入 room 時由 Node worker 從 snapshot + tail 恢復 Y.Doc，再以標準 Yjs sync protocol 完成同步。
 
-## DurableJob Maintenance Coordination
+## Core Maintenance Coordination
 
-DurableJob 不再 polling Core database，也不再直接持有 Core 的 Yjs
-repository 或 maintenance HTTP client。Core 在建立 BlockPack Yjs document，或
+Core owns the Yjs maintenance worker。Core 在建立 BlockPack Yjs document，或
 同一筆 transaction 接受新的 Yjs update 後，將只包含 document watermark、大小與
 sequence 的 `YjsMaintenanceHint` 寫入 Core transactional outbox。hint 不攜帶
 snapshot、state vector 或 raw Yjs binary。
 
-DurableJob 消費 hint 後以 BlockPack UUID 作為 Kafka partition key，在記憶體中
+Core worker 消費 hint 後以 BlockPack UUID 作為 Kafka partition key，在記憶體中
 coalesce 同一個 BlockPack 的最新 hint，依 uncompacted update count、projection
-lag 與 document age 排序。它只在 queue 有事件時提出 compact/project request；
-沒有固定 5 分鐘 ticker。Core 收到 request 後將它轉成 Yjs Worker command，Core
-仍是唯一讀寫 PostgreSQL 的 runtime，Yjs Worker 只負責 CRDT compact 或
-projection 計算，再以 result event 回傳。Core 的結果 consumer 將 result 轉發給
-DurableJob，失敗 request 依 bounded retry，超過上限交給 Kafka consumer retry/DLQ
-與 reconciliation 流程。
+lag 與 document age 排序，直接向 Yjs Worker 提出 compact/project command。Core
+worker 直接消化 result 並 bounded retry；DurableJob 不參與這條 maintenance path，
+也不持有 Core 的 Yjs repository 或 maintenance client。
 
-這條 maintenance path 是非同步的：Core domain transaction 不等待 DurableJob
-或 Yjs Worker，DurableJob 也不把大型 document payload 放進 Kafka。所有 consumer
+這條 maintenance path 是非同步的：Core domain transaction 不等待 Yjs Worker，
+也不把大型 document payload 放進 Kafka。所有 consumer
 都必須以 request/event UUID 與 document sequence 做 idempotency，並接受 outbox
 relay 的 at-least-once delivery。

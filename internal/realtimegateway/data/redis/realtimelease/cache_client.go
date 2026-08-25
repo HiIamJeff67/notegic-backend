@@ -13,7 +13,7 @@ import (
 
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 
 	redisscripts "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease/scripts"
 )
@@ -45,10 +45,10 @@ type RealtimeBlockPackPresenceEvent struct {
 }
 
 type BlockPackChannelRevocation struct {
-	EventId            uuid.UUID                                          `json:"eventId"`
-	BlockPackId        uuid.UUID                                          `json:"blockPackId"`
-	TargetUserPublicId *uuid.UUID                                         `json:"targetUserPublicId,omitempty"`
-	Reason             coreeventscontract.BlockPackAccessRevocationReason `json:"reason"`
+	EventId            uuid.UUID                                  `json:"eventId"`
+	BlockPackId        uuid.UUID                                  `json:"blockPackId"`
+	TargetUserPublicId *uuid.UUID                                 `json:"targetUserPublicId,omitempty"`
+	Reason             coreevents.BlockPackAccessRevocationReason `json:"reason"`
 }
 
 type UserSessionRevocation struct {

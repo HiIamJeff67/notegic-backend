@@ -3,12 +3,12 @@ package topics
 import (
 	"time"
 
-	yjsworkereventscontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
+	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
 )
 
 func YjsWorkerCoreCommandTopicSpec() TopicSpec {
 	return TopicSpec{
-		Name:                yjsworkereventscontract.YjsWorkerCoreCommandTopic.String(),
+		Name:                cyjsworkerevents.YjsWorkerCoreCommandTopic.String(),
 		Partitions:          3,
 		ReplicationFactor:   1,
 		Retention:           7 * 24 * time.Hour,

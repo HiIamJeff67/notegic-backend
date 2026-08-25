@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10" // make sure we use the version 10
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 var (

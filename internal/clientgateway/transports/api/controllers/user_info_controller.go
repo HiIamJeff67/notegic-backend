@@ -5,14 +5,14 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type UserInfoControllerInterface interface {
-	GetMyInfo(ctx *gin.Context, request *apicontract.GetMyInfoRequestDto)
-	UpdateMyInfo(ctx *gin.Context, request *apicontract.UpdateMyInfoRequestDto)
+	GetMyInfo(ctx *gin.Context, request *capi.GetMyInfoRequestDto)
+	UpdateMyInfo(ctx *gin.Context, request *capi.UpdateMyInfoRequestDto)
 }
 
 type UserInfoController struct {
@@ -27,15 +27,15 @@ func NewUserInfoController(
 	}
 }
 
-func (c *UserInfoController) GetMyInfo(ctx *gin.Context, request *apicontract.GetMyInfoRequestDto) {
+func (c *UserInfoController) GetMyInfo(ctx *gin.Context, request *capi.GetMyInfoRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyInfoRequestDto,
-		apicontract.GetMyInfoResponseDto,
+		capi.GetMyInfoRequestDto,
+		capi.GetMyInfoResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.GetMyInfoOperation,
+		capi.GetMyInfoOperation,
 		"/core/v1/user-infos/get",
 	)
 	if exception != nil {
@@ -46,15 +46,15 @@ func (c *UserInfoController) GetMyInfo(ctx *gin.Context, request *apicontract.Ge
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *UserInfoController) UpdateMyInfo(ctx *gin.Context, request *apicontract.UpdateMyInfoRequestDto) {
+func (c *UserInfoController) UpdateMyInfo(ctx *gin.Context, request *capi.UpdateMyInfoRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyInfoRequestDto,
-		apicontract.UpdateMyInfoResponseDto,
+		capi.UpdateMyInfoRequestDto,
+		capi.UpdateMyInfoResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		request,
-		apicontract.UpdateMyInfoOperation,
+		capi.UpdateMyInfoOperation,
 		"/core/v1/user-infos/update",
 	)
 	if exception != nil {

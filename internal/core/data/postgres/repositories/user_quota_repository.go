@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -10,20 +11,20 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserQuotaRepositoryInterface interface {
-	GetRoutineTaskCostUnitUsed(ctx context.Context, userId uuid.UUID, opts ...options.RepositoryOptions) (int64, *exceptions.Exception)
-	InitializeMissing(ctx context.Context, now time.Time, opts ...options.RepositoryOptions) *exceptions.Exception
-	InitializeMissingForUserIds(ctx context.Context, userIds []uuid.UUID, now time.Time, opts ...options.RepositoryOptions) *exceptions.Exception
-	ResetDue(ctx context.Context, now time.Time, opts ...options.RepositoryOptions) (int64, *exceptions.Exception)
-	ConsumeRoutineTaskCostUnits(ctx context.Context, consumptionInputs []inputs.ConsumeRoutineTaskCostUnitInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
+	GetRoutineTaskCostUnitUsed(ctx context.Context, userId uuid.UUID, opts ...options.RepositoryOptions) (int64, *cexceptions.Exception)
+	InitializeMissing(ctx context.Context, now time.Time, opts ...options.RepositoryOptions) *cexceptions.Exception
+	InitializeMissingForUserIds(ctx context.Context, userIds []uuid.UUID, now time.Time, opts ...options.RepositoryOptions) *cexceptions.Exception
+	ResetDue(ctx context.Context, now time.Time, opts ...options.RepositoryOptions) (int64, *cexceptions.Exception)
+	ConsumeRoutineTaskCostUnits(ctx context.Context, consumptionInputs []inputs.ConsumeRoutineTaskCostUnitInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
 }
 
 type UserQuotaRepository struct{}
@@ -36,9 +37,9 @@ func (r *UserQuotaRepository) GetRoutineTaskCostUnitUsed(
 	ctx context.Context,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (int64, *exceptions.Exception) {
+) (int64, *cexceptions.Exception) {
 	if userId == uuid.Nil {
-		return 0, exceptions.New(
+		return 0, cexceptions.New(
 			"InvalidDto",
 			"UserQuota",
 			"GetRoutineTaskCostUnitUsed",
@@ -52,12 +53,12 @@ func (r *UserQuotaRepository) GetRoutineTaskCostUnitUsed(
 	routineTaskCostUnitUsed := []int64{}
 	result := parsedOptions.DB.
 		WithContext(ctx).
-		Model(&schemas.UserQuota{}).
+		Model(&platformschemas.UserQuota{}).
 		Where("user_id = ?", userId).
 		Limit(1).
 		Pluck("routine_task_cost_unit_used", &routineTaskCostUnitUsed)
 	if result.Error != nil {
-		return 0, exceptions.New(
+		return 0, cexceptions.New(
 			"FailedToGet",
 			"UserQuota",
 			"GetRoutineTaskCostUnitUsed",
@@ -77,7 +78,7 @@ func (r *UserQuotaRepository) InitializeMissing(
 	ctx context.Context,
 	now time.Time,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	return r.initializeMissing(ctx, nil, now, opts...)
 }
 
@@ -86,7 +87,7 @@ func (r *UserQuotaRepository) InitializeMissingForUserIds(
 	userIds []uuid.UUID,
 	now time.Time,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(userIds) == 0 {
 		return nil
 	}
@@ -99,10 +100,10 @@ func (r *UserQuotaRepository) initializeMissing(
 	userIds []uuid.UUID,
 	now time.Time,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if !parsedOptions.IsTransactionStarted {
-		return exceptions.New(
+		return cexceptions.New(
 			"TransactionRequired",
 			"UserQuota",
 			"InitializeMissing",
@@ -113,7 +114,7 @@ func (r *UserQuotaRepository) initializeMissing(
 
 	userQuotaQuery := parsedOptions.DB.
 		WithContext(ctx).
-		Model(&schemas.UserQuota{}).
+		Model(&platformschemas.UserQuota{}).
 		Select("user_id")
 	if len(userIds) > 0 {
 		userQuotaQuery = userQuotaQuery.Where("user_id IN ?", userIds)
@@ -121,7 +122,7 @@ func (r *UserQuotaRepository) initializeMissing(
 
 	existingUserIds := []uuid.UUID{}
 	if result := userQuotaQuery.Pluck("user_id", &existingUserIds); result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToInitialize",
 			"UserQuota",
 			"InitializeMissing",
@@ -144,7 +145,7 @@ func (r *UserQuotaRepository) initializeMissing(
 
 	users := []schemas.User{}
 	if result := userQuery.Find(&users); result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToInitialize",
 			"UserQuota",
 			"InitializeMissing",
@@ -179,7 +180,7 @@ func (r *UserQuotaRepository) initializeMissing(
 		Where("status = ?", enums.UsersToBillingPlansStatus_Active).
 		Order("start_date DESC").
 		Find(&billingPlans); result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToInitialize",
 			"UserQuota",
 			"InitializeMissing",
@@ -196,7 +197,7 @@ func (r *UserQuotaRepository) initializeMissing(
 		}
 	}
 
-	quotas := make([]schemas.UserQuota, 0, len(users))
+	quotas := make([]platformschemas.UserQuota, 0, len(users))
 	for _, userId := range userIdsToInitialize {
 		user := usersById[userId]
 		cycleStartedAt := user.CreatedAt
@@ -211,26 +212,26 @@ func (r *UserQuotaRepository) initializeMissing(
 			}
 		}
 
-		quotas = append(quotas, schemas.UserQuota{
-			UserId:                  userId,
-			RoutineTaskCostUnitUsed: 0,
-			CycleStartedAt:          cycleStartedAt,
-			NextResetAt:             nextResetAt,
-			UpdatedAt:               now,
-			CreatedAt:               now,
+		quotas = append(quotas, platformschemas.UserQuota{
+			UserId:         userId,
+			CostUnitUsed:   0,
+			CycleStartedAt: cycleStartedAt,
+			NextResetAt:    nextResetAt,
+			UpdatedAt:      now,
+			CreatedAt:      now,
 		})
 	}
 
 	result := parsedOptions.DB.
 		WithContext(ctx).
-		Model(&schemas.UserQuota{}).
+		Model(&platformschemas.UserQuota{}).
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "user_id"}},
 			DoNothing: true,
 		}).
 		CreateInBatches(&quotas, parsedOptions.BatchSize)
 	if result.Error != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToInitialize",
 			"UserQuota",
 			"InitializeMissing",
@@ -247,10 +248,10 @@ func (r *UserQuotaRepository) ResetDue(
 	ctx context.Context,
 	now time.Time,
 	opts ...options.RepositoryOptions,
-) (int64, *exceptions.Exception) {
+) (int64, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if !parsedOptions.IsTransactionStarted {
-		return 0, exceptions.New(
+		return 0, cexceptions.New(
 			"TransactionRequired",
 			"UserQuota",
 			"ResetDue",
@@ -263,7 +264,7 @@ func (r *UserQuotaRepository) ResetDue(
 
 	result := parsedOptions.DB.
 		WithContext(ctx).
-		Model(&schemas.UserQuota{}).
+		Model(&platformschemas.UserQuota{}).
 		Where("next_reset_at <= ?", now).
 		Updates(map[string]any{
 			"routine_task_cost_unit_used": 0,
@@ -272,7 +273,7 @@ func (r *UserQuotaRepository) ResetDue(
 			"updated_at":                  now,
 		})
 	if result.Error != nil {
-		return 0, exceptions.New(
+		return 0, cexceptions.New(
 			"FailedToReset",
 			"UserQuota",
 			"ResetDue",
@@ -289,14 +290,14 @@ func (r *UserQuotaRepository) ConsumeRoutineTaskCostUnits(
 	ctx context.Context,
 	consumptionInputs []inputs.ConsumeRoutineTaskCostUnitInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(consumptionInputs) == 0 {
 		return []uuid.UUID{}, nil
 	}
 
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if !parsedOptions.IsTransactionStarted {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionRequired",
 			"UserQuota",
 			"ConsumeRoutineTaskCostUnits",
@@ -310,7 +311,7 @@ func (r *UserQuotaRepository) ConsumeRoutineTaskCostUnits(
 	for _, consumptionInput := range consumptionInputs {
 		if consumptionInput.RoutineTaskId == uuid.Nil || consumptionInput.UserId == uuid.Nil ||
 			consumptionInput.CostUnit < 0 || consumptionInput.ScheduledAt.IsZero() {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"InvalidDto",
 				"UserQuota",
 				"ConsumeRoutineTaskCostUnits",
@@ -333,7 +334,7 @@ func (r *UserQuotaRepository) ConsumeRoutineTaskCostUnits(
 	var routineTaskIds []uuid.UUID
 	result := parsedOptions.DB.
 		WithContext(ctx).
-		Model(&schemas.UserQuota{}).
+		Model(&platformschemas.UserQuota{}).
 		Raw(fmt.Sprintf(`
 		WITH consumption(routine_task_id, user_id, cost_unit, priority, scheduled_at) AS (
 			VALUES %s
@@ -380,7 +381,7 @@ func (r *UserQuotaRepository) ConsumeRoutineTaskCostUnits(
 		`, strings.Join(valuePlaceholders, ",")), valueArgs...).
 		Scan(&routineTaskIds)
 	if result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToConsume",
 			"UserQuota",
 			"ConsumeRoutineTaskCostUnits",

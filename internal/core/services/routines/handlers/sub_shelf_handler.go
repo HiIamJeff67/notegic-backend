@@ -2,32 +2,32 @@ package handlers
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type SubShelfHandlerInterface interface {
-	HandleCreateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleUpdateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleResetSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
+	HandleCreateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleUpdateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleResetSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 }
 
 type SubShelfHandler struct {
@@ -71,14 +71,14 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.CreateSubShelfRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.CreateSubShelfRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
@@ -86,7 +86,7 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.CreateSubShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.CreateSubShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -156,14 +156,14 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.UpdateSubShelfRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.UpdateSubShelfRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
@@ -171,7 +171,7 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.UpdateSubShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.UpdateSubShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -246,8 +246,8 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	subShelfIds := make([]uuid.UUID, 0, len(tasks))
 	actorUserIdBySubShelfId := make(map[uuid.UUID]uuid.UUID, len(tasks))
@@ -259,7 +259,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.ResetSubShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.ResetSubShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -282,7 +282,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Select("id, prev_sub_shelf_id").
 		Where("prev_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&childSubShelves).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"QueryFailed",
 			"SubShelf",
 			"Reset",
@@ -300,7 +300,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Select("id, parent_sub_shelf_id").
 		Where("parent_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&blockPacks).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"QueryFailed",
 			"BlockPack",
 			"Reset",
@@ -318,7 +318,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Select("id, parent_sub_shelf_id").
 		Where("parent_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&materials).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"QueryFailed",
 			"Material",
 			"Reset",

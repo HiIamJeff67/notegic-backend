@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -16,28 +17,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	stringutil "github.com/HiIamJeff67/notegic-backend/shared/lib/strings"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	authcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
 	snowflake "github.com/HiIamJeff67/notegic-backend/shared/lib/snowflake"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	emaildto "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cemaildto "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	authsql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/auth"
 	badgesql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/badge"
 	usersql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/user"
@@ -45,20 +44,22 @@ import (
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 	emailtransport "github.com/HiIamJeff67/notegic-backend/internal/core/transports/email"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type AuthServiceInterface interface {
-	Register(ctx context.Context, requestDto *apicontract.RegisterRequestDto) (*apicontract.RegisterResponseDto, *exceptions.Exception)
-	RegisterViaGoogle(ctx context.Context, requestDto *apicontract.RegisterViaGoogleRequestDto) (*apicontract.RegisterViaGoogleResponseDto, *exceptions.Exception)
-	Login(ctx context.Context, requestDto *apicontract.LoginRequestDto) (*apicontract.LoginResponseDto, *exceptions.Exception)
-	LoginViaGoogle(ctx context.Context, requestDto *apicontract.LoginViaGoogleRequestDto) (*apicontract.LoginViaGoogleResponseDto, *exceptions.Exception)
-	Logout(ctx context.Context, requestDto *apicontract.LogoutRequestDto) (*apicontract.LogoutResponseDto, *exceptions.Exception)
-	SendAuthCode(ctx context.Context, requestDto *apicontract.SendAuthCodeRequestDto) (*apicontract.SendAuthCodeResponseDto, *exceptions.Exception)
-	ValidateEmail(ctx context.Context, requestDto *apicontract.ValidateEmailRequestDto) (*apicontract.ValidateEmailResponseDto, *exceptions.Exception)
-	ResetEmail(ctx context.Context, requestDto *apicontract.ResetEmailRequestDto) (*apicontract.ResetEmailResponseDto, *exceptions.Exception)
-	ForgetPassword(ctx context.Context, requestDto *apicontract.ForgetPasswordRequestDto) (*apicontract.ForgetPasswordResponseDto, *exceptions.Exception)
-	ResetMe(ctx context.Context, requestDto *apicontract.ResetMeRequestDto) (*apicontract.ResetMeResponseDto, *exceptions.Exception)
-	DeleteMe(ctx context.Context, requestDto *apicontract.DeleteMeRequestDto) (*apicontract.DeleteMeResponseDto, *exceptions.Exception)
+	Register(ctx context.Context, requestDto *capi.RegisterRequestDto) (*capi.RegisterResponseDto, *cexceptions.Exception)
+	RegisterViaGoogle(ctx context.Context, requestDto *capi.RegisterViaGoogleRequestDto) (*capi.RegisterViaGoogleResponseDto, *cexceptions.Exception)
+	Login(ctx context.Context, requestDto *capi.LoginRequestDto) (*capi.LoginResponseDto, *cexceptions.Exception)
+	LoginViaGoogle(ctx context.Context, requestDto *capi.LoginViaGoogleRequestDto) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception)
+	Logout(ctx context.Context, requestDto *capi.LogoutRequestDto) (*capi.LogoutResponseDto, *cexceptions.Exception)
+	SendAuthCode(ctx context.Context, requestDto *capi.SendAuthCodeRequestDto) (*capi.SendAuthCodeResponseDto, *cexceptions.Exception)
+	ValidateEmail(ctx context.Context, requestDto *capi.ValidateEmailRequestDto) (*capi.ValidateEmailResponseDto, *cexceptions.Exception)
+	ResetEmail(ctx context.Context, requestDto *capi.ResetEmailRequestDto) (*capi.ResetEmailResponseDto, *cexceptions.Exception)
+	ForgetPassword(ctx context.Context, requestDto *capi.ForgetPasswordRequestDto) (*capi.ForgetPasswordResponseDto, *cexceptions.Exception)
+	ResetMe(ctx context.Context, requestDto *capi.ResetMeRequestDto) (*capi.ResetMeResponseDto, *cexceptions.Exception)
+	DeleteMe(ctx context.Context, requestDto *capi.DeleteMeRequestDto) (*capi.DeleteMeResponseDto, *cexceptions.Exception)
 }
 
 type AuthService struct {
@@ -115,6 +116,199 @@ func NewAuthService(
 	}
 }
 
+func (s *AuthService) loginByGoogleUserInfo(
+	ctx context.Context,
+	tx *gorm.DB,
+	user *schemas.User,
+	userInfo *capi.GetGoogleUserInfoResponseDto,
+	userAgent string,
+) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception) {
+	if user.BlockLoginUntil.After(time.Now()) {
+		tx.Rollback()
+		return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
+	}
+
+	if user.UserAccount.GoogleCredential == nil || userInfo.Id != *user.UserAccount.GoogleCredential {
+		newLoginCount := user.LoginCount + 1
+		blockLoginUntil, exception := s.getLoginBlockedUntilByLoginCount(newLoginCount)
+		if exception != nil {
+			tx.Rollback()
+			return nil, exception
+		}
+
+		_, exception = s.userRepository.UpdateOneById(
+			user.Id,
+			inputs.PartialUpdateUserInput{
+				Values: inputs.UpdateUserInput{
+					LoginCount:     &newLoginCount,
+					BlockLoginUtil: blockLoginUntil,
+				},
+				SetNull: nil,
+			},
+			options.WithTransactionDB(tx),
+			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		)
+		if exception != nil {
+			tx.Rollback()
+			return nil, exception
+		}
+
+		if blockLoginUntil != nil {
+			tx.Rollback()
+			return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
+		}
+
+		tx.Rollback()
+		return nil, apiexceptions.NewAuthException().WrongPassword() // login via google procedure early ends here
+	}
+
+	if user.UserAgent != userAgent {
+		// send a security email to warn the user
+		if exception := s.emailClient.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
+			To:               user.Email,
+			UserName:         user.Name,
+			Status:           user.Status.String(),
+			AlertType:        "Login in Different Place",
+			Reason:           "Your account has a recent login action in other place",
+			TimeOfOccurrence: time.Now(),
+			OtherDetails:     "",
+		}); exception != nil {
+			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		}
+	}
+
+	newAccessToken, exception := s.generateAccessToken(user.PublicId, user.Name, user.Email, user.UserAgent)
+	if exception != nil {
+		tx.Rollback()
+		return nil, exception
+	}
+	newRefreshToken, exception := s.generateRefreshToken(user.PublicId, user.Name, user.Email, user.UserAgent)
+	if exception != nil {
+		tx.Rollback()
+		return nil, exception
+	}
+	newCSRFToken, exception := s.generateCSRFToken()
+	if exception != nil {
+		tx.Rollback()
+		return nil, exception
+	}
+
+	// check if the user data cache exists
+	if _, exception := s.userDataCacheClient.Get(user.Name); exception == nil {
+		// then just update the existing user data cache
+		if exception = s.userDataCacheClient.Update(
+			user.Name,
+			cacheinputs.UpdateUserDataCacheInput{
+				AccessToken: newAccessToken,
+				CSRFToken:   newCSRFToken,
+			},
+		); exception != nil {
+			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		}
+	} else { // else if it does not exist
+		// then we have to first get the relative data from different tables
+		// we done this by one custom sql so it's not that slow...
+		// once we have the required data, we set it as the user data cache
+		output := struct {
+			Id          uuid.UUID        `gorm:"id"`
+			PublicId    uuid.UUID        `gorm:"public_id"`
+			Name        string           `gorm:"name"`
+			DisplayName string           `gorm:"display_name"`
+			Email       string           `gorm:"email"`
+			Role        enums.UserRole   `gorm:"role"`
+			Plan        enums.UserPlan   `gorm:"plan"`
+			Status      enums.UserStatus `gorm:"status"`
+			AvatarURL   *string          `gorm:"avatar_url"`
+			CreatedAt   time.Time        `gorm:"created_at"`
+			UpdatedAt   time.Time        `gorm:"updated_at"`
+		}{}
+		err := tx.Raw(usersql.GetUserDataCacheByIdSQL, user.Id).
+			Row().
+			Scan(
+				&output.Id,
+				&output.PublicId,
+				&output.Name,
+				&output.DisplayName,
+				&output.Email,
+				&output.Role,
+				&output.Plan,
+				&output.Status,
+				&output.AvatarURL,
+				&output.CreatedAt,
+				&output.UpdatedAt,
+			)
+		if err != nil {
+			tx.Rollback()
+			return nil, apiexceptions.NewUserException().NotFound().WithOrigin(err)
+		}
+
+		newUserDataCache := userdata.UserDataCache{
+			Id:          user.Id,
+			PublicId:    output.PublicId,
+			Name:        output.Name,
+			DisplayName: output.DisplayName,
+			Email:       output.Email,
+			AccessToken: *newAccessToken,
+			CSRFToken:   *newCSRFToken,
+			Role:        output.Role,
+			Plan:        output.Plan,
+			Status:      output.Status,
+			AvatarURL:   "",
+			CreatedAt:   output.CreatedAt,
+			UpdatedAt:   output.UpdatedAt,
+		}
+		if output.AvatarURL != nil {
+			newUserDataCache.AvatarURL = *output.AvatarURL
+		}
+		exception := s.userDataCacheClient.Set(
+			user.Name,
+			newUserDataCache,
+		)
+		if exception != nil {
+			tx.Rollback()
+			return nil, exception
+		}
+	}
+
+	// update the refresh token and the status of the user
+	var zeroLoginCount int32 = 0 // reset the login count if the login procedure is valid
+	updatedUser, exception := s.userRepository.UpdateOneById(
+		user.Id,
+		inputs.PartialUpdateUserInput{
+			Values: inputs.UpdateUserInput{
+				Status:       &user.PrevStatus,
+				RefreshToken: newRefreshToken,
+				UserAgent:    &userAgent,
+				LoginCount:   &zeroLoginCount,
+			},
+			SetNull: nil,
+		},
+		options.WithTransactionDB(tx),
+		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+	)
+	if exception != nil {
+		tx.Rollback()
+		return nil, exception
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+	}
+
+	return &capi.LoginViaGoogleResponseDto{
+		PublicId:     user.PublicId,
+		Name:         user.Name,
+		DisplayName:  user.DisplayName,
+		Email:        user.Email,
+		AccessToken:  *newAccessToken,
+		RefreshToken: updatedUser.RefreshToken,
+		CSRFToken:    *newCSRFToken,
+		UpdatedAt:    updatedUser.UpdatedAt,
+		CreatedAt:    user.CreatedAt,
+	}, nil
+}
+
 /* ============================== Auxiliary Functions ============================== */
 
 var loginCountToBlockDurationMap = map[int32]time.Duration{
@@ -132,9 +326,9 @@ func (s *AuthService) generateRandomFakeDisplayName() string {
 	return fmt.Sprintf("%s%s%d", gofakeit.AdjectiveDescriptive(), gofakeit.LastName(), gofakeit.Number(100000, 999999))
 }
 
-func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.Time, *exceptions.Exception) {
+func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.Time, *cexceptions.Exception) {
 	if loginCount < 0 {
-		return nil, exceptions.New("InvalidLoginCount", "Auth", "GetLoginBlockedUntil", "Login count is invalid", http.StatusInternalServerError, true)
+		return nil, cexceptions.New("InvalidLoginCount", "Auth", "GetLoginBlockedUntil", "Login count is invalid", http.StatusInternalServerError, true)
 	}
 
 	var blockDuration *time.Duration
@@ -150,10 +344,10 @@ func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.
 	return &blockedUntil, nil
 }
 
-func (s *AuthService) hashPassword(password string) (string, *exceptions.Exception) {
+func (s *AuthService) hashPassword(password string) (string, *cexceptions.Exception) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", exceptions.New(
+		return "", cexceptions.New(
 			"FailedToGenerateHashValue",
 			"Auth",
 			"Hash",
@@ -165,7 +359,7 @@ func (s *AuthService) hashPassword(password string) (string, *exceptions.Excepti
 	return string(bytes), nil
 }
 
-func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *exceptions.Exception) {
+func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
 	token, err := sharedtokens.GenerateAccessToken(
 		userPublicId.String(),
 		sharedtokens.AccessTokenClaims{
@@ -175,7 +369,7 @@ func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, e
 		},
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GenerationFailed",
 			"Token",
 			"GenerateAccessToken",
@@ -188,7 +382,7 @@ func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, e
 	return token, nil
 }
 
-func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *exceptions.Exception) {
+func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
 	token, err := sharedtokens.GenerateRefreshToken(
 		userPublicId.String(),
 		sharedtokens.RefreshTokenClaims{
@@ -198,7 +392,7 @@ func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, 
 		},
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GenerationFailed",
 			"Token",
 			"GenerateRefreshToken",
@@ -211,10 +405,10 @@ func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, 
 	return token, nil
 }
 
-func (s *AuthService) generateCSRFToken() (*string, *exceptions.Exception) {
+func (s *AuthService) generateCSRFToken() (*string, *cexceptions.Exception) {
 	token, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GenerationFailed",
 			"Token",
 			"GenerateCSRFToken",
@@ -230,14 +424,14 @@ func (s *AuthService) generateCSRFToken() (*string, *exceptions.Exception) {
 func (s *AuthService) enqueueWelcomeNotification(
 	tx *gorm.DB,
 	userPublicId uuid.UUID,
-) *exceptions.Exception {
-	payload, err := json.Marshal(notificationtypescontract.NewsPayload{
+) *cexceptions.Exception {
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
 		Title:   "Welcome to Notegic",
 		Summary: "Your Notegic account is ready.",
 		Body:    "Start organizing your notes, shelves, and routines in one place.",
 	})
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToMarshal",
 			"Notification",
 			"Request",
@@ -250,17 +444,17 @@ func (s *AuthService) enqueueWelcomeNotification(
 	if err := s.outboxRepository.EnqueueNotificationRequested(
 		tx,
 		uuid.NewString(),
-		coreeventscontract.NotificationRequestedData{
+		coreevents.NotificationRequestedData{
 			RecipientUserPublicId: userPublicId,
-			Type:                  coreeventscontract.NotificationType_News,
-			Priority:              coreeventscontract.NotificationPriority_Normal,
-			TemplateKey:           notificationtypescontract.TemplateKey_News,
+			Type:                  coreevents.NotificationType_News,
+			Priority:              coreevents.NotificationPriority_Normal,
+			TemplateKey:           cnotificationtypes.TemplateKey_News,
 			TemplateVersion:       1,
 			Payload:               payload,
 			DedupeKey:             "welcome:" + userPublicId.String(),
 		},
 	); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToCreate",
 			"Notification",
 			"Request",
@@ -276,8 +470,8 @@ func (s *AuthService) enqueueWelcomeNotification(
 /* ============================== Service Methods for Authentication ============================== */
 
 func (s *AuthService) Register(
-	ctx context.Context, reqDto *apicontract.RegisterRequestDto,
-) (*apicontract.RegisterResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.RegisterRequestDto,
+) (*capi.RegisterResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
 	}
@@ -427,7 +621,7 @@ func (s *AuthService) Register(
 		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	if exception = s.emailClient.SendWelcomeEmail(ctx, emaildto.SendWelcomeEmailRequestDto{
+	if exception = s.emailClient.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
 		To:       newUser.Email,
 		UserName: newUser.Name,
 		Status:   newUser.Status.String(),
@@ -435,7 +629,7 @@ func (s *AuthService) Register(
 		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	return &apicontract.RegisterResponseDto{
+	return &capi.RegisterResponseDto{
 		PublicId:     newUser.PublicId,
 		Name:         newUser.Name,
 		DisplayName:  newUser.DisplayName,
@@ -448,13 +642,18 @@ func (s *AuthService) Register(
 }
 
 func (s *AuthService) RegisterViaGoogle(
-	ctx context.Context, reqDto *apicontract.RegisterViaGoogleRequestDto,
-) (*apicontract.RegisterViaGoogleResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.RegisterViaGoogleRequestDto,
+) (*capi.RegisterViaGoogleResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
 	}
 
-	userInfo, exception := s.oauthService.GetGoogleUserInfo(ctx, reqDto.Body.AuthorizationCode)
+	userInfo, exception := s.oauthService.GetGoogleUserInfo(
+		ctx,
+		&capi.GetGoogleUserInfoRequestDto{
+			AuthenticationCode: reqDto.Body.AuthorizationCode,
+		},
+	)
 	if exception != nil {
 		return nil, exception
 	}
@@ -467,7 +666,7 @@ func (s *AuthService) RegisterViaGoogle(
 		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
 	)
 	if lookupException == nil && existingUser != nil {
-		loginResponse, loginException := s.loginViaGoogleUser(
+		loginResponse, loginException := s.loginByGoogleUserInfo(
 			ctx,
 			tx,
 			existingUser,
@@ -478,7 +677,7 @@ func (s *AuthService) RegisterViaGoogle(
 			return nil, loginException
 		}
 
-		return &apicontract.RegisterViaGoogleResponseDto{
+		return &capi.RegisterViaGoogleResponseDto{
 			PublicId:     loginResponse.PublicId,
 			Name:         loginResponse.Name,
 			DisplayName:  loginResponse.DisplayName,
@@ -498,7 +697,7 @@ func (s *AuthService) RegisterViaGoogle(
 	fakePasswordBytes, err := bcrypt.GenerateFromPassword([]byte(uuid.New().String()), bcrypt.DefaultCost)
 	if err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToGenerateHashValue",
 			"Auth",
 			"Hash",
@@ -670,7 +869,7 @@ func (s *AuthService) RegisterViaGoogle(
 	}
 
 	// send the welcome email to the registered user
-	if exception = s.emailClient.SendWelcomeEmail(ctx, emaildto.SendWelcomeEmailRequestDto{
+	if exception = s.emailClient.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
 		To:       newUser.Email,
 		UserName: newUser.Name,
 		Status:   newUser.Status.String(),
@@ -678,7 +877,7 @@ func (s *AuthService) RegisterViaGoogle(
 		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	return &apicontract.RegisterViaGoogleResponseDto{
+	return &capi.RegisterViaGoogleResponseDto{
 		PublicId:     newUser.PublicId,
 		Name:         newUser.Name,
 		DisplayName:  newUser.DisplayName,
@@ -691,8 +890,8 @@ func (s *AuthService) RegisterViaGoogle(
 }
 
 func (s *AuthService) Login(
-	ctx context.Context, reqDto *apicontract.LoginRequestDto,
-) (*apicontract.LoginResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.LoginRequestDto,
+) (*capi.LoginResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -701,7 +900,7 @@ func (s *AuthService) Login(
 
 	// otherwise, the user should provide their account and password
 	var user *schemas.User = nil
-	var exception *exceptions.Exception = nil
+	var exception *cexceptions.Exception = nil
 	if stringutil.IsAlphaAndNumberString(reqDto.Body.Account) { // if the account field contains user name
 		if user, exception = s.userRepository.GetOneByName(
 			reqDto.Body.Account,
@@ -773,7 +972,7 @@ func (s *AuthService) Login(
 
 	if user.UserAgent != reqDto.Header.UserAgent {
 		// send a security email to warn the user
-		if exception := s.emailClient.SendSecurityAlertEmail(ctx, emaildto.SendSecurityAlertEmailRequestDto{
+		if exception := s.emailClient.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
 			To:               user.Email,
 			UserName:         user.Name,
 			Status:           user.Status.String(),
@@ -905,7 +1104,7 @@ func (s *AuthService) Login(
 		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.LoginResponseDto{
+	return &capi.LoginResponseDto{
 		PublicId:     user.PublicId,
 		Name:         user.Name,
 		DisplayName:  user.DisplayName,
@@ -919,13 +1118,18 @@ func (s *AuthService) Login(
 }
 
 func (s *AuthService) LoginViaGoogle(
-	ctx context.Context, reqDto *apicontract.LoginViaGoogleRequestDto,
-) (*apicontract.LoginViaGoogleResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.LoginViaGoogleRequestDto,
+) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
 	}
 
-	userInfo, exception := s.oauthService.GetGoogleUserInfo(ctx, reqDto.Body.AuthorizationCode)
+	userInfo, exception := s.oauthService.GetGoogleUserInfo(
+		ctx,
+		&capi.GetGoogleUserInfoRequestDto{
+			AuthenticationCode: reqDto.Body.AuthorizationCode,
+		},
+	)
 	if exception != nil {
 		return nil, exception
 	}
@@ -946,206 +1150,12 @@ func (s *AuthService) LoginViaGoogle(
 		return nil, apiexceptions.NewAuthException().InvalidDto()
 	}
 
-	return s.loginViaGoogleUser(ctx, tx, user, userInfo, reqDto.Header.UserAgent)
-}
-
-func (s *AuthService) loginViaGoogleUser(
-	ctx context.Context,
-	tx *gorm.DB,
-	user *schemas.User,
-	userInfo *googleUserInfo,
-	userAgent string,
-) (*apicontract.LoginViaGoogleResponseDto, *exceptions.Exception) {
-
-	if user.BlockLoginUntil.After(time.Now()) {
-		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
-	}
-
-	if user.UserAccount.GoogleCredential == nil || userInfo.Id != *user.UserAccount.GoogleCredential {
-		newLoginCount := user.LoginCount + 1
-		blockLoginUntil, exception := s.getLoginBlockedUntilByLoginCount(newLoginCount)
-		if exception != nil {
-			tx.Rollback()
-			return nil, exception
-		}
-
-		_, exception = s.userRepository.UpdateOneById(
-			user.Id,
-			inputs.PartialUpdateUserInput{
-				Values: inputs.UpdateUserInput{
-					LoginCount:     &newLoginCount,
-					BlockLoginUtil: blockLoginUntil,
-				},
-				SetNull: nil,
-			},
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		)
-		if exception != nil {
-			tx.Rollback()
-			return nil, exception
-		}
-
-		if blockLoginUntil != nil {
-			tx.Rollback()
-			return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
-		}
-
-		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().WrongPassword() // login via google procedure early ends here
-	}
-
-	if user.UserAgent != userAgent {
-		// send a security email to warn the user
-		if exception := s.emailClient.SendSecurityAlertEmail(ctx, emaildto.SendSecurityAlertEmailRequestDto{
-			To:               user.Email,
-			UserName:         user.Name,
-			Status:           user.Status.String(),
-			AlertType:        "Login in Different Place",
-			Reason:           "Your account has a recent login action in other place",
-			TimeOfOccurrence: time.Now(),
-			OtherDetails:     "",
-		}); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
-		}
-	}
-
-	newAccessToken, exception := s.generateAccessToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
-		tx.Rollback()
-		return nil, exception
-	}
-	newRefreshToken, exception := s.generateRefreshToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
-		tx.Rollback()
-		return nil, exception
-	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
-		tx.Rollback()
-		return nil, exception
-	}
-
-	// check if the user data cache exists
-	if _, exception := s.userDataCacheClient.Get(user.Name); exception == nil {
-		// then just update the existing user data cache
-		if exception = s.userDataCacheClient.Update(
-			user.Name,
-			cacheinputs.UpdateUserDataCacheInput{
-				AccessToken: newAccessToken,
-				CSRFToken:   newCSRFToken,
-			},
-		); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
-		}
-	} else { // else if it does not exist
-		// then we have to first get the relative data from different tables
-		// we done this by one custom sql so it's not that slow...
-		// once we have the required data, we set it as the user data cache
-		output := struct {
-			Id          uuid.UUID        `gorm:"id"`
-			PublicId    uuid.UUID        `gorm:"public_id"`
-			Name        string           `gorm:"name"`
-			DisplayName string           `gorm:"display_name"`
-			Email       string           `gorm:"email"`
-			Role        enums.UserRole   `gorm:"role"`
-			Plan        enums.UserPlan   `gorm:"plan"`
-			Status      enums.UserStatus `gorm:"status"`
-			AvatarURL   *string          `gorm:"avatar_url"`
-			CreatedAt   time.Time        `gorm:"created_at"`
-			UpdatedAt   time.Time        `gorm:"updated_at"`
-		}{}
-		err := tx.Raw(usersql.GetUserDataCacheByIdSQL, user.Id).
-			Row().
-			Scan(
-				&output.Id,
-				&output.PublicId,
-				&output.Name,
-				&output.DisplayName,
-				&output.Email,
-				&output.Role,
-				&output.Plan,
-				&output.Status,
-				&output.AvatarURL,
-				&output.CreatedAt,
-				&output.UpdatedAt,
-			)
-		if err != nil {
-			tx.Rollback()
-			return nil, apiexceptions.NewUserException().NotFound().WithOrigin(err)
-		}
-
-		newUserDataCache := userdata.UserDataCache{
-			Id:          user.Id,
-			PublicId:    output.PublicId,
-			Name:        output.Name,
-			DisplayName: output.DisplayName,
-			Email:       output.Email,
-			AccessToken: *newAccessToken,
-			CSRFToken:   *newCSRFToken,
-			Role:        output.Role,
-			Plan:        output.Plan,
-			Status:      output.Status,
-			AvatarURL:   "",
-			CreatedAt:   output.CreatedAt,
-			UpdatedAt:   output.UpdatedAt,
-		}
-		if output.AvatarURL != nil {
-			newUserDataCache.AvatarURL = *output.AvatarURL
-		}
-		exception := s.userDataCacheClient.Set(
-			user.Name,
-			newUserDataCache,
-		)
-		if exception != nil {
-			tx.Rollback()
-			return nil, exception
-		}
-	}
-
-	// update the refresh token and the status of the user
-	var zeroLoginCount int32 = 0 // reset the login count if the login procedure is valid
-	updatedUser, exception := s.userRepository.UpdateOneById(
-		user.Id,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
-				Status:       &user.PrevStatus,
-				RefreshToken: newRefreshToken,
-				UserAgent:    &userAgent,
-				LoginCount:   &zeroLoginCount,
-			},
-			SetNull: nil,
-		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-	)
-	if exception != nil {
-		tx.Rollback()
-		return nil, exception
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
-	}
-
-	return &apicontract.LoginViaGoogleResponseDto{
-		PublicId:     user.PublicId,
-		Name:         user.Name,
-		DisplayName:  user.DisplayName,
-		Email:        user.Email,
-		AccessToken:  *newAccessToken,
-		RefreshToken: updatedUser.RefreshToken,
-		CSRFToken:    *newCSRFToken,
-		UpdatedAt:    updatedUser.UpdatedAt,
-		CreatedAt:    user.CreatedAt,
-	}, nil
+	return s.loginByGoogleUserInfo(ctx, tx, user, userInfo, reqDto.Header.UserAgent)
 }
 
 func (s *AuthService) Logout(
-	ctx context.Context, reqDto *apicontract.LogoutRequestDto,
-) (*apicontract.LogoutResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.LogoutRequestDto,
+) (*capi.LogoutResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
 	}
@@ -1164,7 +1174,7 @@ func (s *AuthService) Logout(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"Auth",
 			"Logout",
@@ -1197,7 +1207,7 @@ func (s *AuthService) Logout(
 		actorUserPublicId,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"Logout",
@@ -1216,14 +1226,14 @@ func (s *AuthService) Logout(
 		return nil, exception
 	}
 
-	return &apicontract.LogoutResponseDto{
+	return &capi.LogoutResponseDto{
 		UpdatedAt: updatedUser.UpdatedAt,
 	}, nil
 }
 
 func (s *AuthService) SendAuthCode(
-	ctx context.Context, reqDto *apicontract.SendAuthCodeRequestDto,
-) (*apicontract.SendAuthCodeResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.SendAuthCodeRequestDto,
+) (*capi.SendAuthCodeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1247,7 +1257,7 @@ func (s *AuthService) SendAuthCode(
 		return nil, apiexceptions.NewAuthException().AuthCodeBlockedDueToTryingTooManyTimes(output.BlockAuthCodeUntil).WithOrigin(err)
 	}
 
-	if exception := s.emailClient.SendValidationEmail(ctx, emaildto.SendValidationEmailRequestDto{
+	if exception := s.emailClient.SendValidationEmail(ctx, cemaildto.SendValidationEmailRequestDto{
 		To:        reqDto.Body.Email,
 		UserName:  output.Name,
 		AuthCode:  authCode,
@@ -1257,7 +1267,7 @@ func (s *AuthService) SendAuthCode(
 		return nil, exception
 	}
 
-	return &apicontract.SendAuthCodeResponseDto{
+	return &capi.SendAuthCodeResponseDto{
 		AuthCodeExpiredAt:  authCodeExpiredAt,
 		BlockAuthCodeUntil: blockAuthCodeUntil,
 		UpdatedAt:          time.Now(),
@@ -1265,8 +1275,8 @@ func (s *AuthService) SendAuthCode(
 }
 
 func (s *AuthService) ValidateEmail(
-	ctx context.Context, reqDto *apicontract.ValidateEmailRequestDto,
-) (*apicontract.ValidateEmailResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.ValidateEmailRequestDto,
+) (*capi.ValidateEmailResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1285,14 +1295,14 @@ func (s *AuthService) ValidateEmail(
 		return nil, apiexceptions.NewUserException().FailedToUpdate().WithOrigin(err)
 	}
 
-	return &apicontract.ValidateEmailResponseDto{
+	return &capi.ValidateEmailResponseDto{
 		UpdatedAt: updatedAt,
 	}, nil
 }
 
 func (s *AuthService) ResetEmail(
-	ctx context.Context, reqDto *apicontract.ResetEmailRequestDto,
-) (*apicontract.ResetEmailResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.ResetEmailRequestDto,
+) (*capi.ResetEmailResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1335,14 +1345,14 @@ func (s *AuthService) ResetEmail(
 		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.ResetEmailResponseDto{
+	return &capi.ResetEmailResponseDto{
 		UpdatedAt: updatedAt,
 	}, nil
 }
 
 func (s *AuthService) ForgetPassword(
-	ctx context.Context, reqDto *apicontract.ForgetPasswordRequestDto,
-) (*apicontract.ForgetPasswordResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.ForgetPasswordRequestDto,
+) (*capi.ForgetPasswordResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1350,7 +1360,7 @@ func (s *AuthService) ForgetPassword(
 	tx := s.db.WithContext(ctx).Begin()
 
 	var user *schemas.User = nil
-	var exception *exceptions.Exception = nil
+	var exception *cexceptions.Exception = nil
 	var preloads = []schemas.UserRelation{schemas.UserRelation_UserAccount, schemas.UserRelation_UserInfo, schemas.UserRelation_UserSetting}
 	if stringutil.IsEmailString(reqDto.Body.Account) { // if the account field contains email
 		if user, exception = s.userRepository.GetOneByEmail(
@@ -1455,7 +1465,7 @@ func (s *AuthService) ForgetPassword(
 		user.PublicId,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"ForgetPassword",
@@ -1470,14 +1480,14 @@ func (s *AuthService) ForgetPassword(
 		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.ForgetPasswordResponseDto{
+	return &capi.ForgetPasswordResponseDto{
 		UpdatedAt: updatedUser.UpdatedAt,
 	}, nil
 }
 
 func (s *AuthService) ResetMe(
-	ctx context.Context, reqDto *apicontract.ResetMeRequestDto,
-) (*apicontract.ResetMeResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.ResetMeRequestDto,
+) (*capi.ResetMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1492,7 +1502,7 @@ func (s *AuthService) ResetMe(
 	// Note that the user will not logged out after the reset operation
 
 	// try to retrieve the target user to reset and validate his/her auth code first
-	var resetUserAccount schemas.UserAccount
+	var resetUserAccount platformschemas.UserAccount
 	result := tx.Model(&resetUserAccount).
 		Where("user_id = ? AND auth_code = ?", actorUserId, reqDto.Body.AuthCode).
 		First(&resetUserAccount)
@@ -1563,14 +1573,14 @@ func (s *AuthService) ResetMe(
 		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithDetails(err)
 	}
 
-	return &apicontract.ResetMeResponseDto{
+	return &capi.ResetMeResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *AuthService) DeleteMe(
-	ctx context.Context, reqDto *apicontract.DeleteMeRequestDto,
-) (*apicontract.DeleteMeResponseDto, *exceptions.Exception) {
+	ctx context.Context, reqDto *capi.DeleteMeRequestDto,
+) (*capi.DeleteMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
 		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
 	}
@@ -1589,7 +1599,7 @@ func (s *AuthService) DeleteMe(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"Auth",
 			"DeleteMe",
@@ -1614,7 +1624,7 @@ func (s *AuthService) DeleteMe(
 		actorUserPublicId,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMe",
@@ -1633,7 +1643,7 @@ func (s *AuthService) DeleteMe(
 		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	return &apicontract.DeleteMeResponseDto{
+	return &capi.DeleteMeResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }

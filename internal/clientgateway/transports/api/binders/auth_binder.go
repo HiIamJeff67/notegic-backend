@@ -3,27 +3,27 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
 
 type AuthBinderInterface interface {
-	BindRegister(controllerFunc controllers.Func[*apicontract.RegisterRequestDto]) gin.HandlerFunc
-	BindRegisterViaGoogle(controllerFunc controllers.Func[*apicontract.RegisterViaGoogleRequestDto]) gin.HandlerFunc
-	BindLogin(controllerFunc controllers.Func[*apicontract.LoginRequestDto]) gin.HandlerFunc
-	BindLoginViaGoogle(controllerFunc controllers.Func[*apicontract.LoginViaGoogleRequestDto]) gin.HandlerFunc
-	BindLogout(controllerFunc controllers.Func[*apicontract.LogoutRequestDto]) gin.HandlerFunc
-	BindSendAuthCode(controllerFunc controllers.Func[*apicontract.SendAuthCodeRequestDto]) gin.HandlerFunc
-	BindValidateEmail(controllerFunc controllers.Func[*apicontract.ValidateEmailRequestDto]) gin.HandlerFunc
-	BindResetEmail(controllerFunc controllers.Func[*apicontract.ResetEmailRequestDto]) gin.HandlerFunc
-	BindForgetPassword(controllerFunc controllers.Func[*apicontract.ForgetPasswordRequestDto]) gin.HandlerFunc
-	BindResetMe(controllerFunc controllers.Func[*apicontract.ResetMeRequestDto]) gin.HandlerFunc
-	BindDeleteMe(controllerFunc controllers.Func[*apicontract.DeleteMeRequestDto]) gin.HandlerFunc
+	BindRegister(controllerFunc controllers.Func[*capi.RegisterRequestDto]) gin.HandlerFunc
+	BindRegisterViaGoogle(controllerFunc controllers.Func[*capi.RegisterViaGoogleRequestDto]) gin.HandlerFunc
+	BindLogin(controllerFunc controllers.Func[*capi.LoginRequestDto]) gin.HandlerFunc
+	BindLoginViaGoogle(controllerFunc controllers.Func[*capi.LoginViaGoogleRequestDto]) gin.HandlerFunc
+	BindLogout(controllerFunc controllers.Func[*capi.LogoutRequestDto]) gin.HandlerFunc
+	BindSendAuthCode(controllerFunc controllers.Func[*capi.SendAuthCodeRequestDto]) gin.HandlerFunc
+	BindValidateEmail(controllerFunc controllers.Func[*capi.ValidateEmailRequestDto]) gin.HandlerFunc
+	BindResetEmail(controllerFunc controllers.Func[*capi.ResetEmailRequestDto]) gin.HandlerFunc
+	BindForgetPassword(controllerFunc controllers.Func[*capi.ForgetPasswordRequestDto]) gin.HandlerFunc
+	BindResetMe(controllerFunc controllers.Func[*capi.ResetMeRequestDto]) gin.HandlerFunc
+	BindDeleteMe(controllerFunc controllers.Func[*capi.DeleteMeRequestDto]) gin.HandlerFunc
 }
 
 type AuthBinder struct{}
@@ -32,12 +32,12 @@ func NewAuthBinder() AuthBinderInterface {
 	return &AuthBinder{}
 }
 
-func (b *AuthBinder) BindRegister(controllerFunc controllers.Func[*apicontract.RegisterRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindRegister(controllerFunc controllers.Func[*capi.RegisterRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.RegisterRequestDto{}
+		requestDto := &capi.RegisterRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -45,12 +45,12 @@ func (b *AuthBinder) BindRegister(controllerFunc controllers.Func[*apicontract.R
 	}
 }
 
-func (b *AuthBinder) BindRegisterViaGoogle(controllerFunc controllers.Func[*apicontract.RegisterViaGoogleRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindRegisterViaGoogle(controllerFunc controllers.Func[*capi.RegisterViaGoogleRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.RegisterViaGoogleRequestDto{}
+		requestDto := &capi.RegisterViaGoogleRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -58,12 +58,12 @@ func (b *AuthBinder) BindRegisterViaGoogle(controllerFunc controllers.Func[*apic
 	}
 }
 
-func (b *AuthBinder) BindLogin(controllerFunc controllers.Func[*apicontract.LoginRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindLogin(controllerFunc controllers.Func[*capi.LoginRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.LoginRequestDto{}
+		requestDto := &capi.LoginRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -71,12 +71,12 @@ func (b *AuthBinder) BindLogin(controllerFunc controllers.Func[*apicontract.Logi
 	}
 }
 
-func (b *AuthBinder) BindLoginViaGoogle(controllerFunc controllers.Func[*apicontract.LoginViaGoogleRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindLoginViaGoogle(controllerFunc controllers.Func[*capi.LoginViaGoogleRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.LoginViaGoogleRequestDto{}
+		requestDto := &capi.LoginViaGoogleRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -84,21 +84,21 @@ func (b *AuthBinder) BindLoginViaGoogle(controllerFunc controllers.Func[*apicont
 	}
 }
 
-func (b *AuthBinder) BindLogout(controllerFunc controllers.Func[*apicontract.LogoutRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindLogout(controllerFunc controllers.Func[*capi.LogoutRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.LogoutRequestDto{}
+		requestDto := &capi.LogoutRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		controllerFunc(ctx, requestDto)
 	}
 }
 
-func (b *AuthBinder) BindSendAuthCode(controllerFunc controllers.Func[*apicontract.SendAuthCodeRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindSendAuthCode(controllerFunc controllers.Func[*capi.SendAuthCodeRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.SendAuthCodeRequestDto{}
+		requestDto := &capi.SendAuthCodeRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -106,12 +106,12 @@ func (b *AuthBinder) BindSendAuthCode(controllerFunc controllers.Func[*apicontra
 	}
 }
 
-func (b *AuthBinder) BindValidateEmail(controllerFunc controllers.Func[*apicontract.ValidateEmailRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindValidateEmail(controllerFunc controllers.Func[*capi.ValidateEmailRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.ValidateEmailRequestDto{}
+		requestDto := &capi.ValidateEmailRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -119,12 +119,12 @@ func (b *AuthBinder) BindValidateEmail(controllerFunc controllers.Func[*apicontr
 	}
 }
 
-func (b *AuthBinder) BindResetEmail(controllerFunc controllers.Func[*apicontract.ResetEmailRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindResetEmail(controllerFunc controllers.Func[*capi.ResetEmailRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.ResetEmailRequestDto{}
+		requestDto := &capi.ResetEmailRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -132,12 +132,12 @@ func (b *AuthBinder) BindResetEmail(controllerFunc controllers.Func[*apicontract
 	}
 }
 
-func (b *AuthBinder) BindForgetPassword(controllerFunc controllers.Func[*apicontract.ForgetPasswordRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindForgetPassword(controllerFunc controllers.Func[*capi.ForgetPasswordRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.ForgetPasswordRequestDto{}
+		requestDto := &capi.ForgetPasswordRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -145,12 +145,12 @@ func (b *AuthBinder) BindForgetPassword(controllerFunc controllers.Func[*apicont
 	}
 }
 
-func (b *AuthBinder) BindResetMe(controllerFunc controllers.Func[*apicontract.ResetMeRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindResetMe(controllerFunc controllers.Func[*capi.ResetMeRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.ResetMeRequestDto{}
+		requestDto := &capi.ResetMeRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 
@@ -158,12 +158,12 @@ func (b *AuthBinder) BindResetMe(controllerFunc controllers.Func[*apicontract.Re
 	}
 }
 
-func (b *AuthBinder) BindDeleteMe(controllerFunc controllers.Func[*apicontract.DeleteMeRequestDto]) gin.HandlerFunc {
+func (b *AuthBinder) BindDeleteMe(controllerFunc controllers.Func[*capi.DeleteMeRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.DeleteMeRequestDto{}
+		requestDto := &capi.DeleteMeRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Auth").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Auth").WithOrigin(err), ctx)
 			return
 		}
 

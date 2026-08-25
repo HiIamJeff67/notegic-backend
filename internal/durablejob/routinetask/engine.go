@@ -11,8 +11,8 @@ import (
 
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
-	durablejobcontract "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
-	durablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
+	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
@@ -58,12 +58,12 @@ func (e *Engine) SetRoutineTaskRunningPublisher(
 	e.handlerManager.SetRoutineTaskRunningPublisher(publisher)
 }
 
-func (e *Engine) NewClaimRoutineTasksRequest() (durablejobcontract.ClaimRoutineTasksRequestDto, bool) {
+func (e *Engine) NewClaimRoutineTasksRequest() (cdurablejob.ClaimRoutineTasksRequestDto, bool) {
 	if e.isManagingWork.Load() {
-		return durablejobcontract.ClaimRoutineTasksRequestDto{}, false
+		return cdurablejob.ClaimRoutineTasksRequestDto{}, false
 	}
 
-	return durablejobcontract.ClaimRoutineTasksRequestDto{
+	return cdurablejob.ClaimRoutineTasksRequestDto{
 		RequestId: uuid.New(),
 		WorkerId:  e.workerId,
 		BatchSize: e.batchSize,
@@ -72,7 +72,7 @@ func (e *Engine) NewClaimRoutineTasksRequest() (durablejobcontract.ClaimRoutineT
 
 func (e *Engine) HandleRoutineTaskAssignments(
 	ctx context.Context,
-	assignments []durablejobroutinetasktypes.RoutineTaskAssignment,
+	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
 ) error {
 	if len(assignments) == 0 {
 		return nil
@@ -93,7 +93,7 @@ func (e *Engine) HandleRoutineTaskAssignments(
 
 func (e *Engine) Start(
 	ctx context.Context,
-	requestRoutineTasks func(context.Context, durablejobcontract.ClaimRoutineTasksRequestDto) error,
+	requestRoutineTasks func(context.Context, cdurablejob.ClaimRoutineTasksRequestDto) error,
 ) func() {
 	workerCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})

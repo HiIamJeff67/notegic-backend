@@ -8,22 +8,22 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
-	inputs "github.com/HiIamJeff67/notegic-backend/contracts/types/models/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
 	durablejobeventbuilders "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/eventbuilders"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type OutboxEventRepositoryInterface interface {
-	CreateMany(createInputs []inputs.CreateOutboxEventInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	EnqueueBlockPackAccessRevocations(tx *gorm.DB, correlationId string, blockPackIds []uuid.UUID, targetUserPublicIds []uuid.UUID, reason coreeventscontract.BlockPackAccessRevocationReason) error
+	CreateMany(createInputs []cinputs.CreateOutboxEventInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	EnqueueBlockPackAccessRevocations(tx *gorm.DB, correlationId string, blockPackIds []uuid.UUID, targetUserPublicIds []uuid.UUID, reason coreevents.BlockPackAccessRevocationReason) error
 	EnqueueRootShelfPermissionChanged(tx *gorm.DB, correlationId string, rootShelfId uuid.UUID, targetUserPublicId uuid.UUID, permission string) error
 	EnqueueManyRootShelfPermissionChanges(tx *gorm.DB, correlationId string, rootShelfId uuid.UUID, permissions []schemas.UsersToShelves, userPublicIdByUserId map[uuid.UUID]uuid.UUID) error
 	EnqueueRootShelfPermissionRevoked(tx *gorm.DB, correlationId string, rootShelfId uuid.UUID, targetUserPublicId uuid.UUID) error
@@ -33,13 +33,13 @@ type OutboxEventRepositoryInterface interface {
 	EnqueueBlockPackChanged(tx *gorm.DB, correlationId string, blockPackIds []uuid.UUID) error
 	EnqueueBlockPackDeleted(tx *gorm.DB, correlationId string, blockPackIds []uuid.UUID) error
 	EnqueueUserSessionsRevoked(tx *gorm.DB, correlationId string, userPublicId uuid.UUID) error
-	EnqueueNotificationRequested(tx *gorm.DB, correlationId string, data coreeventscontract.NotificationRequestedData) error
+	EnqueueNotificationRequested(tx *gorm.DB, correlationId string, data coreevents.NotificationRequestedData) error
 	EnqueueYjsMaintenanceHint(tx *gorm.DB, correlationId string, blockPackId uuid.UUID, reason string) error
 	EnqueueManyYjsMaintenanceHints(tx *gorm.DB, correlationId string, blockPackIds []uuid.UUID, reason string) error
-	ClaimAvailable(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration, opts ...options.RepositoryOptions) ([]cmodels.OutboxEvent, *exceptions.Exception)
-	MarkPublishedMany(ctx context.Context, eventIds []uuid.UUID, workerId string, opts ...options.RepositoryOptions) *exceptions.Exception
-	MarkFailedMany(ctx context.Context, failureInputs []inputs.FailedOutboxEventInput, workerId string, opts ...options.RepositoryOptions) *exceptions.Exception
-	DeletePublishedBefore(ctx context.Context, publishedBefore time.Time, opts ...options.RepositoryOptions) (int64, *exceptions.Exception)
+	ClaimAvailable(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration, opts ...options.RepositoryOptions) ([]platformschemas.OutboxEvent, *cexceptions.Exception)
+	MarkPublishedMany(ctx context.Context, eventIds []uuid.UUID, workerId string, opts ...options.RepositoryOptions) *cexceptions.Exception
+	MarkFailedMany(ctx context.Context, failureInputs []cinputs.FailedOutboxEventInput, workerId string, opts ...options.RepositoryOptions) *cexceptions.Exception
+	DeletePublishedBefore(ctx context.Context, publishedBefore time.Time, opts ...options.RepositoryOptions) (int64, *cexceptions.Exception)
 }
 
 type OutboxEventRepository struct {
@@ -51,9 +51,9 @@ func NewOutboxEventRepository() OutboxEventRepositoryInterface {
 }
 
 func (r *OutboxEventRepository) CreateMany(
-	createInputs []inputs.CreateOutboxEventInput,
+	createInputs []cinputs.CreateOutboxEventInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	contractRepository := r.contractRepository
 	if contractRepository == nil {
 		contractRepository = crepositories.NewOutboxEventRepository()
@@ -61,7 +61,7 @@ func (r *OutboxEventRepository) CreateMany(
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	return contractRepository.CreateMany(
 		createInputs,
-		parsedOptions.RepositoryOptionFields,
+		parsedOptions,
 	)
 }
 
@@ -70,7 +70,7 @@ func (r *OutboxEventRepository) EnqueueBlockPackAccessRevocations(
 	correlationId string,
 	blockPackIds []uuid.UUID,
 	targetUserPublicIds []uuid.UUID,
-	reason coreeventscontract.BlockPackAccessRevocationReason,
+	reason coreevents.BlockPackAccessRevocationReason,
 ) error {
 	if len(blockPackIds) == 0 {
 		return nil
@@ -81,23 +81,23 @@ func (r *OutboxEventRepository) EnqueueBlockPackAccessRevocations(
 		targetCount = 1
 	}
 	events := make(
-		[]eventcontract.EventEnvelope[coreeventscontract.BlockPackAccessRevokedData],
+		[]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData],
 		0,
 		len(blockPackIds)*targetCount,
 	)
 	occurredAt := time.Now().UTC()
 	for _, blockPackId := range blockPackIds {
 		if len(targetUserPublicIds) == 0 {
-			events = append(events, eventcontract.EventEnvelope[coreeventscontract.BlockPackAccessRevokedData]{
-				SchemaVersion: eventcontract.Version,
+			events = append(events, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_BlockPackAccessRevoked,
-				AggregateType: coreeventscontract.AggregateType_BlockPack,
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
 				AggregateId:   blockPackId,
 				KafkaKey:      blockPackId.String(),
 				OccurredAt:    occurredAt,
 				CorrelationId: correlationId,
-				Data: coreeventscontract.BlockPackAccessRevokedData{
+				Data: coreevents.BlockPackAccessRevokedData{
 					Reason: reason,
 				},
 			})
@@ -106,16 +106,16 @@ func (r *OutboxEventRepository) EnqueueBlockPackAccessRevocations(
 
 		for _, targetUserPublicId := range targetUserPublicIds {
 			targetUserPublicId := targetUserPublicId
-			events = append(events, eventcontract.EventEnvelope[coreeventscontract.BlockPackAccessRevokedData]{
-				SchemaVersion: eventcontract.Version,
+			events = append(events, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_BlockPackAccessRevoked,
-				AggregateType: coreeventscontract.AggregateType_BlockPack,
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
 				AggregateId:   blockPackId,
 				KafkaKey:      blockPackId.String(),
 				OccurredAt:    occurredAt,
 				CorrelationId: correlationId,
-				Data: coreeventscontract.BlockPackAccessRevokedData{
+				Data: coreevents.BlockPackAccessRevokedData{
 					TargetUserPublicId: &targetUserPublicId,
 					Reason:             reason,
 				},
@@ -123,7 +123,7 @@ func (r *OutboxEventRepository) EnqueueBlockPackAccessRevocations(
 		}
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueRootShelfPermissionChanged(
@@ -135,21 +135,21 @@ func (r *OutboxEventRepository) EnqueueRootShelfPermissionChanged(
 ) error {
 	return crepositories.EnqueueOutboxEvents(
 		tx,
-		coreeventscontract.CoreLifecycleTopic,
-		[]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
 			{
-				SchemaVersion: eventcontract.Version,
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_RootShelfPermissionChanged,
-				AggregateType: coreeventscontract.AggregateType_RootShelf,
+				EventType:     coreevents.EventType_RootShelfPermissionChanged,
+				AggregateType: coreevents.AggregateType_RootShelf,
 				AggregateId:   rootShelfId,
 				KafkaKey:      rootShelfId.String(),
 				OccurredAt:    time.Now().UTC(),
 				CorrelationId: correlationId,
-				Data: coreeventscontract.ResourceChangedData{
+				Data: coreevents.ResourceChangedData{
 					ResourceId:         rootShelfId,
 					TargetUserPublicId: &targetUserPublicId,
-					Change:             coreeventscontract.ResourceEventChange_PermissionUpdated,
+					Change:             coreevents.ResourceEventChange_PermissionUpdated,
 					Permission:         permission,
 				},
 			},
@@ -164,7 +164,7 @@ func (r *OutboxEventRepository) EnqueueManyRootShelfPermissionChanges(
 	permissions []schemas.UsersToShelves,
 	userPublicIdByUserId map[uuid.UUID]uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0, len(permissions))
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(permissions))
 	occurredAt := time.Now().UTC()
 	for _, permission := range permissions {
 		targetUserPublicId, exists := userPublicIdByUserId[permission.UserId]
@@ -172,25 +172,25 @@ func (r *OutboxEventRepository) EnqueueManyRootShelfPermissionChanges(
 			return errors.New("root shelf permission event target user is unavailable")
 		}
 
-		events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-			SchemaVersion: eventcontract.Version,
+		events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     coreeventscontract.EventType_RootShelfPermissionChanged,
-			AggregateType: coreeventscontract.AggregateType_RootShelf,
+			EventType:     coreevents.EventType_RootShelfPermissionChanged,
+			AggregateType: coreevents.AggregateType_RootShelf,
 			AggregateId:   rootShelfId,
 			KafkaKey:      rootShelfId.String(),
 			OccurredAt:    occurredAt,
 			CorrelationId: correlationId,
-			Data: coreeventscontract.ResourceChangedData{
+			Data: coreevents.ResourceChangedData{
 				ResourceId:         rootShelfId,
 				TargetUserPublicId: &targetUserPublicId,
-				Change:             coreeventscontract.ResourceEventChange_PermissionUpdated,
+				Change:             coreevents.ResourceEventChange_PermissionUpdated,
 				Permission:         permission.Permission.String(),
 			},
 		})
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueRootShelfPermissionRevoked(
@@ -201,21 +201,21 @@ func (r *OutboxEventRepository) EnqueueRootShelfPermissionRevoked(
 ) error {
 	return crepositories.EnqueueOutboxEvents(
 		tx,
-		coreeventscontract.CoreLifecycleTopic,
-		[]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
 			{
-				SchemaVersion: eventcontract.Version,
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_RootShelfPermissionRevoked,
-				AggregateType: coreeventscontract.AggregateType_RootShelf,
+				EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+				AggregateType: coreevents.AggregateType_RootShelf,
 				AggregateId:   rootShelfId,
 				KafkaKey:      rootShelfId.String(),
 				OccurredAt:    time.Now().UTC(),
 				CorrelationId: correlationId,
-				Data: coreeventscontract.ResourceChangedData{
+				Data: coreevents.ResourceChangedData{
 					ResourceId:         rootShelfId,
 					TargetUserPublicId: &targetUserPublicId,
-					Change:             coreeventscontract.ResourceEventChange_PermissionRevoked,
+					Change:             coreevents.ResourceEventChange_PermissionRevoked,
 				},
 			},
 		},
@@ -228,30 +228,30 @@ func (r *OutboxEventRepository) EnqueueManyRootShelfPermissionRevocations(
 	rootShelfIds []uuid.UUID,
 	targetUserPublicIds []uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0, len(rootShelfIds)*len(targetUserPublicIds))
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(rootShelfIds)*len(targetUserPublicIds))
 	occurredAt := time.Now().UTC()
 	for _, rootShelfId := range rootShelfIds {
 		for _, targetUserPublicId := range targetUserPublicIds {
 			targetUserPublicId := targetUserPublicId
-			events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-				SchemaVersion: eventcontract.Version,
+			events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_RootShelfPermissionRevoked,
-				AggregateType: coreeventscontract.AggregateType_RootShelf,
+				EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+				AggregateType: coreevents.AggregateType_RootShelf,
 				AggregateId:   rootShelfId,
 				KafkaKey:      rootShelfId.String(),
 				OccurredAt:    occurredAt,
 				CorrelationId: correlationId,
-				Data: coreeventscontract.ResourceChangedData{
+				Data: coreevents.ResourceChangedData{
 					ResourceId:         rootShelfId,
 					TargetUserPublicId: &targetUserPublicId,
-					Change:             coreeventscontract.ResourceEventChange_PermissionRevoked,
+					Change:             coreevents.ResourceEventChange_PermissionRevoked,
 				},
 			})
 		}
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueRootShelfDeleted(
@@ -260,27 +260,27 @@ func (r *OutboxEventRepository) EnqueueRootShelfDeleted(
 	rootShelfId uuid.UUID,
 	targetUserPublicIds []uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0, len(targetUserPublicIds))
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(targetUserPublicIds))
 	for _, targetUserPublicId := range targetUserPublicIds {
 		targetUserPublicId := targetUserPublicId
-		events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-			SchemaVersion: eventcontract.Version,
+		events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     coreeventscontract.EventType_RootShelfDeleted,
-			AggregateType: coreeventscontract.AggregateType_RootShelf,
+			EventType:     coreevents.EventType_RootShelfDeleted,
+			AggregateType: coreevents.AggregateType_RootShelf,
 			AggregateId:   rootShelfId,
 			KafkaKey:      rootShelfId.String(),
 			OccurredAt:    time.Now().UTC(),
 			CorrelationId: correlationId,
-			Data: coreeventscontract.ResourceChangedData{
+			Data: coreevents.ResourceChangedData{
 				ResourceId:         rootShelfId,
 				TargetUserPublicId: &targetUserPublicId,
-				Change:             coreeventscontract.ResourceEventChange_Deleted,
+				Change:             coreevents.ResourceEventChange_Deleted,
 			},
 		})
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueManyRootShelfDeleted(
@@ -289,30 +289,30 @@ func (r *OutboxEventRepository) EnqueueManyRootShelfDeleted(
 	rootShelfIds []uuid.UUID,
 	targetUserPublicIdsByRootShelfId map[uuid.UUID][]uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0)
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0)
 	occurredAt := time.Now().UTC()
 	for _, rootShelfId := range rootShelfIds {
 		for _, targetUserPublicId := range targetUserPublicIdsByRootShelfId[rootShelfId] {
 			targetUserPublicId := targetUserPublicId
-			events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-				SchemaVersion: eventcontract.Version,
+			events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_RootShelfDeleted,
-				AggregateType: coreeventscontract.AggregateType_RootShelf,
+				EventType:     coreevents.EventType_RootShelfDeleted,
+				AggregateType: coreevents.AggregateType_RootShelf,
 				AggregateId:   rootShelfId,
 				KafkaKey:      rootShelfId.String(),
 				OccurredAt:    occurredAt,
 				CorrelationId: correlationId,
-				Data: coreeventscontract.ResourceChangedData{
+				Data: coreevents.ResourceChangedData{
 					ResourceId:         rootShelfId,
 					TargetUserPublicId: &targetUserPublicId,
-					Change:             coreeventscontract.ResourceEventChange_Deleted,
+					Change:             coreevents.ResourceEventChange_Deleted,
 				},
 			})
 		}
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueBlockPackChanged(
@@ -320,25 +320,25 @@ func (r *OutboxEventRepository) EnqueueBlockPackChanged(
 	correlationId string,
 	blockPackIds []uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0, len(blockPackIds))
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(blockPackIds))
 	for _, blockPackId := range blockPackIds {
-		events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-			SchemaVersion: eventcontract.Version,
+		events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     coreeventscontract.EventType_BlockPackChanged,
-			AggregateType: coreeventscontract.AggregateType_BlockPack,
+			EventType:     coreevents.EventType_BlockPackChanged,
+			AggregateType: coreevents.AggregateType_BlockPack,
 			AggregateId:   blockPackId,
 			KafkaKey:      blockPackId.String(),
 			OccurredAt:    time.Now().UTC(),
 			CorrelationId: correlationId,
-			Data: coreeventscontract.ResourceChangedData{
+			Data: coreevents.ResourceChangedData{
 				ResourceId: blockPackId,
-				Change:     coreeventscontract.ResourceEventChange_Updated,
+				Change:     coreevents.ResourceEventChange_Updated,
 			},
 		})
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueBlockPackDeleted(
@@ -346,25 +346,25 @@ func (r *OutboxEventRepository) EnqueueBlockPackDeleted(
 	correlationId string,
 	blockPackIds []uuid.UUID,
 ) error {
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData], 0, len(blockPackIds))
+	events := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(blockPackIds))
 	for _, blockPackId := range blockPackIds {
-		events = append(events, eventcontract.EventEnvelope[coreeventscontract.ResourceChangedData]{
-			SchemaVersion: eventcontract.Version,
+		events = append(events, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
 			EventId:       uuid.New(),
-			EventType:     coreeventscontract.EventType_BlockPackDeleted,
-			AggregateType: coreeventscontract.AggregateType_BlockPack,
+			EventType:     coreevents.EventType_BlockPackDeleted,
+			AggregateType: coreevents.AggregateType_BlockPack,
 			AggregateId:   blockPackId,
 			KafkaKey:      blockPackId.String(),
 			OccurredAt:    time.Now().UTC(),
 			CorrelationId: correlationId,
-			Data: coreeventscontract.ResourceChangedData{
+			Data: coreevents.ResourceChangedData{
 				ResourceId: blockPackId,
-				Change:     coreeventscontract.ResourceEventChange_Deleted,
+				Change:     coreevents.ResourceEventChange_Deleted,
 			},
 		})
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreLifecycleTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, events)
 }
 
 func (r *OutboxEventRepository) EnqueueUserSessionsRevoked(
@@ -374,18 +374,18 @@ func (r *OutboxEventRepository) EnqueueUserSessionsRevoked(
 ) error {
 	return crepositories.EnqueueOutboxEvents(
 		tx,
-		coreeventscontract.CoreLifecycleTopic,
-		[]eventcontract.EventEnvelope[coreeventscontract.UserSessionsRevokedData]{
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.UserSessionsRevokedData]{
 			{
-				SchemaVersion: eventcontract.Version,
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     coreeventscontract.EventType_UserSessionsRevoked,
-				AggregateType: coreeventscontract.AggregateType_User,
+				EventType:     coreevents.EventType_UserSessionsRevoked,
+				AggregateType: coreevents.AggregateType_User,
 				AggregateId:   userPublicId,
 				KafkaKey:      userPublicId.String(),
 				OccurredAt:    time.Now().UTC(),
 				CorrelationId: correlationId,
-				Data:          coreeventscontract.UserSessionsRevokedData{},
+				Data:          coreevents.UserSessionsRevokedData{},
 			},
 		},
 	)
@@ -394,18 +394,18 @@ func (r *OutboxEventRepository) EnqueueUserSessionsRevoked(
 func (r *OutboxEventRepository) EnqueueNotificationRequested(
 	tx *gorm.DB,
 	correlationId string,
-	data coreeventscontract.NotificationRequestedData,
+	data coreevents.NotificationRequestedData,
 ) error {
 	if tx == nil || data.RecipientUserPublicId == uuid.Nil || data.Type == "" ||
 		data.TemplateKey == "" || data.TemplateVersion <= 0 || data.DedupeKey == "" {
 		return errors.New("notification request is incomplete")
 	}
 
-	envelope := eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{
-		SchemaVersion: eventcontract.Version,
+	envelope := cevent.EventEnvelope[coreevents.NotificationRequestedData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_NotificationRequested,
-		AggregateType: coreeventscontract.AggregateType_Notification,
+		EventType:     coreevents.EventType_NotificationRequested,
+		AggregateType: coreevents.AggregateType_Notification,
 		AggregateId:   data.RecipientUserPublicId,
 		KafkaKey:      data.RecipientUserPublicId.String(),
 		OccurredAt:    time.Now().UTC(),
@@ -415,8 +415,8 @@ func (r *OutboxEventRepository) EnqueueNotificationRequested(
 
 	return crepositories.EnqueueOutboxEvents(
 		tx,
-		coreeventscontract.CoreNotificationTopic,
-		[]eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{envelope},
+		coreevents.CoreNotificationTopic,
+		[]cevent.EventEnvelope[coreevents.NotificationRequestedData]{envelope},
 	)
 }
 
@@ -458,9 +458,9 @@ func (r *OutboxEventRepository) EnqueueManyYjsMaintenanceHints(
 
 	eventBuilder := durablejobeventbuilders.NewYjsMaintenanceHintEventBuilder()
 	occurredAt := time.Now().UTC()
-	events := make([]eventcontract.EventEnvelope[coreeventscontract.YjsMaintenanceHintData], 0, len(documents))
+	events := make([]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData], 0, len(documents))
 	for _, document := range documents {
-		events = append(events, eventBuilder.Build(coreeventscontract.YjsMaintenanceHintData{
+		events = append(events, eventBuilder.Build(coreevents.YjsMaintenanceHintData{
 			BlockPackId:            document.BlockPackId,
 			DocumentId:             document.Id,
 			LatestUpdateSequence:   document.LastUpdateSequence,
@@ -474,7 +474,7 @@ func (r *OutboxEventRepository) EnqueueManyYjsMaintenanceHints(
 		}, correlationId, occurredAt))
 	}
 
-	return crepositories.EnqueueOutboxEvents(tx, coreeventscontract.CoreDurableJobYjsMaintenanceHintTopic, events)
+	return crepositories.EnqueueOutboxEvents(tx, coreevents.CoreYjsMaintenanceHintTopic, events)
 }
 
 func (r *OutboxEventRepository) ClaimAvailable(
@@ -483,13 +483,13 @@ func (r *OutboxEventRepository) ClaimAvailable(
 	batchSize int,
 	claimTimeout time.Duration,
 	opts ...options.RepositoryOptions,
-) ([]cmodels.OutboxEvent, *exceptions.Exception) {
+) ([]platformschemas.OutboxEvent, *cexceptions.Exception) {
 	contractRepository := r.contractRepository
 	if contractRepository == nil {
 		contractRepository = crepositories.NewOutboxEventRepository()
 	}
 	parsedOptions := options.ParseRepositoryOptions(opts...)
-	return contractRepository.ClaimAvailable(ctx, workerId, batchSize, claimTimeout, parsedOptions.RepositoryOptionFields)
+	return contractRepository.ClaimAvailable(ctx, workerId, batchSize, claimTimeout, parsedOptions)
 }
 
 func (r *OutboxEventRepository) MarkPublishedMany(
@@ -497,38 +497,38 @@ func (r *OutboxEventRepository) MarkPublishedMany(
 	eventIds []uuid.UUID,
 	workerId string,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	contractRepository := r.contractRepository
 	if contractRepository == nil {
 		contractRepository = crepositories.NewOutboxEventRepository()
 	}
 	parsedOptions := options.ParseRepositoryOptions(opts...)
-	return contractRepository.MarkPublishedMany(ctx, eventIds, workerId, parsedOptions.RepositoryOptionFields)
+	return contractRepository.MarkPublishedMany(ctx, eventIds, workerId, parsedOptions)
 }
 
 func (r *OutboxEventRepository) MarkFailedMany(
 	ctx context.Context,
-	failureInputs []inputs.FailedOutboxEventInput,
+	failureInputs []cinputs.FailedOutboxEventInput,
 	workerId string,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	contractRepository := r.contractRepository
 	if contractRepository == nil {
 		contractRepository = crepositories.NewOutboxEventRepository()
 	}
 	parsedOptions := options.ParseRepositoryOptions(opts...)
-	return contractRepository.MarkFailedMany(ctx, failureInputs, workerId, parsedOptions.RepositoryOptionFields)
+	return contractRepository.MarkFailedMany(ctx, failureInputs, workerId, parsedOptions)
 }
 
 func (r *OutboxEventRepository) DeletePublishedBefore(
 	ctx context.Context,
 	publishedBefore time.Time,
 	opts ...options.RepositoryOptions,
-) (int64, *exceptions.Exception) {
+) (int64, *cexceptions.Exception) {
 	contractRepository := r.contractRepository
 	if contractRepository == nil {
 		contractRepository = crepositories.NewOutboxEventRepository()
 	}
 	parsedOptions := options.ParseRepositoryOptions(opts...)
-	return contractRepository.DeletePublishedBefore(ctx, publishedBefore, parsedOptions.RepositoryOptionFields)
+	return contractRepository.DeletePublishedBefore(ctx, publishedBefore, parsedOptions)
 }

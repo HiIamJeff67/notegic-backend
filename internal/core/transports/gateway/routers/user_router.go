@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 
 	userservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/user"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureUserRoutes(
 		routes.POST(
 			"/data",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetUserDataOperation,
+				capi.GetUserDataOperation,
 			),
 			authMiddleware,
 			endpoint.GetUserData,
@@ -34,7 +34,7 @@ func configureUserRoutes(
 		routes.POST(
 			"/me",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMeOperation,
+				capi.GetMeOperation,
 			),
 			authMiddleware,
 			endpoint.GetMe,
@@ -42,7 +42,7 @@ func configureUserRoutes(
 		routes.POST(
 			"/me/update",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMeOperation,
+				capi.UpdateMeOperation,
 			),
 			authMiddleware,
 			endpoint.UpdateMe,
@@ -50,7 +50,7 @@ func configureUserRoutes(
 		routes.POST(
 			"/graphql/search",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SearchUsersOperation,
+				capi.SearchUsersOperation,
 			),
 			authMiddleware,
 			endpoint.SearchUsers,
@@ -58,7 +58,7 @@ func configureUserRoutes(
 		routes.POST(
 			"/graphql/load-theme-authors",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LoadThemeAuthorsOperation,
+				capi.LoadThemeAuthorsOperation,
 			),
 			authMiddleware,
 			endpoint.LoadThemeAuthors,

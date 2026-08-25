@@ -5,11 +5,11 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type PauseMyRoutineTaskByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -24,7 +24,7 @@ type PauseMyRoutineTaskByIdResponseDto struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 type ResumeMyRoutineTaskByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -39,7 +39,7 @@ type ResumeMyRoutineTaskByIdResponseDto struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 type HardDeleteMyRoutineTaskByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -54,7 +54,7 @@ type HardDeleteMyRoutineTaskByIdResponseDto struct {
 	DeletedAt time.Time `json:"deletedAt"`
 }
 type HardDeleteMyRoutineTasksByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

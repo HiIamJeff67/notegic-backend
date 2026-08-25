@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -29,7 +29,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _SearchBlockPackConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackConnection_searchEdges(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -55,7 +55,7 @@ func (ec *executionContext) _SearchBlockPackConnection_searchEdges(ctx context.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*gqlmodels.SearchBlockPackEdge)
+	res := resTmp.([]*cgqlmodels.SearchBlockPackEdge)
 	fc.Result = res
 	return ec.marshalNSearchBlockPackEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackEdgeᚄ(ctx, field.Selections, res)
 }
@@ -79,7 +79,7 @@ func (ec *executionContext) fieldContext_SearchBlockPackConnection_searchEdges(_
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchBlockPackConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackConnection_searchPageInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -105,7 +105,7 @@ func (ec *executionContext) _SearchBlockPackConnection_searchPageInfo(ctx contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.SearchPageInfo)
+	res := resTmp.(*cgqlmodels.SearchPageInfo)
 	fc.Result = res
 	return ec.marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx, field.Selections, res)
 }
@@ -133,7 +133,7 @@ func (ec *executionContext) fieldContext_SearchBlockPackConnection_searchPageInf
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchBlockPackConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -177,7 +177,7 @@ func (ec *executionContext) fieldContext_SearchBlockPackConnection_totalCount(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchBlockPackConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackConnection_searchTime(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -221,7 +221,7 @@ func (ec *executionContext) fieldContext_SearchBlockPackConnection_searchTime(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchBlockPackEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackEdge_encodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -265,7 +265,7 @@ func (ec *executionContext) fieldContext_SearchBlockPackEdge_encodedSearchCursor
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchBlockPackEdge_node(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchBlockPackEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchBlockPackEdge_node(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchBlockPackEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchBlockPackEdge_node(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -291,7 +291,7 @@ func (ec *executionContext) _SearchBlockPackEdge_node(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.PrivateBlockPack)
+	res := resTmp.(*cgqlmodels.PrivateBlockPack)
 	fc.Result = res
 	return ec.marshalNPrivateBlockPack2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateBlockPack(ctx, field.Selections, res)
 }
@@ -335,8 +335,8 @@ func (ec *executionContext) fieldContext_SearchBlockPackEdge_node(_ context.Cont
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputSearchBlockPackCursorFields(ctx context.Context, obj any) (gqlmodels.SearchBlockPackCursorFields, error) {
-	var it gqlmodels.SearchBlockPackCursorFields
+func (ec *executionContext) unmarshalInputSearchBlockPackCursorFields(ctx context.Context, obj any) (cgqlmodels.SearchBlockPackCursorFields, error) {
+	var it cgqlmodels.SearchBlockPackCursorFields
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -362,8 +362,8 @@ func (ec *executionContext) unmarshalInputSearchBlockPackCursorFields(ctx contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchBlockPackInput(ctx context.Context, obj any) (gqlmodels.SearchBlockPackInput, error) {
-	var it gqlmodels.SearchBlockPackInput
+func (ec *executionContext) unmarshalInputSearchBlockPackInput(ctx context.Context, obj any) (cgqlmodels.SearchBlockPackInput, error) {
+	var it cgqlmodels.SearchBlockPackInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -458,7 +458,7 @@ func (ec *executionContext) unmarshalInputSearchBlockPackInput(ctx context.Conte
 
 var searchBlockPackConnectionImplementors = []string{"SearchBlockPackConnection", "SearchConnection"}
 
-func (ec *executionContext) _SearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchBlockPackConnection) graphql.Marshaler {
+func (ec *executionContext) _SearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchBlockPackConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchBlockPackConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -512,7 +512,7 @@ func (ec *executionContext) _SearchBlockPackConnection(ctx context.Context, sel 
 
 var searchBlockPackEdgeImplementors = []string{"SearchBlockPackEdge", "SearchEdge"}
 
-func (ec *executionContext) _SearchBlockPackEdge(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchBlockPackEdge) graphql.Marshaler {
+func (ec *executionContext) _SearchBlockPackEdge(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchBlockPackEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchBlockPackEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -558,11 +558,11 @@ func (ec *executionContext) _SearchBlockPackEdge(ctx context.Context, sel ast.Se
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNSearchBlockPackConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, v gqlmodels.SearchBlockPackConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchBlockPackConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, v cgqlmodels.SearchBlockPackConnection) graphql.Marshaler {
 	return ec._SearchBlockPackConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSearchBlockPackConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchBlockPackConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchBlockPackConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackConnection(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchBlockPackConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -572,7 +572,7 @@ func (ec *executionContext) marshalNSearchBlockPackConnection2ᚖgithubᚗcomᚋ
 	return ec._SearchBlockPackConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSearchBlockPackEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*gqlmodels.SearchBlockPackEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchBlockPackEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*cgqlmodels.SearchBlockPackEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -616,7 +616,7 @@ func (ec *executionContext) marshalNSearchBlockPackEdge2ᚕᚖgithubᚗcomᚋHiI
 	return ret
 }
 
-func (ec *executionContext) marshalNSearchBlockPackEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackEdge(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchBlockPackEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchBlockPackEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackEdge(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchBlockPackEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -626,21 +626,21 @@ func (ec *executionContext) marshalNSearchBlockPackEdge2ᚖgithubᚗcomᚋHiIamJ
 	return ec._SearchBlockPackEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSearchBlockPackInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackInput(ctx context.Context, v any) (gqlmodels.SearchBlockPackInput, error) {
+func (ec *executionContext) unmarshalNSearchBlockPackInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackInput(ctx context.Context, v any) (cgqlmodels.SearchBlockPackInput, error) {
 	res, err := ec.unmarshalInputSearchBlockPackInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchBlockPackSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackSortBy(ctx context.Context, v any) (*gqlmodels.SearchBlockPackSortBy, error) {
+func (ec *executionContext) unmarshalOSearchBlockPackSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackSortBy(ctx context.Context, v any) (*cgqlmodels.SearchBlockPackSortBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(gqlmodels.SearchBlockPackSortBy)
+	var res = new(cgqlmodels.SearchBlockPackSortBy)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSearchBlockPackSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackSortBy(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchBlockPackSortBy) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchBlockPackSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackSortBy(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchBlockPackSortBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

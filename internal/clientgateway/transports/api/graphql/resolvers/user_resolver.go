@@ -7,16 +7,16 @@ package resolvers
 import (
 	"context"
 
-	"github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 // Info is the resolver for the info field.
-func (r *publicUserResolver) Info(ctx context.Context, obj *gqlmodels.PublicUser) (*gqlmodels.PublicUserInfo, error) {
+func (r *publicUserResolver) Info(ctx context.Context, obj *cgqlmodels.PublicUser) (*cgqlmodels.PublicUserInfo, error) {
 	return r.dataloader.UserInfoDataLoader.LoadByUserPublicId(ctx, obj.PublicID)
 }
 
 // PublicUser returns generated.PublicUserResolver implementation.
-func (r *Resolver) PublicUser() generated.PublicUserResolver { return &publicUserResolver{r} }
+func (r *Resolver) PublicUser() cgenerated.PublicUserResolver { return &publicUserResolver{r} }
 
 type publicUserResolver struct{ *Resolver }

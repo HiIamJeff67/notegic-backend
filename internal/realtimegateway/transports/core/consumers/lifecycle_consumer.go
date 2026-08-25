@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -52,7 +52,7 @@ func (c *LifecycleConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
 		consumer, err := platformkafka.NewConsumer(
 			c.kafkaConfig,
-			coreeventscontract.CoreLifecycleTopic.String(),
+			coreevents.CoreLifecycleTopic.String(),
 		)
 		if err == nil {
 			err = consumer.Run(ctx, c.handle)
@@ -76,7 +76,7 @@ func (c *LifecycleConsumer) run(ctx context.Context) {
 func (c *LifecycleConsumer) handle(
 	ctx context.Context,
 	record platformkafka.ConsumerRecord,
-	envelope eventcontract.EventEnvelope[json.RawMessage],
+	envelope cevent.EventEnvelope[json.RawMessage],
 ) error {
 	claimed, err := c.leaseStore.MarkLifecycleEventProcessed(envelope.EventId)
 	if err != nil {
@@ -96,11 +96,11 @@ func (c *LifecycleConsumer) handle(
 func (c *LifecycleConsumer) process(
 	_ context.Context,
 	_ platformkafka.ConsumerRecord,
-	envelope eventcontract.EventEnvelope[json.RawMessage],
+	envelope cevent.EventEnvelope[json.RawMessage],
 ) error {
 	switch envelope.EventType {
-	case coreeventscontract.EventType_RoutineTaskCompleted:
-		var data coreeventscontract.RoutineTaskCompletedData
+	case coreevents.EventType_RoutineTaskCompleted:
+		var data coreevents.RoutineTaskCompletedData
 		if err := json.Unmarshal(envelope.Data, &data); err != nil {
 			return &platformkafka.ConsumerError{
 				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
@@ -127,16 +127,16 @@ func (c *LifecycleConsumer) process(
 			Attempt:             data.Attempt,
 			OccurredAt:          data.CompletedAt,
 		})
-	case coreeventscontract.EventType_BlockPackAccessRevoked:
-		var data coreeventscontract.BlockPackAccessRevokedData
+	case coreevents.EventType_BlockPackAccessRevoked:
+		var data coreevents.BlockPackAccessRevokedData
 		if err := json.Unmarshal(envelope.Data, &data); err != nil {
 			return &platformkafka.ConsumerError{
 				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
 				Origin:         err,
 			}
 		}
-		if data.Reason != coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked &&
-			data.Reason != coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable {
+		if data.Reason != coreevents.BlockPackAccessRevocationReason_PermissionRevoked &&
+			data.Reason != coreevents.BlockPackAccessRevocationReason_ResourceUnavailable {
 			return &platformkafka.ConsumerError{
 				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
 				Origin:         errors.New("Kafka BlockPack access revocation has an unsupported reason"),
@@ -149,15 +149,15 @@ func (c *LifecycleConsumer) process(
 			TargetUserPublicId: data.TargetUserPublicId,
 			Reason:             data.Reason,
 		})
-	case coreeventscontract.EventType_UserSessionsRevoked:
+	case coreevents.EventType_UserSessionsRevoked:
 		return c.leaseStore.PublishUserSessionRevocation(realtimelease.UserSessionRevocation{
 			EventId:      envelope.EventId,
 			UserPublicId: envelope.AggregateId,
 		})
-	case coreeventscontract.EventType_BlockPackRoomPolicyChanged,
-		coreeventscontract.EventType_RootShelfPermissionRevoked:
-		if envelope.EventType == coreeventscontract.EventType_RootShelfPermissionRevoked {
-			var data coreeventscontract.ResourceChangedData
+	case coreevents.EventType_BlockPackRoomPolicyChanged,
+		coreevents.EventType_RootShelfPermissionRevoked:
+		if envelope.EventType == coreevents.EventType_RootShelfPermissionRevoked {
+			var data coreevents.ResourceChangedData
 			if err := json.Unmarshal(envelope.Data, &data); err != nil {
 				return &platformkafka.ConsumerError{
 					Classification: platformkafka.ErrorClassification_SchemaIncompatible,
@@ -171,7 +171,7 @@ func (c *LifecycleConsumer) process(
 			}
 			change := data.Change
 			if change == "" {
-				change = coreeventscontract.ResourceEventChange_PermissionRevoked
+				change = coreevents.ResourceEventChange_PermissionRevoked
 			}
 
 			return c.leaseStore.PublishResourceEvent(realtimelease.ResourceEvent{
@@ -185,11 +185,11 @@ func (c *LifecycleConsumer) process(
 		}
 
 		return nil
-	case coreeventscontract.EventType_RootShelfPermissionChanged,
-		coreeventscontract.EventType_RootShelfDeleted,
-		coreeventscontract.EventType_BlockPackChanged,
-		coreeventscontract.EventType_BlockPackDeleted:
-		var data coreeventscontract.ResourceChangedData
+	case coreevents.EventType_RootShelfPermissionChanged,
+		coreevents.EventType_RootShelfDeleted,
+		coreevents.EventType_BlockPackChanged,
+		coreevents.EventType_BlockPackDeleted:
+		var data coreevents.ResourceChangedData
 		if err := json.Unmarshal(envelope.Data, &data); err != nil {
 			return &platformkafka.ConsumerError{
 				Classification: platformkafka.ErrorClassification_SchemaIncompatible,
@@ -202,10 +202,10 @@ func (c *LifecycleConsumer) process(
 		}
 		change := data.Change
 		if change == "" {
-			change = coreeventscontract.ResourceEventChange_Updated
-			if envelope.EventType == coreeventscontract.EventType_RootShelfDeleted ||
-				envelope.EventType == coreeventscontract.EventType_BlockPackDeleted {
-				change = coreeventscontract.ResourceEventChange_Deleted
+			change = coreevents.ResourceEventChange_Updated
+			if envelope.EventType == coreevents.EventType_RootShelfDeleted ||
+				envelope.EventType == coreevents.EventType_BlockPackDeleted {
+				change = coreevents.ResourceEventChange_Deleted
 			}
 		}
 

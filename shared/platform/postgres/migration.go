@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
 	"gorm.io/gorm"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -47,20 +48,6 @@ func ViewAllDatabaseEnums(db *gorm.DB) error {
 	return nil
 }
 
-func TruncateTablesInDatabase(tableName TableName, db *gorm.DB) error {
-	if logs.NotegicLogger == nil {
-		return errors.New("observability logger is not initialized")
-	}
-
-	if err := db.Exec(fmt.Sprintf("TRUNCATE TABLE %q RESTART IDENTITY CASCADE;", tableName)).Error; err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to truncate database table %s", tableName))
-		return err
-	}
-
-	logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Database table %s truncated", tableName))
-	return nil
-}
-
 func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) error {
 	if logs.NotegicLogger == nil {
 		return errors.New("observability logger is not initialized")
@@ -68,20 +55,14 @@ func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) err
 
 	logs.NotegicLogger.Info(context.Background(), "Migrating database enums...")
 	for name, values := range migratingEnums {
-		var exists bool
-		if err := db.Raw("SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = ?);", name).Scan(&exists).Error; err != nil {
-			logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to check enum %s existence", name))
-			return err
+		quotedValues := make([]string, len(values))
+		for index, value := range values {
+			quotedValues[index] = "'" + strings.ReplaceAll(value, "'", "''") + "'"
 		}
-
-		if !exists {
-			enumSQL := fmt.Sprintf("CREATE TYPE %q AS ENUM ('%s');", name, strings.Join(values, "', '"))
-			if err := db.Exec(enumSQL).Error; err != nil {
-				logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to create enum %s", name))
-				return err
-			}
-			logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Enum %s created with values: %v", name, values))
-			continue
+		enumSQL := fmt.Sprintf("CREATE TYPE IF NOT EXISTS %q AS ENUM (%s);", name, strings.Join(quotedValues, ", "))
+		if err := db.Exec(enumSQL).Error; err != nil {
+			logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to create enum %s", name))
+			return err
 		}
 
 		var dbValues []string
@@ -99,7 +80,8 @@ func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) err
 			if containsString(dbValues, value) {
 				continue
 			}
-			if err := db.Exec(fmt.Sprintf("ALTER TYPE %q ADD VALUE '%s';", name, value)).Error; err != nil {
+			quotedValue := strings.ReplaceAll(value, "'", "''")
+			if err := db.Exec(fmt.Sprintf("ALTER TYPE %q ADD VALUE IF NOT EXISTS '%s';", name, quotedValue)).Error; err != nil {
 				logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to add value %q to enum %s", value, name))
 				return err
 			}
@@ -130,6 +112,28 @@ func MigrateTablesToDatabase(db *gorm.DB, migratingTables []any) error {
 	}
 
 	logs.NotegicLogger.Info(context.Background(), "Migration of tables is done")
+	return nil
+}
+
+// Migrate applies only the manifest for the requested runtime. Database
+// permissions remain a separate deployment concern.
+func Migrate(db *gorm.DB, runtime types.Runtime, manifest MigrationManifest) error {
+	if !manifest.IsFor(runtime) {
+		return fmt.Errorf("runtime %q cannot migrate manifest for runtime %q", runtime, manifest.Runtime)
+	}
+
+	for _, migrate := range []func() error{
+		func() error { return MigrateEnumsToDatabase(db, manifest.Enums) },
+		func() error { return MigrateTablesToDatabase(db, manifest.Tables) },
+		func() error { return MigrateViewsToDatabase(db, manifest.Views) },
+		func() error { return MigrateTriggersToDatabase(db, manifest.Triggers) },
+		func() error { return MigrateConstraintsToDatabase(db, manifest.Constraints) },
+	} {
+		if err := migrate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

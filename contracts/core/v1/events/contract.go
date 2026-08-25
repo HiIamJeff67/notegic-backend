@@ -1,28 +1,28 @@
 package eventscontract
 
-import eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+import cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-const CoreLifecycleTopic eventcontract.Topic = "notegic.core.lifecycle.v1"
+const CoreLifecycleTopic cevent.Topic = "notegic.core.lifecycle.v1"
 
-const CoreDurableJobYjsMaintenanceHintTopic eventcontract.Topic = "notegic.core.durablejob.yjs-maintenance-hint.v1"
+const CoreYjsMaintenanceHintTopic cevent.Topic = "notegic.core.yjs-maintenance-hint.v1"
 
 const (
-	AggregateType_RootShelf   eventcontract.AggregateType = "RootShelf"
-	AggregateType_SubShelf    eventcontract.AggregateType = "SubShelf"
-	AggregateType_BlockPack   eventcontract.AggregateType = "BlockPack"
-	AggregateType_RoutineTask eventcontract.AggregateType = "RoutineTask"
-	AggregateType_User        eventcontract.AggregateType = "User"
+	AggregateType_RootShelf   cevent.AggregateType = "RootShelf"
+	AggregateType_SubShelf    cevent.AggregateType = "SubShelf"
+	AggregateType_BlockPack   cevent.AggregateType = "BlockPack"
+	AggregateType_RoutineTask cevent.AggregateType = "RoutineTask"
+	AggregateType_User        cevent.AggregateType = "User"
 )
 
 const (
-	EventType_BlockPackAccessRevoked     eventcontract.EventType = "BlockPackAccessRevoked"
-	EventType_BlockPackRoomPolicyChanged eventcontract.EventType = "BlockPackRoomPolicyChanged"
-	EventType_RootShelfPermissionRevoked eventcontract.EventType = "RootShelfPermissionRevoked"
-	EventType_RootShelfPermissionChanged eventcontract.EventType = "RootShelfPermissionChanged"
-	EventType_RootShelfDeleted           eventcontract.EventType = "RootShelfDeleted"
-	EventType_BlockPackChanged           eventcontract.EventType = "BlockPackChanged"
-	EventType_BlockPackDeleted           eventcontract.EventType = "BlockPackDeleted"
-	EventType_UserSessionsRevoked        eventcontract.EventType = "UserSessionsRevoked"
-	EventType_YjsMaintenanceHint         eventcontract.EventType = "YjsMaintenanceHint"
-	EventType_RoutineTaskCompleted       eventcontract.EventType = "RoutineTaskCompleted"
+	EventType_BlockPackAccessRevoked     cevent.EventType = "BlockPackAccessRevoked"
+	EventType_BlockPackRoomPolicyChanged cevent.EventType = "BlockPackRoomPolicyChanged"
+	EventType_RootShelfPermissionRevoked cevent.EventType = "RootShelfPermissionRevoked"
+	EventType_RootShelfPermissionChanged cevent.EventType = "RootShelfPermissionChanged"
+	EventType_RootShelfDeleted           cevent.EventType = "RootShelfDeleted"
+	EventType_BlockPackChanged           cevent.EventType = "BlockPackChanged"
+	EventType_BlockPackDeleted           cevent.EventType = "BlockPackDeleted"
+	EventType_UserSessionsRevoked        cevent.EventType = "UserSessionsRevoked"
+	EventType_YjsMaintenanceHint         cevent.EventType = "YjsMaintenanceHint"
+	EventType_RoutineTaskCompleted       cevent.EventType = "RoutineTaskCompleted"
 )

@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
@@ -104,14 +104,14 @@ func setAPIKeyContext(ctx *gin.Context, apiKeyId, userId, userPublicId uuid.UUID
 }
 
 func abortAPIKey(ctx *gin.Context, message string, status int) {
-	ctx.AbortWithStatusJSON(status, gatewaycontract.Response[struct{}]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.AbortWithStatusJSON(status, cgateway.Response[struct{}]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   ctx.GetHeader("X-Request-Id"),
 			RespondedAt: time.Now(),
 		},
 		Data: struct{}{},
-		Exception: exceptions.New(
+		Exception: cexceptions.New(
 			"Unauthorized",
 			"Core",
 			"AuthenticateAPIKey",

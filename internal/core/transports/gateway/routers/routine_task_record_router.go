@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
 
 	routineservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureRoutineTaskRecordRoutes(
 		routineTaskRecordRoutes.POST(
 			"/get-all-by-routine-task-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdOperation,
+				capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdOperation,
 			),
 			authMiddleware,
 			endpoint.GetAllMyRoutineTaskRecordsByRoutineTaskId,
@@ -34,7 +34,7 @@ func configureRoutineTaskRecordRoutes(
 		routineTaskRecordRoutes.POST(
 			"/graphql/search",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SearchRoutineTaskRecordsOperation,
+				capi.SearchRoutineTaskRecordsOperation,
 			),
 			authMiddleware,
 			endpoint.SearchRoutineTaskRecords,
@@ -45,7 +45,7 @@ func configureRoutineTaskRecordRoutes(
 		visualizationRoutes.POST(
 			"/status-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineTaskRecordStatusCountOperation,
+				capi.VisualizeMyRoutineTaskRecordStatusCountOperation,
 			),
 			authMiddleware,
 			endpoint.VisualizeMyRoutineTaskRecordStatusCount,
@@ -53,7 +53,7 @@ func configureRoutineTaskRecordRoutes(
 		visualizationRoutes.POST(
 			"/purpose-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineTaskRecordPurposeCountOperation,
+				capi.VisualizeMyRoutineTaskRecordPurposeCountOperation,
 			),
 			authMiddleware,
 			endpoint.VisualizeMyRoutineTaskRecordPurposeCount,
@@ -61,7 +61,7 @@ func configureRoutineTaskRecordRoutes(
 		visualizationRoutes.POST(
 			"/scheduled-at-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountOperation,
+				capi.VisualizeMyRoutineTaskRecordScheduledAtCountOperation,
 			),
 			authMiddleware,
 			endpoint.VisualizeMyRoutineTaskRecordScheduledAtCount,
@@ -69,7 +69,7 @@ func configureRoutineTaskRecordRoutes(
 		visualizationRoutes.POST(
 			"/actual-started-at-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountOperation,
+				capi.VisualizeMyRoutineTaskRecordActualStartedAtCountOperation,
 			),
 			authMiddleware,
 			endpoint.VisualizeMyRoutineTaskRecordActualStartedAtCount,
@@ -77,7 +77,7 @@ func configureRoutineTaskRecordRoutes(
 		visualizationRoutes.POST(
 			"/actual-ended-at-count",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountOperation,
+				capi.VisualizeMyRoutineTaskRecordActualEndedAtCountOperation,
 			),
 			authMiddleware,
 			endpoint.VisualizeMyRoutineTaskRecordActualEndedAtCount,

@@ -9,33 +9,33 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type ItemServiceInterface interface {
-	SearchPrivateItems(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchItemInput) (*gqlmodels.SearchItemConnection, *exceptions.Exception)
+	SearchPrivateItems(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchItemInput) (*cgqlmodels.SearchItemConnection, *cexceptions.Exception)
 }
 
 type ItemService struct {
 	db        *gorm.DB
-	itemScope scopes.ItemScopeInterface
+	itemScope corescopes.ItemScopeInterface
 }
 
 func NewItemService(
 	db *gorm.DB,
-	itemScope scopes.ItemScopeInterface,
+	itemScope corescopes.ItemScopeInterface,
 ) ItemServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -49,8 +49,8 @@ func NewItemService(
 /* ============================== Service Methods for GraphQL Item ============================== */
 
 func (s *ItemService) SearchPrivateItems(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchItemInput,
-) (*gqlmodels.SearchItemConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchItemInput,
+) (*cgqlmodels.SearchItemConnection, *cexceptions.Exception) {
 	type PrivateItem struct {
 		schemas.Item
 		Permission enums.AccessControlPermission `gorm:"column:permission"`
@@ -98,9 +98,9 @@ func (s *ItemService) SearchPrivateItems(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchItemCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchItemCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorDecodeFailed",
 				"Search",
 				"SearchPrivateItems",
@@ -114,21 +114,21 @@ func (s *ItemService) SearchPrivateItems(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		var cending string = gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		var cending string = cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchItemSortByType:
+		case cgqlmodels.SearchItemSortByType:
 			query = query.Order("type " + cending).
 				Order("updated_at " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchItemSortByLastUpdate:
+		case cgqlmodels.SearchItemSortByLastUpdate:
 			query = query.Order("updated_at " + cending).
 				Order("type " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchItemSortByCreatedAt:
+		case cgqlmodels.SearchItemSortByCreatedAt:
 			query = query.Order("created_at " + cending).
 				Order("type " + cending).
 				Order("updated_at " + cending)
@@ -157,7 +157,7 @@ func (s *ItemService) SearchPrivateItems(
 				Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions)
 		},
 	).Find(&items).Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"QueryFailed",
 			"Item",
 			"SearchPrivateItems",
@@ -168,17 +168,17 @@ func (s *ItemService) SearchPrivateItems(
 	}
 
 	hasNextPage := len(items) > limit
-	searchEdges := make([]*gqlmodels.SearchItemEdge, len(items))
+	searchEdges := make([]*cgqlmodels.SearchItemEdge, len(items))
 
 	for index, item := range items {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchItemCursorFields]{
-			Fields: gqlmodels.SearchItemCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchItemCursorFields]{
+			Fields: cgqlmodels.SearchItemCursorFields{
 				ID: item.Id,
 			},
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorEncodeFailed",
 				"Search",
 				"SearchPrivateItems",
@@ -188,7 +188,7 @@ func (s *ItemService) SearchPrivateItems(
 			).WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorEncodingFailed",
 				"Search",
 				"SearchPrivateItems",
@@ -198,13 +198,13 @@ func (s *ItemService) SearchPrivateItems(
 			)
 		}
 
-		searchEdges[index] = &gqlmodels.SearchItemEdge{
+		searchEdges[index] = &cgqlmodels.SearchItemEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                item.Item.ToPrivateItem(),
 		}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: false,
 	}
@@ -219,7 +219,7 @@ func (s *ItemService) SearchPrivateItems(
 		searchEdges = searchEdges[:limit]
 	}
 
-	return &gqlmodels.SearchItemConnection{
+	return &cgqlmodels.SearchItemConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

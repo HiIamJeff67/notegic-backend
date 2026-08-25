@@ -34,11 +34,11 @@ func LoadConfig() (Config, error) {
 		strings.TrimSpace(os.Getenv("CORE_DELEGATION_ISSUER")) == "" {
 		return Config{}, fmt.Errorf("CORE_DELEGATION_SECRET, CORE_DELEGATION_AUDIENCE, and CORE_DELEGATION_ISSUER are required")
 	}
-	postgres, err := LoadPostgresConfig()
+	postgres, err := loadPostgresConfig()
 	if err != nil {
 		return Config{}, err
 	}
-	kafka, err := LoadKafkaConsumerConfig()
+	kafka, err := loadKafkaConsumerConfig()
 	if err != nil {
 		return Config{}, err
 	}

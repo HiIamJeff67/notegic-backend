@@ -2,37 +2,37 @@ package user
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserInfoServiceInterface interface {
-	GetMyInfo(ctx context.Context, requestDto *apicontract.GetMyInfoRequestDto) (*apicontract.GetMyInfoResponseDto, *exceptions.Exception)
-	UpdateMyInfo(ctx context.Context, requestDto *apicontract.UpdateMyInfoRequestDto) (*apicontract.UpdateMyInfoResponseDto, *exceptions.Exception)
+	GetMyInfo(ctx context.Context, requestDto *capi.GetMyInfoRequestDto) (*capi.GetMyInfoResponseDto, *cexceptions.Exception)
+	UpdateMyInfo(ctx context.Context, requestDto *capi.UpdateMyInfoRequestDto) (*capi.UpdateMyInfoResponseDto, *cexceptions.Exception)
 
 	// services for public userInfos
-	GetPublicUserInfoByUserPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicUserInfo, *exceptions.Exception)
-	GetPublicUserInfosByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*gqlmodels.PublicUserInfo, *exceptions.Exception)
+	GetPublicUserInfoByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUserInfo, *cexceptions.Exception)
+	GetPublicUserInfosByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicUserInfo, *cexceptions.Exception)
 }
 
 type UserInfoService struct {
@@ -62,10 +62,10 @@ func NewUserInfoService(
 /* ============================== Service Methods for UserInfo ============================== */
 
 func (s *UserInfoService) GetMyInfo(
-	ctx context.Context, requestDto *apicontract.GetMyInfoRequestDto,
-) (*apicontract.GetMyInfoResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyInfoRequestDto,
+) (*capi.GetMyInfoResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserInfo",
 			"GetMyInfo",
@@ -92,7 +92,7 @@ func (s *UserInfoService) GetMyInfo(
 		countryString := userInfo.Country.String()
 		country = &countryString
 	}
-	return &apicontract.GetMyInfoResponseDto{
+	return &capi.GetMyInfoResponseDto{
 		CoverBackgroundURL: userInfo.CoverBackgroundURL,
 		AvatarURL:          userInfo.AvatarURL,
 		Header:             userInfo.Header,
@@ -105,10 +105,10 @@ func (s *UserInfoService) GetMyInfo(
 }
 
 func (s *UserInfoService) UpdateMyInfo(
-	ctx context.Context, requestDto *apicontract.UpdateMyInfoRequestDto,
-) (*apicontract.UpdateMyInfoResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UpdateMyInfoRequestDto,
+) (*capi.UpdateMyInfoResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"UserInfo",
 			"UpdateMyInfo",
@@ -125,7 +125,7 @@ func (s *UserInfoService) UpdateMyInfo(
 	if requestDto.Body.Values.Gender != nil {
 		parsedGender, err := enums.ConvertStringToUserGender(*requestDto.Body.Values.Gender)
 		if err != nil {
-			return nil, exceptions.InvalidInput("UserInfo").WithOrigin(err)
+			return nil, cexceptions.InvalidInput("UserInfo").WithOrigin(err)
 		}
 		gender = parsedGender
 	}
@@ -133,7 +133,7 @@ func (s *UserInfoService) UpdateMyInfo(
 	if requestDto.Body.Values.Country != nil {
 		parsedCountry, err := enums.ConvertStringToCountry(*requestDto.Body.Values.Country)
 		if err != nil {
-			return nil, exceptions.InvalidInput("UserInfo").WithOrigin(err)
+			return nil, cexceptions.InvalidInput("UserInfo").WithOrigin(err)
 		}
 		country = parsedCountry
 	}
@@ -163,7 +163,7 @@ func (s *UserInfoService) UpdateMyInfo(
 		Select("name").
 		Where("id = ?", actorUserId).
 		First(&user); result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"User",
 			"ResolveUser",
@@ -183,7 +183,7 @@ func (s *UserInfoService) UpdateMyInfo(
 		)
 	}
 
-	return &apicontract.UpdateMyInfoResponseDto{
+	return &capi.UpdateMyInfoResponseDto{
 		UpdatedAt: updatedUserInfo.UpdatedAt,
 	}, nil
 }
@@ -194,7 +194,7 @@ func (s *UserInfoService) UpdateMyInfo(
 func (s *UserInfoService) GetPublicUserInfoByUserPublicId(
 	ctx context.Context,
 	publicId uuid.UUID,
-) (*gqlmodels.PublicUserInfo, *exceptions.Exception) {
+) (*cgqlmodels.PublicUserInfo, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
 	userInfo := schemas.UserInfo{}
@@ -203,7 +203,7 @@ func (s *UserInfoService) GetPublicUserInfoByUserPublicId(
 		Where("u.public_id = ?", publicId).
 		First(&userInfo)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"UserInfo",
 			"GetPublicUserInfoByUserPublicId",
@@ -217,9 +217,9 @@ func (s *UserInfoService) GetPublicUserInfoByUserPublicId(
 
 func (s *UserInfoService) GetPublicUserInfosByUserPublicIds(
 	ctx context.Context, publicIds []uuid.UUID,
-) ([]*gqlmodels.PublicUserInfo, *exceptions.Exception) {
+) ([]*cgqlmodels.PublicUserInfo, *cexceptions.Exception) {
 	if len(publicIds) == 0 {
-		return []*gqlmodels.PublicUserInfo{}, nil
+		return []*cgqlmodels.PublicUserInfo{}, nil
 	}
 
 	db := s.db.WithContext(ctx)
@@ -233,7 +233,7 @@ func (s *UserInfoService) GetPublicUserInfosByUserPublicIds(
 		}
 	}
 	if len(uniquePublicIds) == 0 {
-		return make([]*gqlmodels.PublicUserInfo, len(publicIds)), nil
+		return make([]*cgqlmodels.PublicUserInfo, len(publicIds)), nil
 	}
 
 	var userInfosWithPublicUserIds []*struct {
@@ -246,7 +246,7 @@ func (s *UserInfoService) GetPublicUserInfosByUserPublicIds(
 		Where("u.public_id IN ?", uniquePublicIds).
 		Find(&userInfosWithPublicUserIds)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"QueryFailed",
 			"UserInfo",
 			"GetPublicUserInfosByUserPublicIds",
@@ -261,7 +261,7 @@ func (s *UserInfoService) GetPublicUserInfosByUserPublicIds(
 		publicIdToIndexesMap[publidId] = append(publicIdToIndexesMap[publidId], index)
 	}
 
-	publicUserInfos := make([]*gqlmodels.PublicUserInfo, len(publicIds))
+	publicUserInfos := make([]*cgqlmodels.PublicUserInfo, len(publicIds))
 	for _, userInfoWithPublicUserId := range userInfosWithPublicUserIds {
 		for _, index := range publicIdToIndexesMap[userInfoWithPublicUserId.UserPublicId] {
 			publicUserInfos[index] = userInfoWithPublicUserId.UserInfo.ToPublicUserInfo()

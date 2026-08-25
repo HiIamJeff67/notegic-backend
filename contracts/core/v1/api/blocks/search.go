@@ -1,6 +1,6 @@
 package apicontract
 
-import gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+import cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
-type SearchBlocksRequestDto = gqlmodels.SearchBlockInput
-type SearchBlocksResponseDto = gqlmodels.SearchBlockConnection
+type SearchBlocksRequestDto = cgqlmodels.SearchBlockInput
+type SearchBlocksResponseDto = cgqlmodels.SearchBlockConnection

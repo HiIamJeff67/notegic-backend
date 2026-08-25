@@ -3,12 +3,12 @@ package topics
 import (
 	"time"
 
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 )
 
 func CoreEmailRequestTopicSpec() TopicSpec {
 	return TopicSpec{
-		Name:                emaileventscontract.CoreEmailRequestTopic.String(),
+		Name:                cemailevents.CoreEmailRequestTopic.String(),
 		Partitions:          3,
 		ReplicationFactor:   1,
 		Retention:           7 * 24 * time.Hour,

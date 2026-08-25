@@ -12,14 +12,14 @@ import (
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 func AuthMiddleware(
@@ -29,14 +29,14 @@ func AuthMiddleware(
 	return func(ctx *gin.Context) {
 		userPublicId, exception := contexts.GetActorUserPublicId(ctx.Request.Context())
 		if exception != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"InvalidDelegation",
 					"Core",
 					"AuthenticateRequest",
@@ -47,7 +47,7 @@ func AuthMiddleware(
 			return
 		}
 
-		request := &gatewaycontract.Request[json.RawMessage]{}
+		request := &cgateway.Request[json.RawMessage]{}
 		if ctx.Request.ContentLength != 0 {
 			_ = ctx.ShouldBindBodyWithJSON(request)
 		}
@@ -67,14 +67,14 @@ func AuthMiddleware(
 		}
 
 		if !refreshTokenExists {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"Unauthorized",
 					"Core",
 					"AuthenticateRequest",
@@ -87,14 +87,14 @@ func AuthMiddleware(
 
 		claims, err := sharedtokens.ParseRefreshToken(refreshToken)
 		if err != nil || claims.Subject != userPublicId.String() || claims.UserAgent != userAgent {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"Unauthorized",
 					"Core",
 					"AuthenticateRequest",
@@ -116,14 +116,14 @@ func AuthMiddleware(
 			options.WithDB(data.DB),
 		)
 		if exception != nil || user.RefreshToken != refreshToken || user.UserAgent != userAgent {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"Unauthorized",
 					"Core",
 					"AuthenticateRequest",
@@ -143,14 +143,14 @@ func AuthMiddleware(
 			},
 		)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"GenerationFailed",
 					"Core",
 					"AuthenticateRequest",
@@ -188,14 +188,14 @@ func AuthMiddleware(
 			}
 		}
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"RefreshFailed",
 					"Core",
 					"AuthenticateRequest",
@@ -232,14 +232,14 @@ func setActorUserId(
 		options.WithDB(data.DB),
 	)
 	if exception != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   ctx.GetHeader("X-Request-Id"),
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"Unauthorized",
 				"Core",
 				"AuthenticateRequest",

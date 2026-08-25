@@ -53,7 +53,7 @@ internal/
     workers/                 # YjsWorker connection manager
   core/
     data/
-      postgres/             # schemas, repositories, scopes, SQL, seeds, options
+      postgres/             # Core repositories, scopes, SQL, seeds, and migration manifest
       redis/                # Core-owned Redis caches and Lua libraries
       storage/              # Core-owned storage implementations
     services/
@@ -63,9 +63,8 @@ internal/
         parsers/             # RoutineTask payload decoding and flattening
         matchers/            # RoutineTask template matching
     workers/                # Core-owned long-lived reconciliation and background loops
-  durablejob/               # independent runtime; no direct database access
-    transports/core/        # Core-facing Kafka consumers and producers
-      strategies/           # DurableJob maintenance scheduling policy
+  durablejob/               # independent runtime; direct shared PostgreSQL access
+    data/postgres/           # DurableJob repositories (including inputs), scopes, and migration manifest
   email/                    # independent runtime and SMTP sender
   yjsworker/                # standalone TypeScript runtime; no src/ layer
     configs/                # runtime tuning and environment-backed settings
@@ -162,7 +161,7 @@ shared/platform -X-> domain business packages
 
 ## Shared contract types
 
-`contracts/types/models/enums` is the canonical owner of cross-runtime enum values.
+`contracts/types/enums` is the canonical owner of cross-runtime enum values.
 Core and DurableJob database enum wrappers import those values and add only the
 PostgreSQL responsibilities (`Name`, `Scan`, `Value`, validation, and string
 conversion); neither runtime redefines a value set.
@@ -228,12 +227,11 @@ repositories or services.
 
 NOT-57 adds `internal/durablejob/commands` and `internal/email/commands` as independent
 composition roots.
-DurableJob is an independent process. Its RoutineTask handlers only validate,
-decode, and prepare versioned assignments; Core owns all database-backed task
-execution and state transitions. DurableJob therefore has no import path to
-Core's schemas, repositories, scopes, or services. It publishes prepared
-completion/failure results through the DurableJob contracts, and Core applies
-them through one transaction-owned application/data boundary. Email owns its SMTP sender and queue and consumes
+DurableJob is an independent process. It owns the RoutineTask claimer, its
+PostgreSQL connection, quota consumption, task records, scheduling transitions,
+local handlers, business mutations, and finalization. Its GORM models come from
+`shared/platform/postgres/schemas`; it has no import path to Core's repositories,
+scopes, or services, and it does not publish routine-task results to Core. Email owns its SMTP sender and queue and consumes
 Core's versioned Kafka email request contract; its HTTP transport exposes only
 started/health endpoints. Both
 commands initialize observability and stop their workers/HTTP servers on
@@ -362,7 +360,7 @@ accounting: `UserQuotaTable` stores the actor-owned consumed cost units and its
 cycle timestamps. `QuotaCycleWorker` is a Core-owned daily reconciliation loop;
 it initializes missing quota rows from the active billing cycle (or account
 creation for a free user) and resets rows whose `next_reset_at` has elapsed.
-RoutineTask claim atomically consumes the task creator's accumulated cost units
+DurableJob claim atomically consumes the task creator's accumulated cost units
 against the creator's current plan limit in the same transaction that changes a
 task to `Running`. Consequently, sharing a RoutineTask does not charge the user
 who happens to execute or view it, and an unavailable/late worker cannot make a
@@ -371,7 +369,7 @@ task execute beyond the monthly quota.
 `GetMyAccountResponseDto.routineTaskCostUnitCount` remains temporarily for
 client contract compatibility, but now reports the actor's monthly consumed
 execution cost from `UserQuotaTable`. Clients must not use it to reject
-RoutineTask creation or payload edits; quota is enforced only when Core claims
+RoutineTask creation or payload edits; quota is enforced only when DurableJob claims
 an execution.
 
 ### Registration and operation flow
@@ -436,7 +434,8 @@ families are kept at their boundaries:
 - [`contracts/core/v1/events`](../../contracts/core/v1/events/) contains Core
   lifecycle facts and policy decisions consumed by RealtimeGateway.
 - [`contracts/durable-job/v1/events`](../../contracts/durable-job/v1/events/)
-  contains RoutineTask and DurableJob-to-Core Yjs maintenance coordination.
+  contains DurableJob-to-RealtimeGateway lifecycle hints. RoutineTask
+  persistence and execution results are written through PostgreSQL, not Kafka.
 - [`contracts/core/v1/events`](../../contracts/core/v1/events/)
   contains Core-owned lifecycle facts and Yjs maintenance hints.
 - [`contracts/yjs-worker/v1/events`](../../contracts/yjs-worker/v1/events/)

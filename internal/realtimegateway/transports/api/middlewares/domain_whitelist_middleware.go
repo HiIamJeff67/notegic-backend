@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -41,7 +41,7 @@ func DomainWhiteListMiddleware(allowedDomains []string) gin.HandlerFunc {
 					logs.NotegicLogger.Alert(ctx.Request.Context(), nil, domain)
 				}
 				ctx.AbortWithStatusJSON(http.StatusForbidden,
-					exceptionwriter.GetGinH(exceptions.New(
+					exceptionwriter.GetGinH(cexceptions.New(
 						"PermissionDeniedDueToInvalidRequestOriginDomain",
 						"Auth",
 						"Authorize",
@@ -57,7 +57,7 @@ func DomainWhiteListMiddleware(allowedDomains []string) gin.HandlerFunc {
 			if !isAllowedReferer(referer, allowedDomains) {
 				logs.NotegicLogger.Alert(ctx.Request.Context(), nil, fmt.Sprintf("Blocked Referer: %s", referer))
 				ctx.AbortWithStatusJSON(http.StatusForbidden,
-					exceptionwriter.GetGinH(exceptions.New(
+					exceptionwriter.GetGinH(cexceptions.New(
 						"PermissionDeniedDueToInvalidRequestOriginDomain",
 						"Auth",
 						"Authorize",

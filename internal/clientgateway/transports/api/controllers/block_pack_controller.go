@@ -5,27 +5,27 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type BlockPackControllerInterface interface {
-	GetMyBlockPackById(ctx *gin.Context, requestDto *apicontract.GetMyBlockPackByIdRequestDto)
-	GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *apicontract.GetMyBlockPackAndItsParentByIdRequestDto)
-	GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto)
-	GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto)
-	CreateBlockPack(ctx *gin.Context, requestDto *apicontract.CreateBlockPackRequestDto)
-	CreateBlockPacks(ctx *gin.Context, requestDto *apicontract.CreateBlockPacksRequestDto)
-	UpdateMyBlockPackById(ctx *gin.Context, requestDto *apicontract.UpdateMyBlockPackByIdRequestDto)
-	UpdateMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.UpdateMyBlockPacksByIdsRequestDto)
-	MoveMyBlockPackByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto)
-	MoveMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto)
-	MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto)
-	RestoreMyBlockPackById(ctx *gin.Context, requestDto *apicontract.RestoreMyBlockPackByIdRequestDto)
-	RestoreMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.RestoreMyBlockPacksByIdsRequestDto)
-	DeleteMyBlockPackById(ctx *gin.Context, requestDto *apicontract.DeleteMyBlockPackByIdRequestDto)
-	DeleteMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.DeleteMyBlockPacksByIdsRequestDto)
+	GetMyBlockPackById(ctx *gin.Context, requestDto *capi.GetMyBlockPackByIdRequestDto)
+	GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto)
+	GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto)
+	GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto)
+	CreateBlockPack(ctx *gin.Context, requestDto *capi.CreateBlockPackRequestDto)
+	CreateBlockPacks(ctx *gin.Context, requestDto *capi.CreateBlockPacksRequestDto)
+	UpdateMyBlockPackById(ctx *gin.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto)
+	UpdateMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.UpdateMyBlockPacksByIdsRequestDto)
+	MoveMyBlockPackByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPackByParentSubShelfIdRequestDto)
+	MoveMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdRequestDto)
+	MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto)
+	RestoreMyBlockPackById(ctx *gin.Context, requestDto *capi.RestoreMyBlockPackByIdRequestDto)
+	RestoreMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.RestoreMyBlockPacksByIdsRequestDto)
+	DeleteMyBlockPackById(ctx *gin.Context, requestDto *capi.DeleteMyBlockPackByIdRequestDto)
+	DeleteMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.DeleteMyBlockPacksByIdsRequestDto)
 }
 
 type BlockPackController struct {
@@ -38,15 +38,15 @@ func NewBlockPackController(coreAdapter *coreadapters.CoreAdapter) BlockPackCont
 	}
 }
 
-func (c *BlockPackController) GetMyBlockPackById(ctx *gin.Context, requestDto *apicontract.GetMyBlockPackByIdRequestDto) {
+func (c *BlockPackController) GetMyBlockPackById(ctx *gin.Context, requestDto *capi.GetMyBlockPackByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlockPackByIdRequestDto,
-		apicontract.GetMyBlockPackByIdResponseDto,
+		capi.GetMyBlockPackByIdRequestDto,
+		capi.GetMyBlockPackByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlockPackByIdOperation,
+		capi.GetMyBlockPackByIdOperation,
 		"/core/v1/block-packs/get-by-id",
 	)
 	if exception != nil {
@@ -57,15 +57,15 @@ func (c *BlockPackController) GetMyBlockPackById(ctx *gin.Context, requestDto *a
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *apicontract.GetMyBlockPackAndItsParentByIdRequestDto) {
+func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlockPackAndItsParentByIdRequestDto,
-		apicontract.GetMyBlockPackAndItsParentByIdResponseDto,
+		capi.GetMyBlockPackAndItsParentByIdRequestDto,
+		capi.GetMyBlockPackAndItsParentByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlockPackAndItsParentByIdOperation,
+		capi.GetMyBlockPackAndItsParentByIdOperation,
 		"/core/v1/block-packs/get-and-parent-by-id",
 	)
 	if exception != nil {
@@ -76,15 +76,15 @@ func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, r
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto) {
+func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto,
-		apicontract.GetMyBlockPacksByParentSubShelfIdResponseDto,
+		capi.GetMyBlockPacksByParentSubShelfIdRequestDto,
+		capi.GetMyBlockPacksByParentSubShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlockPacksByParentSubShelfIdOperation,
+		capi.GetMyBlockPacksByParentSubShelfIdOperation,
 		"/core/v1/block-packs/get-by-parent-sub-shelf-id",
 	)
 	if exception != nil {
@@ -95,15 +95,15 @@ func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto) {
+func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto,
-		apicontract.GetAllMyBlockPacksByRootShelfIdResponseDto,
+		capi.GetAllMyBlockPacksByRootShelfIdRequestDto,
+		capi.GetAllMyBlockPacksByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetAllMyBlockPacksByRootShelfIdOperation,
+		capi.GetAllMyBlockPacksByRootShelfIdOperation,
 		"/core/v1/block-packs/get-all-by-root-shelf-id",
 	)
 	if exception != nil {
@@ -114,15 +114,15 @@ func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, 
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *apicontract.CreateBlockPackRequestDto) {
+func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *capi.CreateBlockPackRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateBlockPackRequestDto,
-		apicontract.CreateBlockPackResponseDto,
+		capi.CreateBlockPackRequestDto,
+		capi.CreateBlockPackResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateBlockPackOperation,
+		capi.CreateBlockPackOperation,
 		"/core/v1/block-packs/create",
 	)
 	if exception != nil {
@@ -133,15 +133,15 @@ func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *apic
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *apicontract.CreateBlockPacksRequestDto) {
+func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *capi.CreateBlockPacksRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateBlockPacksRequestDto,
-		apicontract.CreateBlockPacksResponseDto,
+		capi.CreateBlockPacksRequestDto,
+		capi.CreateBlockPacksResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateBlockPacksOperation,
+		capi.CreateBlockPacksOperation,
 		"/core/v1/block-packs/create-many",
 	)
 	if exception != nil {
@@ -152,15 +152,15 @@ func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *api
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto *apicontract.UpdateMyBlockPackByIdRequestDto) {
+func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyBlockPackByIdRequestDto,
-		apicontract.UpdateMyBlockPackByIdResponseDto,
+		capi.UpdateMyBlockPackByIdRequestDto,
+		capi.UpdateMyBlockPackByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMyBlockPackByIdOperation,
+		capi.UpdateMyBlockPackByIdOperation,
 		"/core/v1/block-packs/update",
 	)
 	if exception != nil {
@@ -171,15 +171,15 @@ func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.UpdateMyBlockPacksByIdsRequestDto) {
+func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.UpdateMyBlockPacksByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyBlockPacksByIdsRequestDto,
-		apicontract.UpdateMyBlockPacksByIdsResponseDto,
+		capi.UpdateMyBlockPacksByIdsRequestDto,
+		capi.UpdateMyBlockPacksByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMyBlockPacksByIdsOperation,
+		capi.UpdateMyBlockPacksByIdsOperation,
 		"/core/v1/block-packs/update-many",
 	)
 	if exception != nil {
@@ -190,15 +190,15 @@ func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestD
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto) {
+func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPackByParentSubShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto,
-		apicontract.MoveMyBlockPackByParentSubShelfIdResponseDto,
+		capi.MoveMyBlockPackByParentSubShelfIdRequestDto,
+		capi.MoveMyBlockPackByParentSubShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMyBlockPackByParentSubShelfIdOperation,
+		capi.MoveMyBlockPackByParentSubShelfIdOperation,
 		"/core/v1/block-packs/move",
 	)
 	if exception != nil {
@@ -209,15 +209,15 @@ func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto) {
+func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto,
-		apicontract.MoveMyBlockPacksByParentSubShelfIdResponseDto,
+		capi.MoveMyBlockPacksByParentSubShelfIdRequestDto,
+		capi.MoveMyBlockPacksByParentSubShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMyBlockPacksByParentSubShelfIdOperation,
+		capi.MoveMyBlockPacksByParentSubShelfIdOperation,
 		"/core/v1/block-packs/move-many",
 	)
 	if exception != nil {
@@ -228,15 +228,15 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Contex
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto) {
+func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto,
-		apicontract.MoveMyBlockPacksByParentSubShelfIdsResponseDto,
+		capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto,
+		capi.MoveMyBlockPacksByParentSubShelfIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.MoveMyBlockPacksByParentSubShelfIdsOperation,
+		capi.MoveMyBlockPacksByParentSubShelfIdsOperation,
 		"/core/v1/block-packs/move-many-by-parent-sub-shelves",
 	)
 	if exception != nil {
@@ -247,15 +247,15 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Conte
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDto *apicontract.RestoreMyBlockPackByIdRequestDto) {
+func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDto *capi.RestoreMyBlockPackByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMyBlockPackByIdRequestDto,
-		apicontract.RestoreMyBlockPackByIdResponseDto,
+		capi.RestoreMyBlockPackByIdRequestDto,
+		capi.RestoreMyBlockPackByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RestoreMyBlockPackByIdOperation,
+		capi.RestoreMyBlockPackByIdOperation,
 		"/core/v1/block-packs/restore",
 	)
 	if exception != nil {
@@ -266,15 +266,15 @@ func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDt
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.RestoreMyBlockPacksByIdsRequestDto) {
+func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.RestoreMyBlockPacksByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.RestoreMyBlockPacksByIdsRequestDto,
-		apicontract.RestoreMyBlockPacksByIdsResponseDto,
+		capi.RestoreMyBlockPacksByIdsRequestDto,
+		capi.RestoreMyBlockPacksByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RestoreMyBlockPacksByIdsOperation,
+		capi.RestoreMyBlockPacksByIdsOperation,
 		"/core/v1/block-packs/restore-many",
 	)
 	if exception != nil {
@@ -285,15 +285,15 @@ func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, request
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto *apicontract.DeleteMyBlockPackByIdRequestDto) {
+func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto *capi.DeleteMyBlockPackByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyBlockPackByIdRequestDto,
-		apicontract.DeleteMyBlockPackByIdResponseDto,
+		capi.DeleteMyBlockPackByIdRequestDto,
+		capi.DeleteMyBlockPackByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.DeleteMyBlockPackByIdOperation,
+		capi.DeleteMyBlockPackByIdOperation,
 		"/core/v1/block-packs/delete",
 	)
 	if exception != nil {
@@ -304,15 +304,15 @@ func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockPackController) DeleteMyBlockPacksByIds(ctx *gin.Context, requestDto *apicontract.DeleteMyBlockPacksByIdsRequestDto) {
+func (c *BlockPackController) DeleteMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.DeleteMyBlockPacksByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.DeleteMyBlockPacksByIdsRequestDto,
-		apicontract.DeleteMyBlockPacksByIdsResponseDto,
+		capi.DeleteMyBlockPacksByIdsRequestDto,
+		capi.DeleteMyBlockPacksByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.DeleteMyBlockPacksByIdsOperation,
+		capi.DeleteMyBlockPacksByIdsOperation,
 		"/core/v1/block-packs/delete-many",
 	)
 	if exception != nil {

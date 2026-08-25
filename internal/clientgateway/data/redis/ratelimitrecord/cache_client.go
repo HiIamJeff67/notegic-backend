@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-redis/redis"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
@@ -46,9 +46,9 @@ func NewRateLimitRecordCacheClient(cacheStore *RateLimitRecordCacheStore) *RateL
 
 /* ============================== Auxiliary Methods ============================== */
 
-func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName platformredis.BackendServerName) (*redis.Client, int, *exceptions.Exception) {
+func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName platformredis.BackendServerName) (*redis.Client, int, *cexceptions.Exception) {
 	if s == nil || s.cacheStore == nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -60,7 +60,7 @@ func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName platformre
 
 	redisClient, shardIndex, err := s.cacheStore.ClientSet().ClientForKey(string(backendServerName))
 	if err != nil {
-		return nil, 0, exceptions.New(
+		return nil, 0, cexceptions.New(
 			"CacheClientUnavailable",
 			"Cache",
 			"GetRedisClient",
@@ -94,7 +94,7 @@ func (s *RateLimitRecordCacheClient) calculateExpiration(identifier string, wind
 func (s *RateLimitRecordCacheClient) Get(
 	identifier string,
 	backendServerName platformredis.BackendServerName,
-) (*RateLimitRecordCache, *exceptions.Exception) {
+) (*RateLimitRecordCache, *cexceptions.Exception) {
 	redisClient, shardIndex, exception := s.getRedisClient(backendServerName)
 	if exception != nil {
 		return nil, exception
@@ -102,7 +102,7 @@ func (s *RateLimitRecordCacheClient) Get(
 
 	cacheString, err := redisClient.Get(s.formatRateLimitRecordKey(backendServerName, identifier)).Result()
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"Cache",
 			"GetRateLimitRecord",
@@ -114,7 +114,7 @@ func (s *RateLimitRecordCacheClient) Get(
 
 	var rateLimitRecordCache RateLimitRecordCache
 	if err := json.Unmarshal([]byte(cacheString), &rateLimitRecordCache); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"DeserializationFailed",
 			"Cache",
 			"GetRateLimitRecord",
@@ -132,7 +132,7 @@ func (s *RateLimitRecordCacheClient) Set(
 	identifier string,
 	backendServerName platformredis.BackendServerName,
 	rateLimitRecordCache RateLimitRecordCache,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	redisClient, shardIndex, exception := s.getRedisClient(backendServerName)
 	if exception != nil {
 		return exception
@@ -140,7 +140,7 @@ func (s *RateLimitRecordCacheClient) Set(
 
 	value, err := json.Marshal(rateLimitRecordCache)
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"SetRateLimitRecord",
@@ -152,7 +152,7 @@ func (s *RateLimitRecordCacheClient) Set(
 
 	expiresIn := s.calculateExpiration(identifier, rateLimitRecordCache.WindowStartTime, rateLimitRecordCache.WindowDuration)
 	if err := redisClient.Set(s.formatRateLimitRecordKey(backendServerName, identifier), string(value), expiresIn).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToCreate",
 			"Cache",
 			"SetRateLimitRecord",
@@ -170,14 +170,14 @@ func (s *RateLimitRecordCacheClient) Update(
 	identifier string,
 	backendServerName platformredis.BackendServerName,
 	input cacheinputs.SynchronizeRateLimitRecordCacheInput,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	rateLimitRecordCache, exception := s.Get(identifier, backendServerName)
 	if exception != nil {
 		return exception
 	}
 
 	if (!input.IsAccumulated && rateLimitRecordCache.NumOfTokens < input.NumOfChangingTokens) || rateLimitRecordCache.NumOfTokens < 0 {
-		return exceptions.New(
+		return cexceptions.New(
 			"InvalidRateLimitTokenCount",
 			"RateLimit",
 			"UpdateRateLimitRecord",
@@ -201,7 +201,7 @@ func (s *RateLimitRecordCacheClient) Update(
 
 	value, err := json.Marshal(rateLimitRecordCache)
 	if err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"SerializationFailed",
 			"Cache",
 			"UpdateRateLimitRecord",
@@ -213,7 +213,7 @@ func (s *RateLimitRecordCacheClient) Update(
 
 	expiresIn := s.calculateExpiration(identifier, rateLimitRecordCache.WindowStartTime, rateLimitRecordCache.WindowDuration)
 	if err := redisClient.Set(s.formatRateLimitRecordKey(backendServerName, identifier), string(value), expiresIn).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToUpdate",
 			"Cache",
 			"UpdateRateLimitRecord",
@@ -230,14 +230,14 @@ func (s *RateLimitRecordCacheClient) Update(
 func (s *RateLimitRecordCacheClient) Delete(
 	identifier string,
 	backendServerName platformredis.BackendServerName,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	redisClient, shardIndex, exception := s.getRedisClient(backendServerName)
 	if exception != nil {
 		return exception
 	}
 
 	if err := redisClient.Del(s.formatRateLimitRecordKey(backendServerName, identifier)).Err(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToDelete",
 			"Cache",
 			"DeleteRateLimitRecord",
@@ -256,7 +256,7 @@ func (s *RateLimitRecordCacheClient) Delete(
 func (s *RateLimitRecordCacheClient) BatchSynchronize(
 	inputs []cacheinputs.BatchSynchronizeRateLimitRecordCacheInput,
 	backendServerName platformredis.BackendServerName,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(inputs) == 0 {
 		return nil
 	}
@@ -281,7 +281,7 @@ func (s *RateLimitRecordCacheClient) BatchSynchronize(
 	command = append(command, keys...)
 	command = append(command, arguments...)
 	if _, err := redisClient.Do(command...).Result(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToUpdate",
 			"Cache",
 			"BatchSynchronizeRateLimitRecords",
@@ -298,7 +298,7 @@ func (s *RateLimitRecordCacheClient) BatchSynchronize(
 func (s *RateLimitRecordCacheClient) BatchDelete(
 	identifiers []string,
 	backendServerName platformredis.BackendServerName,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(identifiers) == 0 {
 		return nil
 	}
@@ -320,7 +320,7 @@ func (s *RateLimitRecordCacheClient) BatchDelete(
 	}
 	command = append(command, keys...)
 	if _, err := redisClient.Do(command...).Result(); err != nil {
-		return exceptions.New(
+		return cexceptions.New(
 			"FailedToDelete",
 			"Cache",
 			"BatchDeleteRateLimitRecords",

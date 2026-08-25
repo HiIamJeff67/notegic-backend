@@ -3,16 +3,16 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type APIKeyControllerInterface interface {
-	CreateMyAPIKey(*gin.Context, *apicontract.CreateMyAPIKeyRequestDto)
-	ListMyAPIKeys(*gin.Context, *apicontract.ListMyAPIKeysRequestDto)
-	RevokeMyAPIKey(*gin.Context, *apicontract.RevokeMyAPIKeyRequestDto)
+	CreateMyAPIKey(*gin.Context, *capi.CreateMyAPIKeyRequestDto)
+	ListMyAPIKeys(*gin.Context, *capi.ListMyAPIKeysRequestDto)
+	RevokeMyAPIKey(*gin.Context, *capi.RevokeMyAPIKeyRequestDto)
 }
 
 type APIKeyController struct {
@@ -23,8 +23,8 @@ func NewAPIKeyController(coreAdapter *coreadapters.CoreAdapter) APIKeyController
 	return &APIKeyController{coreAdapter: coreAdapter}
 }
 
-func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *apicontract.CreateMyAPIKeyRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.CreateMyAPIKeyRequestDto, apicontract.CreateMyAPIKeyResponseDto](ctx, c.coreAdapter, request, apicontract.CreateMyAPIKeyOperation, "/core/v1/api-keys/create")
+func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *capi.CreateMyAPIKeyRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.CreateMyAPIKeyRequestDto, capi.CreateMyAPIKeyResponseDto](ctx, c.coreAdapter, request, capi.CreateMyAPIKeyOperation, "/core/v1/api-keys/create")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -32,8 +32,8 @@ func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *apicontract
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *apicontract.ListMyAPIKeysRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.ListMyAPIKeysRequestDto, apicontract.ListMyAPIKeysResponseDto](ctx, c.coreAdapter, request, apicontract.ListMyAPIKeysOperation, "/core/v1/api-keys/list")
+func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *capi.ListMyAPIKeysRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.ListMyAPIKeysRequestDto, capi.ListMyAPIKeysResponseDto](ctx, c.coreAdapter, request, capi.ListMyAPIKeysOperation, "/core/v1/api-keys/list")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -41,8 +41,8 @@ func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *apicontract.
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *APIKeyController) RevokeMyAPIKey(ctx *gin.Context, request *apicontract.RevokeMyAPIKeyRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.RevokeMyAPIKeyRequestDto, apicontract.RevokeMyAPIKeyResponseDto](ctx, c.coreAdapter, request, apicontract.RevokeMyAPIKeyOperation, "/core/v1/api-keys/revoke")
+func (c *APIKeyController) RevokeMyAPIKey(ctx *gin.Context, request *capi.RevokeMyAPIKeyRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.RevokeMyAPIKeyRequestDto, capi.RevokeMyAPIKeyResponseDto](ctx, c.coreAdapter, request, capi.RevokeMyAPIKeyOperation, "/core/v1/api-keys/revoke")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return

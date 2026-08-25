@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -49,7 +49,7 @@ func (c *NotificationRequestConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
 		consumer, err := platformkafka.NewConsumer(
 			c.kafkaConfig,
-			coreeventscontract.CoreNotificationTopic.String(),
+			coreevents.CoreNotificationTopic.String(),
 		)
 		if err == nil {
 			err = consumer.Run(ctx, c.consume)
@@ -72,19 +72,19 @@ func (c *NotificationRequestConsumer) run(ctx context.Context) {
 func (c *NotificationRequestConsumer) consume(
 	ctx context.Context,
 	_ platformkafka.ConsumerRecord,
-	event eventcontract.EventEnvelope[json.RawMessage],
+	event cevent.EventEnvelope[json.RawMessage],
 ) error {
-	if event.EventType != coreeventscontract.EventType_NotificationRequested {
+	if event.EventType != coreevents.EventType_NotificationRequested {
 		return nil
 	}
-	var data coreeventscontract.NotificationRequestedData
+	var data coreevents.NotificationRequestedData
 	if err := json.Unmarshal(event.Data, &data); err != nil {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
 			Origin:         err,
 		}
 	}
-	eventWithData := eventcontract.EventEnvelope[coreeventscontract.NotificationRequestedData]{
+	eventWithData := cevent.EventEnvelope[coreevents.NotificationRequestedData]{
 		SchemaVersion: event.SchemaVersion,
 		EventId:       event.EventId,
 		EventType:     event.EventType,

@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type BlockException struct {
@@ -14,8 +14,8 @@ func NewBlockException() BlockException {
 	return BlockException{CoreException: NewCoreException("Block")}
 }
 
-func (BlockException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"Block",
 		"Repository",
@@ -24,8 +24,8 @@ func (BlockException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (BlockException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"Block",
 		"Repository",
@@ -35,8 +35,8 @@ func (BlockException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (BlockException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"Block",
 		"Repository",
@@ -46,8 +46,8 @@ func (BlockException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (BlockException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"Block",
 		"Repository",
@@ -56,8 +56,8 @@ func (BlockException) NoChanges() *exceptions.Exception {
 	)
 }
 
-func (BlockException) FailedToCommitTransaction() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) FailedToCommitTransaction() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCommitTransaction",
 		"Block",
 		"Transaction",
@@ -67,8 +67,8 @@ func (BlockException) FailedToCommitTransaction() *exceptions.Exception {
 	)
 }
 
-func (BlockException) InvalidDto() *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) InvalidDto() *cexceptions.Exception {
+	return cexceptions.New(
 		"InvalidDto",
 		"Block",
 		"Validate",
@@ -77,8 +77,8 @@ func (BlockException) InvalidDto() *exceptions.Exception {
 	)
 }
 
-func (BlockException) NoPermission(action string) *exceptions.Exception {
-	return exceptions.New(
+func (BlockException) NoPermission(action string) *cexceptions.Exception {
+	return cexceptions.New(
 		"PermissionDenied",
 		"Block",
 		"Authorize",

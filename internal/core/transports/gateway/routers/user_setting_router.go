@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
 
 	userservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/user"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureUserSettingRoutes(
 		userSettingRoutes.POST(
 			"/get",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMySettingOperation,
+				capi.GetMySettingOperation,
 			),
 			authMiddleware,
 			endpoint.GetMySetting,
@@ -34,7 +34,7 @@ func configureUserSettingRoutes(
 		userSettingRoutes.POST(
 			"/update",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMySettingOperation,
+				capi.UpdateMySettingOperation,
 			),
 			authMiddleware,
 			endpoint.UpdateMySetting,

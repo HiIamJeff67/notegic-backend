@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
@@ -22,31 +22,31 @@ import (
 
 	editableblock "github.com/HiIamJeff67/notegic-backend/shared/util/editableblock"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BlockServiceInterface interface {
-	GetMyBlockById(ctx context.Context, requestDto *apicontract.GetMyBlockByIdRequestDto) (*apicontract.GetMyBlockByIdResponseDto, *exceptions.Exception)
-	GetMyBlocksByIds(ctx context.Context, requestDto *apicontract.GetMyBlocksByIdsRequestDto) (*apicontract.GetMyBlocksByIdsResponseDto, *exceptions.Exception)
-	GetMyBlocksByBlockPackId(ctx context.Context, requestDto *apicontract.GetMyBlocksByBlockPackIdRequestDto) (*apicontract.GetMyBlocksByBlockPackIdResponseDto, *exceptions.Exception)
+	GetMyBlockById(ctx context.Context, requestDto *capi.GetMyBlockByIdRequestDto) (*capi.GetMyBlockByIdResponseDto, *cexceptions.Exception)
+	GetMyBlocksByIds(ctx context.Context, requestDto *capi.GetMyBlocksByIdsRequestDto) (*capi.GetMyBlocksByIdsResponseDto, *cexceptions.Exception)
+	GetMyBlocksByBlockPackId(ctx context.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto) (*capi.GetMyBlocksByBlockPackIdResponseDto, *cexceptions.Exception)
 
-	Apply(ctx context.Context, blockPackId uuid.UUID, requestDto apicontract.ApplyBlockProjectionRequestDto) (*apicontract.ApplyBlockProjectionResponseDto, error)
-	ApplyWithTransaction(ctx context.Context, tx *gorm.DB, blockPackId uuid.UUID, requestDto apicontract.ApplyBlockProjectionRequestDto) (*apicontract.ApplyBlockProjectionResponseDto, error)
-	ApplyMany(ctx context.Context, requestDtos []apicontract.ApplyBlockProjectionDocumentRequestDto) (apicontract.ApplyBlockProjectionDocumentResponseDto, error)
+	Apply(ctx context.Context, blockPackId uuid.UUID, requestDto capi.ApplyBlockProjectionRequestDto) (*capi.ApplyBlockProjectionResponseDto, error)
+	ApplyWithTransaction(ctx context.Context, tx *gorm.DB, blockPackId uuid.UUID, requestDto capi.ApplyBlockProjectionRequestDto) (*capi.ApplyBlockProjectionResponseDto, error)
+	ApplyMany(ctx context.Context, requestDtos []capi.ApplyBlockProjectionDocumentRequestDto) (capi.ApplyBlockProjectionDocumentResponseDto, error)
 
-	SearchPrivateBlocks(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchBlockInput) (*gqlmodels.SearchBlockConnection, *exceptions.Exception)
+	SearchPrivateBlocks(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchBlockInput) (*cgqlmodels.SearchBlockConnection, *cexceptions.Exception)
 }
 
 type BlockService struct {
@@ -81,8 +81,8 @@ func NewBlockService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func newBlockResponseDto(block schemas.Block) apicontract.BlockResponseDto {
-	return apicontract.BlockResponseDto{
+func newBlockResponseDto(block schemas.Block) capi.BlockResponseDto {
+	return capi.BlockResponseDto{
 		Id:            block.Id,
 		BlockPackId:   block.BlockPackId,
 		ParentBlockId: block.ParentBlockId,
@@ -99,8 +99,8 @@ func newBlockResponseDto(block schemas.Block) apicontract.BlockResponseDto {
 /* ============================== Service Methods for Block ============================== */
 
 func (s *BlockService) GetMyBlockById(
-	ctx context.Context, requestDto *apicontract.GetMyBlockByIdRequestDto,
-) (*apicontract.GetMyBlockByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlockByIdRequestDto,
+) (*capi.GetMyBlockByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
 	}
@@ -132,8 +132,8 @@ func (s *BlockService) GetMyBlockById(
 }
 
 func (s *BlockService) GetMyBlocksByIds(
-	ctx context.Context, requestDto *apicontract.GetMyBlocksByIdsRequestDto,
-) (*apicontract.GetMyBlocksByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlocksByIdsRequestDto,
+) (*capi.GetMyBlocksByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
 	}
@@ -161,7 +161,7 @@ func (s *BlockService) GetMyBlocksByIds(
 		return nil, exception
 	}
 
-	responseDto := make(apicontract.GetMyBlocksByIdsResponseDto, len(blocks))
+	responseDto := make(capi.GetMyBlocksByIdsResponseDto, len(blocks))
 	for index, block := range blocks {
 		responseDto[index] = newBlockResponseDto(block)
 	}
@@ -170,8 +170,8 @@ func (s *BlockService) GetMyBlocksByIds(
 }
 
 func (s *BlockService) GetMyBlocksByBlockPackId(
-	ctx context.Context, requestDto *apicontract.GetMyBlocksByBlockPackIdRequestDto,
-) (*apicontract.GetMyBlocksByBlockPackIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto,
+) (*capi.GetMyBlocksByBlockPackIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
 	}
@@ -206,7 +206,7 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 		return nil, apiexceptions.NewBlockException().NotFound().WithOrigin(err)
 	}
 
-	responseDto := make(apicontract.GetMyBlocksByBlockPackIdResponseDto, len(blocks))
+	responseDto := make(capi.GetMyBlocksByBlockPackIdResponseDto, len(blocks))
 	for index, block := range blocks {
 		responseDto[index] = newBlockResponseDto(block)
 	}
@@ -217,8 +217,8 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 func (s *BlockService) Apply(
 	ctx context.Context,
 	blockPackId uuid.UUID,
-	requestDto apicontract.ApplyBlockProjectionRequestDto,
-) (*apicontract.ApplyBlockProjectionResponseDto, error) {
+	requestDto capi.ApplyBlockProjectionRequestDto,
+) (*capi.ApplyBlockProjectionResponseDto, error) {
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
 		return nil, fmt.Errorf("begin block projection transaction: %w", tx.Error)
@@ -241,13 +241,13 @@ func (s *BlockService) ApplyWithTransaction(
 	ctx context.Context,
 	tx *gorm.DB,
 	blockPackId uuid.UUID,
-	requestDto apicontract.ApplyBlockProjectionRequestDto,
-) (*apicontract.ApplyBlockProjectionResponseDto, error) {
+	requestDto capi.ApplyBlockProjectionRequestDto,
+) (*capi.ApplyBlockProjectionResponseDto, error) {
 	if blockPackId == uuid.Nil {
 		return nil, fmt.Errorf("block projection requires a block pack id")
 	}
-	if requestDto.SchemaId != yjsworkercontract.YjsBlockPackSchemaId ||
-		requestDto.SchemaVersion != yjsworkercontract.YjsBlockPackSchemaVersion {
+	if requestDto.SchemaId != cyjsworker.YjsBlockPackSchemaId ||
+		requestDto.SchemaVersion != cyjsworker.YjsBlockPackSchemaVersion {
 		return nil, fmt.Errorf("block projection source schema is not supported")
 	}
 	if requestDto.ProjectedSequence < 0 {
@@ -295,7 +295,7 @@ func (s *BlockService) ApplyWithTransaction(
 	metrics.NotegicMeter.Value(ctx, "yjs.projection.lag", document.LastUpdateSequence-document.ProjectedUntilSequence)
 
 	if requestDto.ProjectedSequence <= document.ProjectedUntilSequence {
-		return &apicontract.ApplyBlockProjectionResponseDto{
+		return &capi.ApplyBlockProjectionResponseDto{
 			Applied:                false,
 			ProjectedUntilSequence: document.ProjectedUntilSequence,
 		}, nil
@@ -364,7 +364,7 @@ func (s *BlockService) ApplyWithTransaction(
 		return nil, fmt.Errorf("failed to update block projection checkpoint: %w", err)
 	}
 
-	return &apicontract.ApplyBlockProjectionResponseDto{
+	return &capi.ApplyBlockProjectionResponseDto{
 		Applied:                true,
 		ProjectedUntilSequence: requestDto.ProjectedSequence,
 	}, nil
@@ -372,10 +372,10 @@ func (s *BlockService) ApplyWithTransaction(
 
 func (s *BlockService) ApplyMany(
 	ctx context.Context,
-	requestDtos []apicontract.ApplyBlockProjectionDocumentRequestDto,
-) (apicontract.ApplyBlockProjectionDocumentResponseDto, error) {
+	requestDtos []capi.ApplyBlockProjectionDocumentRequestDto,
+) (capi.ApplyBlockProjectionDocumentResponseDto, error) {
 	if len(requestDtos) == 0 {
-		return apicontract.ApplyBlockProjectionDocumentResponseDto{}, nil
+		return capi.ApplyBlockProjectionDocumentResponseDto{}, nil
 	}
 
 	type preparedProjection struct {
@@ -392,8 +392,8 @@ func (s *BlockService) ApplyMany(
 		if requestDto.BlockPackId == uuid.Nil {
 			return nil, fmt.Errorf("block projection requires a block pack id")
 		}
-		if requestDto.Projection.SchemaId != yjsworkercontract.YjsBlockPackSchemaId ||
-			requestDto.Projection.SchemaVersion != yjsworkercontract.YjsBlockPackSchemaVersion {
+		if requestDto.Projection.SchemaId != cyjsworker.YjsBlockPackSchemaId ||
+			requestDto.Projection.SchemaVersion != cyjsworker.YjsBlockPackSchemaVersion {
 			return nil, fmt.Errorf("block projection source schema is not supported")
 		}
 		if requestDto.Projection.ProjectedSequence < 0 {
@@ -506,7 +506,7 @@ func (s *BlockService) ApplyMany(
 			return nil, fmt.Errorf("failed to commit stale block projections: %w", err)
 		}
 
-		return apicontract.ApplyBlockProjectionDocumentResponseDto{}, nil
+		return capi.ApplyBlockProjectionDocumentResponseDto{}, nil
 	}
 
 	projectedBlockIds := make([]uuid.UUID, 0)
@@ -618,12 +618,12 @@ func (s *BlockService) ApplyMany(
 		appliedBlockPackIds[index] = document.BlockPackId
 	}
 
-	return apicontract.ApplyBlockProjectionDocumentResponseDto(appliedBlockPackIds), nil
+	return capi.ApplyBlockProjectionDocumentResponseDto(appliedBlockPackIds), nil
 }
 
 func (s *BlockService) SearchPrivateBlocks(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchBlockInput,
-) (*gqlmodels.SearchBlockConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchBlockInput,
+) (*cgqlmodels.SearchBlockConnection, *cexceptions.Exception) {
 	startTime := time.Now()
 
 	db := s.db.WithContext(ctx)
@@ -649,7 +649,7 @@ func (s *BlockService) SearchPrivateBlocks(
 	}
 
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchBlockCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchBlockCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -658,17 +658,17 @@ func (s *BlockService) SearchPrivateBlocks(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		cending := gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		cending := cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchBlockSortByType:
+		case cgqlmodels.SearchBlockSortByType:
 			query = query.Order(`"BlockTable".type ` + cending).Order(`"BlockTable".updated_at ` + cending).Order(`"BlockTable".created_at ` + cending)
-		case gqlmodels.SearchBlockSortByLastUpdate:
+		case cgqlmodels.SearchBlockSortByLastUpdate:
 			query = query.Order(`"BlockTable".updated_at ` + cending).Order(`"BlockTable".type ` + cending).Order(`"BlockTable".created_at ` + cending)
-		case gqlmodels.SearchBlockSortByCreatedAt:
+		case cgqlmodels.SearchBlockSortByCreatedAt:
 			query = query.Order(`"BlockTable".created_at ` + cending).Order(`"BlockTable".type ` + cending).Order(`"BlockTable".updated_at ` + cending)
 		default:
 			query = query.Order(`"BlockTable".type ` + cending).Order(`"BlockTable".updated_at ` + cending).Order(`"BlockTable".created_at ` + cending)
@@ -688,9 +688,9 @@ func (s *BlockService) SearchPrivateBlocks(
 	}
 
 	hasNextPage := len(blocks) > limit
-	searchEdges := make([]*gqlmodels.SearchBlockEdge, len(blocks))
+	searchEdges := make([]*cgqlmodels.SearchBlockEdge, len(blocks))
 	for index, block := range blocks {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchBlockCursorFields]{Fields: gqlmodels.SearchBlockCursorFields{ID: block.Id}}
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchBlockCursorFields]{Fields: cgqlmodels.SearchBlockCursorFields{ID: block.Id}}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
@@ -699,10 +699,10 @@ func (s *BlockService) SearchPrivateBlocks(
 			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
 		}
 
-		searchEdges[index] = &gqlmodels.SearchBlockEdge{EncodedSearchCursor: *encodedSearchCursor, Node: block.ToPrivateBlock()}
+		searchEdges[index] = &cgqlmodels.SearchBlockEdge{EncodedSearchCursor: *encodedSearchCursor, Node: block.ToPrivateBlock()}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -718,7 +718,7 @@ func (s *BlockService) SearchPrivateBlocks(
 
 	searchTime := float64(time.Since(startTime).Nanoseconds()) / 1e6
 
-	return &gqlmodels.SearchBlockConnection{
+	return &cgqlmodels.SearchBlockConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

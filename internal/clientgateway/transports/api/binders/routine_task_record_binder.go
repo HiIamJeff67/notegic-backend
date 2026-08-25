@@ -9,24 +9,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
 
 type RoutineTaskRecordBinderInterface interface {
-	BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc
+	BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc
 
 	/* ============================== Visualization Methods ============================== */
-	BindVisualizeMyRoutineTaskRecordStatusCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordStatusCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskRecordPurposeCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordPurposeCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskRecordScheduledAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskRecordActualStartedAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskRecordActualEndedAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyRoutineTaskRecordStatusCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyRoutineTaskRecordPurposeCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyRoutineTaskRecordScheduledAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyRoutineTaskRecordActualStartedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyRoutineTaskRecordActualEndedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto]) gin.HandlerFunc
 }
 
 type RoutineTaskRecordBinder struct{}
@@ -42,10 +42,10 @@ type routineTaskRecordVisualizationParams struct {
 	routineTaskIds []uuid.UUID
 }
 
-func parseRoutineTaskRecordVisualizationParams(ctx *gin.Context) (*routineTaskRecordVisualizationParams, *exceptions.Exception) {
+func parseRoutineTaskRecordVisualizationParams(ctx *gin.Context) (*routineTaskRecordVisualizationParams, *cexceptions.Exception) {
 	permission := ctx.Query("permission")
 	if permission == "" {
-		return nil, exceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("permission is required"))
+		return nil, cexceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("permission is required"))
 	}
 
 	params := &routineTaskRecordVisualizationParams{
@@ -59,7 +59,7 @@ func parseRoutineTaskRecordVisualizationParams(ctx *gin.Context) (*routineTaskRe
 			}
 			routineTaskId, err := uuid.Parse(trimmedRoutineTaskIdValue)
 			if err != nil {
-				return nil, exceptions.InvalidInput("RoutineTask").WithOrigin(err)
+				return nil, cexceptions.InvalidInput("RoutineTask").WithOrigin(err)
 			}
 			params.routineTaskIds = append(params.routineTaskIds, routineTaskId)
 		}
@@ -68,23 +68,23 @@ func parseRoutineTaskRecordVisualizationParams(ctx *gin.Context) (*routineTaskRe
 	return params, nil
 }
 
-func parseRoutineTaskRecordVisualizationTimeRange(ctx *gin.Context) (int, time.Time, time.Time, *exceptions.Exception) {
+func parseRoutineTaskRecordVisualizationTimeRange(ctx *gin.Context) (int, time.Time, time.Time, *cexceptions.Exception) {
 	timeHourUnitString := ctx.Query("timeHourUnit")
 	if timeHourUnitString == "" {
-		return 0, time.Time{}, time.Time{}, exceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("timeHourUnit is required"))
+		return 0, time.Time{}, time.Time{}, cexceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("timeHourUnit is required"))
 	}
 	timeHourUnit, err := strconv.Atoi(timeHourUnitString)
 	if err != nil {
-		return 0, time.Time{}, time.Time{}, exceptions.InvalidInput("RoutineTask").WithOrigin(err)
+		return 0, time.Time{}, time.Time{}, cexceptions.InvalidInput("RoutineTask").WithOrigin(err)
 	}
 
 	queryRangeStartedAt, err := time.Parse(time.RFC3339, ctx.Query("queryRangeStartedAt"))
 	if err != nil {
-		return 0, time.Time{}, time.Time{}, exceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("queryRangeStartedAt must be an RFC3339 timestamp: %w", err))
+		return 0, time.Time{}, time.Time{}, cexceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("queryRangeStartedAt must be an RFC3339 timestamp: %w", err))
 	}
 	queryRangeEndedAt, err := time.Parse(time.RFC3339, ctx.Query("queryRangeEndedAt"))
 	if err != nil {
-		return 0, time.Time{}, time.Time{}, exceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("queryRangeEndedAt must be an RFC3339 timestamp: %w", err))
+		return 0, time.Time{}, time.Time{}, cexceptions.InvalidInput("RoutineTask").WithOrigin(fmt.Errorf("queryRangeEndedAt must be an RFC3339 timestamp: %w", err))
 	}
 
 	return timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, nil
@@ -92,14 +92,14 @@ func parseRoutineTaskRecordVisualizationTimeRange(ctx *gin.Context) (int, time.T
 
 /* ============================== Service Methods for RoutineTaskRecord ============================== */
 
-func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto{}
+		requestDto := &capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		routineTaskId, err := uuid.Parse(ctx.Param("routine-task-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTaskId = routineTaskId
@@ -108,7 +108,7 @@ func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(
 		if limitString != "" {
 			limit, err := strconv.Atoi(limitString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.Limit = limit
@@ -120,9 +120,9 @@ func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(
 
 /* ============================== Visualization Methods ============================== */
 
-func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordStatusCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordStatusCountRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordStatusCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.VisualizeMyRoutineTaskRecordStatusCountRequestDto{}
+		requestDto := &capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
@@ -135,9 +135,9 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordStatusCount(co
 	}
 }
 
-func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordPurposeCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordPurposeCountRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordPurposeCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.VisualizeMyRoutineTaskRecordPurposeCountRequestDto{}
+		requestDto := &capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
@@ -150,32 +150,9 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordPurposeCount(c
 	}
 }
 
-func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordScheduledAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordScheduledAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
-		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-			return
-		}
-		timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, exception := parseRoutineTaskRecordVisualizationTimeRange(ctx)
-		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-			return
-		}
-		requestDto.Param.Permission = params.permission
-		requestDto.Param.RoutineTaskIds = params.routineTaskIds
-		requestDto.Param.TimeHourUnit = timeHourUnit
-		requestDto.Param.QueryRangeStartedAt = queryRangeStartedAt
-		requestDto.Param.QueryRangeEndedAt = queryRangeEndedAt
-		controllerFunc(ctx, requestDto)
-	}
-}
-
-func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualStartedAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto{}
+		requestDto := &capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
@@ -196,9 +173,32 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualStartedA
 	}
 }
 
-func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualEndedAtCount(controllerFunc controllers.Func[*apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualStartedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto{}
+		requestDto := &capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto{}
+		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
+		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
+		if exception != nil {
+			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			return
+		}
+		timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, exception := parseRoutineTaskRecordVisualizationTimeRange(ctx)
+		if exception != nil {
+			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			return
+		}
+		requestDto.Param.Permission = params.permission
+		requestDto.Param.RoutineTaskIds = params.routineTaskIds
+		requestDto.Param.TimeHourUnit = timeHourUnit
+		requestDto.Param.QueryRangeStartedAt = queryRangeStartedAt
+		requestDto.Param.QueryRangeEndedAt = queryRangeEndedAt
+		controllerFunc(ctx, requestDto)
+	}
+}
+
+func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualEndedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto]) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		requestDto := &capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {

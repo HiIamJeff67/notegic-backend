@@ -3,7 +3,7 @@ package senders
 import (
 	"context"
 
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 
 	emailrenderers "github.com/HiIamJeff67/notegic-backend/internal/email/renderers"
 	emailtypes "github.com/HiIamJeff67/notegic-backend/internal/email/types"
@@ -12,8 +12,8 @@ import (
 const securityAlertEmailSubject = "Security Alert - Some Suspicious Actions Detected on Your Account"
 
 type SecurityAlertEmailSenderInterface interface {
-	Send(context.Context, emaileventscontract.SendSecurityAlertEmailRequestDto) error
-	SendAsync(context.Context, emaileventscontract.SendSecurityAlertEmailRequestDto) error
+	Send(context.Context, cemailevents.SendSecurityAlertEmailRequestDto) error
+	SendAsync(context.Context, cemailevents.SendSecurityAlertEmailRequestDto) error
 }
 
 type SecurityAlertEmailSender struct {
@@ -27,7 +27,7 @@ func NewSecurityAlertEmailSender(renderer emailrenderers.RendererInterface, enqu
 
 func (s *SecurityAlertEmailSender) Send(
 	_ context.Context,
-	request emaileventscontract.SendSecurityAlertEmailRequestDto,
+	request cemailevents.SendSecurityAlertEmailRequestDto,
 ) error {
 	body, err := s.renderer.Render(map[string]any{
 		"UserName":         request.UserName,
@@ -56,7 +56,7 @@ func (s *SecurityAlertEmailSender) Send(
 
 func (s *SecurityAlertEmailSender) SendAsync(
 	ctx context.Context,
-	request emaileventscontract.SendSecurityAlertEmailRequestDto,
+	request cemailevents.SendSecurityAlertEmailRequestDto,
 ) error {
 	return s.Send(ctx, request)
 }

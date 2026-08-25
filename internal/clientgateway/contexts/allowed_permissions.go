@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"slices"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func WithAllowedPermissions(
 	ctx context.Context,
-	allowedPermissions []enumcontract.AccessControlPermission,
+	allowedPermissions []enums.AccessControlPermission,
 ) context.Context {
 	return sharedcontexts.WithValue(
 		ctx,
@@ -25,13 +25,13 @@ func WithAllowedPermissions(
 
 func GetAllowedPermissions(
 	ctx context.Context,
-) ([]enumcontract.AccessControlPermission, *exceptions.Exception) {
-	allowedPermissions, err := sharedcontexts.GetValue[[]enumcontract.AccessControlPermission](
+) ([]enums.AccessControlPermission, *cexceptions.Exception) {
+	allowedPermissions, err := sharedcontexts.GetValue[[]enums.AccessControlPermission](
 		ctx,
 		sharedcontexts.ContextFieldName_Allowed_Permissions,
 	)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadAllowedPermissions",
@@ -46,7 +46,7 @@ func GetAllowedPermissions(
 
 func GetOptionalAllowedPermissions(
 	ctx context.Context,
-) ([]enumcontract.AccessControlPermission, *exceptions.Exception) {
+) ([]enums.AccessControlPermission, *cexceptions.Exception) {
 	if ctx.Value(sharedcontexts.ContextFieldName_Allowed_Permissions) == nil {
 		return nil, nil
 	}

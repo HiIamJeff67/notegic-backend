@@ -10,23 +10,23 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type AuthControllerInterface interface {
-	Register(ctx *gin.Context, requestDto *apicontract.RegisterRequestDto)
-	RegisterViaGoogle(ctx *gin.Context, requestDto *apicontract.RegisterViaGoogleRequestDto)
-	Login(ctx *gin.Context, requestDto *apicontract.LoginRequestDto)
-	LoginViaGoogle(ctx *gin.Context, requestDto *apicontract.LoginViaGoogleRequestDto)
-	Logout(ctx *gin.Context, requestDto *apicontract.LogoutRequestDto)
-	SendAuthCode(ctx *gin.Context, requestDto *apicontract.SendAuthCodeRequestDto)
-	ValidateEmail(ctx *gin.Context, requestDto *apicontract.ValidateEmailRequestDto)
-	ResetEmail(ctx *gin.Context, requestDto *apicontract.ResetEmailRequestDto)
-	ForgetPassword(ctx *gin.Context, requestDto *apicontract.ForgetPasswordRequestDto)
-	ResetMe(ctx *gin.Context, requestDto *apicontract.ResetMeRequestDto)
-	DeleteMe(ctx *gin.Context, requestDto *apicontract.DeleteMeRequestDto)
+	Register(ctx *gin.Context, requestDto *capi.RegisterRequestDto)
+	RegisterViaGoogle(ctx *gin.Context, requestDto *capi.RegisterViaGoogleRequestDto)
+	Login(ctx *gin.Context, requestDto *capi.LoginRequestDto)
+	LoginViaGoogle(ctx *gin.Context, requestDto *capi.LoginViaGoogleRequestDto)
+	Logout(ctx *gin.Context, requestDto *capi.LogoutRequestDto)
+	SendAuthCode(ctx *gin.Context, requestDto *capi.SendAuthCodeRequestDto)
+	ValidateEmail(ctx *gin.Context, requestDto *capi.ValidateEmailRequestDto)
+	ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmailRequestDto)
+	ForgetPassword(ctx *gin.Context, requestDto *capi.ForgetPasswordRequestDto)
+	ResetMe(ctx *gin.Context, requestDto *capi.ResetMeRequestDto)
+	DeleteMe(ctx *gin.Context, requestDto *capi.DeleteMeRequestDto)
 }
 
 type AuthController struct {
@@ -47,15 +47,15 @@ func NewAuthController(
 	}
 }
 
-func (c *AuthController) Register(ctx *gin.Context, requestDto *apicontract.RegisterRequestDto) {
+func (c *AuthController) Register(ctx *gin.Context, requestDto *capi.RegisterRequestDto) {
 	c.accessTokenCookieHandler.Delete(ctx)
 	c.refreshTokenCookieHandler.Delete(ctx)
 
-	response, exception := coreadapters.Call[apicontract.RegisterRequestDto, apicontract.RegisterResponseDto](
+	response, exception := coreadapters.Call[capi.RegisterRequestDto, capi.RegisterResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RegisterOperation,
+		capi.RegisterOperation,
 		"/core/v1/auth/register",
 	)
 	if exception != nil {
@@ -82,15 +82,15 @@ func (c *AuthController) Register(ctx *gin.Context, requestDto *apicontract.Regi
 	})
 }
 
-func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *apicontract.RegisterViaGoogleRequestDto) {
+func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *capi.RegisterViaGoogleRequestDto) {
 	c.accessTokenCookieHandler.Delete(ctx)
 	c.refreshTokenCookieHandler.Delete(ctx)
 
-	response, exception := coreadapters.Call[apicontract.RegisterViaGoogleRequestDto, apicontract.RegisterViaGoogleResponseDto](
+	response, exception := coreadapters.Call[capi.RegisterViaGoogleRequestDto, capi.RegisterViaGoogleResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.RegisterViaGoogleOperation,
+		capi.RegisterViaGoogleOperation,
 		"/core/v1/auth/register/google",
 	)
 	if exception != nil {
@@ -117,15 +117,15 @@ func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *apicont
 	})
 }
 
-func (c *AuthController) Login(ctx *gin.Context, requestDto *apicontract.LoginRequestDto) {
+func (c *AuthController) Login(ctx *gin.Context, requestDto *capi.LoginRequestDto) {
 	c.accessTokenCookieHandler.Delete(ctx)
 	c.refreshTokenCookieHandler.Delete(ctx)
 
-	response, exception := coreadapters.Call[apicontract.LoginRequestDto, apicontract.LoginResponseDto](
+	response, exception := coreadapters.Call[capi.LoginRequestDto, capi.LoginResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.LoginOperation,
+		capi.LoginOperation,
 		"/core/v1/auth/login",
 	)
 	if exception != nil {
@@ -155,15 +155,15 @@ func (c *AuthController) Login(ctx *gin.Context, requestDto *apicontract.LoginRe
 	})
 }
 
-func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *apicontract.LoginViaGoogleRequestDto) {
+func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *capi.LoginViaGoogleRequestDto) {
 	c.accessTokenCookieHandler.Delete(ctx)
 	c.refreshTokenCookieHandler.Delete(ctx)
 
-	response, exception := coreadapters.Call[apicontract.LoginViaGoogleRequestDto, apicontract.LoginViaGoogleResponseDto](
+	response, exception := coreadapters.Call[capi.LoginViaGoogleRequestDto, capi.LoginViaGoogleResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.LoginViaGoogleOperation,
+		capi.LoginViaGoogleOperation,
 		"/core/v1/auth/login/google",
 	)
 	if exception != nil {
@@ -193,12 +193,12 @@ func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *apicontrac
 	})
 }
 
-func (c *AuthController) Logout(ctx *gin.Context, requestDto *apicontract.LogoutRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.LogoutRequestDto, apicontract.LogoutResponseDto](
+func (c *AuthController) Logout(ctx *gin.Context, requestDto *capi.LogoutRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.LogoutRequestDto, capi.LogoutResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.LogoutOperation,
+		capi.LogoutOperation,
 		"/core/v1/auth/logout",
 	)
 	if exception != nil {
@@ -211,8 +211,8 @@ func (c *AuthController) Logout(ctx *gin.Context, requestDto *apicontract.Logout
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *apicontract.SendAuthCodeRequestDto) {
-	response, exception := coreadapters.Call[apicontract.SendAuthCodeRequestDto, apicontract.SendAuthCodeResponseDto](ctx, c.coreAdapter, requestDto, apicontract.SendAuthCodeOperation, "/core/v1/auth/email/code")
+func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *capi.SendAuthCodeRequestDto) {
+	response, exception := coreadapters.Call[capi.SendAuthCodeRequestDto, capi.SendAuthCodeResponseDto](ctx, c.coreAdapter, requestDto, capi.SendAuthCodeOperation, "/core/v1/auth/email/code")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -221,8 +221,8 @@ func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *apicontract.
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *apicontract.ValidateEmailRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.ValidateEmailRequestDto, apicontract.ValidateEmailResponseDto](ctx, c.coreAdapter, requestDto, apicontract.ValidateEmailOperation, "/core/v1/auth/email/validate")
+func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *capi.ValidateEmailRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.ValidateEmailRequestDto, capi.ValidateEmailResponseDto](ctx, c.coreAdapter, requestDto, capi.ValidateEmailOperation, "/core/v1/auth/email/validate")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -231,8 +231,8 @@ func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *apicontract
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *apicontract.ResetEmailRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.ResetEmailRequestDto, apicontract.ResetEmailResponseDto](ctx, c.coreAdapter, requestDto, apicontract.ResetEmailOperation, "/core/v1/auth/email/reset")
+func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmailRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.ResetEmailRequestDto, capi.ResetEmailResponseDto](ctx, c.coreAdapter, requestDto, capi.ResetEmailOperation, "/core/v1/auth/email/reset")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -241,8 +241,8 @@ func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *apicontract.Re
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *apicontract.ForgetPasswordRequestDto) {
-	response, exception := coreadapters.Call[apicontract.ForgetPasswordRequestDto, apicontract.ForgetPasswordResponseDto](ctx, c.coreAdapter, requestDto, apicontract.ForgetPasswordOperation, "/core/v1/auth/password/forget")
+func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *capi.ForgetPasswordRequestDto) {
+	response, exception := coreadapters.Call[capi.ForgetPasswordRequestDto, capi.ForgetPasswordResponseDto](ctx, c.coreAdapter, requestDto, capi.ForgetPasswordOperation, "/core/v1/auth/password/forget")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -251,8 +251,8 @@ func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *apicontrac
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *apicontract.ResetMeRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.ResetMeRequestDto, apicontract.ResetMeResponseDto](ctx, c.coreAdapter, requestDto, apicontract.ResetMeOperation, "/core/v1/auth/me/reset")
+func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *capi.ResetMeRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.ResetMeRequestDto, capi.ResetMeResponseDto](ctx, c.coreAdapter, requestDto, capi.ResetMeOperation, "/core/v1/auth/me/reset")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
@@ -261,8 +261,8 @@ func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *apicontract.Reset
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *AuthController) DeleteMe(ctx *gin.Context, requestDto *apicontract.DeleteMeRequestDto) {
-	response, exception := coreadapters.CallSecurly[apicontract.DeleteMeRequestDto, apicontract.DeleteMeResponseDto](ctx, c.coreAdapter, requestDto, apicontract.DeleteMeOperation, "/core/v1/auth/me/delete")
+func (c *AuthController) DeleteMe(ctx *gin.Context, requestDto *capi.DeleteMeRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.DeleteMeRequestDto, capi.DeleteMeResponseDto](ctx, c.coreAdapter, requestDto, capi.DeleteMeOperation, "/core/v1/auth/me/delete")
 	if exception != nil {
 		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return

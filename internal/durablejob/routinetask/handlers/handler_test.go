@@ -7,23 +7,23 @@ import (
 
 	"github.com/google/uuid"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/durablejob/validations"
 )
 
 func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
-	payload, err := json.Marshal(routinetasktypes.CreateRootShelfRoutineTaskPayload{
+	payload, err := json.Marshal(croutinetasktypes.CreateRootShelfRoutineTaskPayload{
 		Name: "Daily {{date}}",
 	})
 	if err != nil {
 		t.Fatalf("marshal payload: %v", err)
 	}
 
-	assignment := routinetasktypes.RoutineTaskAssignment{
+	assignment := croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
@@ -45,7 +45,7 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 		t.Fatalf("prepared task = %#v", prepared)
 	}
 
-	var preparedPayload routinetasktypes.CreateRootShelfRoutineTaskPayload
+	var preparedPayload croutinetasktypes.CreateRootShelfRoutineTaskPayload
 	if err := json.Unmarshal(prepared.Payload, &preparedPayload); err != nil {
 		t.Fatalf("decode prepared payload: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 }
 
 func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
-	assignment := routinetasktypes.RoutineTaskAssignment{
+	assignment := croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
@@ -69,7 +69,7 @@ func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
 	if prepared != nil {
 		t.Fatalf("prepared task = %#v, want nil", prepared)
 	}
-	if durableJobError, ok := err.(*exceptions.Exception); !ok {
+	if durableJobError, ok := err.(*cexceptions.Exception); !ok {
 		t.Fatalf("error type = %T, want *exceptions.Exception", err)
 	} else if durableJobError.Reason != "InvalidRoutineTaskPayload" || durableJobError.Domain != "RoutineTask" {
 		t.Fatalf("error = %#v, want InvalidRoutineTaskPayload/RoutineTask", durableJobError)
@@ -77,21 +77,21 @@ func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
 }
 
 func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
-	payload, err := json.Marshal(routinetasktypes.CreateBlockPackRoutineTaskPayload{
+	payload, err := json.Marshal(croutinetasktypes.CreateBlockPackRoutineTaskPayload{
 		TargetSubShelfId: uuid.New(),
-		Template: routinetasktypes.CreateBlockPackRoutineTaskTemplate{
+		Template: croutinetasktypes.CreateBlockPackRoutineTaskTemplate{
 			Name: "Daily note for {{date1}}",
-			Blocks: []routinetasktypes.CreateBlockPackRoutineTaskTemplateBlock{
+			Blocks: []croutinetasktypes.CreateBlockPackRoutineTaskTemplateBlock{
 				{
 					ClientId: uuid.NewString(),
-					ArborizedEditableBlock: blocknote.ArborizedEditableBlock{
+					ArborizedEditableBlock: cblocknote.ArborizedEditableBlock{
 						Id:   uuid.New(),
 						Type: enums.BlockType_Paragraph,
-						Props: &blocknote.BaseProps{
+						Props: &cblocknote.BaseProps{
 							Template: true,
 						},
-						Content: blocknote.InlineContentList{
-							{InlineContentUnion: blocknote.NewStyledText("Daily note for {{date1}}", blocknote.Styles{})},
+						Content: cblocknote.InlineContentList{
+							{InlineContentUnion: cblocknote.NewStyledText("Daily note for {{date1}}", cblocknote.Styles{})},
 						},
 					},
 				},
@@ -102,7 +102,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		t.Fatalf("json.Marshal() error = %v", err)
 	}
 
-	prepared, err := prepareAssignment(nil, nil, routinetasktypes.RoutineTaskAssignment{
+	prepared, err := prepareAssignment(nil, nil, croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
@@ -116,18 +116,18 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		t.Fatalf("prepareAssignment() error = %v", err)
 	}
 
-	var preparedPayload routinetasktypes.CreateBlockPackRoutineTaskPayload
+	var preparedPayload croutinetasktypes.CreateBlockPackRoutineTaskPayload
 	if err := json.Unmarshal(prepared.Payload, &preparedPayload); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 	if preparedPayload.Template.Name != "Daily note for 2026-08-13" {
 		t.Fatalf("template name = %q, want rendered value", preparedPayload.Template.Name)
 	}
-	content, ok := preparedPayload.Template.Blocks[0].ArborizedEditableBlock.Content.(blocknote.InlineContentList)
+	content, ok := preparedPayload.Template.Blocks[0].ArborizedEditableBlock.Content.(cblocknote.InlineContentList)
 	if !ok || len(content) != 1 {
 		t.Fatalf("template block content = %#v, want one inline text item", preparedPayload.Template.Blocks[0].ArborizedEditableBlock.Content)
 	}
-	styledText, ok := content[0].InlineContentUnion.(*blocknote.StyledText)
+	styledText, ok := content[0].InlineContentUnion.(*cblocknote.StyledText)
 	if !ok || styledText.Text != "Daily note for 2026-08-13" {
 		var got string
 		if ok {
@@ -135,7 +135,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		}
 		t.Fatalf("template block content = %q, want rendered value", got)
 	}
-	props, ok := preparedPayload.Template.Blocks[0].ArborizedEditableBlock.Props.(*blocknote.BaseProps)
+	props, ok := preparedPayload.Template.Blocks[0].ArborizedEditableBlock.Props.(*cblocknote.BaseProps)
 	if !ok || props.Template {
 		t.Fatal("template marker should not be persisted in the prepared payload")
 	}

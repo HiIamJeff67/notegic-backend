@@ -6,35 +6,35 @@ import (
 	"path/filepath"
 	"testing"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	emailconfig "github.com/HiIamJeff67/notegic-backend/internal/email/configs"
 )
 
 func TestRendererRenderAndContentType(t *testing.T) {
 	tests := []struct {
 		name        string
-		contentType emailcontract.EmailContentType
+		contentType cemail.EmailContentType
 		extension   string
-		wantType    emailcontract.EmailContentType
+		wantType    cemail.EmailContentType
 	}{
 		{
 			name:        "html",
-			contentType: emailcontract.EmailContentType_HTML,
+			contentType: cemail.EmailContentType_HTML,
 			extension:   ".html",
-			wantType:    emailcontract.EmailContentType_HTML,
+			wantType:    cemail.EmailContentType_HTML,
 		},
 		{
 			name:        "plain text",
-			contentType: emailcontract.EmailContentType_PlainText,
+			contentType: cemail.EmailContentType_PlainText,
 			extension:   ".txt",
-			wantType:    emailcontract.EmailContentType_PlainText,
+			wantType:    cemail.EmailContentType_PlainText,
 		},
 		{
 			name:        "markdown",
-			contentType: emailcontract.EmailContentType_Markdown,
+			contentType: cemail.EmailContentType_Markdown,
 			extension:   ".md",
-			wantType:    emailcontract.EmailContentType_Markdown,
+			wantType:    cemail.EmailContentType_Markdown,
 		},
 	}
 
@@ -69,7 +69,7 @@ func TestRendererRenderAndContentType(t *testing.T) {
 
 func TestNewRendererRejectsUnsupportedContentType(t *testing.T) {
 	renderer, exception := NewRenderer(emailconfig.RendererConfig{
-		ContentType: emailcontract.EmailContentType("application/octet-stream"),
+		ContentType: cemail.EmailContentType("application/octet-stream"),
 	})
 	if renderer != nil {
 		t.Fatalf("NewRenderer() renderer = %#v, want nil", renderer)
@@ -77,7 +77,7 @@ func TestNewRendererRejectsUnsupportedContentType(t *testing.T) {
 	if exception == nil {
 		t.Fatal("NewRenderer() exception = nil, want an exception")
 	}
-	var emailException *exceptions.Exception
+	var emailException *cexceptions.Exception
 	if !errors.As(exception, &emailException) {
 		t.Fatalf("exception type = %T, want *exceptions.Exception", exception)
 	}
@@ -96,7 +96,7 @@ func TestRendererRejectsInvalidTemplate(t *testing.T) {
 			name: "wrong extension",
 			config: emailconfig.RendererConfig{
 				TemplatePath: filepath.Join(t.TempDir(), "message.txt"),
-				ContentType:  emailcontract.EmailContentType_HTML,
+				ContentType:  cemail.EmailContentType_HTML,
 			},
 			wantReason: "InvalidTemplate",
 		},
@@ -104,7 +104,7 @@ func TestRendererRejectsInvalidTemplate(t *testing.T) {
 			name: "missing file",
 			config: emailconfig.RendererConfig{
 				TemplatePath: filepath.Join(t.TempDir(), "missing.html"),
-				ContentType:  emailcontract.EmailContentType_HTML,
+				ContentType:  cemail.EmailContentType_HTML,
 			},
 			wantReason: "TemplateReadFailed",
 		},
@@ -121,7 +121,7 @@ func TestRendererRejectsInvalidTemplate(t *testing.T) {
 			if exception == nil {
 				t.Fatal("Render() exception = nil, want an exception")
 			}
-			var emailException *exceptions.Exception
+			var emailException *cexceptions.Exception
 			if !errors.As(exception, &emailException) {
 				t.Fatalf("exception type = %T, want *exceptions.Exception", exception)
 			}
@@ -140,7 +140,7 @@ func TestRendererRejectsMalformedTemplate(t *testing.T) {
 
 	renderer, exception := NewRenderer(emailconfig.RendererConfig{
 		TemplatePath: templatePath,
-		ContentType:  emailcontract.EmailContentType_HTML,
+		ContentType:  cemail.EmailContentType_HTML,
 	})
 	if exception != nil {
 		t.Fatalf("NewRenderer() exception = %v", exception)
@@ -150,7 +150,7 @@ func TestRendererRejectsMalformedTemplate(t *testing.T) {
 	if exception == nil {
 		t.Fatal("Render() exception = nil, want an exception")
 	}
-	var emailException *exceptions.Exception
+	var emailException *cexceptions.Exception
 	if !errors.As(exception, &emailException) {
 		t.Fatalf("exception type = %T, want *exceptions.Exception", exception)
 	}

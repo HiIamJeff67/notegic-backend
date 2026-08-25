@@ -5,12 +5,9 @@ package topics
 func All() []TopicSpec {
 	return []TopicSpec{
 		CoreLifecycleTopicSpec(),
-		CoreDurableJobYjsMaintenanceHintTopicSpec(),
+		CoreYjsMaintenanceHintTopicSpec(),
 		CoreNotificationTopicSpec(),
-		CoreDurableJobRoutineTaskTopicSpec(),
 		DurableJobRealtimeGatewayRoutineTaskLifecycleTopicSpec(),
-		DurableJobCoreYjsMaintenanceRequestTopicSpec(),
-		DurableJobCoreYjsMaintenanceResultTopicSpec(),
 		CoreEmailRequestTopicSpec(),
 		NotificationTopicSpec(),
 		YjsWorkerCoreCommandTopicSpec(),

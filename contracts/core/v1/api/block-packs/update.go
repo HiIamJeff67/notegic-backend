@@ -5,21 +5,21 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/block-packs"
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type UpdateMyBlockPackByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
 		struct {
 			Values struct {
-				Name                *string                     `json:"name" validate:"omitnil,min=1,max=128"`
-				Icon                *enumcontract.SupportedIcon `json:"icon" validate:"omitnil,issupportedicon"`
-				HeaderBackgroundURL *string                     `json:"headerBackgroundURL" validate:"omitnil"`
+				Name                *string              `json:"name" validate:"omitnil,min=1,max=128"`
+				Icon                *enums.SupportedIcon `json:"icon" validate:"omitnil,issupportedicon"`
+				HeaderBackgroundURL *string              `json:"headerBackgroundURL" validate:"omitnil"`
 			} `json:"values"`
 			SetNull *map[string]bool `json:"setNull,omitempty"`
 		},
@@ -35,7 +35,7 @@ type UpdateMyBlockPackByIdResponseDto struct {
 }
 
 type UpdateMyBlockPacksByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

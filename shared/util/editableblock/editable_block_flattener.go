@@ -6,11 +6,11 @@ import (
 
 	"github.com/google/uuid"
 
-	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
 )
 
 type editableBlockFlattenItem struct {
-	block         *blocknote.ArborizedEditableBlock
+	block         *cblocknote.ArborizedEditableBlock
 	parentBlockId *uuid.UUID
 	prevBlockId   *uuid.UUID
 	nextBlockId   *uuid.UUID
@@ -18,7 +18,7 @@ type editableBlockFlattenItem struct {
 
 /* ============================== Auxiliary Functions ============================== */
 
-func previousEditableBlockId(blocks []blocknote.ArborizedEditableBlock, index int) *uuid.UUID {
+func previousEditableBlockId(blocks []cblocknote.ArborizedEditableBlock, index int) *uuid.UUID {
 	if index == 0 {
 		return nil
 	}
@@ -27,7 +27,7 @@ func previousEditableBlockId(blocks []blocknote.ArborizedEditableBlock, index in
 	return &previousBlockId
 }
 
-func nextEditableBlockId(blocks []blocknote.ArborizedEditableBlock, index int) *uuid.UUID {
+func nextEditableBlockId(blocks []cblocknote.ArborizedEditableBlock, index int) *uuid.UUID {
 	if index+1 == len(blocks) {
 		return nil
 	}
@@ -38,17 +38,17 @@ func nextEditableBlockId(blocks []blocknote.ArborizedEditableBlock, index int) *
 
 /* ============================== Main Methods ============================== */
 
-func FlattenEditableBlock(root *blocknote.ArborizedEditableBlock) ([]blocknote.RawFlattenedEditableBlock, int64, error) {
+func FlattenEditableBlock(root *cblocknote.ArborizedEditableBlock) ([]cblocknote.RawFlattenedEditableBlock, int64, error) {
 	if root == nil {
-		return []blocknote.RawFlattenedEditableBlock{}, 0, nil
+		return []cblocknote.RawFlattenedEditableBlock{}, 0, nil
 	}
 
-	return FlattenEditableBlocks([]blocknote.ArborizedEditableBlock{*root})
+	return FlattenEditableBlocks([]cblocknote.ArborizedEditableBlock{*root})
 }
 
-func FlattenEditableBlocks(roots []blocknote.ArborizedEditableBlock) ([]blocknote.RawFlattenedEditableBlock, int64, error) {
+func FlattenEditableBlocks(roots []cblocknote.ArborizedEditableBlock) ([]cblocknote.RawFlattenedEditableBlock, int64, error) {
 	if len(roots) == 0 {
-		return []blocknote.RawFlattenedEditableBlock{}, 0, nil
+		return []cblocknote.RawFlattenedEditableBlock{}, 0, nil
 	}
 
 	queue := make([]editableBlockFlattenItem, 0, len(roots))
@@ -60,7 +60,7 @@ func FlattenEditableBlocks(roots []blocknote.ArborizedEditableBlock) ([]blocknot
 		})
 	}
 
-	flattenedBlocks := make([]blocknote.RawFlattenedEditableBlock, 0, len(roots))
+	flattenedBlocks := make([]cblocknote.RawFlattenedEditableBlock, 0, len(roots))
 	visitedBlockIds := make(map[uuid.UUID]bool)
 	var totalSize int64
 	for len(queue) > 0 {
@@ -84,7 +84,7 @@ func FlattenEditableBlocks(roots []blocknote.ArborizedEditableBlock) ([]blocknot
 		}
 		totalSize += int64(len(props) + len(content))
 
-		flattenedBlocks = append(flattenedBlocks, blocknote.RawFlattenedEditableBlock{
+		flattenedBlocks = append(flattenedBlocks, cblocknote.RawFlattenedEditableBlock{
 			Id:            item.block.Id,
 			ParentBlockId: item.parentBlockId,
 			PrevBlockId:   item.prevBlockId,

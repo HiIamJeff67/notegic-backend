@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/go-playground/validator/v10" // make sure we use the version 10
 
@@ -65,6 +66,14 @@ func RegisterStringsValidation(validate *validator.Validate) {
 	validate.RegisterValidation("isnumberstring", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
 		return stringutil.IsNumberString(val)
+	})
+	validate.RegisterValidation("isgoogleauthenticationcode", func(fl validator.FieldLevel) bool {
+		value := fl.Field().String()
+		return value != "" &&
+			len(value) <= 4096 &&
+			value == strings.TrimSpace(value) &&
+			!strings.ContainsFunc(value, unicode.IsSpace) &&
+			!strings.ContainsFunc(value, unicode.IsControl)
 	})
 	validate.RegisterValidation("isurl", func(fl validator.FieldLevel) bool {
 		urlStr := strings.TrimSpace(fl.Field().String())

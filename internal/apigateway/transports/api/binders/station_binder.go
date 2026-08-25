@@ -7,43 +7,43 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
 
 type StationBinderInterface interface {
-	BindGetMyStationById(controllerFunc controllers.Func[*apicontract.GetMyStationByIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyStations(controllerFunc controllers.Func[*apicontract.GetAllMyStationsRequestDto]) gin.HandlerFunc
-	BindCreateStation(controllerFunc controllers.Func[*apicontract.CreateStationRequestDto]) gin.HandlerFunc
-	BindCreateStations(controllerFunc controllers.Func[*apicontract.CreateStationsRequestDto]) gin.HandlerFunc
-	BindUpdateMyStationById(controllerFunc controllers.Func[*apicontract.UpdateMyStationByIdRequestDto]) gin.HandlerFunc
-	BindUpdateMyStationsByIds(controllerFunc controllers.Func[*apicontract.UpdateMyStationsByIdsRequestDto]) gin.HandlerFunc
-	BindRestoreMyStationById(controllerFunc controllers.Func[*apicontract.RestoreMyStationByIdRequestDto]) gin.HandlerFunc
-	BindRestoreMyStationsByIds(controllerFunc controllers.Func[*apicontract.RestoreMyStationsByIdsRequestDto]) gin.HandlerFunc
-	BindDeleteMyStationById(controllerFunc controllers.Func[*apicontract.DeleteMyStationByIdRequestDto]) gin.HandlerFunc
-	BindDeleteMyStationsByIds(controllerFunc controllers.Func[*apicontract.DeleteMyStationsByIdsRequestDto]) gin.HandlerFunc
-	BindHardDeleteMyStationById(controllerFunc controllers.Func[*apicontract.HardDeleteMyStationByIdRequestDto]) gin.HandlerFunc
-	BindHardDeleteMyStationsByIds(controllerFunc controllers.Func[*apicontract.HardDeleteMyStationsByIdsRequestDto]) gin.HandlerFunc
+	BindGetMyStationById(controllerFunc controllers.Func[*capi.GetMyStationByIdRequestDto]) gin.HandlerFunc
+	BindGetAllMyStations(controllerFunc controllers.Func[*capi.GetAllMyStationsRequestDto]) gin.HandlerFunc
+	BindCreateStation(controllerFunc controllers.Func[*capi.CreateStationRequestDto]) gin.HandlerFunc
+	BindCreateStations(controllerFunc controllers.Func[*capi.CreateStationsRequestDto]) gin.HandlerFunc
+	BindUpdateMyStationById(controllerFunc controllers.Func[*capi.UpdateMyStationByIdRequestDto]) gin.HandlerFunc
+	BindUpdateMyStationsByIds(controllerFunc controllers.Func[*capi.UpdateMyStationsByIdsRequestDto]) gin.HandlerFunc
+	BindRestoreMyStationById(controllerFunc controllers.Func[*capi.RestoreMyStationByIdRequestDto]) gin.HandlerFunc
+	BindRestoreMyStationsByIds(controllerFunc controllers.Func[*capi.RestoreMyStationsByIdsRequestDto]) gin.HandlerFunc
+	BindDeleteMyStationById(controllerFunc controllers.Func[*capi.DeleteMyStationByIdRequestDto]) gin.HandlerFunc
+	BindDeleteMyStationsByIds(controllerFunc controllers.Func[*capi.DeleteMyStationsByIdsRequestDto]) gin.HandlerFunc
+	BindHardDeleteMyStationById(controllerFunc controllers.Func[*capi.HardDeleteMyStationByIdRequestDto]) gin.HandlerFunc
+	BindHardDeleteMyStationsByIds(controllerFunc controllers.Func[*capi.HardDeleteMyStationsByIdsRequestDto]) gin.HandlerFunc
 
 	/* ============================== Visualization Methods ============================== */
-	BindVisualizeMyTotalCount(controllerFunc controllers.Func[*apicontract.VisualizeMyTotalCountRequestDto]) gin.HandlerFunc
+	BindVisualizeMyTotalCount(controllerFunc controllers.Func[*capi.VisualizeMyTotalCountRequestDto]) gin.HandlerFunc
 
 	/* ============================== Station Permission Methods ============================== */
-	BindGetMyStationPermission(controllerFunc controllers.Func[*apicontract.GetMyStationPermissionRequestDto]) gin.HandlerFunc
-	BindCreateMyStationPermission(controllerFunc controllers.Func[*apicontract.CreateMyStationPermissionRequestDto]) gin.HandlerFunc
-	BindUpsertMyStationPermission(controllerFunc controllers.Func[*apicontract.UpsertMyStationPermissionRequestDto]) gin.HandlerFunc
-	BindUpsertMyStationPermissions(controllerFunc controllers.Func[*apicontract.UpsertMyStationPermissionsRequestDto]) gin.HandlerFunc
-	BindUpdateMyStationPermission(controllerFunc controllers.Func[*apicontract.UpdateMyStationPermissionRequestDto]) gin.HandlerFunc
-	BindTransferMyStationOwnership(controllerFunc controllers.Func[*apicontract.TransferMyStationOwnershipRequestDto]) gin.HandlerFunc
-	BindDeleteMyStationPermission(controllerFunc controllers.Func[*apicontract.DeleteMyStationPermissionRequestDto]) gin.HandlerFunc
-	BindDeleteMyStationPermissions(controllerFunc controllers.Func[*apicontract.DeleteMyStationPermissionsRequestDto]) gin.HandlerFunc
-	BindLeaveMyStation(controllerFunc controllers.Func[*apicontract.LeaveMyStationRequestDto]) gin.HandlerFunc
-	BindLeaveMyStations(controllerFunc controllers.Func[*apicontract.LeaveMyStationsRequestDto]) gin.HandlerFunc
+	BindGetMyStationPermission(controllerFunc controllers.Func[*capi.GetMyStationPermissionRequestDto]) gin.HandlerFunc
+	BindCreateMyStationPermission(controllerFunc controllers.Func[*capi.CreateMyStationPermissionRequestDto]) gin.HandlerFunc
+	BindUpsertMyStationPermission(controllerFunc controllers.Func[*capi.UpsertMyStationPermissionRequestDto]) gin.HandlerFunc
+	BindUpsertMyStationPermissions(controllerFunc controllers.Func[*capi.UpsertMyStationPermissionsRequestDto]) gin.HandlerFunc
+	BindUpdateMyStationPermission(controllerFunc controllers.Func[*capi.UpdateMyStationPermissionRequestDto]) gin.HandlerFunc
+	BindTransferMyStationOwnership(controllerFunc controllers.Func[*capi.TransferMyStationOwnershipRequestDto]) gin.HandlerFunc
+	BindDeleteMyStationPermission(controllerFunc controllers.Func[*capi.DeleteMyStationPermissionRequestDto]) gin.HandlerFunc
+	BindDeleteMyStationPermissions(controllerFunc controllers.Func[*capi.DeleteMyStationPermissionsRequestDto]) gin.HandlerFunc
+	BindLeaveMyStation(controllerFunc controllers.Func[*capi.LeaveMyStationRequestDto]) gin.HandlerFunc
+	BindLeaveMyStations(controllerFunc controllers.Func[*capi.LeaveMyStationsRequestDto]) gin.HandlerFunc
 }
 
 type StationBinder struct{}
@@ -52,16 +52,16 @@ func NewStationBinder() StationBinderInterface {
 	return &StationBinder{}
 }
 
-func (b *StationBinder) BindGetMyStationById(controllerFunc controllers.Func[*apicontract.GetMyStationByIdRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindGetMyStationById(controllerFunc controllers.Func[*capi.GetMyStationByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.GetMyStationByIdRequestDto{}
+		request := &capi.GetMyStationByIdRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		isDeletedString := ctx.Query("isDeleted")
 		if isDeletedString != "" {
 			isDeleted, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 				return
 			}
 			request.Param.IsDeleted = &isDeleted
@@ -69,7 +69,7 @@ func (b *StationBinder) BindGetMyStationById(controllerFunc controllers.Func[*ap
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
@@ -78,16 +78,16 @@ func (b *StationBinder) BindGetMyStationById(controllerFunc controllers.Func[*ap
 	}
 }
 
-func (b *StationBinder) BindGetAllMyStations(controllerFunc controllers.Func[*apicontract.GetAllMyStationsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindGetAllMyStations(controllerFunc controllers.Func[*capi.GetAllMyStationsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.GetAllMyStationsRequestDto{}
+		request := &capi.GetAllMyStationsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		areDeletedString := ctx.Query("areDeleted")
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 				return
 			}
 			request.Query.AreDeleted = &areDeleted
@@ -97,12 +97,12 @@ func (b *StationBinder) BindGetAllMyStations(controllerFunc controllers.Func[*ap
 	}
 }
 
-func (b *StationBinder) BindCreateStation(controllerFunc controllers.Func[*apicontract.CreateStationRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindCreateStation(controllerFunc controllers.Func[*capi.CreateStationRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.CreateStationRequestDto{}
+		request := &capi.CreateStationRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -111,12 +111,12 @@ func (b *StationBinder) BindCreateStation(controllerFunc controllers.Func[*apico
 	}
 }
 
-func (b *StationBinder) BindCreateStations(controllerFunc controllers.Func[*apicontract.CreateStationsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindCreateStations(controllerFunc controllers.Func[*capi.CreateStationsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.CreateStationsRequestDto{}
+		request := &capi.CreateStationsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -125,19 +125,19 @@ func (b *StationBinder) BindCreateStations(controllerFunc controllers.Func[*apic
 	}
 }
 
-func (b *StationBinder) BindUpdateMyStationById(controllerFunc controllers.Func[*apicontract.UpdateMyStationByIdRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindUpdateMyStationById(controllerFunc controllers.Func[*capi.UpdateMyStationByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.UpdateMyStationByIdRequestDto{}
+		request := &capi.UpdateMyStationByIdRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
@@ -146,12 +146,12 @@ func (b *StationBinder) BindUpdateMyStationById(controllerFunc controllers.Func[
 	}
 }
 
-func (b *StationBinder) BindUpdateMyStationsByIds(controllerFunc controllers.Func[*apicontract.UpdateMyStationsByIdsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindUpdateMyStationsByIds(controllerFunc controllers.Func[*capi.UpdateMyStationsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.UpdateMyStationsByIdsRequestDto{}
+		request := &capi.UpdateMyStationsByIdsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -160,19 +160,19 @@ func (b *StationBinder) BindUpdateMyStationsByIds(controllerFunc controllers.Fun
 	}
 }
 
-func (b *StationBinder) BindRestoreMyStationById(controllerFunc controllers.Func[*apicontract.RestoreMyStationByIdRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindRestoreMyStationById(controllerFunc controllers.Func[*capi.RestoreMyStationByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.RestoreMyStationByIdRequestDto{}
+		request := &capi.RestoreMyStationByIdRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Body.StationId = stationId
@@ -181,12 +181,12 @@ func (b *StationBinder) BindRestoreMyStationById(controllerFunc controllers.Func
 	}
 }
 
-func (b *StationBinder) BindRestoreMyStationsByIds(controllerFunc controllers.Func[*apicontract.RestoreMyStationsByIdsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindRestoreMyStationsByIds(controllerFunc controllers.Func[*capi.RestoreMyStationsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.RestoreMyStationsByIdsRequestDto{}
+		request := &capi.RestoreMyStationsByIdsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -195,19 +195,19 @@ func (b *StationBinder) BindRestoreMyStationsByIds(controllerFunc controllers.Fu
 	}
 }
 
-func (b *StationBinder) BindDeleteMyStationById(controllerFunc controllers.Func[*apicontract.DeleteMyStationByIdRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindDeleteMyStationById(controllerFunc controllers.Func[*capi.DeleteMyStationByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.DeleteMyStationByIdRequestDto{}
+		request := &capi.DeleteMyStationByIdRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Body.StationId = stationId
@@ -216,12 +216,12 @@ func (b *StationBinder) BindDeleteMyStationById(controllerFunc controllers.Func[
 	}
 }
 
-func (b *StationBinder) BindDeleteMyStationsByIds(controllerFunc controllers.Func[*apicontract.DeleteMyStationsByIdsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindDeleteMyStationsByIds(controllerFunc controllers.Func[*capi.DeleteMyStationsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.DeleteMyStationsByIdsRequestDto{}
+		request := &capi.DeleteMyStationsByIdsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -230,19 +230,19 @@ func (b *StationBinder) BindDeleteMyStationsByIds(controllerFunc controllers.Fun
 	}
 }
 
-func (b *StationBinder) BindHardDeleteMyStationById(controllerFunc controllers.Func[*apicontract.HardDeleteMyStationByIdRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindHardDeleteMyStationById(controllerFunc controllers.Func[*capi.HardDeleteMyStationByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.HardDeleteMyStationByIdRequestDto{}
+		request := &capi.HardDeleteMyStationByIdRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Body.StationId = stationId
@@ -251,12 +251,12 @@ func (b *StationBinder) BindHardDeleteMyStationById(controllerFunc controllers.F
 	}
 }
 
-func (b *StationBinder) BindHardDeleteMyStationsByIds(controllerFunc controllers.Func[*apicontract.HardDeleteMyStationsByIdsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindHardDeleteMyStationsByIds(controllerFunc controllers.Func[*capi.HardDeleteMyStationsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.HardDeleteMyStationsByIdsRequestDto{}
+		request := &capi.HardDeleteMyStationsByIdsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exception := exceptions.InvalidDto("Station").WithOrigin(err)
+			exception := cexceptions.InvalidDto("Station").WithOrigin(err)
 			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
@@ -267,13 +267,13 @@ func (b *StationBinder) BindHardDeleteMyStationsByIds(controllerFunc controllers
 
 /* ============================== Visualization Methods ============================== */
 
-func (b *StationBinder) BindVisualizeMyTotalCount(controllerFunc controllers.Func[*apicontract.VisualizeMyTotalCountRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindVisualizeMyTotalCount(controllerFunc controllers.Func[*capi.VisualizeMyTotalCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.VisualizeMyTotalCountRequestDto{}
+		request := &capi.VisualizeMyTotalCountRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		permissionString := ctx.Query("permission")
 		if permissionString == "" {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(fmt.Errorf("permission is required")), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(fmt.Errorf("permission is required")), ctx)
 			return
 		}
 		request.Query.Permission = permissionString
@@ -284,21 +284,21 @@ func (b *StationBinder) BindVisualizeMyTotalCount(controllerFunc controllers.Fun
 
 /* ============================== Station Permission Methods ============================== */
 
-func (b *StationBinder) BindGetMyStationPermission(controllerFunc controllers.Func[*apicontract.GetMyStationPermissionRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindGetMyStationPermission(controllerFunc controllers.Func[*capi.GetMyStationPermissionRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.GetMyStationPermissionRequestDto{}
+		request := &capi.GetMyStationPermissionRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.UserPublicId = userPublicId
@@ -307,27 +307,27 @@ func (b *StationBinder) BindGetMyStationPermission(controllerFunc controllers.Fu
 	}
 }
 
-func (b *StationBinder) BindCreateMyStationPermission(controllerFunc controllers.Func[*apicontract.CreateMyStationPermissionRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindCreateMyStationPermission(controllerFunc controllers.Func[*capi.CreateMyStationPermissionRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.CreateMyStationPermissionRequestDto{}
+		request := &capi.CreateMyStationPermissionRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -335,27 +335,27 @@ func (b *StationBinder) BindCreateMyStationPermission(controllerFunc controllers
 	}
 }
 
-func (b *StationBinder) BindUpsertMyStationPermission(controllerFunc controllers.Func[*apicontract.UpsertMyStationPermissionRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindUpsertMyStationPermission(controllerFunc controllers.Func[*capi.UpsertMyStationPermissionRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.UpsertMyStationPermissionRequestDto{}
+		request := &capi.UpsertMyStationPermissionRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -363,20 +363,20 @@ func (b *StationBinder) BindUpsertMyStationPermission(controllerFunc controllers
 	}
 }
 
-func (b *StationBinder) BindUpsertMyStationPermissions(controllerFunc controllers.Func[*apicontract.UpsertMyStationPermissionsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindUpsertMyStationPermissions(controllerFunc controllers.Func[*capi.UpsertMyStationPermissionsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.UpsertMyStationPermissionsRequestDto{}
+		request := &capi.UpsertMyStationPermissionsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -384,27 +384,27 @@ func (b *StationBinder) BindUpsertMyStationPermissions(controllerFunc controller
 	}
 }
 
-func (b *StationBinder) BindUpdateMyStationPermission(controllerFunc controllers.Func[*apicontract.UpdateMyStationPermissionRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindUpdateMyStationPermission(controllerFunc controllers.Func[*capi.UpdateMyStationPermissionRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.UpdateMyStationPermissionRequestDto{}
+		request := &capi.UpdateMyStationPermissionRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -412,20 +412,20 @@ func (b *StationBinder) BindUpdateMyStationPermission(controllerFunc controllers
 	}
 }
 
-func (b *StationBinder) BindTransferMyStationOwnership(controllerFunc controllers.Func[*apicontract.TransferMyStationOwnershipRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindTransferMyStationOwnership(controllerFunc controllers.Func[*capi.TransferMyStationOwnershipRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.TransferMyStationOwnershipRequestDto{}
+		request := &capi.TransferMyStationOwnershipRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -433,21 +433,21 @@ func (b *StationBinder) BindTransferMyStationOwnership(controllerFunc controller
 	}
 }
 
-func (b *StationBinder) BindDeleteMyStationPermission(controllerFunc controllers.Func[*apicontract.DeleteMyStationPermissionRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindDeleteMyStationPermission(controllerFunc controllers.Func[*capi.DeleteMyStationPermissionRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.DeleteMyStationPermissionRequestDto{}
+		request := &capi.DeleteMyStationPermissionRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.UserPublicId = userPublicId
@@ -456,20 +456,20 @@ func (b *StationBinder) BindDeleteMyStationPermission(controllerFunc controllers
 	}
 }
 
-func (b *StationBinder) BindDeleteMyStationPermissions(controllerFunc controllers.Func[*apicontract.DeleteMyStationPermissionsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindDeleteMyStationPermissions(controllerFunc controllers.Func[*capi.DeleteMyStationPermissionsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.DeleteMyStationPermissionsRequestDto{}
+		request := &capi.DeleteMyStationPermissionsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
 
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 
@@ -477,14 +477,14 @@ func (b *StationBinder) BindDeleteMyStationPermissions(controllerFunc controller
 	}
 }
 
-func (b *StationBinder) BindLeaveMyStation(controllerFunc controllers.Func[*apicontract.LeaveMyStationRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindLeaveMyStation(controllerFunc controllers.Func[*capi.LeaveMyStationRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.LeaveMyStationRequestDto{}
+		request := &capi.LeaveMyStationRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		stationId, err := uuid.Parse(ctx.Param("station-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Station").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.StationId = stationId
@@ -493,12 +493,12 @@ func (b *StationBinder) BindLeaveMyStation(controllerFunc controllers.Func[*apic
 	}
 }
 
-func (b *StationBinder) BindLeaveMyStations(controllerFunc controllers.Func[*apicontract.LeaveMyStationsRequestDto]) gin.HandlerFunc {
+func (b *StationBinder) BindLeaveMyStations(controllerFunc controllers.Func[*capi.LeaveMyStationsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		request := &apicontract.LeaveMyStationsRequestDto{}
+		request := &capi.LeaveMyStationsRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("Station").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Station").WithOrigin(err), ctx)
 			return
 		}
 

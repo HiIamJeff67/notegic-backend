@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 )
 
 type YjsMaintenanceHintEventBuilder struct{}
@@ -16,15 +16,15 @@ func NewYjsMaintenanceHintEventBuilder() *YjsMaintenanceHintEventBuilder {
 }
 
 func (b *YjsMaintenanceHintEventBuilder) Build(
-	hint coreeventscontract.YjsMaintenanceHintData,
+	hint coreevents.YjsMaintenanceHintData,
 	correlationId string,
 	occurredAt time.Time,
-) eventcontract.EventEnvelope[coreeventscontract.YjsMaintenanceHintData] {
-	return eventcontract.EventEnvelope[coreeventscontract.YjsMaintenanceHintData]{
-		SchemaVersion: eventcontract.Version,
+) cevent.EventEnvelope[coreevents.YjsMaintenanceHintData] {
+	return cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
-		EventType:     coreeventscontract.EventType_YjsMaintenanceHint,
-		AggregateType: coreeventscontract.AggregateType_BlockPack,
+		EventType:     coreevents.EventType_YjsMaintenanceHint,
+		AggregateType: coreevents.AggregateType_BlockPack,
 		AggregateId:   hint.BlockPackId,
 		KafkaKey:      hint.BlockPackId.String(),
 		OccurredAt:    occurredAt,

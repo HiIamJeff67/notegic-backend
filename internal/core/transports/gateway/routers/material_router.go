@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	materialservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/material"
@@ -35,7 +35,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/get-by-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyMaterialByIdOperation,
+				capi.GetMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyMaterialById,
@@ -43,7 +43,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/get-and-parent-by-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyMaterialAndItsParentByIdOperation,
+				capi.GetMyMaterialAndItsParentByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyMaterialAndItsParentById,
@@ -51,7 +51,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/get-by-parent-sub-shelf-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetMyMaterialsByParentSubShelfIdOperation,
+				capi.GetMyMaterialsByParentSubShelfIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetMyMaterialsByParentSubShelfId,
@@ -59,7 +59,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/get-all-by-root-shelf-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.GetAllMyMaterialsByRootShelfIdOperation,
+				capi.GetAllMyMaterialsByRootShelfIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.GetAllMyMaterialsByRootShelfId,
@@ -67,7 +67,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/create",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.CreateMyMaterialOperation,
+				capi.CreateMyMaterialOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.CreateMyMaterial,
@@ -75,7 +75,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/update",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.UpdateMyMaterialByIdOperation,
+				capi.UpdateMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.UpdateMyMaterialById,
@@ -83,7 +83,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/save",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SaveMyMaterialByIdOperation,
+				capi.SaveMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.SaveMyMaterialById,
@@ -91,7 +91,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/move",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.MoveMyMaterialByIdOperation,
+				capi.MoveMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.MoveMyMaterialById,
@@ -99,7 +99,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/move-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.MoveMyMaterialsByIdsOperation,
+				capi.MoveMyMaterialsByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.MoveMyMaterialsByIds,
@@ -107,7 +107,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/restore",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.RestoreMyMaterialByIdOperation,
+				capi.RestoreMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.RestoreMyMaterialById,
@@ -115,7 +115,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/restore-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.RestoreMyMaterialsByIdsOperation,
+				capi.RestoreMyMaterialsByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.RestoreMyMaterialsByIds,
@@ -123,7 +123,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/delete",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.DeleteMyMaterialByIdOperation,
+				capi.DeleteMyMaterialByIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.DeleteMyMaterialById,
@@ -131,7 +131,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/delete-many",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.DeleteMyMaterialsByIdsOperation,
+				capi.DeleteMyMaterialsByIdsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.DeleteMyMaterialsByIds,
@@ -139,7 +139,7 @@ func configureMaterialRoutes(
 		materialRoutes.POST(
 			"/graphql/search",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.SearchMaterialsOperation,
+				capi.SearchMaterialsOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.SearchMaterials,

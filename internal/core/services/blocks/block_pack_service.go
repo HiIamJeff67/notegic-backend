@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -13,47 +14,45 @@ import (
 	pg "github.com/lib/pq"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
-	blockpacksql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/block_pack"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	blockpacksql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/sqls/block_pack"
 )
 
 type BlockPackServiceInterface interface {
-	GetMyBlockPackById(ctx context.Context, requestDto *apicontract.GetMyBlockPackByIdRequestDto) (*apicontract.GetMyBlockPackByIdResponseDto, *exceptions.Exception)
-	GetMyBlockPackAndItsParentById(ctx context.Context, requestDto *apicontract.GetMyBlockPackAndItsParentByIdRequestDto) (*apicontract.GetMyBlockPackAndItsParentByIdResponseDto, *exceptions.Exception)
-	GetMyBlockPacksByParentSubShelfId(ctx context.Context, requestDto *apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto) (*apicontract.GetMyBlockPacksByParentSubShelfIdResponseDto, *exceptions.Exception)
-	GetAllMyBlockPacksByRootShelfId(ctx context.Context, requestDto *apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto) (*apicontract.GetAllMyBlockPacksByRootShelfIdResponseDto, *exceptions.Exception)
-	CreateBlockPack(ctx context.Context, requestDto *apicontract.CreateBlockPackRequestDto) (*apicontract.CreateBlockPackResponseDto, *exceptions.Exception)
-	CreateBlockPacks(ctx context.Context, requestDto *apicontract.CreateBlockPacksRequestDto) (*apicontract.CreateBlockPacksResponseDto, *exceptions.Exception)
-	UpdateMyBlockPackById(ctx context.Context, requestDto *apicontract.UpdateMyBlockPackByIdRequestDto) (*apicontract.UpdateMyBlockPackByIdResponseDto, *exceptions.Exception)
-	UpdateMyBlockPacksByIds(ctx context.Context, requestDto *apicontract.UpdateMyBlockPacksByIdsRequestDto) (*apicontract.UpdateMyBlockPacksByIdsResponseDto, *exceptions.Exception)
-	MoveMyBlockPackByParentSubShelfId(ctx context.Context, requestDto *apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto) (*apicontract.MoveMyBlockPackByParentSubShelfIdResponseDto, *exceptions.Exception)
-	MoveMyBlockPacksByParentSubShelfId(ctx context.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto) (*apicontract.MoveMyBlockPacksByParentSubShelfIdResponseDto, *exceptions.Exception)
-	MoveMyBlockPacksByParentSubShelfIds(ctx context.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto) (*apicontract.MoveMyBlockPacksByParentSubShelfIdsResponseDto, *exceptions.Exception)
-	RestoreMyBlockPackById(ctx context.Context, requestDto *apicontract.RestoreMyBlockPackByIdRequestDto) (*apicontract.RestoreMyBlockPackByIdResponseDto, *exceptions.Exception)
-	RestoreMyBlockPacksByIds(ctx context.Context, requestDto *apicontract.RestoreMyBlockPacksByIdsRequestDto) (*apicontract.RestoreMyBlockPacksByIdsResponseDto, *exceptions.Exception)
-	DeleteMyBlockPackById(ctx context.Context, requestDto *apicontract.DeleteMyBlockPackByIdRequestDto) (*apicontract.DeleteMyBlockPackByIdResponseDto, *exceptions.Exception)
-	DeleteMyBlockPacksByIds(ctx context.Context, requestDto *apicontract.DeleteMyBlockPacksByIdsRequestDto) (*apicontract.DeleteMyBlockPacksByIdsResponseDto, *exceptions.Exception)
+	GetMyBlockPackById(ctx context.Context, requestDto *capi.GetMyBlockPackByIdRequestDto) (*capi.GetMyBlockPackByIdResponseDto, *cexceptions.Exception)
+	GetMyBlockPackAndItsParentById(ctx context.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto) (*capi.GetMyBlockPackAndItsParentByIdResponseDto, *cexceptions.Exception)
+	GetMyBlockPacksByParentSubShelfId(ctx context.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto) (*capi.GetMyBlockPacksByParentSubShelfIdResponseDto, *cexceptions.Exception)
+	GetAllMyBlockPacksByRootShelfId(ctx context.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto) (*capi.GetAllMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception)
+	CreateBlockPack(ctx context.Context, requestDto *capi.CreateBlockPackRequestDto) (*capi.CreateBlockPackResponseDto, *cexceptions.Exception)
+	CreateBlockPacks(ctx context.Context, requestDto *capi.CreateBlockPacksRequestDto) (*capi.CreateBlockPacksResponseDto, *cexceptions.Exception)
+	UpdateMyBlockPackById(ctx context.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto) (*capi.UpdateMyBlockPackByIdResponseDto, *cexceptions.Exception)
+	UpdateMyBlockPacksByIds(ctx context.Context, requestDto *capi.UpdateMyBlockPacksByIdsRequestDto) (*capi.UpdateMyBlockPacksByIdsResponseDto, *cexceptions.Exception)
+	MoveMyBlockPackByParentSubShelfId(ctx context.Context, requestDto *capi.MoveMyBlockPackByParentSubShelfIdRequestDto) (*capi.MoveMyBlockPackByParentSubShelfIdResponseDto, *cexceptions.Exception)
+	MoveMyBlockPacksByParentSubShelfId(ctx context.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdRequestDto) (*capi.MoveMyBlockPacksByParentSubShelfIdResponseDto, *cexceptions.Exception)
+	MoveMyBlockPacksByParentSubShelfIds(ctx context.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto) (*capi.MoveMyBlockPacksByParentSubShelfIdsResponseDto, *cexceptions.Exception)
+	RestoreMyBlockPackById(ctx context.Context, requestDto *capi.RestoreMyBlockPackByIdRequestDto) (*capi.RestoreMyBlockPackByIdResponseDto, *cexceptions.Exception)
+	RestoreMyBlockPacksByIds(ctx context.Context, requestDto *capi.RestoreMyBlockPacksByIdsRequestDto) (*capi.RestoreMyBlockPacksByIdsResponseDto, *cexceptions.Exception)
+	DeleteMyBlockPackById(ctx context.Context, requestDto *capi.DeleteMyBlockPackByIdRequestDto) (*capi.DeleteMyBlockPackByIdResponseDto, *cexceptions.Exception)
+	DeleteMyBlockPacksByIds(ctx context.Context, requestDto *capi.DeleteMyBlockPacksByIdsRequestDto) (*capi.DeleteMyBlockPacksByIdsResponseDto, *cexceptions.Exception)
 
-	SearchPrivateBlockPacks(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchBlockPackInput) (*gqlmodels.SearchBlockPackConnection, *exceptions.Exception)
+	SearchPrivateBlockPacks(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchBlockPackInput) (*cgqlmodels.SearchBlockPackConnection, *cexceptions.Exception)
 }
 
 type BlockPackService struct {
@@ -83,8 +82,8 @@ func NewBlockPackService(
 /* ============================== Main Methods ============================== */
 
 func (s *BlockPackService) GetMyBlockPackById(
-	ctx context.Context, requestDto *apicontract.GetMyBlockPackByIdRequestDto,
-) (*apicontract.GetMyBlockPackByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlockPackByIdRequestDto,
+) (*capi.GetMyBlockPackByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -122,11 +121,11 @@ func (s *BlockPackService) GetMyBlockPackById(
 		return nil, exception
 	}
 
-	resDto := &apicontract.GetMyBlockPackByIdResponseDto{
+	resDto := &capi.GetMyBlockPackByIdResponseDto{
 		Id:                  blockPack.Id,
 		ParentSubShelfId:    blockPack.ParentSubShelfId,
 		Name:                blockPack.Name,
-		Icon:                blockPack.Icon.ToContractable(),
+		Icon:                blockPack.Icon,
 		HeaderBackgroundURL: blockPack.HeaderBackgroundURL,
 		BlockCount:          blockPack.BlockCount,
 		DeletedAt:           blockPack.DeletedAt,
@@ -144,8 +143,8 @@ func (s *BlockPackService) GetMyBlockPackById(
 }
 
 func (s *BlockPackService) GetMyBlockPackAndItsParentById(
-	ctx context.Context, requestDto *apicontract.GetMyBlockPackAndItsParentByIdRequestDto,
-) (*apicontract.GetMyBlockPackAndItsParentByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto,
+) (*capi.GetMyBlockPackAndItsParentByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -170,7 +169,7 @@ func (s *BlockPackService) GetMyBlockPackAndItsParentById(
 		}
 	}
 
-	resDto := apicontract.GetMyBlockPackAndItsParentByIdResponseDto{}
+	resDto := capi.GetMyBlockPackAndItsParentByIdResponseDto{}
 	var parentSubShelfPath types.UUIDArray
 	err := db.Raw(blockpacksql.GetMyBlockPackAndItsParentByIdSQL,
 		requestDto.Param.BlockPackId, actorUserId, pg.Array(allowedPermissions), onlyDeleted,
@@ -205,7 +204,7 @@ func (s *BlockPackService) GetMyBlockPackAndItsParentById(
 			logs.NotegicLogger.Error(ctx, err, "Failed to scan BlockPack and its parent response")
 		}
 
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToRead",
 			"BlockPack",
 			"Repository",
@@ -220,8 +219,8 @@ func (s *BlockPackService) GetMyBlockPackAndItsParentById(
 }
 
 func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
-	ctx context.Context, requestDto *apicontract.GetMyBlockPacksByParentSubShelfIdRequestDto,
-) (*apicontract.GetMyBlockPacksByParentSubShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto,
+) (*capi.GetMyBlockPacksByParentSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -246,7 +245,7 @@ func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
 		}
 	}
 
-	resDto := apicontract.GetMyBlockPacksByParentSubShelfIdResponseDto{}
+	resDto := capi.GetMyBlockPacksByParentSubShelfIdResponseDto{}
 	result := db.Model(&schemas.BlockPack{}).
 		Select(`
 			"BlockPackTable".*,
@@ -274,8 +273,8 @@ func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
 }
 
 func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
-	ctx context.Context, requestDto *apicontract.GetAllMyBlockPacksByRootShelfIdRequestDto,
-) (*apicontract.GetAllMyBlockPacksByRootShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto,
+) (*capi.GetAllMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -300,7 +299,7 @@ func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
 		}
 	}
 
-	resDto := apicontract.GetAllMyBlockPacksByRootShelfIdResponseDto{}
+	resDto := capi.GetAllMyBlockPacksByRootShelfIdResponseDto{}
 	result := db.Model(&schemas.BlockPack{}).
 		Select(`
 			"BlockPackTable".*,
@@ -326,8 +325,8 @@ func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
 }
 
 func (s *BlockPackService) CreateBlockPack(
-	ctx context.Context, requestDto *apicontract.CreateBlockPackRequestDto,
-) (*apicontract.CreateBlockPackResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.CreateBlockPackRequestDto,
+) (*capi.CreateBlockPackResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -349,7 +348,7 @@ func (s *BlockPackService) CreateBlockPack(
 		inputs.CreateBlockPackInput{
 			Id:                  requestDto.Body.Id,
 			Name:                requestDto.Body.Name,
-			Icon:                enums.SupportedIconToStorable(requestDto.Body.Icon),
+			Icon:                requestDto.Body.Icon,
 			HeaderBackgroundURL: requestDto.Body.HeaderBackgroundURL,
 		},
 		options.WithTransactionDB(tx),
@@ -381,15 +380,15 @@ func (s *BlockPackService) CreateBlockPack(
 		return nil, apiexceptions.NewBlockPackException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.CreateBlockPackResponseDto{
+	return &capi.CreateBlockPackResponseDto{
 		Id:        *newBlockPackId,
 		CreatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) CreateBlockPacks(
-	ctx context.Context, requestDto *apicontract.CreateBlockPacksRequestDto,
-) (*apicontract.CreateBlockPacksResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.CreateBlockPacksRequestDto,
+) (*capi.CreateBlockPacksResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -411,7 +410,7 @@ func (s *BlockPackService) CreateBlockPacks(
 			Id:                  createdBlockPack.Id,
 			ParentSubShelfId:    createdBlockPack.ParentSubShelfId,
 			Name:                createdBlockPack.Name,
-			Icon:                enums.SupportedIconToStorable(createdBlockPack.Icon),
+			Icon:                createdBlockPack.Icon,
 			HeaderBackgroundURL: createdBlockPack.HeaderBackgroundURL,
 		}
 	}
@@ -453,15 +452,15 @@ func (s *BlockPackService) CreateBlockPacks(
 		return nil, apiexceptions.NewBlockPackException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.CreateBlockPacksResponseDto{
+	return &capi.CreateBlockPacksResponseDto{
 		Ids:       newBlockPackIds,
 		CreatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) UpdateMyBlockPackById(
-	ctx context.Context, requestDto *apicontract.UpdateMyBlockPackByIdRequestDto,
-) (*apicontract.UpdateMyBlockPackByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto,
+) (*capi.UpdateMyBlockPackByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -487,7 +486,7 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 		inputs.PartialUpdateBlockPackInput{
 			Values: inputs.UpdateBlockPackInput{
 				Name:                requestDto.Body.Values.Name,
-				Icon:                enums.SupportedIconToStorable(requestDto.Body.Values.Icon),
+				Icon:                requestDto.Body.Values.Icon,
 				HeaderBackgroundURL: requestDto.Body.Values.HeaderBackgroundURL,
 			},
 			SetNull: requestDto.Body.SetNull,
@@ -512,14 +511,14 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 		return nil, apiexceptions.NewBlockPackException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.UpdateMyBlockPackByIdResponseDto{
+	return &capi.UpdateMyBlockPackByIdResponseDto{
 		UpdatedAt: blockPack.UpdatedAt,
 	}, nil
 }
 
 func (s *BlockPackService) UpdateMyBlockPacksByIds(
-	ctx context.Context, requestDto *apicontract.UpdateMyBlockPacksByIdsRequestDto,
-) (*apicontract.UpdateMyBlockPacksByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UpdateMyBlockPacksByIdsRequestDto,
+) (*capi.UpdateMyBlockPacksByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -546,7 +545,7 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateBlockPackInput]{
 				Values: inputs.UpdateBlockPackInput{
 					Name:                updatedBlockPack.Values.Name,
-					Icon:                enums.SupportedIconToStorable(updatedBlockPack.Values.Icon),
+					Icon:                updatedBlockPack.Values.Icon,
 					HeaderBackgroundURL: updatedBlockPack.Values.HeaderBackgroundURL,
 				},
 			},
@@ -579,14 +578,14 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 		return nil, apiexceptions.NewBlockPackException().FailedToCommitTransaction().WithOrigin(err)
 	}
 
-	return &apicontract.UpdateMyBlockPacksByIdsResponseDto{
+	return &capi.UpdateMyBlockPacksByIdsResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
-	ctx context.Context, requestDto *apicontract.MoveMyBlockPackByParentSubShelfIdRequestDto,
-) (*apicontract.MoveMyBlockPackByParentSubShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.MoveMyBlockPackByParentSubShelfIdRequestDto,
+) (*capi.MoveMyBlockPackByParentSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -602,7 +601,7 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"BlockPack",
 			"MoveMyBlockPackByParentSubShelfId",
@@ -632,10 +631,10 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 		requestDto.Body.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Body.BlockPackId},
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMyBlockPackByParentSubShelfId",
@@ -650,7 +649,7 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 		[]uuid.UUID{requestDto.Body.BlockPackId},
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMyBlockPackByParentSubShelfId",
@@ -661,7 +660,7 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"BlockPack",
 			"MoveMyBlockPackByParentSubShelfId",
@@ -671,14 +670,14 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.MoveMyBlockPackByParentSubShelfIdResponseDto{
+	return &capi.MoveMyBlockPackByParentSubShelfIdResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
-	ctx context.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdRequestDto,
-) (*apicontract.MoveMyBlockPacksByParentSubShelfIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdRequestDto,
+) (*capi.MoveMyBlockPacksByParentSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -705,7 +704,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 	}
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"BlockPack",
 			"MoveMyBlockPacksByParentSubShelfId",
@@ -729,10 +728,10 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		"block-pack-bulk-move",
 		requestDto.Body.BlockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMyBlockPacksByParentSubShelfId",
@@ -747,7 +746,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		requestDto.Body.BlockPackIds,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMyBlockPacksByParentSubShelfId",
@@ -758,7 +757,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"BlockPack",
 			"MoveMyBlockPacksByParentSubShelfId",
@@ -768,14 +767,14 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.MoveMyBlockPacksByParentSubShelfIdResponseDto{
+	return &capi.MoveMyBlockPacksByParentSubShelfIdResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
-	ctx context.Context, requestDto *apicontract.MoveMyBlockPacksByParentSubShelfIdsRequestDto,
-) (*apicontract.MoveMyBlockPacksByParentSubShelfIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto,
+) (*capi.MoveMyBlockPacksByParentSubShelfIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -805,7 +804,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"BlockPack",
 			"MoveMyBlockPacksByParentSubShelfIds",
@@ -832,10 +831,10 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 		"block-pack-multi-parent-move",
 		blockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"MoveMyBlockPacksByParentSubShelfIds",
@@ -846,7 +845,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"BlockPack",
 			"MoveMyBlockPacksByParentSubShelfIds",
@@ -856,14 +855,14 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.MoveMyBlockPacksByParentSubShelfIdsResponseDto{
+	return &capi.MoveMyBlockPacksByParentSubShelfIdsResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) RestoreMyBlockPackById(
-	ctx context.Context, requestDto *apicontract.RestoreMyBlockPackByIdRequestDto,
-) (*apicontract.RestoreMyBlockPackByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.RestoreMyBlockPackByIdRequestDto,
+) (*capi.RestoreMyBlockPackByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -888,11 +887,11 @@ func (s *BlockPackService) RestoreMyBlockPackById(
 		return nil, exception
 	}
 
-	return &apicontract.RestoreMyBlockPackByIdResponseDto{
+	return &capi.RestoreMyBlockPackByIdResponseDto{
 		Id:                  restoredBlockPack.Id,
 		ParentSubShelfId:    restoredBlockPack.ParentSubShelfId,
 		Name:                restoredBlockPack.Name,
-		Icon:                restoredBlockPack.Icon.ToContractable(),
+		Icon:                restoredBlockPack.Icon,
 		HeaderBackgroundURL: restoredBlockPack.HeaderBackgroundURL,
 		BlockCount:          restoredBlockPack.BlockCount,
 		DeletedAt:           restoredBlockPack.DeletedAt,
@@ -902,8 +901,8 @@ func (s *BlockPackService) RestoreMyBlockPackById(
 }
 
 func (s *BlockPackService) RestoreMyBlockPacksByIds(
-	ctx context.Context, requestDto *apicontract.RestoreMyBlockPacksByIdsRequestDto,
-) (*apicontract.RestoreMyBlockPacksByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.RestoreMyBlockPacksByIdsRequestDto,
+) (*capi.RestoreMyBlockPacksByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -928,13 +927,13 @@ func (s *BlockPackService) RestoreMyBlockPacksByIds(
 		return nil, exception
 	}
 
-	resDto := apicontract.RestoreMyBlockPacksByIdsResponseDto{}
+	resDto := capi.RestoreMyBlockPacksByIdsResponseDto{}
 	for _, restoredBlockPack := range restoredBlockPacks {
-		resDto = append(resDto, apicontract.RestoreMyBlockPackByIdResponseDto{
+		resDto = append(resDto, capi.RestoreMyBlockPackByIdResponseDto{
 			Id:                  restoredBlockPack.Id,
 			ParentSubShelfId:    restoredBlockPack.ParentSubShelfId,
 			Name:                restoredBlockPack.Name,
-			Icon:                restoredBlockPack.Icon.ToContractable(),
+			Icon:                restoredBlockPack.Icon,
 			HeaderBackgroundURL: restoredBlockPack.HeaderBackgroundURL,
 			BlockCount:          restoredBlockPack.BlockCount,
 			DeletedAt:           restoredBlockPack.DeletedAt,
@@ -947,8 +946,8 @@ func (s *BlockPackService) RestoreMyBlockPacksByIds(
 }
 
 func (s *BlockPackService) DeleteMyBlockPackById(
-	ctx context.Context, requestDto *apicontract.DeleteMyBlockPackByIdRequestDto,
-) (*apicontract.DeleteMyBlockPackByIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.DeleteMyBlockPackByIdRequestDto,
+) (*capi.DeleteMyBlockPackByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -964,7 +963,7 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"BlockPack",
 			"DeleteMyBlockPackById",
@@ -987,10 +986,10 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 		requestDto.Param.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Param.BlockPackId},
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMyBlockPackById",
@@ -1005,7 +1004,7 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 		[]uuid.UUID{requestDto.Param.BlockPackId},
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMyBlockPackById",
@@ -1016,7 +1015,7 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"BlockPack",
 			"DeleteMyBlockPackById",
@@ -1026,14 +1025,14 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.DeleteMyBlockPackByIdResponseDto{
+	return &capi.DeleteMyBlockPackByIdResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
 
 func (s *BlockPackService) DeleteMyBlockPacksByIds(
-	ctx context.Context, requestDto *apicontract.DeleteMyBlockPacksByIdsRequestDto,
-) (*apicontract.DeleteMyBlockPacksByIdsResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.DeleteMyBlockPacksByIdsRequestDto,
+) (*capi.DeleteMyBlockPacksByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewBlockPackException().InvalidDto().WithOrigin(err)
 	}
@@ -1049,7 +1048,7 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 
 	tx := s.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionBeginFailed",
 			"BlockPack",
 			"DeleteMyBlockPacksByIds",
@@ -1072,10 +1071,10 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 		"block-pack-bulk-delete",
 		requestDto.Body.BlockPackIds,
 		nil,
-		coreeventscontract.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMyBlockPacksByIds",
@@ -1090,7 +1089,7 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 		requestDto.Body.BlockPackIds,
 	); err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"FailedToCreate",
 			"Outbox",
 			"DeleteMyBlockPacksByIds",
@@ -1101,7 +1100,7 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"TransactionCommitFailed",
 			"BlockPack",
 			"DeleteMyBlockPacksByIds",
@@ -1111,7 +1110,7 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.DeleteMyBlockPacksByIdsResponseDto{
+	return &capi.DeleteMyBlockPacksByIdsResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
@@ -1119,8 +1118,8 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 /* ============================== Service Methods for GraphQL BlockPack ============================== */
 
 func (s *BlockPackService) SearchPrivateBlockPacks(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchBlockPackInput,
-) (*gqlmodels.SearchBlockPackConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchBlockPackInput,
+) (*cgqlmodels.SearchBlockPackConnection, *cexceptions.Exception) {
 	startTime := time.Now()
 	db := s.db.WithContext(ctx)
 
@@ -1156,7 +1155,7 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchBlockPackCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchBlockPackCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1165,26 +1164,26 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		cending := gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		cending := cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchBlockPackSortByName:
+		case cgqlmodels.SearchBlockPackSortByName:
 			query = query.Order(`"BlockPackTable".name ` + cending).
 				Order(`"BlockPackTable".updated_at ` + cending).
 				Order(`"BlockPackTable".created_at ` + cending)
-		case gqlmodels.SearchBlockPackSortByBlockCount:
+		case cgqlmodels.SearchBlockPackSortByBlockCount:
 			query = query.Order(`"BlockPackTable".block_count ` + cending).
 				Order(`"BlockPackTable".name ` + cending).
 				Order(`"BlockPackTable".updated_at ` + cending).
 				Order(`"BlockPackTable".created_at ` + cending)
-		case gqlmodels.SearchBlockPackSortByLastUpdate:
+		case cgqlmodels.SearchBlockPackSortByLastUpdate:
 			query = query.Order(`"BlockPackTable".updated_at ` + cending).
 				Order(`"BlockPackTable".name ` + cending).
 				Order(`"BlockPackTable".created_at ` + cending)
-		case gqlmodels.SearchBlockPackSortByCreatedAt:
+		case cgqlmodels.SearchBlockPackSortByCreatedAt:
 			query = query.Order(`"BlockPackTable".created_at ` + cending).
 				Order(`"BlockPackTable".name ` + cending).
 				Order(`"BlockPackTable".updated_at ` + cending)
@@ -1212,11 +1211,11 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 	}
 
 	hasNextPage := len(blockPacks) > limit
-	searchEdges := make([]*gqlmodels.SearchBlockPackEdge, len(blockPacks))
+	searchEdges := make([]*cgqlmodels.SearchBlockPackEdge, len(blockPacks))
 
 	for index, blockPack := range blockPacks {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchBlockPackCursorFields]{
-			Fields: gqlmodels.SearchBlockPackCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchBlockPackCursorFields]{
+			Fields: cgqlmodels.SearchBlockPackCursorFields{
 				ID: blockPack.Id,
 			},
 		}
@@ -1228,13 +1227,13 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
 		}
 
-		searchEdges[index] = &gqlmodels.SearchBlockPackEdge{
+		searchEdges[index] = &cgqlmodels.SearchBlockPackEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                blockPack.ToPrivateBlockPack(),
 		}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -1249,7 +1248,7 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 		searchEdges = searchEdges[:limit]
 	}
 
-	return &gqlmodels.SearchBlockPackConnection{
+	return &cgqlmodels.SearchBlockPackConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

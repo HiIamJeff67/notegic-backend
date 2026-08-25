@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -10,43 +11,42 @@ import (
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RootShelfRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.RootShelf, enums.AccessControlPermission, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.RootShelf, []enums.AccessControlPermission, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, opts ...options.RepositoryOptions) (*schemas.RootShelf, enums.AccessControlPermission, *exceptions.Exception)
-	CreateOne(ownerId uuid.UUID, input inputs.CreateRootShelfInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	CreateMany(ownerId uuid.UUID, input []inputs.CreateRootShelfInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateRootShelfInput, opts ...options.RepositoryOptions) (*schemas.RootShelf, *exceptions.Exception)
-	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateRootShelfByIdInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.RootShelf, *exceptions.Exception)
-	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.RootShelf, *exceptions.Exception)
-	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	SoftDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(sids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.RootShelf, enums.AccessControlPermission, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.RootShelf, []enums.AccessControlPermission, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RootShelfRelation, opts ...options.RepositoryOptions) (*schemas.RootShelf, enums.AccessControlPermission, *cexceptions.Exception)
+	CreateOne(ownerId uuid.UUID, input inputs.CreateRootShelfInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	CreateMany(ownerId uuid.UUID, input []inputs.CreateRootShelfInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateRootShelfInput, opts ...options.RepositoryOptions) (*schemas.RootShelf, *cexceptions.Exception)
+	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateRootShelfByIdInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	RestoreSoftDeletedOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.RootShelf, *cexceptions.Exception)
+	RestoreSoftDeletedManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.RootShelf, *cexceptions.Exception)
+	SoftDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	SoftDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(sids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByUserId(userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 
 	/* ============================== System Only Method ============================== */
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRootShelfPermissionInput, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.RootShelf, *exceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateRootShelfInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateRootShelfInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRootShelfPermissionInput, preloads []schemas.RootShelfRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.RootShelf, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateRootShelfInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateRootShelfInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type RootShelfRepository struct {
@@ -112,7 +112,7 @@ func (r *RootShelfRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.RootShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.RootShelf, enums.AccessControlPermission, *exceptions.Exception) {
+) (*schemas.RootShelf, enums.AccessControlPermission, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	type rootShelfWithPermission struct {
@@ -141,7 +141,7 @@ func (r *RootShelfRepository) CheckPermissionAndGetOneById(
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&rootShelf)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 		{First: rootShelf.Id == uuid.Nil, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
@@ -157,7 +157,7 @@ func (r *RootShelfRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.RootShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RootShelf, []enums.AccessControlPermission, *exceptions.Exception) {
+) ([]schemas.RootShelf, []enums.AccessControlPermission, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var rootShelves []schemas.RootShelf
@@ -168,7 +168,7 @@ func (r *RootShelfRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&rootShelves)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 		{First: len(rootShelves) == 0, Second: apiexceptions.NewShelfException().NotFound()},
 	}); exception != nil {
@@ -189,7 +189,7 @@ func (r *RootShelfRepository) CheckPermissionsAndGetManyByIds(
 			).
 			Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 			Find(&usersToShelves)
-		if exception := exceptions.Cover(nil, []exceptions.Pair{
+		if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 			{First: result.Error != nil, Second: apiexceptions.NewShelfException().NotFound().WithOrigin(result.Error)},
 			{First: len(usersToShelves) == 0, Second: apiexceptions.NewShelfException().NotFound()},
 		}); exception != nil {
@@ -218,7 +218,7 @@ func (r *RootShelfRepository) GetOneById(
 	userId uuid.UUID,
 	preloads []schemas.RootShelfRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.RootShelf, enums.AccessControlPermission, *exceptions.Exception) {
+) (*schemas.RootShelf, enums.AccessControlPermission, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -232,7 +232,7 @@ func (r *RootShelfRepository) CreateOne(
 	ownerId uuid.UUID,
 	input inputs.CreateRootShelfInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -274,7 +274,7 @@ func (r *RootShelfRepository) CreateOne(
 	}
 	result = parsedOptions.DB.Model(&schemas.UsersToShelves{}).
 		Create(&newUsersToShelves)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -296,7 +296,7 @@ func (r *RootShelfRepository) CreateMany(
 	ownerId uuid.UUID,
 	input []inputs.CreateRootShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(input) == 0 {
 		return nil, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -324,7 +324,7 @@ func (r *RootShelfRepository) CreateMany(
 
 	result := parsedOptions.DB.Model(&schemas.RootShelf{}).
 		CreateInBatches(&newRootShelves, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -344,7 +344,7 @@ func (r *RootShelfRepository) CreateMany(
 	}
 	result = parsedOptions.DB.Model(&schemas.UsersToShelves{}).
 		CreateInBatches(&newUsersToShelves, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -367,7 +367,7 @@ func (r *RootShelfRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateRootShelfInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.RootShelf, *exceptions.Exception) {
+) (*schemas.RootShelf, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -393,14 +393,14 @@ func (r *RootShelfRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingRootShelf)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.Model(&schemas.RootShelf{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -422,7 +422,7 @@ func (r *RootShelfRepository) UpdateManyByIds(
 	userId uuid.UUID,
 	input []inputs.UpdateRootShelfByIdInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -486,7 +486,7 @@ func (r *RootShelfRepository) UpdateManyByIds(
 		WHERE r.id = v.id::uuid AND r.deleted_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
 	result := parsedOptions.DB.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -508,7 +508,7 @@ func (r *RootShelfRepository) RestoreSoftDeletedOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.RootShelf, *exceptions.Exception) {
+) (*schemas.RootShelf, *cexceptions.Exception) {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -523,7 +523,7 @@ func (r *RootShelfRepository) RestoreSoftDeletedOneById(
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Clauses(clause.Returning{}).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: restoredRootShelf.Id == uuid.Nil, Second: apiexceptions.NewShelfException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
@@ -538,7 +538,7 @@ func (r *RootShelfRepository) RestoreSoftDeletedManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RootShelf, *exceptions.Exception) {
+) ([]schemas.RootShelf, *cexceptions.Exception) {
 	if len(ids) == 0 {
 		return nil, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -557,7 +557,7 @@ func (r *RootShelfRepository) RestoreSoftDeletedManyByIds(
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Clauses(clause.Returning{}).
 		Updates(map[string]interface{}{"deleted_at": nil}) // force to assign null value
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: len(restoredRootShelves) != len(ids), Second: apiexceptions.NewShelfException().FailedToUpdate()},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
@@ -572,7 +572,7 @@ func (r *RootShelfRepository) SoftDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -585,7 +585,7 @@ func (r *RootShelfRepository) SoftDeleteOneById(
 	result := query.
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -599,7 +599,7 @@ func (r *RootShelfRepository) SoftDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewShelfException().NoChanges()
 	}
@@ -616,7 +616,7 @@ func (r *RootShelfRepository) SoftDeleteManyByIds(
 	result := query.
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Update("deleted_at", time.Now())
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -629,7 +629,7 @@ func (r *RootShelfRepository) SoftDeleteManyByIds(
 func (r *RootShelfRepository) SoftDeleteManyByUserId(
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Negative))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -651,7 +651,7 @@ func (r *RootShelfRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -664,7 +664,7 @@ func (r *RootShelfRepository) HardDeleteOneById(
 	result := query.
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Delete(&schemas.RootShelf{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -678,7 +678,7 @@ func (r *RootShelfRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewShelfException().NoChanges()
 	}
@@ -695,7 +695,7 @@ func (r *RootShelfRepository) HardDeleteManyByIds(
 	result := query.
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Delete(&schemas.RootShelf{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -708,7 +708,7 @@ func (r *RootShelfRepository) HardDeleteManyByIds(
 func (r *RootShelfRepository) HardDeleteManyByUserId(
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	opts = append(opts, options.WithOnlyDeleted(types.Ternary_Positive))
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
@@ -716,7 +716,7 @@ func (r *RootShelfRepository) HardDeleteManyByUserId(
 		Scopes(r.rootShelfScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
 		Where("owner_id = ?", userId).
 		Delete(&schemas.RootShelf{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
 	}); exception != nil {
@@ -733,7 +733,7 @@ func (r *RootShelfRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.RootShelfRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.RootShelf, *exceptions.Exception) {
+) ([]bool, []schemas.RootShelf, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, []schemas.RootShelf{}, nil
 	}
@@ -822,7 +822,7 @@ func (r *RootShelfRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *RootShelfRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateRootShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(inputs) == 0 {
 		return []bool{}, apiexceptions.NewShelfException().NoChanges()
 	}
@@ -891,7 +891,7 @@ func (r *RootShelfRepository) BulkCreateMany(
 func (r *RootShelfRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateRootShelfInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewShelfException().NoChanges()
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
@@ -49,7 +49,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindGetMyRoutineTaskById(routineTaskController.GetMyRoutineTaskById),
 			)...,
@@ -63,7 +63,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindGetAllMyRoutineTasksByRoutineIds(routineTaskController.GetAllMyRoutineTasksByRoutineIds),
 			)...,
@@ -77,7 +77,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindGetAllMyRoutineTasks(routineTaskController.GetAllMyRoutineTasks),
 			)...,
@@ -91,7 +91,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindCreateRoutineTaskByRoutineId(routineTaskController.CreateRoutineTaskByRoutineId),
 			)...,
@@ -105,7 +105,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindUpdateMyRoutineTaskById(routineTaskController.UpdateMyRoutineTaskById),
 			)...,
@@ -119,7 +119,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindPauseMyRoutineTaskById(routineTaskController.PauseMyRoutineTaskById),
 			)...,
@@ -133,7 +133,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindResumeMyRoutineTaskById(routineTaskController.ResumeMyRoutineTaskById),
 			)...,
@@ -147,7 +147,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindHardDeleteMyRoutineTaskById(routineTaskController.HardDeleteMyRoutineTaskById),
 			)...,
@@ -161,7 +161,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				routineTaskBinder.BindHardDeleteMyRoutineTasksByIds(routineTaskController.HardDeleteMyRoutineTasksByIds),
 			)...,
@@ -188,7 +188,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskStatusCount(routineTaskController.VisualizeMyRoutineTaskStatusCount),
 			)...,
@@ -202,7 +202,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskPurposeCount(routineTaskController.VisualizeMyRoutineTaskPurposeCount),
 			)...,
@@ -216,7 +216,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskScheduledAtCount(routineTaskController.VisualizeMyRoutineTaskScheduledAtCount),
 			)...,
@@ -230,7 +230,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskActualStartedAtCount(routineTaskController.VisualizeMyRoutineTaskActualStartedAtCount),
 			)...,
@@ -244,7 +244,7 @@ func configureDevelopmentRoutineTaskRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskActualEndedAtCount(routineTaskController.VisualizeMyRoutineTaskActualEndedAtCount),
 			)...,

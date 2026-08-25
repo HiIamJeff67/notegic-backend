@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	notificationscontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
@@ -25,7 +25,7 @@ func NewNotificationEndpoint(service services.NotificationServiceInterface) *Not
 }
 
 func (e *NotificationEndpoint) Search(ctx *gin.Context) {
-	request := &gatewaycontract.Request[notificationscontract.SearchPrivateNotificationsRequestDto]{}
+	request := &cgateway.Request[cnotifications.SearchPrivateNotificationsRequestDto]{}
 	if err := ctx.ShouldBindJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -33,7 +33,7 @@ func (e *NotificationEndpoint) Search(ctx *gin.Context) {
 	request.Dto.RecipientUserPublicId = ctx.MustGet(sharedcontexts.ContextFieldName_User_PublicId.String()).(uuid.UUID)
 	responseDto, err := e.service.SearchPrivateNotifications(ctx.Request.Context(), &request.Dto)
 	if err != nil {
-		responseException := exceptions.New(
+		responseException := cexceptions.New(
 			"NotificationSearchFailed",
 			"Notification",
 			"SearchPrivateNotifications",
@@ -41,15 +41,15 @@ func (e *NotificationEndpoint) Search(ctx *gin.Context) {
 			http.StatusInternalServerError,
 			true,
 		).WithOrigin(err)
-		var serviceException *exceptions.Exception
+		var serviceException *cexceptions.Exception
 		if errors.As(err, &serviceException) {
 			responseException = serviceException
 		}
 		publicException := responseException.ToPublic()
 
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
@@ -58,9 +58,9 @@ func (e *NotificationEndpoint) Search(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[notificationscontract.SearchPrivateNotificationsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[cnotifications.SearchPrivateNotificationsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -69,7 +69,7 @@ func (e *NotificationEndpoint) Search(ctx *gin.Context) {
 }
 
 func (e *NotificationEndpoint) CountUnread(ctx *gin.Context) {
-	request := &gatewaycontract.Request[notificationscontract.CountUnreadNotificationsRequestDto]{}
+	request := &cgateway.Request[cnotifications.CountUnreadNotificationsRequestDto]{}
 	if err := ctx.ShouldBindJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -77,14 +77,14 @@ func (e *NotificationEndpoint) CountUnread(ctx *gin.Context) {
 	request.Dto.RecipientUserPublicId = ctx.MustGet(sharedcontexts.ContextFieldName_User_PublicId.String()).(uuid.UUID)
 	responseDto, err := e.service.CountMyUnreadNotifications(ctx.Request.Context(), &request.Dto)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"NotificationUnreadCountFailed",
 				"Notification",
 				"CountUnread",
@@ -95,9 +95,9 @@ func (e *NotificationEndpoint) CountUnread(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[notificationscontract.CountUnreadNotificationsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[cnotifications.CountUnreadNotificationsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -106,7 +106,7 @@ func (e *NotificationEndpoint) CountUnread(ctx *gin.Context) {
 }
 
 func (e *NotificationEndpoint) MarkRead(ctx *gin.Context) {
-	request := &gatewaycontract.Request[notificationscontract.MarkNotificationsReadRequestDto]{}
+	request := &cgateway.Request[cnotifications.MarkNotificationsReadRequestDto]{}
 	if err := ctx.ShouldBindJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -114,14 +114,14 @@ func (e *NotificationEndpoint) MarkRead(ctx *gin.Context) {
 	request.Dto.RecipientUserPublicId = ctx.MustGet(sharedcontexts.ContextFieldName_User_PublicId.String()).(uuid.UUID)
 	responseDto, err := e.service.MarkMyNotificationsRead(ctx.Request.Context(), &request.Dto)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"NotificationReadFailed",
 				"Notification",
 				"MarkRead",
@@ -132,9 +132,9 @@ func (e *NotificationEndpoint) MarkRead(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[notificationscontract.MarkNotificationsReadResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[cnotifications.MarkNotificationsReadResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},
@@ -143,7 +143,7 @@ func (e *NotificationEndpoint) MarkRead(ctx *gin.Context) {
 }
 
 func (e *NotificationEndpoint) Delete(ctx *gin.Context) {
-	request := &gatewaycontract.Request[notificationscontract.DeleteNotificationsRequestDto]{}
+	request := &cgateway.Request[cnotifications.DeleteNotificationsRequestDto]{}
 	if err := ctx.ShouldBindJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -151,14 +151,14 @@ func (e *NotificationEndpoint) Delete(ctx *gin.Context) {
 	request.Dto.RecipientUserPublicId = ctx.MustGet(sharedcontexts.ContextFieldName_User_PublicId.String()).(uuid.UUID)
 	responseDto, err := e.service.SoftDeleteMyNotifications(ctx.Request.Context(), &request.Dto)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.JSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   request.Metadata.RequestId,
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"NotificationDeleteFailed",
 				"Notification",
 				"Delete",
@@ -169,9 +169,9 @@ func (e *NotificationEndpoint) Delete(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, gatewaycontract.Response[notificationscontract.DeleteNotificationsResponseDto]{
-		Version: gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{
+	ctx.JSON(http.StatusOK, cgateway.Response[cnotifications.DeleteNotificationsResponseDto]{
+		Version: cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,
 			RespondedAt: time.Now(),
 		},

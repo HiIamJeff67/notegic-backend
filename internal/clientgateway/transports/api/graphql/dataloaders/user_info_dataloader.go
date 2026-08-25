@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 	gophersdataloader "github.com/graph-gophers/dataloader/v7"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
@@ -27,13 +27,13 @@ type UserInfoLoaderKey struct {
 	Source   LoadUserInfoSource `json:"source"`
 }
 
-type UserInfoLoaderType = gophersdataloader.Loader[UserInfoLoaderKey, *gqlmodels.PublicUserInfo]
-type UserInfoBatchFunctionType = gophersdataloader.BatchFunc[UserInfoLoaderKey, *gqlmodels.PublicUserInfo]
-type UserInfoResultType = gophersdataloader.Result[*gqlmodels.PublicUserInfo]
+type UserInfoLoaderType = gophersdataloader.Loader[UserInfoLoaderKey, *cgqlmodels.PublicUserInfo]
+type UserInfoBatchFunctionType = gophersdataloader.BatchFunc[UserInfoLoaderKey, *cgqlmodels.PublicUserInfo]
+type UserInfoResultType = gophersdataloader.Result[*cgqlmodels.PublicUserInfo]
 
 type UserInfoDataloaderInterface interface {
 	GetLoader() *UserInfoLoaderType
-	LoadByUserPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicUserInfo, error)
+	LoadByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUserInfo, error)
 }
 
 type UserInfoDataloader struct {
@@ -47,7 +47,7 @@ func NewUserInfoDataloader(coreAdapter *coreadapters.CoreAdapter) UserInfoDatalo
 	}
 	dataloader.loader = gophersdataloader.NewBatchedLoader(
 		dataloader.batchFunction(),
-		gophersdataloader.WithWait[UserInfoLoaderKey, *gqlmodels.PublicUserInfo](loaderDelayOfUserInfo),
+		gophersdataloader.WithWait[UserInfoLoaderKey, *cgqlmodels.PublicUserInfo](loaderDelayOfUserInfo),
 	)
 
 	return dataloader
@@ -67,7 +67,7 @@ func (d *UserInfoDataloader) batchFunction() UserInfoBatchFunctionType {
 
 		for index, key := range keys {
 			if key.Source != LoadUserInfoSourceUserPublicId {
-				exception := exceptions.New(
+				exception := cexceptions.New(
 					"InvalidSource",
 					"GraphQL",
 					"LoadUserInfos",
@@ -100,15 +100,15 @@ func (d *UserInfoDataloader) batchFunction() UserInfoBatchFunctionType {
 			return results
 		}
 
-		requestDto := apicontract.LoadUserInfosRequestDto(publicIds)
+		requestDto := capi.LoadUserInfosRequestDto(publicIds)
 		response, exception := coreadapters.CallSecurly[
-			apicontract.LoadUserInfosRequestDto,
-			apicontract.LoadUserInfosResponseDto,
+			capi.LoadUserInfosRequestDto,
+			capi.LoadUserInfosResponseDto,
 		](
 			ginContext,
 			d.coreAdapter,
 			&requestDto,
-			apicontract.LoadUserInfosOperation,
+			capi.LoadUserInfosOperation,
 			"/core/v1/user-infos/graphql/load",
 		)
 		if exception != nil {
@@ -140,7 +140,7 @@ func (d *UserInfoDataloader) batchFunction() UserInfoBatchFunctionType {
 func (d *UserInfoDataloader) LoadByUserPublicId(
 	ctx context.Context,
 	publicId uuid.UUID,
-) (*gqlmodels.PublicUserInfo, error) {
+) (*cgqlmodels.PublicUserInfo, error) {
 	future := d.loader.Load(ctx, UserInfoLoaderKey{
 		PublicId: publicId,
 		Source:   LoadUserInfoSourceUserPublicId,

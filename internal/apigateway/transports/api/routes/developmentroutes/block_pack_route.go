@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enumcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
@@ -48,7 +48,7 @@ func configureDevelopmentBlockPackRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getMyBlockPackById"),
 				},
 				defaultMiddlewares,
-				middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+				middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				blockPackBinder.BindGetMyBlockPackById(blockPackController.GetMyBlockPackById),
 			)...,
 		)
@@ -60,7 +60,7 @@ func configureDevelopmentBlockPackRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getMyBlockPackAndItsParentById"),
 				},
 				defaultMiddlewares,
-				middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+				middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				blockPackBinder.BindGetMyBlockPackAndItsParentById(blockPackController.GetMyBlockPackAndItsParentById),
 			)...,
 		)
@@ -72,7 +72,7 @@ func configureDevelopmentBlockPackRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getMyBlockPacksByParentSubShelfId"),
 				},
 				defaultMiddlewares,
-				middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+				middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				blockPackBinder.BindGetMyBlockPacksByParentSubShelfId(blockPackController.GetMyBlockPacksByParentSubShelfId),
 			)...,
 		)
@@ -84,7 +84,7 @@ func configureDevelopmentBlockPackRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getAllMyBlockPacksByRootShelfId"),
 				},
 				defaultMiddlewares,
-				middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Read),
+				middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
 				blockPackBinder.BindGetAllMyBlockPacksByRootShelfId(blockPackController.GetAllMyBlockPacksByRootShelfId),
 			)...,
 		)
@@ -97,7 +97,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindCreateBlockPack(blockPackController.CreateBlockPack),
 			)...,
@@ -111,7 +111,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindCreateBlockPacks(blockPackController.CreateBlockPacks),
 			)...,
@@ -125,7 +125,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindUpdateMyBlockPackById(blockPackController.UpdateMyBlockPackById),
 			)...,
@@ -139,7 +139,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindUpdateMyBlockPacksByIds(blockPackController.UpdateMyBlockPacksByIds),
 			)...,
@@ -153,7 +153,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindMoveMyBlockPackByParentSubShelfId(blockPackController.MoveMyBlockPackByParentSubShelfId),
 			)...,
@@ -167,7 +167,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindMoveMyBlockPacksByParentSubShelfId(blockPackController.MoveMyBlockPacksByParentSubShelfId),
 			)...,
@@ -181,7 +181,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindMoveMyBlockPacksByParentSubShelfIds(blockPackController.MoveMyBlockPacksByParentSubShelfIds),
 			)...,
@@ -195,7 +195,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindRestoreMyBlockPackById(blockPackController.RestoreMyBlockPackById),
 			)...,
@@ -209,7 +209,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindRestoreMyBlockPacksByIds(blockPackController.RestoreMyBlockPacksByIds),
 			)...,
@@ -223,7 +223,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindDeleteMyBlockPackById(blockPackController.DeleteMyBlockPackById),
 			)...,
@@ -237,7 +237,7 @@ func configureDevelopmentBlockPackRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enumcontract.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
 				),
 				blockPackBinder.BindDeleteMyBlockPacksByIds(blockPackController.DeleteMyBlockPacksByIds),
 			)...,

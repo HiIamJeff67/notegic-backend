@@ -33,7 +33,7 @@ func (config KafkaConsumerConfig) ConsumerConfig() platformkafka.ConsumerConfig 
 	}
 }
 
-func LoadKafkaConsumerConfig() (KafkaConsumerConfig, error) {
+func loadKafkaConsumerConfig() (KafkaConsumerConfig, error) {
 	connection, err := platformkafka.LoadConnectionConfig()
 	if err != nil {
 		return KafkaConsumerConfig{}, err

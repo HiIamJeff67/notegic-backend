@@ -6,24 +6,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
 
 type RoutineTagBinderInterface interface {
-	BindGetMyRoutineTagById(controllerFunc controllers.Func[*apicontract.GetMyRoutineTagByIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyRoutineTags(controllerFunc controllers.Func[*apicontract.GetAllMyRoutineTagsRequestDto]) gin.HandlerFunc
-	BindCreateRoutineTag(controllerFunc controllers.Func[*apicontract.CreateRoutineTagRequestDto]) gin.HandlerFunc
-	BindCreateRoutineTags(controllerFunc controllers.Func[*apicontract.CreateRoutineTagsRequestDto]) gin.HandlerFunc
-	BindUpdateMyRoutineTagById(controllerFunc controllers.Func[*apicontract.UpdateMyRoutineTagByIdRequestDto]) gin.HandlerFunc
-	BindUpdateMyRoutineTagsByIds(controllerFunc controllers.Func[*apicontract.UpdateMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc
-	BindHardDeleteMyRoutineTagById(controllerFunc controllers.Func[*apicontract.HardDeleteMyRoutineTagByIdRequestDto]) gin.HandlerFunc
-	BindHardDeleteMyRoutineTagsByIds(controllerFunc controllers.Func[*apicontract.HardDeleteMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc
+	BindGetMyRoutineTagById(controllerFunc controllers.Func[*capi.GetMyRoutineTagByIdRequestDto]) gin.HandlerFunc
+	BindGetAllMyRoutineTags(controllerFunc controllers.Func[*capi.GetAllMyRoutineTagsRequestDto]) gin.HandlerFunc
+	BindCreateRoutineTag(controllerFunc controllers.Func[*capi.CreateRoutineTagRequestDto]) gin.HandlerFunc
+	BindCreateRoutineTags(controllerFunc controllers.Func[*capi.CreateRoutineTagsRequestDto]) gin.HandlerFunc
+	BindUpdateMyRoutineTagById(controllerFunc controllers.Func[*capi.UpdateMyRoutineTagByIdRequestDto]) gin.HandlerFunc
+	BindUpdateMyRoutineTagsByIds(controllerFunc controllers.Func[*capi.UpdateMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc
+	BindHardDeleteMyRoutineTagById(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTagByIdRequestDto]) gin.HandlerFunc
+	BindHardDeleteMyRoutineTagsByIds(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc
 }
 
 type RoutineTagBinder struct{}
@@ -32,16 +32,16 @@ func NewRoutineTagBinder() RoutineTagBinderInterface {
 	return &RoutineTagBinder{}
 }
 
-func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Func[*apicontract.GetMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Func[*capi.GetMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetMyRoutineTagByIdRequestDto{}
+		requestDto := &capi.GetMyRoutineTagByIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		isDeletedString := ctx.Query("isDeleted")
 		if isDeletedString != "" {
 			isDeleted, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &isDeleted
@@ -49,7 +49,7 @@ func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Fu
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -58,16 +58,16 @@ func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Fu
 	}
 }
 
-func (b *RoutineTagBinder) BindGetAllMyRoutineTags(controllerFunc controllers.Func[*apicontract.GetAllMyRoutineTagsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindGetAllMyRoutineTags(controllerFunc controllers.Func[*capi.GetAllMyRoutineTagsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.GetAllMyRoutineTagsRequestDto{}
+		requestDto := &capi.GetAllMyRoutineTagsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		areDeletedString := ctx.Query("areDeleted")
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &areDeleted
@@ -77,13 +77,13 @@ func (b *RoutineTagBinder) BindGetAllMyRoutineTags(controllerFunc controllers.Fu
 	}
 }
 
-func (b *RoutineTagBinder) BindCreateRoutineTag(controllerFunc controllers.Func[*apicontract.CreateRoutineTagRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindCreateRoutineTag(controllerFunc controllers.Func[*capi.CreateRoutineTagRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.CreateRoutineTagRequestDto{}
+		requestDto := &capi.CreateRoutineTagRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -91,13 +91,13 @@ func (b *RoutineTagBinder) BindCreateRoutineTag(controllerFunc controllers.Func[
 	}
 }
 
-func (b *RoutineTagBinder) BindCreateRoutineTags(controllerFunc controllers.Func[*apicontract.CreateRoutineTagsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindCreateRoutineTags(controllerFunc controllers.Func[*capi.CreateRoutineTagsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.CreateRoutineTagsRequestDto{}
+		requestDto := &capi.CreateRoutineTagsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -105,19 +105,19 @@ func (b *RoutineTagBinder) BindCreateRoutineTags(controllerFunc controllers.Func
 	}
 }
 
-func (b *RoutineTagBinder) BindUpdateMyRoutineTagById(controllerFunc controllers.Func[*apicontract.UpdateMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindUpdateMyRoutineTagById(controllerFunc controllers.Func[*capi.UpdateMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.UpdateMyRoutineTagByIdRequestDto{}
+		requestDto := &capi.UpdateMyRoutineTagByIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -126,13 +126,13 @@ func (b *RoutineTagBinder) BindUpdateMyRoutineTagById(controllerFunc controllers
 	}
 }
 
-func (b *RoutineTagBinder) BindUpdateMyRoutineTagsByIds(controllerFunc controllers.Func[*apicontract.UpdateMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindUpdateMyRoutineTagsByIds(controllerFunc controllers.Func[*capi.UpdateMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.UpdateMyRoutineTagsByIdsRequestDto{}
+		requestDto := &capi.UpdateMyRoutineTagsByIdsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -140,14 +140,14 @@ func (b *RoutineTagBinder) BindUpdateMyRoutineTagsByIds(controllerFunc controlle
 	}
 }
 
-func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagById(controllerFunc controllers.Func[*apicontract.HardDeleteMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagById(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTagByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.HardDeleteMyRoutineTagByIdRequestDto{}
+		requestDto := &capi.HardDeleteMyRoutineTagByIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -156,13 +156,13 @@ func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagById(controllerFunc control
 	}
 }
 
-func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagsByIds(controllerFunc controllers.Func[*apicontract.HardDeleteMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagsByIds(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTagsByIdsRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &apicontract.HardDeleteMyRoutineTagsByIdsRequestDto{}
+		requestDto := &capi.HardDeleteMyRoutineTagsByIdsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 

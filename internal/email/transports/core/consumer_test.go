@@ -9,10 +9,10 @@ import (
 	validatorpkg "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
@@ -21,15 +21,15 @@ type senderStub struct {
 	err error
 }
 
-func (s senderStub) SendWelcomeEmail(context.Context, emaileventscontract.SendWelcomeEmailRequestDto) error {
+func (s senderStub) SendWelcomeEmail(context.Context, cemailevents.SendWelcomeEmailRequestDto) error {
 	return s.err
 }
 
-func (s senderStub) SendValidationEmail(context.Context, emaileventscontract.SendValidationEmailRequestDto) error {
+func (s senderStub) SendValidationEmail(context.Context, cemailevents.SendValidationEmailRequestDto) error {
 	return s.err
 }
 
-func (s senderStub) SendSecurityAlertEmail(context.Context, emaileventscontract.SendSecurityAlertEmailRequestDto) error {
+func (s senderStub) SendSecurityAlertEmail(context.Context, cemailevents.SendSecurityAlertEmailRequestDto) error {
 	return s.err
 }
 
@@ -54,9 +54,9 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			requestId := uuid.New()
-			request := emaileventscontract.SendWelcomeEmailRequestDto{
+			request := cemailevents.SendWelcomeEmailRequestDto{
 				RequestId:  requestId,
-				Operation:  emailcontract.SendWelcomeEmailOperation,
+				Operation:  cemail.SendWelcomeEmailOperation,
 				OccurredAt: time.Now().UTC(),
 				To:         "user@example.com",
 				UserName:   "Notegic User",
@@ -67,7 +67,7 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 				t.Fatalf("marshal request: %v", err)
 			}
 
-			stubException := exceptions.New("DeliveryFailed", "Email", "SendEmail", "Failed to deliver the email", 502)
+			stubException := cexceptions.New("DeliveryFailed", "Email", "SendEmail", "Failed to deliver the email", 502)
 			stubException.Retryable = test.retryable
 			consumer := &EmailRequestConsumer{
 				sender: senderStub{
@@ -78,10 +78,10 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 			resultErr := consumer.consume(
 				context.Background(),
 				platformkafka.ConsumerRecord{},
-				eventcontract.EventEnvelope[json.RawMessage]{
-					SchemaVersion: eventcontract.Version,
-					EventType:     emaileventscontract.EventType_EmailRequested,
-					AggregateType: emaileventscontract.AggregateType_EmailRequest,
+				cevent.EventEnvelope[json.RawMessage]{
+					SchemaVersion: cevent.Version,
+					EventType:     cemailevents.EventType_EmailRequested,
+					AggregateType: cemailevents.AggregateType_EmailRequest,
 					AggregateId:   requestId,
 					Data:          data,
 				},

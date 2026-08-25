@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type RootShelfPermissionResponseDto struct {
@@ -16,7 +16,7 @@ type RootShelfPermissionResponseDto struct {
 }
 
 type GetMyRootShelfPermissionRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -32,7 +32,7 @@ type GetMyRootShelfPermissionRequestDto struct {
 type GetMyRootShelfPermissionResponseDto = RootShelfPermissionResponseDto
 
 type CreateMyRootShelfPermissionRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -59,7 +59,7 @@ type UpsertableRootShelfPermission struct {
 }
 
 type UpsertMyRootShelfPermissionsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -81,7 +81,7 @@ type DeleteMyRootShelfPermissionRequestDto = GetMyRootShelfPermissionRequestDto
 type DeleteMyRootShelfPermissionResponseDto struct{}
 
 type DeleteMyRootShelfPermissionsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

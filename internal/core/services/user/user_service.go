@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -10,36 +11,35 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserServiceInterface interface {
-	GetUserData(ctx context.Context, requestDto *apicontract.GetUserDataRequestDto) (*apicontract.GetUserDataResponseDto, *exceptions.Exception)
-	GetMe(ctx context.Context, requestDto *apicontract.GetMeRequestDto) (*apicontract.GetMeResponseDto, *exceptions.Exception)
-	UpdateMe(ctx context.Context, requestDto *apicontract.UpdateMeRequestDto) (*apicontract.UpdateMeResponseDto, *exceptions.Exception)
+	GetUserData(ctx context.Context, requestDto *capi.GetUserDataRequestDto) (*capi.GetUserDataResponseDto, *cexceptions.Exception)
+	GetMe(ctx context.Context, requestDto *capi.GetMeRequestDto) (*capi.GetMeResponseDto, *cexceptions.Exception)
+	UpdateMe(ctx context.Context, requestDto *capi.UpdateMeRequestDto) (*capi.UpdateMeResponseDto, *cexceptions.Exception)
 
 	// services for graphql users
-	GetPublicUserByPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicUser, *exceptions.Exception)
-	GetPublicAuthorByThemePublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*gqlmodels.PublicUser, *exceptions.Exception)
-	SearchPublicUsers(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchUserInput) (*gqlmodels.SearchUserConnection, *exceptions.Exception)
+	GetPublicUserByPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUser, *cexceptions.Exception)
+	GetPublicAuthorByThemePublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicUser, *cexceptions.Exception)
+	SearchPublicUsers(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchUserInput) (*cgqlmodels.SearchUserConnection, *cexceptions.Exception)
 }
 
 type UserService struct {
@@ -69,10 +69,10 @@ func NewUserService(
 /* ============================== Service Methods for Users ============================== */
 
 func (s *UserService) GetUserData(
-	ctx context.Context, requestDto *apicontract.GetUserDataRequestDto,
-) (*apicontract.GetUserDataResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetUserDataRequestDto,
+) (*capi.GetUserDataResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"User",
 			"GetUserData",
@@ -86,7 +86,7 @@ func (s *UserService) GetUserData(
 	}
 	var user schemas.User
 	if result := s.db.WithContext(ctx).Select("name").Where("id = ?", actorUserId).First(&user); result.Error != nil {
-		return nil, exceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
+		return nil, cexceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
 	}
 
 	userDataCache, exception := s.userDataCacheClient.Get(user.Name)
@@ -94,7 +94,7 @@ func (s *UserService) GetUserData(
 		return nil, exception
 	}
 
-	return &apicontract.GetUserDataResponseDto{
+	return &capi.GetUserDataResponseDto{
 		PublicId:    userDataCache.PublicId,
 		Name:        userDataCache.Name,
 		DisplayName: userDataCache.DisplayName,
@@ -109,10 +109,10 @@ func (s *UserService) GetUserData(
 }
 
 func (s *UserService) GetMe(
-	ctx context.Context, requestDto *apicontract.GetMeRequestDto,
-) (*apicontract.GetMeResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetMeRequestDto,
+) (*capi.GetMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"User",
 			"GetMe",
@@ -132,7 +132,7 @@ func (s *UserService) GetMe(
 		return nil, exception
 	}
 
-	return &apicontract.GetMeResponseDto{
+	return &capi.GetMeResponseDto{
 		PublicId:    user.PublicId,
 		Name:        user.Name,
 		DisplayName: user.DisplayName,
@@ -146,10 +146,10 @@ func (s *UserService) GetMe(
 }
 
 func (s *UserService) UpdateMe(
-	ctx context.Context, requestDto *apicontract.UpdateMeRequestDto,
-) (*apicontract.UpdateMeResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.UpdateMeRequestDto,
+) (*capi.UpdateMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"User",
 			"UpdateMe",
@@ -165,13 +165,13 @@ func (s *UserService) UpdateMe(
 	if requestDto.Body.Values.Status != nil {
 		parsedStatus, err := enums.ConvertStringToUserStatus(*requestDto.Body.Values.Status)
 		if err != nil {
-			return nil, exceptions.InvalidInput("User").WithOrigin(err)
+			return nil, cexceptions.InvalidInput("User").WithOrigin(err)
 		}
 		status = parsedStatus
 	}
 	var user schemas.User
 	if result := s.db.WithContext(ctx).Select("name").Where("id = ?", actorUserId).First(&user); result.Error != nil {
-		return nil, exceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
+		return nil, cexceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -216,14 +216,14 @@ func (s *UserService) UpdateMe(
 		}
 	}
 
-	return &apicontract.UpdateMeResponseDto{UpdatedAt: updatedUser.UpdatedAt}, nil
+	return &capi.UpdateMeResponseDto{UpdatedAt: updatedUser.UpdatedAt}, nil
 }
 
 /* ============================== Service Methods for Public User (Only available in GraphQL) ============================== */
 
 func (s *UserService) GetPublicUserByPublicId(
 	ctx context.Context, publicId uuid.UUID,
-) (*gqlmodels.PublicUser, *exceptions.Exception) {
+) (*cgqlmodels.PublicUser, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
 	user := schemas.User{}
@@ -231,7 +231,7 @@ func (s *UserService) GetPublicUserByPublicId(
 		Where("public_id = ?", publicId).
 		First(&user)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"User",
 			"GetPublicUserByPublicId",
@@ -245,9 +245,9 @@ func (s *UserService) GetPublicUserByPublicId(
 
 func (s *UserService) GetPublicAuthorByThemePublicIds(
 	ctx context.Context, publicIds []uuid.UUID,
-) ([]*gqlmodels.PublicUser, *exceptions.Exception) {
+) ([]*cgqlmodels.PublicUser, *cexceptions.Exception) {
 	if len(publicIds) == 0 {
-		return []*gqlmodels.PublicUser{}, nil
+		return []*cgqlmodels.PublicUser{}, nil
 	}
 
 	db := s.db.WithContext(ctx)
@@ -261,7 +261,7 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 		}
 	}
 	if len(uniquePublicIds) == 0 {
-		return make([]*gqlmodels.PublicUser, len(publicIds)), nil
+		return make([]*cgqlmodels.PublicUser, len(publicIds)), nil
 	}
 
 	var authorsWithPublicThemeIds []*struct {
@@ -274,7 +274,7 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 		Where("t.public_id IN ?", uniquePublicIds).
 		Find(&authorsWithPublicThemeIds)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"QueryFailed",
 			"User",
 			"GetPublicAuthorByThemePublicIds",
@@ -289,7 +289,7 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 		publicIdToIndexesMap[publicId] = append(publicIdToIndexesMap[publicId], index)
 	}
 
-	publicUsers := make([]*gqlmodels.PublicUser, len(publicIds))
+	publicUsers := make([]*cgqlmodels.PublicUser, len(publicIds))
 	for _, authorWithPublicThemeId := range authorsWithPublicThemeIds {
 		for _, index := range publicIdToIndexesMap[authorWithPublicThemeId.ThemePublicId] {
 			publicUsers[index] = authorWithPublicThemeId.ToPublicUser()
@@ -300,8 +300,8 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 }
 
 func (s *UserService) SearchPublicUsers(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchUserInput,
-) (*gqlmodels.SearchUserConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchUserInput,
+) (*cgqlmodels.SearchUserConnection, *cexceptions.Exception) {
 	startTime := time.Now()
 
 	db := s.db.WithContext(ctx)
@@ -359,9 +359,9 @@ func (s *UserService) SearchPublicUsers(
 		query = query.Where("EXISTS (?)", usersWithBadge)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchUserCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchUserCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorDecodeFailed",
 				"Search",
 				"SearchPublicUsers",
@@ -375,21 +375,21 @@ func (s *UserService) SearchPublicUsers(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		var cending string = gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		var cending string = cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchUserSortByName:
+		case cgqlmodels.SearchUserSortByName:
 			query.Order("name " + cending).
 				Order("updated_at " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchUserSortByLastActive:
+		case cgqlmodels.SearchUserSortByLastActive:
 			query.Order("updated_at " + cending).
 				Order("name " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchUserSortByCreatedAt:
+		case cgqlmodels.SearchUserSortByCreatedAt:
 			query.Order("created_at " + cending).
 				Order("name " + cending).
 				Order("updated_at " + cending)
@@ -409,7 +409,7 @@ func (s *UserService) SearchPublicUsers(
 
 	var users []schemas.User
 	if err := query.Find(&users).Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"QueryFailed",
 			"User",
 			"SearchPublicUsers",
@@ -420,17 +420,17 @@ func (s *UserService) SearchPublicUsers(
 	}
 
 	hasNextPage := len(users) > limit // since we fetch an additional one
-	searchEdges := make([]*gqlmodels.SearchUserEdge, len(users))
+	searchEdges := make([]*cgqlmodels.SearchUserEdge, len(users))
 
 	for index, user := range users {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchUserCursorFields]{
-			Fields: gqlmodels.SearchUserCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchUserCursorFields]{
+			Fields: cgqlmodels.SearchUserCursorFields{
 				PublicID: user.PublicId,
 			},
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorEncodeFailed",
 				"Search",
 				"SearchPublicUsers",
@@ -440,7 +440,7 @@ func (s *UserService) SearchPublicUsers(
 			).WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, exceptions.New(
+			return nil, cexceptions.New(
 				"CursorEncodingFailed",
 				"Search",
 				"SearchPublicUsers",
@@ -450,13 +450,13 @@ func (s *UserService) SearchPublicUsers(
 			)
 		}
 
-		searchEdges[index] = &gqlmodels.SearchUserEdge{
+		searchEdges[index] = &cgqlmodels.SearchUserEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                user.ToPublicUser(),
 		}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -471,7 +471,7 @@ func (s *UserService) SearchPublicUsers(
 		searchEdges = searchEdges[:limit]
 	}
 
-	return &gqlmodels.SearchUserConnection{
+	return &cgqlmodels.SearchUserConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

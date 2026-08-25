@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 	gophersdataloader "github.com/graph-gophers/dataloader/v7"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
@@ -27,13 +27,13 @@ type UserLoaderKey struct {
 	Source   LoadUserSource `json:"source"`
 }
 
-type UserLoaderType = gophersdataloader.Loader[UserLoaderKey, *gqlmodels.PublicUser]
-type UserBatchFunctionType = gophersdataloader.BatchFunc[UserLoaderKey, *gqlmodels.PublicUser]
-type UserResultType = gophersdataloader.Result[*gqlmodels.PublicUser]
+type UserLoaderType = gophersdataloader.Loader[UserLoaderKey, *cgqlmodels.PublicUser]
+type UserBatchFunctionType = gophersdataloader.BatchFunc[UserLoaderKey, *cgqlmodels.PublicUser]
+type UserResultType = gophersdataloader.Result[*cgqlmodels.PublicUser]
 
 type UserDataloaderInterface interface {
 	GetLoader() *UserLoaderType
-	LoadByThemePublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicUser, error)
+	LoadByThemePublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUser, error)
 }
 
 type UserDataloader struct {
@@ -47,7 +47,7 @@ func NewUserDataloader(coreAdapter *coreadapters.CoreAdapter) UserDataloaderInte
 	}
 	dataloader.loader = gophersdataloader.NewBatchedLoader(
 		dataloader.batchFunction(),
-		gophersdataloader.WithWait[UserLoaderKey, *gqlmodels.PublicUser](loaderDelayOfUser),
+		gophersdataloader.WithWait[UserLoaderKey, *cgqlmodels.PublicUser](loaderDelayOfUser),
 	)
 
 	return dataloader
@@ -67,7 +67,7 @@ func (d *UserDataloader) batchFunction() UserBatchFunctionType {
 
 		for index, key := range keys {
 			if key.Source != LoadUserSourceThemePublicId {
-				exception := exceptions.New(
+				exception := cexceptions.New(
 					"InvalidSource",
 					"GraphQL",
 					"LoadThemeAuthors",
@@ -100,15 +100,15 @@ func (d *UserDataloader) batchFunction() UserBatchFunctionType {
 			return results
 		}
 
-		requestDto := apicontract.LoadThemeAuthorsRequestDto(publicIds)
+		requestDto := capi.LoadThemeAuthorsRequestDto(publicIds)
 		response, exception := coreadapters.CallSecurly[
-			apicontract.LoadThemeAuthorsRequestDto,
-			apicontract.LoadThemeAuthorsResponseDto,
+			capi.LoadThemeAuthorsRequestDto,
+			capi.LoadThemeAuthorsResponseDto,
 		](
 			ginContext,
 			d.coreAdapter,
 			&requestDto,
-			apicontract.LoadThemeAuthorsOperation,
+			capi.LoadThemeAuthorsOperation,
 			"/core/v1/users/graphql/load-theme-authors",
 		)
 		if exception != nil {
@@ -140,7 +140,7 @@ func (d *UserDataloader) batchFunction() UserBatchFunctionType {
 func (d *UserDataloader) LoadByThemePublicId(
 	ctx context.Context,
 	publicId uuid.UUID,
-) (*gqlmodels.PublicUser, error) {
+) (*cgqlmodels.PublicUser, error) {
 	future := d.loader.Load(ctx, UserLoaderKey{
 		PublicId: publicId,
 		Source:   LoadUserSourceThemePublicId,

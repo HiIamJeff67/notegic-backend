@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	apikeyservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/apikey"
 )
@@ -28,7 +28,7 @@ func NewAPIKeyEndpoint(service apikeyservices.APIKeyServiceInterface) APIKeyEndp
 }
 
 func (e *APIKeyEndpoint) CreateMyAPIKey(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.CreateMyAPIKeyRequestDto]{}
+	request := &cgateway.Request[capi.CreateMyAPIKeyRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -38,7 +38,7 @@ func (e *APIKeyEndpoint) CreateMyAPIKey(ctx *gin.Context) {
 }
 
 func (e *APIKeyEndpoint) ListMyAPIKeys(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.ListMyAPIKeysRequestDto]{}
+	request := &cgateway.Request[capi.ListMyAPIKeysRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -48,7 +48,7 @@ func (e *APIKeyEndpoint) ListMyAPIKeys(ctx *gin.Context) {
 }
 
 func (e *APIKeyEndpoint) RevokeMyAPIKey(ctx *gin.Context) {
-	request := &gatewaycontract.Request[apicontract.RevokeMyAPIKeyRequestDto]{}
+	request := &cgateway.Request[capi.RevokeMyAPIKeyRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -61,21 +61,21 @@ func writeAPIKeyResponse[T any](
 	ctx *gin.Context,
 	requestID string,
 	data *T,
-	exception *exceptions.Exception,
+	exception *cexceptions.Exception,
 	status int,
 ) {
 	if exception != nil {
 		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.Response[struct{}]{
-			Version:  gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{RequestId: requestID, RespondedAt: time.Now()},
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
+			Version:  cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{RequestId: requestID, RespondedAt: time.Now()},
 			Data:     struct{}{}, Exception: publicException,
 		})
 		return
 	}
-	ctx.JSON(status, gatewaycontract.Response[T]{
-		Version:  gatewaycontract.Version,
-		Metadata: gatewaycontract.ResponseMetadata{RequestId: requestID, RespondedAt: time.Now()},
+	ctx.JSON(status, cgateway.Response[T]{
+		Version:  cgateway.Version,
+		Metadata: cgateway.ResponseMetadata{RequestId: requestID, RespondedAt: time.Now()},
 		Data:     *data,
 	})
 }

@@ -7,19 +7,19 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type BadgeServiceInterface interface {
 	// services for public badges
-	GetPublicBadgeByPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicBadge, *exceptions.Exception)
-	GetPublicBadgeByUserPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicBadge, *exceptions.Exception)
-	GetPublicBadgesByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*gqlmodels.PublicBadge, *exceptions.Exception)
+	GetPublicBadgeByPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicBadge, *cexceptions.Exception)
+	GetPublicBadgeByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicBadge, *cexceptions.Exception)
+	GetPublicBadgesByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicBadge, *cexceptions.Exception)
 }
 
 type BadgeService struct {
@@ -39,7 +39,7 @@ func NewBadgeService(db *gorm.DB) BadgeServiceInterface {
 
 func (s *BadgeService) GetPublicBadgeByPublicId(
 	ctx context.Context, publicId uuid.UUID,
-) (*gqlmodels.PublicBadge, *exceptions.Exception) {
+) (*cgqlmodels.PublicBadge, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
 	badge := schemas.Badge{}
@@ -47,7 +47,7 @@ func (s *BadgeService) GetPublicBadgeByPublicId(
 		Where("public_id = ?", publicId).
 		First(&badge)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"Badge",
 			"GetPublicBadgeByPublicId",
@@ -61,7 +61,7 @@ func (s *BadgeService) GetPublicBadgeByPublicId(
 
 func (s *BadgeService) GetPublicBadgeByUserPublicId(
 	ctx context.Context, publicId uuid.UUID,
-) (*gqlmodels.PublicBadge, *exceptions.Exception) {
+) (*cgqlmodels.PublicBadge, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
 	badge := schemas.Badge{}
@@ -72,7 +72,7 @@ func (s *BadgeService) GetPublicBadgeByUserPublicId(
 		Where("u.public_id = ?", publicId).
 		First(&badge)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"Badge",
 			"GetPublicBadgeByUserPublicId",
@@ -86,9 +86,9 @@ func (s *BadgeService) GetPublicBadgeByUserPublicId(
 
 func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 	ctx context.Context, publicIds []uuid.UUID,
-) ([]*gqlmodels.PublicBadge, *exceptions.Exception) {
+) ([]*cgqlmodels.PublicBadge, *cexceptions.Exception) {
 	if len(publicIds) == 0 {
-		return []*gqlmodels.PublicBadge{}, nil
+		return []*cgqlmodels.PublicBadge{}, nil
 	}
 
 	db := s.db.WithContext(ctx)
@@ -102,7 +102,7 @@ func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 		}
 	}
 	if len(uniquePublicIds) == 0 {
-		return make([]*gqlmodels.PublicBadge, len(publicIds)), nil
+		return make([]*cgqlmodels.PublicBadge, len(publicIds)), nil
 	}
 
 	var badgesWithPublicUserIds []*struct {
@@ -116,7 +116,7 @@ func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 		Where("u.public_id IN ?", uniquePublicIds).
 		Find(&badgesWithPublicUserIds)
 	if err := result.Error; err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"QueryFailed",
 			"Badge",
 			"GetPublicBadgesByUserPublicIds",
@@ -131,7 +131,7 @@ func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 		publicIdToIndexesMap[publicId] = append(publicIdToIndexesMap[publicId], index)
 	}
 
-	publicBadges := make([]*gqlmodels.PublicBadge, len(publicIds))
+	publicBadges := make([]*cgqlmodels.PublicBadge, len(publicIds))
 	for _, badgeWithPublicUserId := range badgesWithPublicUserIds {
 		for _, index := range publicIdToIndexesMap[badgeWithPublicUserId.UserPublicId] {
 			publicBadges[index] = badgeWithPublicUserId.Badge.ToPublicBadge()

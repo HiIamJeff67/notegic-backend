@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 
-	cmodels "github.com/HiIamJeff67/notegic-backend/contracts/types/models"
+	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
 )
 
 type notificationRepositoryStub struct {
 	repositories.NotificationRepository
-	events            []cmodels.OutboxEvent
+	events            []platformschemas.OutboxEvent
 	claimCalls        int
 	failedEventIds    []uuid.UUID
 	failedAvailableAt time.Time
@@ -27,7 +27,7 @@ func (r *notificationRepositoryStub) ClaimOutbox(
 	string,
 	int,
 	time.Duration,
-) ([]cmodels.OutboxEvent, error) {
+) ([]platformschemas.OutboxEvent, error) {
 	r.claimCalls++
 	return r.events, nil
 }
@@ -58,7 +58,7 @@ func TestOutboxRelaySchedulesRetryWhenProducerIsUnavailable(t *testing.T) {
 	eventId := uuid.New()
 	startedAt := time.Now().UTC()
 	repository := &notificationRepositoryStub{
-		events: []cmodels.OutboxEvent{{
+		events: []platformschemas.OutboxEvent{{
 			Id:           eventId,
 			PublishCount: 1,
 		}},

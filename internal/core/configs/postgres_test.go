@@ -9,11 +9,11 @@ func TestLoadPostgresConfig(t *testing.T) {
 	t.Setenv("DB_NAME", "notegic")
 	t.Setenv("DOCKER_DB_PORT", "5432")
 
-	config, err := LoadPostgresConfig()
+	config, err := loadPostgresConfig()
 	if err != nil {
-		t.Fatalf("LoadPostgresConfig() error = %v", err)
+		t.Fatalf("loadPostgresConfig() error = %v", err)
 	}
 	if config.Host != "database" || config.Port != "5432" {
-		t.Fatalf("LoadPostgresConfig() = %#v", config)
+		t.Fatalf("loadPostgresConfig() = %#v", config)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/ratelimit"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/middlewares"
@@ -40,7 +40,7 @@ func NewRouter(deps APIRouteDependencies) *gin.Engine {
 	coreAdapter, notificationClient := deps.CoreAdapter, deps.NotificationClient
 	allowedDomains, accessTokenCookieHandler := deps.AllowedDomains, deps.AccessTokenCookieHandler
 	refreshTokenCookieHandler, rateLimiters := deps.RefreshTokenCookieHandler, deps.RateLimiters
-	DevelopmentAPIRouterGroup = DevelopmentRouter.Group("/" + gatewaycontract.APIDevelopmentBaseURL) // use in development mode
+	DevelopmentAPIRouterGroup = DevelopmentRouter.Group("/" + cgateway.APIDevelopmentBaseURL) // use in development mode
 	DevelopmentAPIRouterGroup.Use(
 		middlewares.SanitizeXForwardedForMiddleware(),
 		middlewares.CORSMiddleware(),

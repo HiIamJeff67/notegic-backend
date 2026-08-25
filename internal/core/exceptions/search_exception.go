@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type SearchException struct {
@@ -14,8 +14,8 @@ func NewSearchException() SearchException {
 	return SearchException{CoreException: NewCoreException("Search")}
 }
 
-func (SearchException) FailedToDecode() *exceptions.Exception {
-	return exceptions.New(
+func (SearchException) FailedToDecode() *cexceptions.Exception {
+	return cexceptions.New(
 		"CursorDecodeFailed",
 		"Search",
 		"Cursor",
@@ -25,8 +25,8 @@ func (SearchException) FailedToDecode() *exceptions.Exception {
 	)
 }
 
-func (SearchException) FailedToEncode() *exceptions.Exception {
-	return exceptions.New(
+func (SearchException) FailedToEncode() *cexceptions.Exception {
+	return cexceptions.New(
 		"CursorEncodeFailed",
 		"Search",
 		"Cursor",
@@ -36,8 +36,8 @@ func (SearchException) FailedToEncode() *exceptions.Exception {
 	)
 }
 
-func (SearchException) FailedToUnmarshalSearchCursor() *exceptions.Exception {
-	return exceptions.New(
+func (SearchException) FailedToUnmarshalSearchCursor() *cexceptions.Exception {
+	return cexceptions.New(
 		"CursorEncodingFailed",
 		"Search",
 		"Cursor",

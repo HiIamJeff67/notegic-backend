@@ -4,28 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BlockPatternResolverInterface interface {
-	Resolve(ctx context.Context, db *gorm.DB, actorUserId uuid.UUID, pattern routinetasktypes.RoutineTaskPattern, allowedPermissions []coreenums.AccessControlPermission) (map[string]string, *exceptions.Exception)
-	ResolveMany(ctx context.Context, db *gorm.DB, actorUserIds []uuid.UUID, patterns []routinetasktypes.RoutineTaskPattern, allowedPermissions []coreenums.AccessControlPermission) ([]map[string]string, []bool, *exceptions.Exception)
+	Resolve(ctx context.Context, db *gorm.DB, actorUserId uuid.UUID, pattern croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) (map[string]string, *cexceptions.Exception)
+	ResolveMany(ctx context.Context, db *gorm.DB, actorUserIds []uuid.UUID, patterns []croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) ([]map[string]string, []bool, *cexceptions.Exception)
 }
 
 type BlockPatternResolver struct {
@@ -44,21 +44,21 @@ func (r BlockPatternResolver) Resolve(
 	ctx context.Context,
 	db *gorm.DB,
 	actorUserId uuid.UUID,
-	pattern routinetasktypes.RoutineTaskPattern,
-	allowedPermissions []coreenums.AccessControlPermission,
-) (map[string]string, *exceptions.Exception) {
+	pattern croutinetasktypes.RoutineTaskPattern,
+	allowedPermissions []enums.AccessControlPermission,
+) (map[string]string, *cexceptions.Exception) {
 	values, successes, exception := r.ResolveMany(
 		ctx,
 		db,
 		[]uuid.UUID{actorUserId},
-		[]routinetasktypes.RoutineTaskPattern{pattern},
+		[]croutinetasktypes.RoutineTaskPattern{pattern},
 		allowedPermissions,
 	)
 	if exception != nil {
 		return nil, exception
 	}
 	if len(successes) == 0 || !successes[0] {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRoutineTaskPayload",
 			"RoutineTask",
 			"Resolve",
@@ -73,9 +73,9 @@ func (r BlockPatternResolver) ResolveMany(
 	ctx context.Context,
 	db *gorm.DB,
 	actorUserIds []uuid.UUID,
-	patterns []routinetasktypes.RoutineTaskPattern,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]map[string]string, []bool, *exceptions.Exception) {
+	patterns []croutinetasktypes.RoutineTaskPattern,
+	allowedPermissions []enums.AccessControlPermission,
+) ([]map[string]string, []bool, *cexceptions.Exception) {
 	values := make([]map[string]string, len(patterns))
 	taskSuccesses := make([]bool, len(patterns))
 	for index := range patterns {
@@ -83,7 +83,7 @@ func (r BlockPatternResolver) ResolveMany(
 		taskSuccesses[index] = true
 	}
 	if len(actorUserIds) != len(patterns) {
-		return nil, nil, exceptions.New(
+		return nil, nil, cexceptions.New(
 			"InvalidRoutineTaskPayload",
 			"RoutineTask",
 			"Resolve",
@@ -125,7 +125,7 @@ func (r BlockPatternResolver) ResolveMany(
 		return values, taskSuccesses, nil
 	}
 	if db == nil || r.blockRepository == nil {
-		return nil, nil, exceptions.New(
+		return nil, nil, cexceptions.New(
 			"InvalidRoutineTaskPayload",
 			"RoutineTask",
 			"Resolve",
@@ -161,7 +161,7 @@ func (r BlockPatternResolver) ResolveMany(
 		block := blocksById[checkInputs[index].Id]
 		var content any
 		if err := json.Unmarshal(block.Content, &content); err != nil {
-			return nil, nil, exceptions.New(
+			return nil, nil, cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
 				"Resolve",

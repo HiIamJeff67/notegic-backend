@@ -3,15 +3,15 @@ package core
 import (
 	"context"
 
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 
 	emailsenders "github.com/HiIamJeff67/notegic-backend/internal/email/senders"
 )
 
 type SenderInterface interface {
-	SendWelcomeEmail(context.Context, emaileventscontract.SendWelcomeEmailRequestDto) error
-	SendValidationEmail(context.Context, emaileventscontract.SendValidationEmailRequestDto) error
-	SendSecurityAlertEmail(context.Context, emaileventscontract.SendSecurityAlertEmailRequestDto) error
+	SendWelcomeEmail(context.Context, cemailevents.SendWelcomeEmailRequestDto) error
+	SendValidationEmail(context.Context, cemailevents.SendValidationEmailRequestDto) error
+	SendSecurityAlertEmail(context.Context, cemailevents.SendSecurityAlertEmailRequestDto) error
 }
 
 type Sender struct {
@@ -34,21 +34,21 @@ func NewSender(
 
 func (s *Sender) SendWelcomeEmail(
 	ctx context.Context,
-	request emaileventscontract.SendWelcomeEmailRequestDto,
+	request cemailevents.SendWelcomeEmailRequestDto,
 ) error {
 	return s.welcome.Send(ctx, request)
 }
 
 func (s *Sender) SendValidationEmail(
 	ctx context.Context,
-	request emaileventscontract.SendValidationEmailRequestDto,
+	request cemailevents.SendValidationEmailRequestDto,
 ) error {
 	return s.validation.Send(ctx, request)
 }
 
 func (s *Sender) SendSecurityAlertEmail(
 	ctx context.Context,
-	request emaileventscontract.SendSecurityAlertEmailRequestDto,
+	request cemailevents.SendSecurityAlertEmailRequestDto,
 ) error {
 	return s.securityAlert.Send(ctx, request)
 }

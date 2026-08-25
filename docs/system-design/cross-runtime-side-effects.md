@@ -12,7 +12,7 @@ code before the owning issue is ready.
 | Welcome, validation, and security-alert email | Core → Email | Kafka event from Core's PostgreSQL transactional outbox | Core domain transaction commits the event; Email is at-least-once and idempotent | Adopt |
 | Object deletion and storage garbage collection | Core → storage provider | Future storage contract and outbox event | The object provider is eventually consistent; cleanup must be retryable and idempotent | Defer to Phase 5 / NOT-45 |
 | Block projection, embeddings, vector indexing, tool-calling, and orchestration | Core → future AI/indexing runtime | Versioned domain events, to be designed with the first AI consumer | BlockTable remains a rebuildable Core read model; Yjs remains the source of truth | Future follow-up |
-| Yjs persistence and maintenance | YjsWorker / DurableJob → Core | Existing Kafka command/result and maintenance-hint contracts | Core owns the database transaction; workers use asynchronous commands and idempotent results | Already covered by NOT-62 and NOT-64 |
+| Yjs persistence and maintenance | Core / YjsWorker | Core↔YjsWorker Kafka command/result plus Core-owned hint outbox | Core owns the database transaction; Core worker owns scheduling and bounded retry | Adopt |
 | Realtime room policy, presence, lease, and revocation | Core → RealtimeGateway | Existing Core outbox and Kafka fan-out | RealtimeGateway owns live connection state and its Redis cache | Already covered by NOT-35, NOT-60, and NOT-61 |
 | Rate limits, cache invalidation, metrics, traces, and logs | Runtime-local | Runtime-local mechanisms | No business transaction or cross-runtime event is required | Excluded |
 

@@ -3,22 +3,24 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 func LoadPostgresConfig() (platformpostgres.Config, error) {
-	config := platformpostgres.Config{
-		Host:     strings.TrimSpace(os.Getenv("DB_HOST")),
-		User:     strings.TrimSpace(os.Getenv("DB_USER")),
-		Password: os.Getenv("DB_PASSWORD"),
-		Name:     strings.TrimSpace(os.Getenv("DB_NAME")),
-		Port:     strings.TrimSpace(os.Getenv("DOCKER_DB_PORT")),
-	}
-	if config.Host == "" || config.User == "" || config.Password == "" || config.Name == "" || config.Port == "" {
-		return platformpostgres.Config{}, fmt.Errorf("DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT are required")
-	}
+	return loadPostgresConfig()
+}
 
+func loadPostgresConfig() (platformpostgres.Config, error) {
+	config, err := platformpostgres.LoadConfig(
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DOCKER_DB_PORT"),
+	)
+	if err != nil {
+		return platformpostgres.Config{}, fmt.Errorf("Core PostgreSQL config requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT: %w", err)
+	}
 	return config, nil
 }

@@ -5,20 +5,20 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/core/adapters"
 )
 
 type RoutineTagControllerInterface interface {
-	GetMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.GetMyRoutineTagByIdRequestDto)
-	GetAllMyRoutineTags(ctx *gin.Context, requestDto *apicontract.GetAllMyRoutineTagsRequestDto)
-	CreateRoutineTag(ctx *gin.Context, requestDto *apicontract.CreateRoutineTagRequestDto)
-	CreateRoutineTags(ctx *gin.Context, requestDto *apicontract.CreateRoutineTagsRequestDto)
-	UpdateMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.UpdateMyRoutineTagByIdRequestDto)
-	UpdateMyRoutineTagsByIds(ctx *gin.Context, requestDto *apicontract.UpdateMyRoutineTagsByIdsRequestDto)
-	HardDeleteMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.HardDeleteMyRoutineTagByIdRequestDto)
-	HardDeleteMyRoutineTagsByIds(ctx *gin.Context, requestDto *apicontract.HardDeleteMyRoutineTagsByIdsRequestDto)
+	GetMyRoutineTagById(ctx *gin.Context, requestDto *capi.GetMyRoutineTagByIdRequestDto)
+	GetAllMyRoutineTags(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTagsRequestDto)
+	CreateRoutineTag(ctx *gin.Context, requestDto *capi.CreateRoutineTagRequestDto)
+	CreateRoutineTags(ctx *gin.Context, requestDto *capi.CreateRoutineTagsRequestDto)
+	UpdateMyRoutineTagById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagByIdRequestDto)
+	UpdateMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto)
+	HardDeleteMyRoutineTagById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto)
+	HardDeleteMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto)
 }
 
 type RoutineTagController struct {
@@ -31,15 +31,15 @@ func NewRoutineTagController(coreAdapter *coreadapters.CoreAdapter) RoutineTagCo
 	}
 }
 
-func (c *RoutineTagController) GetMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.GetMyRoutineTagByIdRequestDto) {
+func (c *RoutineTagController) GetMyRoutineTagById(ctx *gin.Context, requestDto *capi.GetMyRoutineTagByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyRoutineTagByIdRequestDto,
-		apicontract.GetMyRoutineTagByIdResponseDto,
+		capi.GetMyRoutineTagByIdRequestDto,
+		capi.GetMyRoutineTagByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyRoutineTagByIdOperation,
+		capi.GetMyRoutineTagByIdOperation,
 		"/core/v1/routine-tags/get-by-id",
 	)
 	if exception != nil {
@@ -50,15 +50,15 @@ func (c *RoutineTagController) GetMyRoutineTagById(ctx *gin.Context, requestDto 
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto *apicontract.GetAllMyRoutineTagsRequestDto) {
+func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTagsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetAllMyRoutineTagsRequestDto,
-		apicontract.GetAllMyRoutineTagsResponseDto,
+		capi.GetAllMyRoutineTagsRequestDto,
+		capi.GetAllMyRoutineTagsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetAllMyRoutineTagsOperation,
+		capi.GetAllMyRoutineTagsOperation,
 		"/core/v1/routine-tags/get-all",
 	)
 	if exception != nil {
@@ -69,15 +69,15 @@ func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto 
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *apicontract.CreateRoutineTagRequestDto) {
+func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *capi.CreateRoutineTagRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateRoutineTagRequestDto,
-		apicontract.CreateRoutineTagResponseDto,
+		capi.CreateRoutineTagRequestDto,
+		capi.CreateRoutineTagResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateRoutineTagOperation,
+		capi.CreateRoutineTagOperation,
 		"/core/v1/routine-tags/create",
 	)
 	if exception != nil {
@@ -88,15 +88,15 @@ func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *ap
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *apicontract.CreateRoutineTagsRequestDto) {
+func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *capi.CreateRoutineTagsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.CreateRoutineTagsRequestDto,
-		apicontract.CreateRoutineTagsResponseDto,
+		capi.CreateRoutineTagsRequestDto,
+		capi.CreateRoutineTagsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.CreateRoutineTagsOperation,
+		capi.CreateRoutineTagsOperation,
 		"/core/v1/routine-tags/create-many",
 	)
 	if exception != nil {
@@ -107,15 +107,15 @@ func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *a
 	writeCreatedClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.UpdateMyRoutineTagByIdRequestDto) {
+func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyRoutineTagByIdRequestDto,
-		apicontract.UpdateMyRoutineTagByIdResponseDto,
+		capi.UpdateMyRoutineTagByIdRequestDto,
+		capi.UpdateMyRoutineTagByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMyRoutineTagByIdOperation,
+		capi.UpdateMyRoutineTagByIdOperation,
 		"/core/v1/routine-tags/update",
 	)
 	if exception != nil {
@@ -126,15 +126,15 @@ func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestD
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, requestDto *apicontract.UpdateMyRoutineTagsByIdsRequestDto) {
+func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.UpdateMyRoutineTagsByIdsRequestDto,
-		apicontract.UpdateMyRoutineTagsByIdsResponseDto,
+		capi.UpdateMyRoutineTagsByIdsRequestDto,
+		capi.UpdateMyRoutineTagsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.UpdateMyRoutineTagsByIdsOperation,
+		capi.UpdateMyRoutineTagsByIdsOperation,
 		"/core/v1/routine-tags/update-many",
 	)
 	if exception != nil {
@@ -145,15 +145,15 @@ func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, reques
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requestDto *apicontract.HardDeleteMyRoutineTagByIdRequestDto) {
+func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.HardDeleteMyRoutineTagByIdRequestDto,
-		apicontract.HardDeleteMyRoutineTagByIdResponseDto,
+		capi.HardDeleteMyRoutineTagByIdRequestDto,
+		capi.HardDeleteMyRoutineTagByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.HardDeleteMyRoutineTagByIdOperation,
+		capi.HardDeleteMyRoutineTagByIdOperation,
 		"/core/v1/routine-tags/hard-delete",
 	)
 	if exception != nil {
@@ -164,15 +164,15 @@ func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requ
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTagController) HardDeleteMyRoutineTagsByIds(ctx *gin.Context, requestDto *apicontract.HardDeleteMyRoutineTagsByIdsRequestDto) {
+func (c *RoutineTagController) HardDeleteMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.HardDeleteMyRoutineTagsByIdsRequestDto,
-		apicontract.HardDeleteMyRoutineTagsByIdsResponseDto,
+		capi.HardDeleteMyRoutineTagsByIdsRequestDto,
+		capi.HardDeleteMyRoutineTagsByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.HardDeleteMyRoutineTagsByIdsOperation,
+		capi.HardDeleteMyRoutineTagsByIdsOperation,
 		"/core/v1/routine-tags/hard-delete-many",
 	)
 	if exception != nil {

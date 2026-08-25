@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type BadgeException struct {
@@ -14,8 +14,8 @@ func NewBadgeException() BadgeException {
 	return BadgeException{CoreException: NewCoreException("Badge")}
 }
 
-func (BadgeException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (BadgeException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"Badge",
 		"Repository",

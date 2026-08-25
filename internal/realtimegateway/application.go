@@ -15,7 +15,7 @@ import (
 	platform "github.com/HiIamJeff67/notegic-backend/shared/platform"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	realtimegatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
+	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
@@ -145,7 +145,7 @@ func (a *Application) buildRouter(
 	}
 	status.ConfigureStartedRouter(router, a.IsHealthy)
 	status.ConfigureHealthRouter(router, a.IsReady)
-	routes := router.Group("/" + realtimegatewaycontract.RealtimeDevelopmentBaseURL)
+	routes := router.Group("/" + crealtimegateway.RealtimeDevelopmentBaseURL)
 	routes.Use(
 		middlewares.SanitizeXForwardedForMiddleware(),
 		middlewares.CORSMiddleware(),

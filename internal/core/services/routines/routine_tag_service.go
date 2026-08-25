@@ -2,6 +2,7 @@ package routines
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 	"time"
 
@@ -9,35 +10,34 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTagServiceInterface interface {
-	GetMyRoutineTagById(ctx context.Context, requestDto *apicontract.GetMyRoutineTagByIdRequestDto) (*apicontract.GetMyRoutineTagByIdResponseDto, *exceptions.Exception)
-	GetAllMyRoutineTags(ctx context.Context, requestDto *apicontract.GetAllMyRoutineTagsRequestDto) (*apicontract.GetAllMyRoutineTagsResponseDto, *exceptions.Exception)
-	CreateRoutineTag(ctx context.Context, requestDto *apicontract.CreateRoutineTagRequestDto) (*apicontract.CreateRoutineTagResponseDto, *exceptions.Exception)
-	CreateRoutineTags(ctx context.Context, requestDto *apicontract.CreateRoutineTagsRequestDto) (*apicontract.CreateRoutineTagsResponseDto, *exceptions.Exception)
-	UpdateMyRoutineTagById(ctx context.Context, requestDto *apicontract.UpdateMyRoutineTagByIdRequestDto) (*apicontract.UpdateMyRoutineTagByIdResponseDto, *exceptions.Exception)
-	UpdateMyRoutineTagsByIds(ctx context.Context, requestDto *apicontract.UpdateMyRoutineTagsByIdsRequestDto) (*apicontract.UpdateMyRoutineTagsByIdsResponseDto, *exceptions.Exception)
-	HardDeleteMyRoutineTagById(ctx context.Context, requestDto *apicontract.HardDeleteMyRoutineTagByIdRequestDto) (*apicontract.HardDeleteMyRoutineTagByIdResponseDto, *exceptions.Exception)
-	HardDeleteMyRoutineTagsByIds(ctx context.Context, requestDto *apicontract.HardDeleteMyRoutineTagsByIdsRequestDto) (*apicontract.HardDeleteMyRoutineTagsByIdsResponseDto, *exceptions.Exception)
+	GetMyRoutineTagById(ctx context.Context, requestDto *capi.GetMyRoutineTagByIdRequestDto) (*capi.GetMyRoutineTagByIdResponseDto, *cexceptions.Exception)
+	GetAllMyRoutineTags(ctx context.Context, requestDto *capi.GetAllMyRoutineTagsRequestDto) (*capi.GetAllMyRoutineTagsResponseDto, *cexceptions.Exception)
+	CreateRoutineTag(ctx context.Context, requestDto *capi.CreateRoutineTagRequestDto) (*capi.CreateRoutineTagResponseDto, *cexceptions.Exception)
+	CreateRoutineTags(ctx context.Context, requestDto *capi.CreateRoutineTagsRequestDto) (*capi.CreateRoutineTagsResponseDto, *cexceptions.Exception)
+	UpdateMyRoutineTagById(ctx context.Context, requestDto *capi.UpdateMyRoutineTagByIdRequestDto) (*capi.UpdateMyRoutineTagByIdResponseDto, *cexceptions.Exception)
+	UpdateMyRoutineTagsByIds(ctx context.Context, requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto) (*capi.UpdateMyRoutineTagsByIdsResponseDto, *cexceptions.Exception)
+	HardDeleteMyRoutineTagById(ctx context.Context, requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto) (*capi.HardDeleteMyRoutineTagByIdResponseDto, *cexceptions.Exception)
+	HardDeleteMyRoutineTagsByIds(ctx context.Context, requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto) (*capi.HardDeleteMyRoutineTagsByIdsResponseDto, *cexceptions.Exception)
 
-	SearchPrivateRoutineTags(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchRoutineTagInput) (*gqlmodels.SearchRoutineTagConnection, *exceptions.Exception)
+	SearchPrivateRoutineTags(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTagInput) (*cgqlmodels.SearchRoutineTagConnection, *cexceptions.Exception)
 }
 
 type RoutineTagService struct {
@@ -63,25 +63,25 @@ func NewRoutineTagService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func convertRoutineTagIcon(icon *string) (*enums.SupportedIcon, *exceptions.Exception) {
+func convertRoutineTagIcon(icon *string) (*enums.SupportedIcon, *cexceptions.Exception) {
 	if icon == nil {
 		return nil, nil
 	}
 	convertedIcon, err := enums.ConvertStringToSupportedIcon(*icon)
 	if err != nil {
-		return nil, exceptions.InvalidInput("RoutineTag").WithOrigin(err)
+		return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
 	}
 
 	return convertedIcon, nil
 }
 
-func newRoutineTagResponseDto(routineTag schemas.RoutineTag) apicontract.RoutineTagResponseDto {
+func newRoutineTagResponseDto(routineTag schemas.RoutineTag) capi.RoutineTagResponseDto {
 	var icon *string
 	if routineTag.Icon != nil {
 		iconValue := routineTag.Icon.String()
 		icon = &iconValue
 	}
-	return apicontract.RoutineTagResponseDto{
+	return capi.RoutineTagResponseDto{
 		Id:        routineTag.Id,
 		Name:      routineTag.Name,
 		Color:     routineTag.Color,
@@ -95,8 +95,8 @@ func newRoutineTagResponseDto(routineTag schemas.RoutineTag) apicontract.Routine
 
 func (s *RoutineTagService) GetMyRoutineTagById(
 	ctx context.Context,
-	requestDto *apicontract.GetMyRoutineTagByIdRequestDto,
-) (*apicontract.GetMyRoutineTagByIdResponseDto, *exceptions.Exception) {
+	requestDto *capi.GetMyRoutineTagByIdRequestDto,
+) (*capi.GetMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -126,13 +126,13 @@ func (s *RoutineTagService) GetMyRoutineTagById(
 
 func (s *RoutineTagService) GetAllMyRoutineTags(
 	ctx context.Context,
-	requestDto *apicontract.GetAllMyRoutineTagsRequestDto,
-) (*apicontract.GetAllMyRoutineTagsResponseDto, *exceptions.Exception) {
+	requestDto *capi.GetAllMyRoutineTagsRequestDto,
+) (*capi.GetAllMyRoutineTagsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
 	if requestDto.Param.AreDeleted != nil && *requestDto.Param.AreDeleted {
-		responseDto := apicontract.GetAllMyRoutineTagsResponseDto{}
+		responseDto := capi.GetAllMyRoutineTagsResponseDto{}
 		return &responseDto, nil
 	}
 
@@ -151,7 +151,7 @@ func (s *RoutineTagService) GetAllMyRoutineTags(
 		return nil, exception
 	}
 
-	responseDto := make(apicontract.GetAllMyRoutineTagsResponseDto, len(routineTags))
+	responseDto := make(capi.GetAllMyRoutineTagsResponseDto, len(routineTags))
 	for index, routineTag := range routineTags {
 		responseDto[index] = newRoutineTagResponseDto(routineTag)
 	}
@@ -161,8 +161,8 @@ func (s *RoutineTagService) GetAllMyRoutineTags(
 
 func (s *RoutineTagService) CreateRoutineTag(
 	ctx context.Context,
-	requestDto *apicontract.CreateRoutineTagRequestDto,
-) (*apicontract.CreateRoutineTagResponseDto, *exceptions.Exception) {
+	requestDto *capi.CreateRoutineTagRequestDto,
+) (*capi.CreateRoutineTagResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -191,7 +191,7 @@ func (s *RoutineTagService) CreateRoutineTag(
 		return nil, exception
 	}
 
-	return &apicontract.CreateRoutineTagResponseDto{
+	return &capi.CreateRoutineTagResponseDto{
 		Id:        *newRoutineTagId,
 		CreatedAt: time.Now(),
 	}, nil
@@ -199,8 +199,8 @@ func (s *RoutineTagService) CreateRoutineTag(
 
 func (s *RoutineTagService) CreateRoutineTags(
 	ctx context.Context,
-	requestDto *apicontract.CreateRoutineTagsRequestDto,
-) (*apicontract.CreateRoutineTagsResponseDto, *exceptions.Exception) {
+	requestDto *capi.CreateRoutineTagsRequestDto,
+) (*capi.CreateRoutineTagsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -233,7 +233,7 @@ func (s *RoutineTagService) CreateRoutineTags(
 		return nil, exception
 	}
 
-	return &apicontract.CreateRoutineTagsResponseDto{
+	return &capi.CreateRoutineTagsResponseDto{
 		Ids:       newRoutineTagIds,
 		CreatedAt: time.Now(),
 	}, nil
@@ -241,8 +241,8 @@ func (s *RoutineTagService) CreateRoutineTags(
 
 func (s *RoutineTagService) UpdateMyRoutineTagById(
 	ctx context.Context,
-	requestDto *apicontract.UpdateMyRoutineTagByIdRequestDto,
-) (*apicontract.UpdateMyRoutineTagByIdResponseDto, *exceptions.Exception) {
+	requestDto *capi.UpdateMyRoutineTagByIdRequestDto,
+) (*capi.UpdateMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -274,15 +274,15 @@ func (s *RoutineTagService) UpdateMyRoutineTagById(
 		return nil, exception
 	}
 
-	return &apicontract.UpdateMyRoutineTagByIdResponseDto{
+	return &capi.UpdateMyRoutineTagByIdResponseDto{
 		UpdatedAt: updatedRoutineTag.UpdatedAt,
 	}, nil
 }
 
 func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 	ctx context.Context,
-	requestDto *apicontract.UpdateMyRoutineTagsByIdsRequestDto,
-) (*apicontract.UpdateMyRoutineTagsByIdsResponseDto, *exceptions.Exception) {
+	requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto,
+) (*capi.UpdateMyRoutineTagsByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -320,15 +320,15 @@ func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 		return nil, exception
 	}
 
-	return &apicontract.UpdateMyRoutineTagsByIdsResponseDto{
+	return &capi.UpdateMyRoutineTagsByIdsResponseDto{
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
 func (s *RoutineTagService) HardDeleteMyRoutineTagById(
 	ctx context.Context,
-	requestDto *apicontract.HardDeleteMyRoutineTagByIdRequestDto,
-) (*apicontract.HardDeleteMyRoutineTagByIdResponseDto, *exceptions.Exception) {
+	requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto,
+) (*capi.HardDeleteMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -348,15 +348,15 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagById(
 		return nil, exception
 	}
 
-	return &apicontract.HardDeleteMyRoutineTagByIdResponseDto{
+	return &capi.HardDeleteMyRoutineTagByIdResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
 
 func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 	ctx context.Context,
-	requestDto *apicontract.HardDeleteMyRoutineTagsByIdsRequestDto,
-) (*apicontract.HardDeleteMyRoutineTagsByIdsResponseDto, *exceptions.Exception) {
+	requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto,
+) (*capi.HardDeleteMyRoutineTagsByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
 	}
@@ -376,7 +376,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 		return nil, exception
 	}
 
-	return &apicontract.HardDeleteMyRoutineTagsByIdsResponseDto{
+	return &capi.HardDeleteMyRoutineTagsByIdsResponseDto{
 		DeletedAt: time.Now(),
 	}, nil
 }
@@ -384,8 +384,8 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 /* ============================== Service Methods for GraphQL RoutineTag ============================== */
 
 func (s *RoutineTagService) SearchPrivateRoutineTags(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchRoutineTagInput,
-) (*gqlmodels.SearchRoutineTagConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTagInput,
+) (*cgqlmodels.SearchRoutineTagConnection, *cexceptions.Exception) {
 	startTime := time.Now()
 	db := s.db.WithContext(ctx)
 
@@ -400,7 +400,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchRoutineTagCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineTagCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -409,21 +409,21 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		var cending string = gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		var cending string = cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchRoutineTagSortByName:
+		case cgqlmodels.SearchRoutineTagSortByName:
 			query = query.Order("name " + cending).
 				Order("updated_at " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchRoutineTagSortByLastUpdate:
+		case cgqlmodels.SearchRoutineTagSortByLastUpdate:
 			query = query.Order("updated_at " + cending).
 				Order("name " + cending).
 				Order("created_at " + cending)
-		case gqlmodels.SearchRoutineTagSortByCreatedAt:
+		case cgqlmodels.SearchRoutineTagSortByCreatedAt:
 			query = query.Order("created_at " + cending).
 				Order("name " + cending).
 				Order("updated_at " + cending)
@@ -447,11 +447,11 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 	}
 
 	hasNextPage := len(routineTags) > limit
-	searchEdges := make([]*gqlmodels.SearchRoutineTagEdge, len(routineTags))
+	searchEdges := make([]*cgqlmodels.SearchRoutineTagEdge, len(routineTags))
 
 	for index, routineTag := range routineTags {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchRoutineTagCursorFields]{
-			Fields: gqlmodels.SearchRoutineTagCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineTagCursorFields]{
+			Fields: cgqlmodels.SearchRoutineTagCursorFields{
 				ID: routineTag.Id,
 			},
 		}
@@ -463,13 +463,13 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
 		}
 
-		searchEdges[index] = &gqlmodels.SearchRoutineTagEdge{
+		searchEdges[index] = &cgqlmodels.SearchRoutineTagEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                routineTag.ToPrivateRoutineTag(),
 		}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -484,7 +484,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 		searchEdges = searchEdges[:limit]
 	}
 
-	return &gqlmodels.SearchRoutineTagConnection{
+	return &cgqlmodels.SearchRoutineTagConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

@@ -101,16 +101,12 @@ internal/core/transports/
   outbox_relay.go
 
 internal/durablejob/transports/
-  core/
-    consumers/
+  realtimegateway/
     producers/
-    strategies/
 ```
 
-For a peer transport, event directions are kept one-to-one at the file
-boundary: each Core-to-DurableJob consumer has a matching DurableJob Core
-producer, and each Core producer has a matching DurableJob consumer. A file
-under `producers/` is a broker producer only when it owns a `Produce()` method
+DurableJob has no Core-facing Kafka transport. A file under `producers/` is a
+broker producer only when it owns a `Produce()` method
 and receives the platform Kafka producer. A file under `eventbuilders/` only
 builds a versioned envelope through `Build()`; it never publishes to Kafka.
 Core events written inside a database transaction use the Core `OutboxRelay` as
@@ -214,6 +210,11 @@ append/update/reset mutation methods in Core.
   YjsWorker and receives Core lifecycle facts through Kafka.
 - A runtime may import contracts, shared, and its own data. A runtime
   must not import another service source package.
+- Shared PostgreSQL schemas, table names, reusable scopes, and reusable SQL are
+  importable platform code. Their location does not grant database access:
+  migration ownership remains in the owning runtime's manifest, and future
+  PostgreSQL roles/grants must separately define which runtime can read or
+  write each object.
 - Core, Gateway, DurableJob, Email, and RealtimeGateway are separate Go
   environments. Each runtime owns a `go.mod` and `go.sum` beside its
   `application.go`; `contracts` and `shared` own their own module metadata as
@@ -241,6 +242,28 @@ append/update/reset mutation methods in Core.
 - Cross-runtime calls use a versioned contract and adapter/client. Core adapters
   are outbound only; a Core inbound transport is already the inbound adapter.
 
+## PostgreSQL schema importability and migration ownership
+
+All PostgreSQL GORM models that represent shared physical tables live under
+`shared/platform/postgres/schemas/`, including their table names, relations, and
+shared DDL SQL packages. Runtimes import these models directly; they do not keep
+duplicate local schema definitions. Runtime-specific repositories, scopes, and
+business write rules may remain under the owning runtime and can compose the
+shared repository implementation.
+
+Each database-owning runtime keeps one migration manifest under its own
+`data/postgres/` package. The manifest declares its owner and the tables, enums,
+views, triggers, and constraints that it is responsible for migrating. A shared
+`MigrationManifest` is only an ownership declaration and migration input; it
+does not grant database access.
+
+Database permissions are a separate deployment phase. Until PostgreSQL roles
+and grants are introduced, code importability and migration ownership must not
+be treated as read/write isolation. When permissions are added, the owner
+runtime's role will receive DDL/write access and other runtime roles will
+receive only the explicitly required access. Non-owner runtimes must not add
+the owner's migration manifest to their startup path.
+
 ## Composition roots
 
 Environment configuration follows the same ownership rule. A runtime composition
@@ -255,7 +278,11 @@ loader and policy in `configs/config.go`: for example, Kafka consumer settings,
 rate-limit policy, SMTP settings, renderer settings, cache TTLs, and outbox
 relay settings each have an appropriately named file under the owning runtime's
 `configs/` package. Delete empty configuration files; a configuration package
-should expose only settings that are actually consumed by that runtime.
+should expose only settings that are actually consumed by that runtime. The
+package exposes one public `LoadConfig()` entry point; all concern-specific
+loaders called by it use private `load...Config()` names. Shared infrastructure
+loaders, such as PostgreSQL environment parsing, belong under
+`shared/platform/<component>/` and are called by the runtime's private loader.
 
 Runtime-owned Redis client sets and TTLs follow the same boundary. Each runtime
 composition root creates its immutable Redis client set and injects it into the
@@ -309,13 +336,14 @@ package / imports
 interface
 concrete struct
 constructor
-optional auxiliary helpers
+optional auxiliary helpers (always declared before service methods)
 public methods in interface order
 optional visualization/chart methods
 optional GraphQL/system-only methods
 ```
 
 - Keep one blank line between top-level methods.
+- In `internal/core/services/`, helper functions and helper methods belong at the top of the file, immediately after the constructor and before the public service methods. Keep the primary service workflows below the helpers; do not place a private helper after the method that calls it.
 - Extract a helper only when two or more methods reuse the same named concept, or
   the inline logic would hide the primary workflow. One-call parsing, mapping,
   validation, temporary type, and wrapper variable stay inline.

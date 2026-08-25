@@ -3,8 +3,8 @@ package apicontract
 import (
 	"github.com/google/uuid"
 
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 type LoadUserBadgesRequestDto []uuid.UUID
-type LoadUserBadgesResponseDto []*gqlmodels.PublicBadge
+type LoadUserBadgesResponseDto []*cgqlmodels.PublicBadge

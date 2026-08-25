@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -19,7 +19,7 @@ import (
 func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if rateLimiter == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"RateLimiterRequired",
 				"RealtimeGateway",
 				"RateLimit",
@@ -32,7 +32,7 @@ func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin
 
 		userPublicId, exists := ctx.Get(sharedcontexts.ContextFieldName_User_PublicId.String())
 		if !exists || userPublicId == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"WrongMiddlewareOrder",
 				"Context",
 				"Middleware",
@@ -45,7 +45,7 @@ func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin
 
 		publicId, err := uuid.Parse(fmt.Sprint(userPublicId))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.InvalidInput("User").WithOrigin(err), ctx)
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("User").WithOrigin(err), ctx)
 			return
 		}
 
@@ -56,7 +56,7 @@ func AuthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin
 		ctx.Header("X-RateLimit-Window", rateLimiter.WindowDuration.String())
 		ctx.Header("X-RateLimit-Policy", "hybrid-token-bucket")
 		if !allowed {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"PermissionDeniedDueToTooManyRequests",
 				"RealtimeGateway",
 				"Authorize",

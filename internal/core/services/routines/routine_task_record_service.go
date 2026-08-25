@@ -10,36 +10,36 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 	times "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTaskRecordServiceInterface interface {
-	GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx context.Context, requestDto *apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto) (*apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *exceptions.Exception)
+	GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx context.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto) (*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception)
 
 	/* ============================== Visualization Methods ============================== */
-	VisualizeMyRoutineTaskRecordStatusCount(ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordStatusCountRequestDto) (*apicontract.VisualizeMyRoutineTaskRecordStatusCountResponseDto, *exceptions.Exception)
-	VisualizeMyRoutineTaskRecordPurposeCount(ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordPurposeCountRequestDto) (*apicontract.VisualizeMyRoutineTaskRecordPurposeCountResponseDto, *exceptions.Exception)
-	VisualizeMyRoutineTaskRecordScheduledAtCount(ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto) (*apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto, *exceptions.Exception)
-	VisualizeMyRoutineTaskRecordActualStartedAtCount(ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto) (*apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto, *exceptions.Exception)
-	VisualizeMyRoutineTaskRecordActualEndedAtCount(ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto) (*apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto, *exceptions.Exception)
+	VisualizeMyRoutineTaskRecordStatusCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordStatusCountResponseDto, *cexceptions.Exception)
+	VisualizeMyRoutineTaskRecordPurposeCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordPurposeCountResponseDto, *cexceptions.Exception)
+	VisualizeMyRoutineTaskRecordScheduledAtCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto, *cexceptions.Exception)
+	VisualizeMyRoutineTaskRecordActualStartedAtCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto, *cexceptions.Exception)
+	VisualizeMyRoutineTaskRecordActualEndedAtCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto, *cexceptions.Exception)
 
-	SearchPrivateRoutineTaskRecords(ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchRoutineTaskRecordInput) (*gqlmodels.SearchRoutineTaskRecordConnection, *exceptions.Exception)
+	SearchPrivateRoutineTaskRecords(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskRecordInput) (*cgqlmodels.SearchRoutineTaskRecordConnection, *cexceptions.Exception)
 }
 
 type RoutineTaskRecordService struct {
@@ -57,7 +57,7 @@ func NewRoutineTaskRecordService(
 		db = data.DB
 	}
 	if routineTaskRecordRepository == nil {
-		routineTaskRecordRepository = repositories.NewRoutineTaskRecordRepository(scopes.NewRoutineTaskRecordScope())
+		routineTaskRecordRepository = repositories.NewRoutineTaskRecordRepository(corescopes.NewRoutineTaskRecordScope())
 	}
 
 	return &RoutineTaskRecordService{
@@ -79,7 +79,7 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 	queryRangeEndedAt time.Time,
 	columnName string,
 	fieldName string,
-) ([]apicontract.RoutineTaskRecordCountDatum, *exceptions.Exception) {
+) ([]capi.RoutineTaskRecordCountDatum, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
 	var buckets []struct {
@@ -129,7 +129,7 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(result.Error)
 	}
 
-	data := make([]apicontract.RoutineTaskRecordCountDatum, len(buckets))
+	data := make([]capi.RoutineTaskRecordCountDatum, len(buckets))
 	for index, bucket := range buckets {
 		bucketEnd := bucket.BucketStart.Add(time.Duration(timeHourUnit) * time.Hour)
 		x := bucket.BucketStart.Format(time.DateOnly)
@@ -149,7 +149,7 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 			return nil, apiexceptions.NewRoutineException().FailedToMarshalData(metadata)
 		}
 
-		data[index] = apicontract.RoutineTaskRecordCountDatum{
+		data[index] = capi.RoutineTaskRecordCountDatum{
 			Id:    bucket.BucketStart.Format(time.RFC3339),
 			X:     x,
 			Value: bucket.RoutineTaskRecordCount,
@@ -161,8 +161,8 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 }
 
 func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
-	ctx context.Context, requestDto *apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto,
-) (*apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto,
+) (*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -188,14 +188,14 @@ func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 		return nil, exception
 	}
 
-	responseDto := make(apicontract.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, len(routineTaskRecords))
+	responseDto := make(capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, len(routineTaskRecords))
 	for index, routineTaskRecord := range routineTaskRecords {
 		var errorCode *string
 		if routineTaskRecord.ErrorCode != nil {
 			errorCodeValue := routineTaskRecord.ErrorCode.String()
 			errorCode = &errorCodeValue
 		}
-		responseDto[index] = apicontract.RoutineTaskRecordResponseDto{
+		responseDto[index] = capi.RoutineTaskRecordResponseDto{
 			Id:              routineTaskRecord.Id,
 			RoutineTaskId:   routineTaskRecord.RoutineTaskId,
 			Purpose:         routineTaskRecord.Purpose.String(),
@@ -216,8 +216,8 @@ func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 }
 
 func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
-	ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordStatusCountRequestDto,
-) (*apicontract.VisualizeMyRoutineTaskRecordStatusCountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto,
+) (*capi.VisualizeMyRoutineTaskRecordStatusCountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -256,7 +256,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
 		counts[row.Status] = row.RoutineTaskRecordCount
 	}
 
-	data := make([]apicontract.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskRecordStatuses))
+	data := make([]capi.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskRecordStatuses))
 	for index, status := range enums.AllRoutineTaskRecordStatuses {
 		metadata := map[string]any{"status": status.String(), "routineTaskIds": requestDto.Param.RoutineTaskIds}
 		meta, err := json.Marshal(metadata)
@@ -264,7 +264,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
 			return nil, apiexceptions.NewRoutineException().FailedToMarshalData(metadata)
 		}
 
-		data[index] = apicontract.RoutineTaskRecordCountDatum{
+		data[index] = capi.RoutineTaskRecordCountDatum{
 			Id:    status.String() + "-routine-task-record-count",
 			X:     status.String() + " Routine Task Record Count",
 			Value: counts[status],
@@ -272,14 +272,14 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
 		}
 	}
 
-	return &apicontract.VisualizeMyRoutineTaskRecordStatusCountResponseDto{
+	return &capi.VisualizeMyRoutineTaskRecordStatusCountResponseDto{
 		Data: data,
 	}, nil
 }
 
 func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
-	ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordPurposeCountRequestDto,
-) (*apicontract.VisualizeMyRoutineTaskRecordPurposeCountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto,
+) (*capi.VisualizeMyRoutineTaskRecordPurposeCountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -318,7 +318,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
 		counts[row.Purpose] = row.RoutineTaskRecordCount
 	}
 
-	data := make([]apicontract.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskPurposes))
+	data := make([]capi.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskPurposes))
 	for index, purpose := range enums.AllRoutineTaskPurposes {
 		metadata := map[string]any{"purpose": purpose.String(), "routineTaskIds": requestDto.Param.RoutineTaskIds}
 		meta, err := json.Marshal(metadata)
@@ -326,7 +326,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
 			return nil, apiexceptions.NewRoutineException().FailedToMarshalData(metadata)
 		}
 
-		data[index] = apicontract.RoutineTaskRecordCountDatum{
+		data[index] = capi.RoutineTaskRecordCountDatum{
 			Id:    purpose.String() + "-routine-task-record-count",
 			X:     purpose.String() + " Routine Task Record Count",
 			Value: counts[purpose],
@@ -334,14 +334,14 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
 		}
 	}
 
-	return &apicontract.VisualizeMyRoutineTaskRecordPurposeCountResponseDto{
+	return &capi.VisualizeMyRoutineTaskRecordPurposeCountResponseDto{
 		Data: data,
 	}, nil
 }
 
 func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordScheduledAtCount(
-	ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto,
-) (*apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto,
+) (*capi.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -375,14 +375,14 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordScheduledAtCount(
 		return nil, exception
 	}
 
-	return &apicontract.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto{
+	return &capi.VisualizeMyRoutineTaskRecordScheduledAtCountResponseDto{
 		Data: data,
 	}, nil
 }
 
 func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualStartedAtCount(
-	ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto,
-) (*apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto,
+) (*capi.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -416,14 +416,14 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualStartedAtCo
 		return nil, exception
 	}
 
-	return &apicontract.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto{
+	return &capi.VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto{
 		Data: data,
 	}, nil
 }
 
 func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualEndedAtCount(
-	ctx context.Context, requestDto *apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto,
-) (*apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto, *exceptions.Exception) {
+	ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto,
+) (*capi.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -457,14 +457,14 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualEndedAtCoun
 		return nil, exception
 	}
 
-	return &apicontract.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto{
+	return &capi.VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto{
 		Data: data,
 	}, nil
 }
 
 func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
-	ctx context.Context, userId uuid.UUID, gqlInput gqlmodels.SearchRoutineTaskRecordInput,
-) (*gqlmodels.SearchRoutineTaskRecordConnection, *exceptions.Exception) {
+	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskRecordInput,
+) (*cgqlmodels.SearchRoutineTaskRecordConnection, *cexceptions.Exception) {
 	type PrivateRoutineTaskRecord struct {
 		schemas.RoutineTaskRecord
 		Permission enums.AccessControlPermission `gorm:"column:permission"`
@@ -502,7 +502,7 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[gqlmodels.SearchRoutineTaskRecordCursorFields](*gqlInput.After)
+		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineTaskRecordCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -511,37 +511,37 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 	}
 
 	if gqlInput.SortBy != nil && gqlInput.SortOrder != nil {
-		cending := gqlmodels.SearchSortOrderAsc.String()
-		if *gqlInput.SortOrder == gqlmodels.SearchSortOrderDesc {
-			cending = gqlmodels.SearchSortOrderDesc.String()
+		cending := cgqlmodels.SearchSortOrderAsc.String()
+		if *gqlInput.SortOrder == cgqlmodels.SearchSortOrderDesc {
+			cending = cgqlmodels.SearchSortOrderDesc.String()
 		}
 
 		switch *gqlInput.SortBy {
-		case gqlmodels.SearchRoutineTaskRecordSortByPurpose:
+		case cgqlmodels.SearchRoutineTaskRecordSortByPurpose:
 			query = query.Order(`"RoutineTaskRecordTable".purpose ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByStatus:
+		case cgqlmodels.SearchRoutineTaskRecordSortByStatus:
 			query = query.Order(`"RoutineTaskRecordTable".status ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByCostUnit:
+		case cgqlmodels.SearchRoutineTaskRecordSortByCostUnit:
 			query = query.Order(`"RoutineTaskRecordTable".cost_unit ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByTotalAttempts:
+		case cgqlmodels.SearchRoutineTaskRecordSortByTotalAttempts:
 			query = query.Order(`"RoutineTaskRecordTable".total_attempts ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByScheduledAt:
+		case cgqlmodels.SearchRoutineTaskRecordSortByScheduledAt:
 			query = query.Order(`"RoutineTaskRecordTable".scheduled_at ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByActualStartedAt:
+		case cgqlmodels.SearchRoutineTaskRecordSortByActualStartedAt:
 			query = query.Order(`"RoutineTaskRecordTable".actual_started_at ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByActualEndedAt:
+		case cgqlmodels.SearchRoutineTaskRecordSortByActualEndedAt:
 			query = query.Order(`"RoutineTaskRecordTable".actual_ended_at ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByLastUpdate:
+		case cgqlmodels.SearchRoutineTaskRecordSortByLastUpdate:
 			query = query.Order(`"RoutineTaskRecordTable".updated_at ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case gqlmodels.SearchRoutineTaskRecordSortByCreatedAt:
+		case cgqlmodels.SearchRoutineTaskRecordSortByCreatedAt:
 			query = query.Order(`"RoutineTaskRecordTable".created_at ` + cending)
 		default:
 			query = query.Order(`"RoutineTaskRecordTable".created_at ` + cending)
@@ -561,11 +561,11 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 	}
 
 	hasNextPage := len(routineTaskRecords) > limit
-	searchEdges := make([]*gqlmodels.SearchRoutineTaskRecordEdge, len(routineTaskRecords))
+	searchEdges := make([]*cgqlmodels.SearchRoutineTaskRecordEdge, len(routineTaskRecords))
 
 	for index, routineTaskRecord := range routineTaskRecords {
-		searchCursor := searchcursor.SearchCursor[gqlmodels.SearchRoutineTaskRecordCursorFields]{
-			Fields: gqlmodels.SearchRoutineTaskRecordCursorFields{
+		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineTaskRecordCursorFields]{
+			Fields: cgqlmodels.SearchRoutineTaskRecordCursorFields{
 				ID: routineTaskRecord.Id,
 			},
 		}
@@ -577,13 +577,13 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
 		}
 
-		searchEdges[index] = &gqlmodels.SearchRoutineTaskRecordEdge{
+		searchEdges[index] = &cgqlmodels.SearchRoutineTaskRecordEdge{
 			EncodedSearchCursor: *encodedSearchCursor,
 			Node:                routineTaskRecord.RoutineTaskRecord.ToPrivateRoutineTaskRecord(),
 		}
 	}
 
-	searchPageInfo := &gqlmodels.SearchPageInfo{
+	searchPageInfo := &cgqlmodels.SearchPageInfo{
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0,
 	}
@@ -598,7 +598,7 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		searchEdges = searchEdges[:limit]
 	}
 
-	return &gqlmodels.SearchRoutineTaskRecordConnection{
+	return &cgqlmodels.SearchRoutineTaskRecordConnection{
 		SearchEdges:    searchEdges,
 		SearchPageInfo: searchPageInfo,
 		TotalCount:     int32(len(searchEdges)),

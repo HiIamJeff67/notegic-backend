@@ -17,7 +17,7 @@ The folders are organized by transport concern and then by business domain:
 
 Cross-runtime data vocabulary is outside this versioned service contract:
 
-- `contracts/types/models/enums/` owns enum values. Core and DurableJob database
+- `contracts/types/enums/` owns enum values. Core and DurableJob database
   wrappers add persistence behavior without redefining values.
 + `contracts/types/blocknote/editable_block.go` owns the single recursive
   `ArborizedEditableBlock` input shape and the single

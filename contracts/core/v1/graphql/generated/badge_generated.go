@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	"github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -30,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PublicBadge_publicId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_publicId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_publicId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -74,7 +74,7 @@ func (ec *executionContext) fieldContext_PublicBadge_publicId(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicBadge_title(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_title(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_title(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -118,7 +118,7 @@ func (ec *executionContext) fieldContext_PublicBadge_title(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicBadge_description(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_description(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_description(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -162,7 +162,7 @@ func (ec *executionContext) fieldContext_PublicBadge_description(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicBadge_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_type(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_type(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -206,7 +206,7 @@ func (ec *executionContext) fieldContext_PublicBadge_type(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicBadge_imageURL(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_imageURL(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_imageURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -247,7 +247,7 @@ func (ec *executionContext) fieldContext_PublicBadge_imageURL(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicBadge_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicBadge) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicBadge_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicBadge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicBadge_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -305,7 +305,7 @@ func (ec *executionContext) fieldContext_PublicBadge_createdAt(_ context.Context
 
 var publicBadgeImplementors = []string{"PublicBadge"}
 
-func (ec *executionContext) _PublicBadge(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PublicBadge) graphql.Marshaler {
+func (ec *executionContext) _PublicBadge(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PublicBadge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, publicBadgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -368,7 +368,7 @@ func (ec *executionContext) _PublicBadge(ctx context.Context, sel ast.SelectionS
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPublicBadge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicBadge(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PublicBadge) graphql.Marshaler {
+func (ec *executionContext) marshalNPublicBadge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicBadge(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PublicBadge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

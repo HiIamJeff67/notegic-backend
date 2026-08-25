@@ -3,11 +3,11 @@ package apicontract
 import (
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type RestoreMySubShelfByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -22,7 +22,7 @@ type RestoreMySubShelfByIdRequestDto struct {
 type RestoreMySubShelfByIdResponseDto = SubShelfResponseDto
 
 type RestoreMySubShelvesByIdsRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

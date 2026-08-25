@@ -7,41 +7,41 @@ package resolvers
 import (
 	"context"
 
-	blockpackscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	blockscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
-	itemscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
-	materialscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
-	rootshelvescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
-	routinetagscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
-	routinetaskrecordscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
-	routinetaskscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
-	routinescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
-	stationscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
-	subshelvescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
-	themescontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/themes"
-	userscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
-	"github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	cblocks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	citems "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
+	cmaterials "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
+	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
+	croutinetags "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	croutinetaskrecords "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	croutinetasks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
+	croutines "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
+	cstations "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
+	csubshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
+	cthemes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/themes"
+	cusers "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 	"github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
 // SearchUsers is the resolver for the searchUsers field.
-func (r *queryResolver) SearchUsers(ctx context.Context, input gqlmodels.SearchUserInput) (*gqlmodels.SearchUserConnection, error) {
+func (r *queryResolver) SearchUsers(ctx context.Context, input cgqlmodels.SearchUserInput) (*cgqlmodels.SearchUserConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		userscontract.SearchUsersRequestDto,
-		userscontract.SearchUsersResponseDto,
+		cusers.SearchUsersRequestDto,
+		cusers.SearchUsersResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		userscontract.SearchUsersOperation,
+		cusers.SearchUsersOperation,
 		"/core/v1/users/graphql/search",
 	)
 	if exception != nil {
@@ -52,20 +52,20 @@ func (r *queryResolver) SearchUsers(ctx context.Context, input gqlmodels.SearchU
 }
 
 // SearchThemes is the resolver for the searchThemes field.
-func (r *queryResolver) SearchThemes(ctx context.Context, input gqlmodels.SearchThemeInput) (*gqlmodels.SearchThemeConnection, error) {
+func (r *queryResolver) SearchThemes(ctx context.Context, input cgqlmodels.SearchThemeInput) (*cgqlmodels.SearchThemeConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.Call[
-		themescontract.SearchThemesRequestDto,
-		themescontract.SearchThemesResponseDto,
+		cthemes.SearchThemesRequestDto,
+		cthemes.SearchThemesResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		themescontract.SearchThemesOperation,
+		cthemes.SearchThemesOperation,
 		"/core/v1/themes/graphql/search",
 	)
 	if exception != nil {
@@ -76,20 +76,20 @@ func (r *queryResolver) SearchThemes(ctx context.Context, input gqlmodels.Search
 }
 
 // SearchRootShelves is the resolver for the searchRootShelves field.
-func (r *queryResolver) SearchRootShelves(ctx context.Context, input gqlmodels.SearchRootShelfInput) (*gqlmodels.SearchRootShelfConnection, error) {
+func (r *queryResolver) SearchRootShelves(ctx context.Context, input cgqlmodels.SearchRootShelfInput) (*cgqlmodels.SearchRootShelfConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		rootshelvescontract.SearchRootShelvesRequestDto,
-		rootshelvescontract.SearchRootShelvesResponseDto,
+		crootshelves.SearchRootShelvesRequestDto,
+		crootshelves.SearchRootShelvesResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		rootshelvescontract.SearchRootShelvesOperation,
+		crootshelves.SearchRootShelvesOperation,
 		"/core/v1/root-shelves/graphql/search",
 	)
 	if exception != nil {
@@ -100,20 +100,20 @@ func (r *queryResolver) SearchRootShelves(ctx context.Context, input gqlmodels.S
 }
 
 // SearchSubShelves is the resolver for the searchSubShelves field.
-func (r *queryResolver) SearchSubShelves(ctx context.Context, input gqlmodels.SearchSubShelfInput) (*gqlmodels.SearchSubShelfConnection, error) {
+func (r *queryResolver) SearchSubShelves(ctx context.Context, input cgqlmodels.SearchSubShelfInput) (*cgqlmodels.SearchSubShelfConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		subshelvescontract.SearchSubShelvesRequestDto,
-		subshelvescontract.SearchSubShelvesResponseDto,
+		csubshelves.SearchSubShelvesRequestDto,
+		csubshelves.SearchSubShelvesResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		subshelvescontract.SearchSubShelvesOperation,
+		csubshelves.SearchSubShelvesOperation,
 		"/core/v1/sub-shelves/graphql/search",
 	)
 	if exception != nil {
@@ -124,20 +124,20 @@ func (r *queryResolver) SearchSubShelves(ctx context.Context, input gqlmodels.Se
 }
 
 // SearchItems is the resolver for the searchItems field.
-func (r *queryResolver) SearchItems(ctx context.Context, input gqlmodels.SearchItemInput) (*gqlmodels.SearchItemConnection, error) {
+func (r *queryResolver) SearchItems(ctx context.Context, input cgqlmodels.SearchItemInput) (*cgqlmodels.SearchItemConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		itemscontract.SearchItemsRequestDto,
-		itemscontract.SearchItemsResponseDto,
+		citems.SearchItemsRequestDto,
+		citems.SearchItemsResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		itemscontract.SearchItemsOperation,
+		citems.SearchItemsOperation,
 		"/core/v1/items/graphql/search",
 	)
 	if exception != nil {
@@ -148,20 +148,20 @@ func (r *queryResolver) SearchItems(ctx context.Context, input gqlmodels.SearchI
 }
 
 // SearchMaterials is the resolver for the searchMaterials field.
-func (r *queryResolver) SearchMaterials(ctx context.Context, input gqlmodels.SearchMaterialInput) (*gqlmodels.SearchMaterialConnection, error) {
+func (r *queryResolver) SearchMaterials(ctx context.Context, input cgqlmodels.SearchMaterialInput) (*cgqlmodels.SearchMaterialConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		materialscontract.SearchMaterialsRequestDto,
-		materialscontract.SearchMaterialsResponseDto,
+		cmaterials.SearchMaterialsRequestDto,
+		cmaterials.SearchMaterialsResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		materialscontract.SearchMaterialsOperation,
+		cmaterials.SearchMaterialsOperation,
 		"/core/v1/materials/graphql/search",
 	)
 	if exception != nil {
@@ -172,20 +172,20 @@ func (r *queryResolver) SearchMaterials(ctx context.Context, input gqlmodels.Sea
 }
 
 // SearchBlockPacks is the resolver for the searchBlockPacks field.
-func (r *queryResolver) SearchBlockPacks(ctx context.Context, input gqlmodels.SearchBlockPackInput) (*gqlmodels.SearchBlockPackConnection, error) {
+func (r *queryResolver) SearchBlockPacks(ctx context.Context, input cgqlmodels.SearchBlockPackInput) (*cgqlmodels.SearchBlockPackConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		blockpackscontract.SearchBlockPacksRequestDto,
-		blockpackscontract.SearchBlockPacksResponseDto,
+		cblockpacks.SearchBlockPacksRequestDto,
+		cblockpacks.SearchBlockPacksResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		blockpackscontract.SearchBlockPacksOperation,
+		cblockpacks.SearchBlockPacksOperation,
 		"/core/v1/block-packs/graphql/search",
 	)
 	if exception != nil {
@@ -196,20 +196,20 @@ func (r *queryResolver) SearchBlockPacks(ctx context.Context, input gqlmodels.Se
 }
 
 // SearchBlocks is the resolver for the searchBlocks field.
-func (r *queryResolver) SearchBlocks(ctx context.Context, input gqlmodels.SearchBlockInput) (*gqlmodels.SearchBlockConnection, error) {
+func (r *queryResolver) SearchBlocks(ctx context.Context, input cgqlmodels.SearchBlockInput) (*cgqlmodels.SearchBlockConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		blockscontract.SearchBlocksRequestDto,
-		blockscontract.SearchBlocksResponseDto,
+		cblocks.SearchBlocksRequestDto,
+		cblocks.SearchBlocksResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		blockscontract.SearchBlocksOperation,
+		cblocks.SearchBlocksOperation,
 		"/core/v1/blocks/graphql/search",
 	)
 	if exception != nil {
@@ -220,20 +220,20 @@ func (r *queryResolver) SearchBlocks(ctx context.Context, input gqlmodels.Search
 }
 
 // SearchStations is the resolver for the searchStations field.
-func (r *queryResolver) SearchStations(ctx context.Context, input gqlmodels.SearchStationInput) (*gqlmodels.SearchStationConnection, error) {
+func (r *queryResolver) SearchStations(ctx context.Context, input cgqlmodels.SearchStationInput) (*cgqlmodels.SearchStationConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		stationscontract.SearchStationsRequestDto,
-		stationscontract.SearchStationsResponseDto,
+		cstations.SearchStationsRequestDto,
+		cstations.SearchStationsResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		stationscontract.SearchStationsOperation,
+		cstations.SearchStationsOperation,
 		"/core/v1/stations/graphql/search",
 	)
 	if exception != nil {
@@ -244,20 +244,20 @@ func (r *queryResolver) SearchStations(ctx context.Context, input gqlmodels.Sear
 }
 
 // SearchRoutines is the resolver for the searchRoutines field.
-func (r *queryResolver) SearchRoutines(ctx context.Context, input gqlmodels.SearchRoutineInput) (*gqlmodels.SearchRoutineConnection, error) {
+func (r *queryResolver) SearchRoutines(ctx context.Context, input cgqlmodels.SearchRoutineInput) (*cgqlmodels.SearchRoutineConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		routinescontract.SearchRoutinesRequestDto,
-		routinescontract.SearchRoutinesResponseDto,
+		croutines.SearchRoutinesRequestDto,
+		croutines.SearchRoutinesResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		routinescontract.SearchRoutinesOperation,
+		croutines.SearchRoutinesOperation,
 		"/core/v1/routines/graphql/search",
 	)
 	if exception != nil {
@@ -268,20 +268,20 @@ func (r *queryResolver) SearchRoutines(ctx context.Context, input gqlmodels.Sear
 }
 
 // SearchRoutineTags is the resolver for the searchRoutineTags field.
-func (r *queryResolver) SearchRoutineTags(ctx context.Context, input gqlmodels.SearchRoutineTagInput) (*gqlmodels.SearchRoutineTagConnection, error) {
+func (r *queryResolver) SearchRoutineTags(ctx context.Context, input cgqlmodels.SearchRoutineTagInput) (*cgqlmodels.SearchRoutineTagConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		routinetagscontract.SearchRoutineTagsRequestDto,
-		routinetagscontract.SearchRoutineTagsResponseDto,
+		croutinetags.SearchRoutineTagsRequestDto,
+		croutinetags.SearchRoutineTagsResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		routinetagscontract.SearchRoutineTagsOperation,
+		croutinetags.SearchRoutineTagsOperation,
 		"/core/v1/routine-tags/graphql/search",
 	)
 	if exception != nil {
@@ -292,20 +292,20 @@ func (r *queryResolver) SearchRoutineTags(ctx context.Context, input gqlmodels.S
 }
 
 // SearchRoutineTasks is the resolver for the searchRoutineTasks field.
-func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input gqlmodels.SearchRoutineTaskInput) (*gqlmodels.SearchRoutineTaskConnection, error) {
+func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input cgqlmodels.SearchRoutineTaskInput) (*cgqlmodels.SearchRoutineTaskConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		routinetaskscontract.SearchRoutineTasksRequestDto,
-		routinetaskscontract.SearchRoutineTasksResponseDto,
+		croutinetasks.SearchRoutineTasksRequestDto,
+		croutinetasks.SearchRoutineTasksResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		routinetaskscontract.SearchRoutineTasksOperation,
+		croutinetasks.SearchRoutineTasksOperation,
 		"/core/v1/routine-tasks/graphql/search",
 	)
 	if exception != nil {
@@ -316,20 +316,20 @@ func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input gqlmodels.
 }
 
 // SearchRoutineTaskRecords is the resolver for the searchRoutineTaskRecords field.
-func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input gqlmodels.SearchRoutineTaskRecordInput) (*gqlmodels.SearchRoutineTaskRecordConnection, error) {
+func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input cgqlmodels.SearchRoutineTaskRecordInput) (*cgqlmodels.SearchRoutineTaskRecordConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
 		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
-		routinetaskrecordscontract.SearchRoutineTaskRecordsRequestDto,
-		routinetaskrecordscontract.SearchRoutineTaskRecordsResponseDto,
+		croutinetaskrecords.SearchRoutineTaskRecordsRequestDto,
+		croutinetaskrecords.SearchRoutineTaskRecordsResponseDto,
 	](
 		ginContext,
 		r.coreAdapter,
 		&input,
-		routinetaskrecordscontract.SearchRoutineTaskRecordsOperation,
+		croutinetaskrecords.SearchRoutineTaskRecordsOperation,
 		"/core/v1/routine-task-records/graphql/search",
 	)
 	if exception != nil {
@@ -340,6 +340,6 @@ func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input gqlm
 }
 
 // Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+func (r *Resolver) Query() cgenerated.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }

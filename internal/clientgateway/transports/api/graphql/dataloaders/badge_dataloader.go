@@ -7,10 +7,10 @@ import (
 	"github.com/google/uuid"
 	gophersdataloader "github.com/graph-gophers/dataloader/v7"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/badges"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/badges"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
@@ -27,13 +27,13 @@ type BadgeLoaderKey struct {
 	Source   LoadBadgeSource `json:"source"`
 }
 
-type BadgeLoaderType = gophersdataloader.Loader[BadgeLoaderKey, *gqlmodels.PublicBadge]
-type BadgeBatchFunctionType = gophersdataloader.BatchFunc[BadgeLoaderKey, *gqlmodels.PublicBadge]
-type BadgeResultType = gophersdataloader.Result[*gqlmodels.PublicBadge]
+type BadgeLoaderType = gophersdataloader.Loader[BadgeLoaderKey, *cgqlmodels.PublicBadge]
+type BadgeBatchFunctionType = gophersdataloader.BatchFunc[BadgeLoaderKey, *cgqlmodels.PublicBadge]
+type BadgeResultType = gophersdataloader.Result[*cgqlmodels.PublicBadge]
 
 type BadgeDataloaderInterface interface {
 	GetLoader() *BadgeLoaderType
-	LoadByUserPublicId(ctx context.Context, publicId uuid.UUID) (*gqlmodels.PublicBadge, error)
+	LoadByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicBadge, error)
 }
 
 type BadgeDataloader struct {
@@ -47,7 +47,7 @@ func NewBadgeDataloader(coreAdapter *coreadapters.CoreAdapter) BadgeDataloaderIn
 	}
 	dataloader.loader = gophersdataloader.NewBatchedLoader(
 		dataloader.batchFunction(),
-		gophersdataloader.WithWait[BadgeLoaderKey, *gqlmodels.PublicBadge](loaderDelayOfBadge),
+		gophersdataloader.WithWait[BadgeLoaderKey, *cgqlmodels.PublicBadge](loaderDelayOfBadge),
 	)
 
 	return dataloader
@@ -67,7 +67,7 @@ func (d *BadgeDataloader) batchFunction() BadgeBatchFunctionType {
 
 		for index, key := range keys {
 			if key.Source != LoadBadgeSourceUserPublicId {
-				exception := exceptions.New(
+				exception := cexceptions.New(
 					"InvalidSource",
 					"GraphQL",
 					"LoadUserBadges",
@@ -100,15 +100,15 @@ func (d *BadgeDataloader) batchFunction() BadgeBatchFunctionType {
 			return results
 		}
 
-		requestDto := apicontract.LoadUserBadgesRequestDto(publicIds)
+		requestDto := capi.LoadUserBadgesRequestDto(publicIds)
 		response, exception := coreadapters.CallSecurly[
-			apicontract.LoadUserBadgesRequestDto,
-			apicontract.LoadUserBadgesResponseDto,
+			capi.LoadUserBadgesRequestDto,
+			capi.LoadUserBadgesResponseDto,
 		](
 			ginContext,
 			d.coreAdapter,
 			&requestDto,
-			apicontract.LoadUserBadgesOperation,
+			capi.LoadUserBadgesOperation,
 			"/core/v1/badges/graphql/load",
 		)
 		if exception != nil {
@@ -140,7 +140,7 @@ func (d *BadgeDataloader) batchFunction() BadgeBatchFunctionType {
 func (d *BadgeDataloader) LoadByUserPublicId(
 	ctx context.Context,
 	publicId uuid.UUID,
-) (*gqlmodels.PublicBadge, error) {
+) (*cgqlmodels.PublicBadge, error) {
 	future := d.loader.Load(ctx, BadgeLoaderKey{
 		PublicId: publicId,
 		Source:   LoadBadgeSourceUserPublicId,

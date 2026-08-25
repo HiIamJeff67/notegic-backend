@@ -4,16 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 
-	coreeventscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	notificationtypescontract "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	kafkatopics "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka/topics"
 )
 
 func TestCoreNotificationKafkaContract(t *testing.T) {
@@ -53,7 +55,7 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 		InitialRetryBackoff: 10 * time.Millisecond,
 		MaximumRetryBackoff: 25 * time.Millisecond,
 		MaximumPollRecords:  20,
-	}, coreeventscontract.CoreNotificationTopic.String())
+	}, coreevents.CoreNotificationTopic.String())
 	if err != nil {
 		t.Fatalf("create Kafka consumer: %v", err)
 	}
@@ -75,7 +77,7 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 		_ = consumer.Run(consumerContext, func(
 			_ context.Context,
 			_ platformkafka.ConsumerRecord,
-			event eventcontract.EventEnvelope[json.RawMessage],
+			event cevent.EventEnvelope[json.RawMessage],
 		) error {
 			if event.CorrelationId != correlationId {
 				return nil
@@ -85,13 +87,13 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 			defer mu.Unlock()
 			receivedEventCount++
 			switch event.EventType {
-			case coreeventscontract.EventType_NotificationRequested:
-				var data coreeventscontract.NotificationRequestedData
+			case coreevents.EventType_NotificationRequested:
+				var data coreevents.NotificationRequestedData
 				if err := json.Unmarshal(event.Data, &data); err != nil {
 					invalidContractErr = err
 					return nil
 				}
-				if data.RecipientUserPublicId != userPublicId || data.TemplateKey != notificationtypescontract.TemplateKey_News {
+				if data.RecipientUserPublicId != userPublicId || data.TemplateKey != cnotificationtypes.TemplateKey_News {
 					invalidContractErr = &notificationContractError{message: "notification request contract fields are invalid"}
 					return nil
 				}
@@ -104,11 +106,11 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 		})
 	}()
 
-	notificationPayload, err := json.Marshal(coreeventscontract.NotificationRequestedData{
+	notificationPayload, err := json.Marshal(coreevents.NotificationRequestedData{
 		RecipientUserPublicId: userPublicId,
-		Type:                  coreeventscontract.NotificationType_News,
-		Priority:              coreeventscontract.NotificationPriority_Normal,
-		TemplateKey:           notificationtypescontract.TemplateKey_News,
+		Type:                  coreevents.NotificationType_News,
+		Priority:              coreevents.NotificationPriority_Normal,
+		TemplateKey:           cnotificationtypes.TemplateKey_News,
 		TemplateVersion:       1,
 		Payload:               json.RawMessage(`{"title":"Release update","summary":"A new release is available.","body":"Read the release notes."}`),
 		DedupeKey:             "integration:" + userPublicId.String(),
@@ -116,7 +118,7 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal notification contract: %v", err)
 	}
-	publishNotificationContract(t, ctx, producer, coreeventscontract.CoreNotificationTopic.String(), correlationId, userPublicId, coreeventscontract.EventType_NotificationRequested, coreeventscontract.AggregateType_Notification, notificationPayload)
+	publishNotificationContract(t, ctx, producer, coreevents.CoreNotificationTopic.String(), correlationId, userPublicId, coreevents.EventType_NotificationRequested, coreevents.AggregateType_Notification, notificationPayload)
 
 	select {
 	case <-eventsReceived:
@@ -149,14 +151,14 @@ func publishNotificationContract(
 	topic string,
 	correlationId string,
 	aggregateId uuid.UUID,
-	eventType eventcontract.EventType,
-	aggregateType eventcontract.AggregateType,
+	eventType cevent.EventType,
+	aggregateType cevent.AggregateType,
 	data []byte,
 ) {
 	t.Helper()
 
-	payload, err := json.Marshal(eventcontract.EventEnvelope[json.RawMessage]{
-		SchemaVersion: eventcontract.Version,
+	payload, err := json.Marshal(cevent.EventEnvelope[json.RawMessage]{
+		SchemaVersion: cevent.Version,
 		EventId:       uuid.New(),
 		EventType:     eventType,
 		AggregateType: aggregateType,
@@ -172,4 +174,33 @@ func publishNotificationContract(
 	if err := producer.Produce(ctx, topic, aggregateId.String(), payload); err != nil {
 		t.Fatalf("publish notification event: %v", err)
 	}
+}
+
+func configuredKafkaBrokers(t *testing.T) []string {
+	t.Helper()
+	values := strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+	brokers := make([]string, 0, len(values))
+	for _, value := range values {
+		if value = strings.TrimSpace(value); value != "" {
+			brokers = append(brokers, value)
+		}
+	}
+	if len(brokers) == 0 {
+		t.Skip("KAFKA_BROKERS is not set; start the integration Compose stack first")
+	}
+
+	provisioner, err := platformkafka.NewTopicProvisioner(platformkafka.ClientConfig{
+		ConnectionConfig: platformkafka.ConnectionConfig{Brokers: brokers, DialTimeout: 10 * time.Second},
+		ClientId:         "notegic-test-kafka-topic-bootstrap",
+	})
+	if err != nil {
+		t.Fatalf("create Kafka topic provisioner: %v", err)
+	}
+	t.Cleanup(provisioner.Close)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	t.Cleanup(cancel)
+	if err := provisioner.EnsureTopics(ctx, kafkatopics.All()); err != nil {
+		t.Fatalf("ensure Kafka topics: %v", err)
+	}
+	return brokers
 }

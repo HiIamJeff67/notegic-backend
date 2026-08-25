@@ -12,8 +12,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 
-	blockpackscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 )
@@ -36,21 +36,21 @@ func NewDocumentInitializationClient(
 
 func (c *DocumentInitializationClient) InitializeDocuments(
 	ctx context.Context,
-	requestDtos []blockpackscontract.InitializeBlockPackYjsDocumentReqDto,
-) ([]blockpackscontract.InitializeBlockPackYjsDocumentResDto, error) {
+	requestDtos []cblockpacks.InitializeBlockPackYjsDocumentReqDto,
+) ([]cblockpacks.InitializeBlockPackYjsDocumentResDto, error) {
 	if len(requestDtos) == 0 {
-		return []blockpackscontract.InitializeBlockPackYjsDocumentResDto{}, nil
+		return []cblockpacks.InitializeBlockPackYjsDocumentResDto{}, nil
 	}
 
 	payload, err := json.Marshal(struct {
-		Documents []blockpackscontract.InitializeBlockPackYjsDocumentReqDto `json:"documents"`
+		Documents []cblockpacks.InitializeBlockPackYjsDocumentReqDto `json:"documents"`
 	}{
 		Documents: requestDtos,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("encode Yjs document initialization request: %w", err)
 	}
-	if len(payload) > yjsworkercontract.YjsMaintenanceMaximumPayloadBytes {
+	if len(payload) > cyjsworker.YjsMaintenanceMaximumPayloadBytes {
 		return nil, errors.New("Yjs document initialization request exceeds the worker payload limit")
 	}
 
@@ -78,17 +78,17 @@ func (c *DocumentInitializationClient) InitializeDocuments(
 
 	responsePayload, err := io.ReadAll(io.LimitReader(
 		response.Body,
-		int64(yjsworkercontract.YjsMaintenanceMaximumPayloadBytes)+1,
+		int64(cyjsworker.YjsMaintenanceMaximumPayloadBytes)+1,
 	))
 	if err != nil {
 		return nil, fmt.Errorf("read Yjs document initialization response: %w", err)
 	}
-	if len(responsePayload) > yjsworkercontract.YjsMaintenanceMaximumPayloadBytes {
+	if len(responsePayload) > cyjsworker.YjsMaintenanceMaximumPayloadBytes {
 		return nil, errors.New("Yjs document initialization response exceeds the worker payload limit")
 	}
 
 	var responseDto struct {
-		Documents []blockpackscontract.InitializeBlockPackYjsDocumentResDto `json:"documents"`
+		Documents []cblockpacks.InitializeBlockPackYjsDocumentResDto `json:"documents"`
 	}
 	if err := json.Unmarshal(responsePayload, &responseDto); err != nil {
 		return nil, fmt.Errorf("decode Yjs document initialization response: %w", err)

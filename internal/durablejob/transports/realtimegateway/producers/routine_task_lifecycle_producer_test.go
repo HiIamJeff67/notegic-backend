@@ -8,15 +8,15 @@ import (
 
 	"github.com/google/uuid"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestRoutineTaskLifecycleProducerReturnsErrorWhenKafkaIsUnavailable(t *testing.T) {
 	producer := NewRoutineTaskLifecycleProducer(nil)
 	err := producer.ProduceRoutineTaskRunning(
 		context.Background(),
-		routinetasktypes.RoutineTaskAssignment{
+		croutinetasktypes.RoutineTaskAssignment{
 			RoutineTaskId:       uuid.New(),
 			RoutineTaskRecordId: uuid.New(),
 			RoutineId:           uuid.New(),

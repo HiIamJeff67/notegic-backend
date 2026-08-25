@@ -10,26 +10,25 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
-	realtimegatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
-	enumscontract "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
+	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RealtimeServiceInterface interface {
-	CreateMyRealtimeConnectionTicket(ctx context.Context, requestDto *apicontract.CreateMyRealtimeConnectionTicketRequestDto) (*apicontract.CreateMyRealtimeConnectionTicketResponseDto, *exceptions.Exception)
-	CreateMyBlockPackChannelTicket(ctx context.Context, requestDto *apicontract.CreateMyBlockPackChannelTicketRequestDto) (*apicontract.CreateMyBlockPackChannelTicketResponseDto, *exceptions.Exception)
+	CreateMyRealtimeConnectionTicket(ctx context.Context, requestDto *capi.CreateMyRealtimeConnectionTicketRequestDto) (*capi.CreateMyRealtimeConnectionTicketResponseDto, *cexceptions.Exception)
+	CreateMyBlockPackChannelTicket(ctx context.Context, requestDto *capi.CreateMyBlockPackChannelTicketRequestDto) (*capi.CreateMyBlockPackChannelTicketResponseDto, *cexceptions.Exception)
 }
 
 type RealtimeService struct {
@@ -52,7 +51,7 @@ func NewRealtimeService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, *exceptions.Exception) {
+func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, *cexceptions.Exception) {
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
 		return uuid.Nil, exception
@@ -64,7 +63,7 @@ func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, 
 		Where("id = ?", actorUserId).
 		First(&user)
 	if result.Error != nil {
-		return uuid.Nil, exceptions.New(
+		return uuid.Nil, cexceptions.New(
 			"NotFound",
 			"User",
 			"ResolveActor",
@@ -80,10 +79,10 @@ func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, 
 
 func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 	ctx context.Context,
-	requestDto *apicontract.CreateMyRealtimeConnectionTicketRequestDto,
-) (*apicontract.CreateMyRealtimeConnectionTicketResponseDto, *exceptions.Exception) {
+	requestDto *capi.CreateMyRealtimeConnectionTicketRequestDto,
+) (*capi.CreateMyRealtimeConnectionTicketResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"Realtime",
 			"CreateMyRealtimeConnectionTicket",
@@ -104,7 +103,7 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 	connectionClaims.Subject = userPublicId.String()
 	connectionTicket, expiresAt, err := sharedtokens.GenerateRealtimeConnectionTicket(connectionClaims)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GenerationFailed",
 			"Realtime",
 			"CreateMyRealtimeConnectionTicket",
@@ -114,8 +113,8 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.CreateMyRealtimeConnectionTicketResponseDto{
-		RealtimeEndpoint:        "/" + realtimegatewaycontract.RealtimeDevelopmentBaseURL,
+	return &capi.CreateMyRealtimeConnectionTicketResponseDto{
+		RealtimeEndpoint:        "/" + crealtimegateway.RealtimeDevelopmentBaseURL,
 		RealtimeProtocolVersion: constants.RealtimeProtocolVersion,
 		ConnectionTicket:        *connectionTicket,
 		ExpiresAt:               expiresAt,
@@ -124,10 +123,10 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 
 func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 	ctx context.Context,
-	requestDto *apicontract.CreateMyBlockPackChannelTicketRequestDto,
-) (*apicontract.CreateMyBlockPackChannelTicketResponseDto, *exceptions.Exception) {
+	requestDto *capi.CreateMyBlockPackChannelTicketRequestDto,
+) (*capi.CreateMyBlockPackChannelTicketResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidRequest",
 			"BlockPack",
 			"CreateMyBlockPackChannelTicket",
@@ -138,10 +137,10 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 
 	db := s.db.WithContext(ctx)
 
-	permission := enumscontract.ChannelPermission(requestDto.Body.Permission)
+	permission := enums.ChannelPermission(requestDto.Body.Permission)
 	sharedAllowedPermissions := permission.AllowedAccessControlPermissions()
 	if len(sharedAllowedPermissions) == 0 {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidChannelPermission",
 			"BlockPack",
 			"CreateMyBlockPackChannelTicket",
@@ -181,7 +180,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		Where("deleted_at IS NULL").
 		First(&yjsDocument)
 	if result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"NotFound",
 			"BlockPackYjsDocument",
 			"CreateMyBlockPackChannelTicket",
@@ -210,7 +209,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		Where(`"RootShelfTable".deleted_at IS NULL`).
 		Scan(&roomPolicy)
 	if result.Error != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"Unavailable",
 			"BlockPack",
 			"CreateMyBlockPackChannelTicket",
@@ -219,7 +218,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		).WithOrigin(result.Error)
 	}
 	if result.RowsAffected == 0 || roomPolicy.MaximumSubscribers <= 0 || roomPolicy.MaximumBlockCount <= 0 {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"Unavailable",
 			"BlockPack",
 			"CreateMyBlockPackChannelTicket",
@@ -235,17 +234,17 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		ChannelId:                        blockPack.Id.String(),
 		Permission:                       string(permission),
 		RealtimeProtocolVersion:          constants.RealtimeProtocolVersion,
-		SchemaVersion:                    yjsworkercontract.YjsBlockPackSchemaVersion,
-		RoomAdmissionPolicyVersion:       realtimegatewaycontract.BlockPackRoomAdmissionPolicyVersion,
-		RoomAdmissionEnforcementStrategy: string(realtimegatewaycontract.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
+		SchemaVersion:                    cyjsworker.YjsBlockPackSchemaVersion,
+		RoomAdmissionPolicyVersion:       crealtimegateway.BlockPackRoomAdmissionPolicyVersion,
+		RoomAdmissionEnforcementStrategy: string(crealtimegateway.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
 		MaximumSubscribers:               roomPolicy.MaximumSubscribers,
-		DocumentQuotaPolicyVersion:       yjsworkercontract.BlockPackDocumentQuotaPolicyVersion,
+		DocumentQuotaPolicyVersion:       cyjsworker.BlockPackDocumentQuotaPolicyVersion,
 		MaximumBlockCount:                roomPolicy.MaximumBlockCount,
 	}
 	channelClaims.Subject = userPublicId.String()
 	channelTicket, expiresAt, err := sharedtokens.GenerateRealtimeBlockPackTicket(channelClaims)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"GenerationFailed",
 			"BlockPack",
 			"CreateMyBlockPackChannelTicket",
@@ -255,18 +254,18 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		).WithOrigin(err)
 	}
 
-	return &apicontract.CreateMyBlockPackChannelTicketResponseDto{
+	return &capi.CreateMyBlockPackChannelTicketResponseDto{
 		ChannelTicket:              *channelTicket,
 		ExpiresAt:                  expiresAt,
 		ChannelType:                "BlockPack",
 		ChannelId:                  blockPack.Id,
 		Permission:                 string(permission),
-		RoomName:                   fmt.Sprintf("%s:%s", yjsworkercontract.YjsBlockPackRoomPrefix, blockPack.Id),
-		FragmentName:               yjsworkercontract.YjsBlockPackFragmentName,
-		SchemaId:                   yjsworkercontract.YjsBlockPackSchemaId,
-		SchemaVersion:              yjsworkercontract.YjsBlockPackSchemaVersion,
+		RoomName:                   fmt.Sprintf("%s:%s", cyjsworker.YjsBlockPackRoomPrefix, blockPack.Id),
+		FragmentName:               cyjsworker.YjsBlockPackFragmentName,
+		SchemaId:                   cyjsworker.YjsBlockPackSchemaId,
+		SchemaVersion:              cyjsworker.YjsBlockPackSchemaVersion,
 		RealtimeProtocolVersion:    constants.RealtimeProtocolVersion,
-		DocumentQuotaPolicyVersion: yjsworkercontract.BlockPackDocumentQuotaPolicyVersion,
+		DocumentQuotaPolicyVersion: cyjsworker.BlockPackDocumentQuotaPolicyVersion,
 		MaximumBlockCount:          roomPolicy.MaximumBlockCount,
 		LastUpdateSequence:         yjsDocument.LastUpdateSequence,
 		CompactedUntilSequence:     yjsDocument.CompactedUntilSequence,

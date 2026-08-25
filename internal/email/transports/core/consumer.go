@@ -9,10 +9,10 @@ import (
 	validatorpkg "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
-	emaileventscontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
@@ -38,7 +38,7 @@ func NewEmailRequestConsumer(
 func (c *EmailRequestConsumer) Start(ctx context.Context) func() {
 	consumer, err := platformkafka.NewConsumer(
 		c.kafkaConfig,
-		emaileventscontract.CoreEmailRequestTopic.String(),
+		cemailevents.CoreEmailRequestTopic.String(),
 	)
 	if err != nil {
 		if logs.NotegicLogger != nil {
@@ -63,10 +63,10 @@ func (c *EmailRequestConsumer) Start(ctx context.Context) func() {
 func (c *EmailRequestConsumer) consume(
 	ctx context.Context,
 	_ platformkafka.ConsumerRecord,
-	event eventcontract.EventEnvelope[json.RawMessage],
+	event cevent.EventEnvelope[json.RawMessage],
 ) error {
-	if event.EventType != emaileventscontract.EventType_EmailRequested ||
-		event.AggregateType != emaileventscontract.AggregateType_EmailRequest {
+	if event.EventType != cemailevents.EventType_EmailRequested ||
+		event.AggregateType != cemailevents.AggregateType_EmailRequest {
 		return nil
 	}
 
@@ -89,8 +89,8 @@ func (c *EmailRequestConsumer) consume(
 
 	var err error
 	switch metadata.Operation {
-	case emailcontract.SendWelcomeEmailOperation:
-		var request emaileventscontract.SendWelcomeEmailRequestDto
+	case cemail.SendWelcomeEmailOperation:
+		var request cemailevents.SendWelcomeEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
 			return invalidEmailRequest(err.Error())
 		}
@@ -101,8 +101,8 @@ func (c *EmailRequestConsumer) consume(
 			return invalidEmailRequest(err.Error())
 		}
 		err = c.sender.SendWelcomeEmail(ctx, request)
-	case emailcontract.SendValidationEmailOperation:
-		var request emaileventscontract.SendValidationEmailRequestDto
+	case cemail.SendValidationEmailOperation:
+		var request cemailevents.SendValidationEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
 			return invalidEmailRequest(err.Error())
 		}
@@ -113,8 +113,8 @@ func (c *EmailRequestConsumer) consume(
 			return invalidEmailRequest(err.Error())
 		}
 		err = c.sender.SendValidationEmail(ctx, request)
-	case emailcontract.SendSecurityAlertEmailOperation:
-		var request emaileventscontract.SendSecurityAlertEmailRequestDto
+	case cemail.SendSecurityAlertEmailOperation:
+		var request cemailevents.SendSecurityAlertEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
 			return invalidEmailRequest(err.Error())
 		}
@@ -130,7 +130,7 @@ func (c *EmailRequestConsumer) consume(
 	}
 	if err != nil {
 		classification := platformkafka.ErrorClassification_Transient
-		var emailException *exceptions.Exception
+		var emailException *cexceptions.Exception
 		if errors.As(err, &emailException) && !emailException.Retryable {
 			classification = platformkafka.ErrorClassification_PoisonMessage
 		}

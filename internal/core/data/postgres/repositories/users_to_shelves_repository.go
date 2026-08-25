@@ -4,25 +4,25 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type UsersToShelvesRepositoryInterface interface {
-	GetOne(rootShelfId uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *exceptions.Exception)
-	GetMany(rootShelfId uuid.UUID, userIds []uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *exceptions.Exception)
-	GetManyByRootShelfIdsAndUserId(rootShelfIds []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *exceptions.Exception)
-	CreateOne(rootShelfId uuid.UUID, userId uuid.UUID, permission enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *exceptions.Exception)
-	UpsertMany(rootShelfId uuid.UUID, userIds []uuid.UUID, permissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *exceptions.Exception)
-	UpdateOne(rootShelfId uuid.UUID, userId uuid.UUID, permission enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *exceptions.Exception)
-	DeleteOne(rootShelfId uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	DeleteMany(rootShelfId uuid.UUID, userIds []uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	DeleteManyByRootShelfIdsAndUserId(rootShelfIds []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	GetOne(rootShelfId uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *cexceptions.Exception)
+	GetMany(rootShelfId uuid.UUID, userIds []uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *cexceptions.Exception)
+	GetManyByRootShelfIdsAndUserId(rootShelfIds []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *cexceptions.Exception)
+	CreateOne(rootShelfId uuid.UUID, userId uuid.UUID, permission enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *cexceptions.Exception)
+	UpsertMany(rootShelfId uuid.UUID, userIds []uuid.UUID, permissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.UsersToShelves, *cexceptions.Exception)
+	UpdateOne(rootShelfId uuid.UUID, userId uuid.UUID, permission enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.UsersToShelves, *cexceptions.Exception)
+	DeleteOne(rootShelfId uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	DeleteMany(rootShelfId uuid.UUID, userIds []uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	DeleteManyByRootShelfIdsAndUserId(rootShelfIds []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 }
 
 type UsersToShelvesRepository struct{}
@@ -35,7 +35,7 @@ func (r *UsersToShelvesRepository) GetOne(
 	rootShelfId uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) (*schemas.UsersToShelves, *exceptions.Exception) {
+) (*schemas.UsersToShelves, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var relation schemas.UsersToShelves
@@ -56,7 +56,7 @@ func (r *UsersToShelvesRepository) GetMany(
 	rootShelfId uuid.UUID,
 	userIds []uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.UsersToShelves, *exceptions.Exception) {
+) ([]schemas.UsersToShelves, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var relations []schemas.UsersToShelves
@@ -76,7 +76,7 @@ func (r *UsersToShelvesRepository) GetManyByRootShelfIdsAndUserId(
 	rootShelfIds []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) ([]schemas.UsersToShelves, *exceptions.Exception) {
+) ([]schemas.UsersToShelves, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var relations []schemas.UsersToShelves
@@ -97,7 +97,7 @@ func (r *UsersToShelvesRepository) CreateOne(
 	userId uuid.UUID,
 	permission enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.UsersToShelves, *exceptions.Exception) {
+) (*schemas.UsersToShelves, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	relation := schemas.UsersToShelves{
@@ -125,7 +125,7 @@ func (r *UsersToShelvesRepository) UpsertMany(
 	userIds []uuid.UUID,
 	permissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.UsersToShelves, *exceptions.Exception) {
+) ([]schemas.UsersToShelves, *cexceptions.Exception) {
 	if len(userIds) != len(permissions) {
 		return nil, apiexceptions.NewShelfException().InvalidInput("userIds and permissions must have equal lengths")
 	}
@@ -169,7 +169,7 @@ func (r *UsersToShelvesRepository) UpdateOne(
 	userId uuid.UUID,
 	permission enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.UsersToShelves, *exceptions.Exception) {
+) (*schemas.UsersToShelves, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	relation := schemas.UsersToShelves{
@@ -199,7 +199,7 @@ func (r *UsersToShelvesRepository) DeleteOne(
 	rootShelfId uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	result := parsedOptions.DB.
 		Where("root_shelf_id = ? AND user_id = ?", rootShelfId, userId).
@@ -218,7 +218,7 @@ func (r *UsersToShelvesRepository) DeleteMany(
 	rootShelfId uuid.UUID,
 	userIds []uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	result := parsedOptions.DB.
@@ -238,7 +238,7 @@ func (r *UsersToShelvesRepository) DeleteManyByRootShelfIdsAndUserId(
 	rootShelfIds []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	result := parsedOptions.DB.

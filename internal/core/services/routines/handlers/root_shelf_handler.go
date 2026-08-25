@@ -2,32 +2,32 @@ package handlers
 
 import (
 	"context"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	coreenums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RootShelfHandlerInterface interface {
-	HandleCreateRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleUpdateRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
-	HandleResetRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []coreenums.AccessControlPermission) ([]bool, *exceptions.Exception)
+	HandleCreateRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleUpdateRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleResetRootShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 }
 
 type RootShelfHandler struct {
@@ -69,14 +69,14 @@ func (s *RootShelfHandler) HandleCreateRootShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.CreateRootShelfRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.CreateRootShelfRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
@@ -84,7 +84,7 @@ func (s *RootShelfHandler) HandleCreateRootShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.CreateRootShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.CreateRootShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -152,14 +152,14 @@ func (s *RootShelfHandler) HandleUpdateRootShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
-	candidatePayloads := make([]routinetasktypes.UpdateRootShelfRoutineTaskPayload, 0, len(tasks))
-	candidatePatterns := make([]routinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePayloads := make([]croutinetasktypes.UpdateRootShelfRoutineTaskPayload, 0, len(tasks))
+	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
@@ -167,7 +167,7 @@ func (s *RootShelfHandler) HandleUpdateRootShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.UpdateRootShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.UpdateRootShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -243,8 +243,8 @@ func (s *RootShelfHandler) HandleResetRootShelf(
 	db *gorm.DB,
 	tasks []schemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []coreenums.AccessControlPermission,
-) ([]bool, *exceptions.Exception) {
+	allowedPermissions []enums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	rootShelfIds := make([]uuid.UUID, 0, len(tasks))
 	taskIndexesByRootShelfId := make(map[uuid.UUID][]int, len(tasks))
@@ -256,7 +256,7 @@ func (s *RootShelfHandler) HandleResetRootShelf(
 			continue
 		}
 
-		payload, exception := parsers.DecodePayload[routinetasktypes.ResetRootShelfRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.ResetRootShelfRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
@@ -278,7 +278,7 @@ func (s *RootShelfHandler) HandleResetRootShelf(
 		Select("id, root_shelf_id").
 		Where("root_shelf_id IN ? AND deleted_at IS NULL", rootShelfIds).
 		Find(&rows).Error; err != nil {
-		return successes, exceptions.New(
+		return successes, cexceptions.New(
 			"QueryFailed",
 			"RootShelf",
 			"Reset",

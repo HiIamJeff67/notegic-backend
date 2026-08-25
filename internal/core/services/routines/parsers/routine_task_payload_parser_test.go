@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/datatypes"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/core/validations"
 )
 

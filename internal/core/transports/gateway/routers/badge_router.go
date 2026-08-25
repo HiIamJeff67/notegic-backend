@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/badges"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/badges"
 
 	otherservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/other"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -26,7 +26,7 @@ func configureBadgeRoutes(
 		badgeRoutes.POST(
 			"/graphql/load",
 			middlewares.DelegationAuthenticatedMiddleware(
-				apicontract.LoadUserBadgesOperation,
+				capi.LoadUserBadgesOperation,
 			),
 			authMiddleware,
 			endpoint.LoadUserBadges,

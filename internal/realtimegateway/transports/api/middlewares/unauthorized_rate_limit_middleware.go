@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -20,7 +20,7 @@ import (
 func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if rateLimiter == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"RateLimiterRequired",
 				"RealtimeGateway",
 				"RateLimit",
@@ -36,7 +36,7 @@ func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) g
 		if !allowed {
 			setRateLimitHeaders(ctx, remaining, rateLimiter)
 			logs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for fingerprint: %s", fingerprint))
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exceptions.New(
+			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"PermissionDeniedDueToTooManyRequests",
 				"RealtimeGateway",
 				"Authorize",

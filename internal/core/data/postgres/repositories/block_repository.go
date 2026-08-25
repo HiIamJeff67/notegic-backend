@@ -2,38 +2,38 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm/clause"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	array "github.com/HiIamJeff67/notegic-backend/shared/lib/array"
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BlockRepositoryInterface interface {
 	HasPermission(id uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
 	HavePermissions(ids []uuid.UUID, userId uuid.UUID, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) bool
-	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Block, *exceptions.Exception)
-	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Block, *exceptions.Exception)
-	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, opts ...options.RepositoryOptions) (*schemas.Block, *exceptions.Exception)
+	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) (*schemas.Block, *cexceptions.Exception)
+	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]schemas.Block, *cexceptions.Exception)
+	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.BlockRelation, opts ...options.RepositoryOptions) (*schemas.Block, *cexceptions.Exception)
 
 	/* ============================== System Only Method ============================== */
 
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPermissionInput, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Block, *exceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateBlockPackContentInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateBlockInput, opts ...options.RepositoryOptions) ([]bool, *exceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPermissionInput, preloads []schemas.BlockRelation, allowedPermissions []enums.AccessControlPermission, opts ...options.RepositoryOptions) ([]bool, []schemas.Block, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateBlockPackContentInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateBlockInput, opts ...options.RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type BlockRepository struct {
@@ -103,7 +103,7 @@ func (r *BlockRepository) CheckPermissionAndGetOneById(
 	preloads []schemas.BlockRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) (*schemas.Block, *exceptions.Exception) {
+) (*schemas.Block, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if parsedOptions.DB == nil {
 		parsedOptions.DB = data.DB
@@ -123,7 +123,7 @@ func (r *BlockRepository) CheckPermissionAndGetOneById(
 		Scopes(r.blockScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&block)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockException().NotFound().WithOrigin(result.Error)},
 		{First: block.Id == uuid.Nil, Second: apiexceptions.NewBlockException().NotFound()},
 	}); exception != nil {
@@ -139,7 +139,7 @@ func (r *BlockRepository) CheckPermissionsAndGetManyByIds(
 	preloads []schemas.BlockRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]schemas.Block, *exceptions.Exception) {
+) ([]schemas.Block, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 	if parsedOptions.DB == nil {
 		parsedOptions.DB = data.DB
@@ -152,7 +152,7 @@ func (r *BlockRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(r.blockScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&blocks)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewBlockException().NotFound().WithOrigin(result.Error)},
 		{First: len(blocks) == 0, Second: apiexceptions.NewBlockException().NotFound()},
 	}); exception != nil {
@@ -167,7 +167,7 @@ func (r *BlockRepository) GetOneById(
 	userId uuid.UUID,
 	preloads []schemas.BlockRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.Block, *exceptions.Exception) {
+) (*schemas.Block, *cexceptions.Exception) {
 	return r.CheckPermissionAndGetOneById(
 		id,
 		userId,
@@ -184,7 +184,7 @@ func (r *BlockRepository) BulkCheckPermissionsAndGetManyByIds(
 	preloads []schemas.BlockRelation,
 	allowedPermissions []enums.AccessControlPermission,
 	opts ...options.RepositoryOptions,
-) ([]bool, []schemas.Block, *exceptions.Exception) {
+) ([]bool, []schemas.Block, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, []schemas.Block{}, nil
 	}
@@ -265,7 +265,7 @@ func (r *BlockRepository) BulkCheckPermissionsAndGetManyByIds(
 func (r *BlockRepository) BulkCreateMany(
 	bulkInputs []inputs.BulkCreateBlockPackContentInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewBlockException().NoChanges()
 	}
@@ -359,7 +359,7 @@ func (r *BlockRepository) BulkCreateMany(
 func (r *BlockRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateBlockInput,
 	opts ...options.RepositoryOptions,
-) ([]bool, *exceptions.Exception) {
+) ([]bool, *cexceptions.Exception) {
 	if len(bulkInputs) == 0 {
 		return []bool{}, apiexceptions.NewBlockException().NoChanges()
 	}

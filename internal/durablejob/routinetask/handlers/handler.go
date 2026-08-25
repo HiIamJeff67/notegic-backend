@@ -10,8 +10,8 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	routinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/internal/durablejob/exceptions"
 )
@@ -22,15 +22,15 @@ type PurposeHandler struct {
 
 type PurposeHandlerFunc func(
 	context.Context,
-	routinetasktypes.RoutineTaskAssignment,
-) (*routinetasktypes.PreparedRoutineTask, error)
+	croutinetasktypes.RoutineTaskAssignment,
+) (*croutinetasktypes.PreparedRoutineTask, error)
 
 func NewPurposeHandler(validator *validator.Validate) PurposeHandler {
 	return PurposeHandler{
 		HandlerFunc: func(
 			ctx context.Context,
-			assignment routinetasktypes.RoutineTaskAssignment,
-		) (*routinetasktypes.PreparedRoutineTask, error) {
+			assignment croutinetasktypes.RoutineTaskAssignment,
+		) (*croutinetasktypes.PreparedRoutineTask, error) {
 			return prepareAssignment(ctx, validator, assignment)
 		},
 	}
@@ -39,8 +39,8 @@ func NewPurposeHandler(validator *validator.Validate) PurposeHandler {
 func prepareAssignment(
 	_ context.Context,
 	validator *validator.Validate,
-	assignment routinetasktypes.RoutineTaskAssignment,
-) (*routinetasktypes.PreparedRoutineTask, error) {
+	assignment croutinetasktypes.RoutineTaskAssignment,
+) (*croutinetasktypes.PreparedRoutineTask, error) {
 	if assignment.RoutineTaskId == uuid.Nil || assignment.RoutineTaskRecordId == uuid.Nil ||
 		assignment.RoutineId == uuid.Nil || assignment.ActorUserId == uuid.Nil || assignment.ActorUserPublicId == uuid.Nil ||
 		assignment.Purpose == "" || len(assignment.Payload) == 0 {
@@ -52,33 +52,33 @@ func prepareAssignment(
 	var payload any
 	switch assignment.Purpose {
 	case enums.RoutineTaskPurpose_CreateRootShelf:
-		payload = &routinetasktypes.CreateRootShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.CreateRootShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_UpdateRootShelf:
-		payload = &routinetasktypes.UpdateRootShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.UpdateRootShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_ResetRootShelf:
-		payload = &routinetasktypes.ResetRootShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.ResetRootShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_CreateSubShelf:
-		payload = &routinetasktypes.CreateSubShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.CreateSubShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_UpdateSubShelf:
-		payload = &routinetasktypes.UpdateSubShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.UpdateSubShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_ResetSubShelf:
-		payload = &routinetasktypes.ResetSubShelfRoutineTaskPayload{}
+		payload = &croutinetasktypes.ResetSubShelfRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_CreateBlockPack:
-		payload = &routinetasktypes.CreateBlockPackRoutineTaskPayload{}
+		payload = &croutinetasktypes.CreateBlockPackRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_UpdateBlockPack:
-		payload = &routinetasktypes.UpdateBlockPackRoutineTaskPayload{}
+		payload = &croutinetasktypes.UpdateBlockPackRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_ResetBlockPack:
-		payload = &routinetasktypes.ResetBlockPackRoutineTaskPayload{}
+		payload = &croutinetasktypes.ResetBlockPackRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_AppendBlock:
-		payload = &routinetasktypes.AppendBlockRoutineTaskPayload{}
+		payload = &croutinetasktypes.AppendBlockRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_UpdateBlock:
-		payload = &routinetasktypes.UpdateBlockRoutineTaskPayload{}
+		payload = &croutinetasktypes.UpdateBlockRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_ResetBlock:
-		payload = &routinetasktypes.ResetBlockRoutineTaskPayload{}
+		payload = &croutinetasktypes.ResetBlockRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_CreateRoutine:
-		payload = &routinetasktypes.CreateRoutineRoutineTaskPayload{}
+		payload = &croutinetasktypes.CreateRoutineRoutineTaskPayload{}
 	case enums.RoutineTaskPurpose_UpdateRoutine:
-		payload = &routinetasktypes.UpdateRoutineRoutineTaskPayload{}
+		payload = &croutinetasktypes.UpdateRoutineRoutineTaskPayload{}
 	default:
 		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(
 			fmt.Errorf("unsupported routine task purpose: %s", assignment.Purpose),
@@ -108,7 +108,7 @@ func prepareAssignment(
 		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
 	}
 
-	return &routinetasktypes.PreparedRoutineTask{
+	return &croutinetasktypes.PreparedRoutineTask{
 		RoutineTaskId:       assignment.RoutineTaskId,
 		RoutineTaskRecordId: assignment.RoutineTaskRecordId,
 		RoutineId:           assignment.RoutineId,

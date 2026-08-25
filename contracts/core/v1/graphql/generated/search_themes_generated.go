@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -29,7 +29,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _SearchThemeConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeConnection_searchEdges(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -55,7 +55,7 @@ func (ec *executionContext) _SearchThemeConnection_searchEdges(ctx context.Conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*gqlmodels.SearchThemeEdge)
+	res := resTmp.([]*cgqlmodels.SearchThemeEdge)
 	fc.Result = res
 	return ec.marshalNSearchThemeEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeEdgeᚄ(ctx, field.Selections, res)
 }
@@ -79,7 +79,7 @@ func (ec *executionContext) fieldContext_SearchThemeConnection_searchEdges(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchThemeConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeConnection_searchPageInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -105,7 +105,7 @@ func (ec *executionContext) _SearchThemeConnection_searchPageInfo(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.SearchPageInfo)
+	res := resTmp.(*cgqlmodels.SearchPageInfo)
 	fc.Result = res
 	return ec.marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx, field.Selections, res)
 }
@@ -133,7 +133,7 @@ func (ec *executionContext) fieldContext_SearchThemeConnection_searchPageInfo(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchThemeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -177,7 +177,7 @@ func (ec *executionContext) fieldContext_SearchThemeConnection_totalCount(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchThemeConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeConnection_searchTime(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -221,7 +221,7 @@ func (ec *executionContext) fieldContext_SearchThemeConnection_searchTime(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchThemeEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeEdge_encodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -265,7 +265,7 @@ func (ec *executionContext) fieldContext_SearchThemeEdge_encodedSearchCursor(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchThemeEdge_node(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchThemeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchThemeEdge_node(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchThemeEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchThemeEdge_node(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -291,7 +291,7 @@ func (ec *executionContext) _SearchThemeEdge_node(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.PublicTheme)
+	res := resTmp.(*cgqlmodels.PublicTheme)
 	fc.Result = res
 	return ec.marshalNPublicTheme2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicTheme(ctx, field.Selections, res)
 }
@@ -335,8 +335,8 @@ func (ec *executionContext) fieldContext_SearchThemeEdge_node(_ context.Context,
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputSearchThemeCursorFields(ctx context.Context, obj any) (gqlmodels.SearchThemeCursorFields, error) {
-	var it gqlmodels.SearchThemeCursorFields
+func (ec *executionContext) unmarshalInputSearchThemeCursorFields(ctx context.Context, obj any) (cgqlmodels.SearchThemeCursorFields, error) {
+	var it cgqlmodels.SearchThemeCursorFields
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -362,8 +362,8 @@ func (ec *executionContext) unmarshalInputSearchThemeCursorFields(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchThemeFilters(ctx context.Context, obj any) (gqlmodels.SearchThemeFilters, error) {
-	var it gqlmodels.SearchThemeFilters
+func (ec *executionContext) unmarshalInputSearchThemeFilters(ctx context.Context, obj any) (cgqlmodels.SearchThemeFilters, error) {
+	var it cgqlmodels.SearchThemeFilters
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -396,8 +396,8 @@ func (ec *executionContext) unmarshalInputSearchThemeFilters(ctx context.Context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchThemeInput(ctx context.Context, obj any) (gqlmodels.SearchThemeInput, error) {
-	var it gqlmodels.SearchThemeInput
+func (ec *executionContext) unmarshalInputSearchThemeInput(ctx context.Context, obj any) (cgqlmodels.SearchThemeInput, error) {
+	var it cgqlmodels.SearchThemeInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -478,7 +478,7 @@ func (ec *executionContext) unmarshalInputSearchThemeInput(ctx context.Context, 
 
 var searchThemeConnectionImplementors = []string{"SearchThemeConnection", "SearchConnection"}
 
-func (ec *executionContext) _SearchThemeConnection(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchThemeConnection) graphql.Marshaler {
+func (ec *executionContext) _SearchThemeConnection(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchThemeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchThemeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -532,7 +532,7 @@ func (ec *executionContext) _SearchThemeConnection(ctx context.Context, sel ast.
 
 var searchThemeEdgeImplementors = []string{"SearchThemeEdge", "SearchEdge"}
 
-func (ec *executionContext) _SearchThemeEdge(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchThemeEdge) graphql.Marshaler {
+func (ec *executionContext) _SearchThemeEdge(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchThemeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchThemeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -578,11 +578,11 @@ func (ec *executionContext) _SearchThemeEdge(ctx context.Context, sel ast.Select
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNSearchThemeConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeConnection(ctx context.Context, sel ast.SelectionSet, v gqlmodels.SearchThemeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchThemeConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeConnection(ctx context.Context, sel ast.SelectionSet, v cgqlmodels.SearchThemeConnection) graphql.Marshaler {
 	return ec._SearchThemeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSearchThemeConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeConnection(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchThemeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchThemeConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeConnection(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchThemeConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -592,7 +592,7 @@ func (ec *executionContext) marshalNSearchThemeConnection2ᚖgithubᚗcomᚋHiIa
 	return ec._SearchThemeConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSearchThemeEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*gqlmodels.SearchThemeEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchThemeEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*cgqlmodels.SearchThemeEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -636,7 +636,7 @@ func (ec *executionContext) marshalNSearchThemeEdge2ᚕᚖgithubᚗcomᚋHiIamJe
 	return ret
 }
 
-func (ec *executionContext) marshalNSearchThemeEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeEdge(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchThemeEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchThemeEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeEdge(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchThemeEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -646,12 +646,12 @@ func (ec *executionContext) marshalNSearchThemeEdge2ᚖgithubᚗcomᚋHiIamJeff6
 	return ec._SearchThemeEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSearchThemeInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeInput(ctx context.Context, v any) (gqlmodels.SearchThemeInput, error) {
+func (ec *executionContext) unmarshalNSearchThemeInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeInput(ctx context.Context, v any) (cgqlmodels.SearchThemeInput, error) {
 	res, err := ec.unmarshalInputSearchThemeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchThemeFilters2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeFilters(ctx context.Context, v any) (*gqlmodels.SearchThemeFilters, error) {
+func (ec *executionContext) unmarshalOSearchThemeFilters2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeFilters(ctx context.Context, v any) (*cgqlmodels.SearchThemeFilters, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -659,16 +659,16 @@ func (ec *executionContext) unmarshalOSearchThemeFilters2ᚖgithubᚗcomᚋHiIam
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchThemeSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeSortBy(ctx context.Context, v any) (*gqlmodels.SearchThemeSortBy, error) {
+func (ec *executionContext) unmarshalOSearchThemeSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeSortBy(ctx context.Context, v any) (*cgqlmodels.SearchThemeSortBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(gqlmodels.SearchThemeSortBy)
+	var res = new(cgqlmodels.SearchThemeSortBy)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSearchThemeSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeSortBy(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchThemeSortBy) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchThemeSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeSortBy(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchThemeSortBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -5,15 +5,15 @@ import (
 
 	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
 
 type BlockControllerInterface interface {
-	GetMyBlockById(ctx *gin.Context, requestDto *apicontract.GetMyBlockByIdRequestDto)
-	GetMyBlocksByIds(ctx *gin.Context, requestDto *apicontract.GetMyBlocksByIdsRequestDto)
-	GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto *apicontract.GetMyBlocksByBlockPackIdRequestDto)
+	GetMyBlockById(ctx *gin.Context, requestDto *capi.GetMyBlockByIdRequestDto)
+	GetMyBlocksByIds(ctx *gin.Context, requestDto *capi.GetMyBlocksByIdsRequestDto)
+	GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto)
 }
 
 type BlockController struct {
@@ -26,15 +26,15 @@ func NewBlockController(coreAdapter *coreadapters.CoreAdapter) BlockControllerIn
 	}
 }
 
-func (c *BlockController) GetMyBlockById(ctx *gin.Context, requestDto *apicontract.GetMyBlockByIdRequestDto) {
+func (c *BlockController) GetMyBlockById(ctx *gin.Context, requestDto *capi.GetMyBlockByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlockByIdRequestDto,
-		apicontract.GetMyBlockByIdResponseDto,
+		capi.GetMyBlockByIdRequestDto,
+		capi.GetMyBlockByIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlockByIdOperation,
+		capi.GetMyBlockByIdOperation,
 		"/core/v1/blocks/get-by-id",
 	)
 	if exception != nil {
@@ -45,15 +45,15 @@ func (c *BlockController) GetMyBlockById(ctx *gin.Context, requestDto *apicontra
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockController) GetMyBlocksByIds(ctx *gin.Context, requestDto *apicontract.GetMyBlocksByIdsRequestDto) {
+func (c *BlockController) GetMyBlocksByIds(ctx *gin.Context, requestDto *capi.GetMyBlocksByIdsRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlocksByIdsRequestDto,
-		apicontract.GetMyBlocksByIdsResponseDto,
+		capi.GetMyBlocksByIdsRequestDto,
+		capi.GetMyBlocksByIdsResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlocksByIdsOperation,
+		capi.GetMyBlocksByIdsOperation,
 		"/core/v1/blocks/get-by-ids",
 	)
 	if exception != nil {
@@ -64,15 +64,15 @@ func (c *BlockController) GetMyBlocksByIds(ctx *gin.Context, requestDto *apicont
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *BlockController) GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto *apicontract.GetMyBlocksByBlockPackIdRequestDto) {
+func (c *BlockController) GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		apicontract.GetMyBlocksByBlockPackIdRequestDto,
-		apicontract.GetMyBlocksByBlockPackIdResponseDto,
+		capi.GetMyBlocksByBlockPackIdRequestDto,
+		capi.GetMyBlocksByBlockPackIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		apicontract.GetMyBlocksByBlockPackIdOperation,
+		capi.GetMyBlocksByBlockPackIdOperation,
 		"/core/v1/blocks/get-by-block-pack-id",
 	)
 	if exception != nil {

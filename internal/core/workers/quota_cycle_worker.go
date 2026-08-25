@@ -11,8 +11,8 @@ import (
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type QuotaCycleWorkerInterface interface {
@@ -38,23 +38,15 @@ func NewQuotaCycleWorker(
 	}
 }
 
-/* ============================== Auxiliary Functions ============================== */
-
-func (w *QuotaCycleWorker) reconcile(ctx context.Context) {
-	if err := w.Reconcile(ctx); err != nil && ctx.Err() == nil && logs.NotegicLogger != nil {
-		logs.NotegicLogger.Error(ctx, err, "User quota cycle reconciliation failed")
-	}
-}
-
-/* ============================== Worker Methods ============================== */
-
 func (w *QuotaCycleWorker) Start(ctx context.Context) func() {
 	workerCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
 
 	go func() {
 		defer close(done)
-		w.reconcile(workerCtx)
+		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
+			logs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
+		}
 
 		ticker := time.NewTicker(w.config.Interval)
 		defer ticker.Stop()
@@ -63,7 +55,9 @@ func (w *QuotaCycleWorker) Start(ctx context.Context) func() {
 			case <-workerCtx.Done():
 				return
 			case <-ticker.C:
-				w.reconcile(workerCtx)
+				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
+					logs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
+				}
 			}
 		}
 	}()

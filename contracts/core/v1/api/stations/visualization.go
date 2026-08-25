@@ -1,9 +1,9 @@
 package apicontract
 
-import coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+import coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 
 type VisualizeMyTotalCountRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

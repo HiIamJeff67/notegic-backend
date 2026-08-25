@@ -2,40 +2,41 @@ package repositories
 
 import (
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	partialupdate "github.com/HiIamJeff67/notegic-backend/shared/lib/partialupdate"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
-	schemas "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
+	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RoutineTagRepositoryInterface interface {
-	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) (*schemas.RoutineTag, *exceptions.Exception)
-	GetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTag, *exceptions.Exception)
-	GetAllByUserId(userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTag, *exceptions.Exception)
-	CreateOne(userId uuid.UUID, input inputs.CreateRoutineTagInput, opts ...options.RepositoryOptions) (*uuid.UUID, *exceptions.Exception)
-	CreateMany(userId uuid.UUID, input []inputs.CreateRoutineTagInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *exceptions.Exception)
-	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateRoutineTagInput, opts ...options.RepositoryOptions) (*schemas.RoutineTag, *exceptions.Exception)
-	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateRoutineTagByIdInput, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
-	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *exceptions.Exception
+	GetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) (*schemas.RoutineTag, *cexceptions.Exception)
+	GetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTag, *cexceptions.Exception)
+	GetAllByUserId(userId uuid.UUID, preloads []schemas.RoutineTagRelation, opts ...options.RepositoryOptions) ([]schemas.RoutineTag, *cexceptions.Exception)
+	CreateOne(userId uuid.UUID, input inputs.CreateRoutineTagInput, opts ...options.RepositoryOptions) (*uuid.UUID, *cexceptions.Exception)
+	CreateMany(userId uuid.UUID, input []inputs.CreateRoutineTagInput, opts ...options.RepositoryOptions) ([]uuid.UUID, *cexceptions.Exception)
+	UpdateOneById(id uuid.UUID, userId uuid.UUID, input inputs.PartialUpdateRoutineTagInput, opts ...options.RepositoryOptions) (*schemas.RoutineTag, *cexceptions.Exception)
+	UpdateManyByIds(userId uuid.UUID, input []inputs.UpdateRoutineTagByIdInput, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
+	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...options.RepositoryOptions) *cexceptions.Exception
 }
 
 type RoutineTagRepository struct {
-	routineTagScope scopes.RoutineTagScopeInterface
+	routineTagScope corescopes.RoutineTagScopeInterface
 }
 
-func NewRoutineTagRepository(routineTagScope scopes.RoutineTagScopeInterface) RoutineTagRepositoryInterface {
+func NewRoutineTagRepository(routineTagScope corescopes.RoutineTagScopeInterface) RoutineTagRepositoryInterface {
 	return &RoutineTagRepository{
 		routineTagScope: routineTagScope,
 	}
@@ -46,7 +47,7 @@ func (r *RoutineTagRepository) GetOneById(
 	userId uuid.UUID,
 	preloads []schemas.RoutineTagRelation,
 	opts ...options.RepositoryOptions,
-) (*schemas.RoutineTag, *exceptions.Exception) {
+) (*schemas.RoutineTag, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var routineTag schemas.RoutineTag
@@ -56,7 +57,7 @@ func (r *RoutineTagRepository) GetOneById(
 		Scopes(r.routineTagScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&routineTag)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().NotFound().WithOrigin(result.Error)},
 		{First: routineTag.Id == uuid.Nil, Second: apiexceptions.NewRoutineTagException().NotFound()},
 	}); exception != nil {
@@ -71,7 +72,7 @@ func (r *RoutineTagRepository) GetManyByIds(
 	userId uuid.UUID,
 	preloads []schemas.RoutineTagRelation,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RoutineTag, *exceptions.Exception) {
+) ([]schemas.RoutineTag, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var routineTags []schemas.RoutineTag
@@ -81,7 +82,7 @@ func (r *RoutineTagRepository) GetManyByIds(
 		Scopes(r.routineTagScope.IncludePreloads(preloads)).
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&routineTags)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().NotFound().WithOrigin(result.Error)},
 		{First: len(routineTags) == 0, Second: apiexceptions.NewRoutineTagException().NotFound()},
 	}); exception != nil {
@@ -95,7 +96,7 @@ func (r *RoutineTagRepository) GetAllByUserId(
 	userId uuid.UUID,
 	preloads []schemas.RoutineTagRelation,
 	opts ...options.RepositoryOptions,
-) ([]schemas.RoutineTag, *exceptions.Exception) {
+) ([]schemas.RoutineTag, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	var routineTags []schemas.RoutineTag
@@ -118,7 +119,7 @@ func (r *RoutineTagRepository) CreateOne(
 	userId uuid.UUID,
 	input inputs.CreateRoutineTagInput,
 	opts ...options.RepositoryOptions,
-) (*uuid.UUID, *exceptions.Exception) {
+) (*uuid.UUID, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	shouldStartTransaction := !parsedOptions.IsTransactionStarted
@@ -141,7 +142,7 @@ func (r *RoutineTagRepository) CreateOne(
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTag{}).
 		Create(&newRoutineTag)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {
@@ -163,7 +164,7 @@ func (r *RoutineTagRepository) CreateMany(
 	userId uuid.UUID,
 	input []inputs.CreateRoutineTagInput,
 	opts ...options.RepositoryOptions,
-) ([]uuid.UUID, *exceptions.Exception) {
+) ([]uuid.UUID, *cexceptions.Exception) {
 	if len(input) == 0 {
 		return nil, apiexceptions.NewRoutineTagException().NoChanges()
 	}
@@ -205,7 +206,7 @@ func (r *RoutineTagRepository) CreateMany(
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTag{}).
 		CreateInBatches(&newRoutineTags, parsedOptions.BatchSize)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToCreate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {
@@ -233,7 +234,7 @@ func (r *RoutineTagRepository) UpdateOneById(
 	userId uuid.UUID,
 	input inputs.PartialUpdateRoutineTagInput,
 	opts ...options.RepositoryOptions,
-) (*schemas.RoutineTag, *exceptions.Exception) {
+) (*schemas.RoutineTag, *cexceptions.Exception) {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	shouldStartTransaction := !parsedOptions.IsTransactionStarted
@@ -252,7 +253,7 @@ func (r *RoutineTagRepository) UpdateOneById(
 	updates, err := partialupdate.PartialUpdatePreprocess(input.Values, input.SetNull, *existingRoutineTag)
 	if err != nil {
 		parsedOptions.DB.Rollback()
-		return nil, exceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
+		return nil, cexceptions.New("FailedToPreprocessPartialUpdate", "Repository", "Update", "Failed to preprocess partial update", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	result := parsedOptions.DB.
@@ -260,7 +261,7 @@ func (r *RoutineTagRepository) UpdateOneById(
 		Where(`"RoutineTagTable".id = ?`, id).
 		Select("*").
 		Updates(&updates)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {
@@ -281,7 +282,7 @@ func (r *RoutineTagRepository) UpdateManyByIds(
 	userId uuid.UUID,
 	input []inputs.UpdateRoutineTagByIdInput,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(input) == 0 {
 		return apiexceptions.NewRoutineTagException().NoChanges()
 	}
@@ -348,7 +349,7 @@ func (r *RoutineTagRepository) UpdateManyByIds(
 		WHERE rt.id = v.id::uuid
 	`, strings.Join(valuePlaceholders, ","))
 	result := parsedOptions.DB.Exec(sql, valueArgs...)
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToUpdate().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {
@@ -370,14 +371,14 @@ func (r *RoutineTagRepository) HardDeleteOneById(
 	id uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	parsedOptions := options.ParseRepositoryOptions(opts...)
 
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTag{}).
 		Where(`"RoutineTagTable".id = ? AND "RoutineTagTable".owner_id = ?`, id, userId).
 		Delete(&schemas.RoutineTag{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {
@@ -391,7 +392,7 @@ func (r *RoutineTagRepository) HardDeleteManyByIds(
 	ids []uuid.UUID,
 	userId uuid.UUID,
 	opts ...options.RepositoryOptions,
-) *exceptions.Exception {
+) *cexceptions.Exception {
 	if len(ids) == 0 {
 		return apiexceptions.NewRoutineTagException().NoChanges()
 	}
@@ -402,7 +403,7 @@ func (r *RoutineTagRepository) HardDeleteManyByIds(
 		Model(&schemas.RoutineTag{}).
 		Where(`"RoutineTagTable".id IN ? AND "RoutineTagTable".owner_id = ?`, ids, userId).
 		Delete(&schemas.RoutineTag{})
-	if exception := exceptions.Cover(nil, []exceptions.Pair{
+	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
 		{First: result.Error != nil, Second: apiexceptions.NewRoutineTagException().FailedToDelete().WithOrigin(result.Error)},
 		{First: result.RowsAffected == 0, Second: apiexceptions.NewRoutineTagException().NoChanges()},
 	}); exception != nil {

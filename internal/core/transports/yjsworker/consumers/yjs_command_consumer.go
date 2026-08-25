@@ -5,24 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	apicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
-	eventcontract "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	crepositories "github.com/HiIamJeff67/notegic-backend/contracts/types/models/repositories"
-	yjsworkercontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
-	yjsworkereventscontract "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
+	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
+	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 
 	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/options"
 	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	blockservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/blocks"
+	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type YjsCommandConsumer struct {
@@ -49,7 +49,7 @@ func NewYjsCommandConsumer(
 }
 
 func (c *YjsCommandConsumer) Start(ctx context.Context) func() {
-	consumer, err := platformkafka.NewConsumer(c.kafkaConfig, yjsworkereventscontract.YjsWorkerCoreCommandTopic.String())
+	consumer, err := platformkafka.NewConsumer(c.kafkaConfig, cyjsworkerevents.YjsWorkerCoreCommandTopic.String())
 	if err != nil {
 		if logs.NotegicLogger != nil {
 			logs.NotegicLogger.Error(ctx, err, "Failed to create YjsWorker command consumer")
@@ -74,25 +74,25 @@ func (c *YjsCommandConsumer) Start(ctx context.Context) func() {
 func (c *YjsCommandConsumer) consume(
 	ctx context.Context,
 	_ platformkafka.ConsumerRecord,
-	event eventcontract.EventEnvelope[json.RawMessage],
+	event cevent.EventEnvelope[json.RawMessage],
 ) error {
-	var command yjsworkercontract.CommandEnvelope[json.RawMessage]
+	var command cyjsworker.CommandEnvelope[json.RawMessage]
 	if err := json.Unmarshal(event.Data, &command); err != nil {
 		return &platformkafka.ConsumerError{
 			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
 			Origin:         fmt.Errorf("decode YjsWorker command: %w", err),
 		}
 	}
-	if command.SchemaVersion != yjsworkercontract.Version || command.CommandId == uuid.Nil ||
+	if command.SchemaVersion != cyjsworker.Version || command.CommandId == uuid.Nil ||
 		command.BlockPackId == uuid.Nil || command.CommandType == "" || command.Producer != "yjs-worker" {
-		return c.writeReply(ctx, command, nil, &yjsworkercontract.Error{
+		return c.writeReply(ctx, command, nil, &cyjsworker.Error{
 			Code:      "InvalidCommand",
 			Message:   "the YjsWorker command envelope is invalid",
 			Retryable: false,
 		})
 	}
 	if command.BlockPackId != event.AggregateId || command.BlockPackId.String() != event.KafkaKey {
-		return c.writeReply(ctx, command, nil, &yjsworkercontract.Error{
+		return c.writeReply(ctx, command, nil, &cyjsworker.Error{
 			Code:      "InvalidCommand",
 			Message:   "the YjsWorker command partition key is invalid",
 			Retryable: false,
@@ -125,16 +125,16 @@ func (c *YjsCommandConsumer) consume(
 func (c *YjsCommandConsumer) execute(
 	ctx context.Context,
 	tx *gorm.DB,
-	command yjsworkercontract.CommandEnvelope[json.RawMessage],
-) (json.RawMessage, *yjsworkercontract.Error, error) {
+	command cyjsworker.CommandEnvelope[json.RawMessage],
+) (json.RawMessage, *cyjsworker.Error, error) {
 	switch command.CommandType {
-	case yjsworkercontract.CommandType_LoadYjsDocument:
+	case cyjsworker.CommandType_LoadYjsDocument:
 		state, err := c.yjsPersistenceService.LoadDocument(
 			ctx,
 			command.BlockPackId,
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return marshalYjsReplyData(yjsworkercontract.LoadYjsDocumentReplyDto{
+			return marshalYjsReplyData(cyjsworker.LoadYjsDocumentReplyDto{
 				Found: false,
 			})
 		}
@@ -143,21 +143,21 @@ func (c *YjsCommandConsumer) execute(
 		}
 		payload, err := state.MarshalBytes()
 		if err != nil {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "InvalidDocument",
 				Message:   "the persisted Yjs document is invalid",
 				Retryable: false,
 			}, nil
 		}
 
-		return marshalYjsReplyData(yjsworkercontract.LoadYjsDocumentReplyDto{
+		return marshalYjsReplyData(cyjsworker.LoadYjsDocumentReplyDto{
 			Found:   true,
 			Payload: payload,
 		})
-	case yjsworkercontract.CommandType_AppendYjsUpdate:
-		var data yjsworkercontract.AppendYjsUpdateCommandDto
+	case cyjsworker.CommandType_AppendYjsUpdate:
+		var data cyjsworker.AppendYjsUpdateCommandDto
 		if err := json.Unmarshal(command.Data, &data); err != nil || data.PersistenceBatchId == uuid.Nil || len(data.Payload) == 0 {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "InvalidCommand",
 				Message:   "the Yjs update command is invalid",
 				Retryable: false,
@@ -173,7 +173,7 @@ func (c *YjsCommandConsumer) execute(
 			options.WithTransactionDB(tx),
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "NotFound",
 				Message:   "the Yjs document was not found",
 				Retryable: false,
@@ -191,16 +191,16 @@ func (c *YjsCommandConsumer) execute(
 			return nil, nil, fmt.Errorf("enqueue Yjs maintenance hint: %w", err)
 		}
 
-		return marshalYjsReplyData(yjsworkercontract.AppendYjsUpdateReplyDto{
+		return marshalYjsReplyData(cyjsworker.AppendYjsUpdateReplyDto{
 			UpdateSequence: updateSequence,
 		})
-	case yjsworkercontract.CommandType_LoadCompactableYjsDocument:
+	case cyjsworker.CommandType_LoadCompactableYjsDocument:
 		input, err := c.yjsPersistenceService.GetCompactableYjsDocumentWithUpdates(
 			ctx,
 			command.BlockPackId,
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) || input == nil {
-			return marshalYjsReplyData(yjsworkercontract.LoadCompactableYjsDocumentReplyDto{
+			return marshalYjsReplyData(cyjsworker.LoadCompactableYjsDocumentReplyDto{
 				Found: false,
 			})
 		}
@@ -209,22 +209,22 @@ func (c *YjsCommandConsumer) execute(
 		}
 		payload, err := input.MarshalBytes()
 		if err != nil {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "InvalidDocument",
 				Message:   "the compactable Yjs document is invalid",
 				Retryable: false,
 			}, nil
 		}
 
-		return marshalYjsReplyData(yjsworkercontract.LoadCompactableYjsDocumentReplyDto{
+		return marshalYjsReplyData(cyjsworker.LoadCompactableYjsDocumentReplyDto{
 			Found:   true,
 			Payload: payload,
 		})
-	case yjsworkercontract.CommandType_ApplyCompactedYjsDocument:
-		var data yjsworkercontract.ApplyCompactedYjsDocumentCommandDto
-		var result yjsworkercontract.YjsCompactionResult
+	case cyjsworker.CommandType_ApplyCompactedYjsDocument:
+		var data cyjsworker.ApplyCompactedYjsDocumentCommandDto
+		var result cyjsworker.YjsCompactionResult
 		if err := json.Unmarshal(command.Data, &data); err != nil || result.UnmarshalBytes(data.Payload) != nil {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "InvalidCommand",
 				Message:   "the compacted Yjs document command is invalid",
 				Retryable: false,
@@ -241,7 +241,7 @@ func (c *YjsCommandConsumer) execute(
 			options.WithTransactionDB(tx),
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "NotFound",
 				Message:   "the Yjs document was not found",
 				Retryable: false,
@@ -251,14 +251,14 @@ func (c *YjsCommandConsumer) execute(
 			return nil, nil, fmt.Errorf("apply compacted Yjs document: %w", err)
 		}
 
-		return marshalYjsReplyData(yjsworkercontract.ApplyCompactedYjsDocumentReplyDto{
+		return marshalYjsReplyData(cyjsworker.ApplyCompactedYjsDocumentReplyDto{
 			Applied: applied,
 		})
-	case yjsworkercontract.CommandType_ApplyBlockProjection:
-		var data yjsworkercontract.ApplyBlockProjectionCommandDto
-		var requestDto apicontract.ApplyBlockProjectionRequestDto
+	case cyjsworker.CommandType_ApplyBlockProjection:
+		var data cyjsworker.ApplyBlockProjectionCommandDto
+		var requestDto capi.ApplyBlockProjectionRequestDto
 		if err := json.Unmarshal(command.Data, &data); err != nil || json.Unmarshal(data.Projection, &requestDto) != nil {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "InvalidCommand",
 				Message:   "the block projection command is invalid",
 				Retryable: false,
@@ -271,7 +271,7 @@ func (c *YjsCommandConsumer) execute(
 			requestDto,
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &yjsworkercontract.Error{
+			return nil, &cyjsworker.Error{
 				Code:      "NotFound",
 				Message:   "the block pack was not found",
 				Retryable: false,
@@ -281,12 +281,12 @@ func (c *YjsCommandConsumer) execute(
 			return nil, nil, fmt.Errorf("apply block projection: %w", err)
 		}
 
-		return marshalYjsReplyData(yjsworkercontract.ApplyBlockProjectionReplyDto{
+		return marshalYjsReplyData(cyjsworker.ApplyBlockProjectionReplyDto{
 			Applied:                responseDto.Applied,
 			ProjectedUntilSequence: responseDto.ProjectedUntilSequence,
 		})
 	default:
-		return nil, &yjsworkercontract.Error{
+		return nil, &cyjsworker.Error{
 			Code:      "UnsupportedCommand",
 			Message:   "the YjsWorker command type is unsupported",
 			Retryable: false,
@@ -294,7 +294,7 @@ func (c *YjsCommandConsumer) execute(
 	}
 }
 
-func marshalYjsReplyData(data any) (json.RawMessage, *yjsworkercontract.Error, error) {
+func marshalYjsReplyData(data any) (json.RawMessage, *cyjsworker.Error, error) {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return nil, nil, fmt.Errorf("marshal YjsWorker reply data: %w", err)
@@ -305,9 +305,9 @@ func marshalYjsReplyData(data any) (json.RawMessage, *yjsworkercontract.Error, e
 
 func (c *YjsCommandConsumer) writeReply(
 	ctx context.Context,
-	command yjsworkercontract.CommandEnvelope[json.RawMessage],
+	command cyjsworker.CommandEnvelope[json.RawMessage],
 	data json.RawMessage,
-	exception *yjsworkercontract.Error,
+	exception *cyjsworker.Error,
 ) error {
 	tx := c.db.WithContext(ctx).Begin()
 	if tx.Error != nil {
@@ -327,16 +327,16 @@ func (c *YjsCommandConsumer) writeReply(
 
 func (c *YjsCommandConsumer) enqueueReply(
 	tx *gorm.DB,
-	command yjsworkercontract.CommandEnvelope[json.RawMessage],
+	command cyjsworker.CommandEnvelope[json.RawMessage],
 	data json.RawMessage,
-	exception *yjsworkercontract.Error,
+	exception *cyjsworker.Error,
 ) error {
 	if data == nil {
 		data = json.RawMessage("{}")
 	}
 
-	reply := yjsworkercontract.ReplyEnvelope[json.RawMessage]{
-		SchemaVersion: yjsworkercontract.Version,
+	reply := cyjsworker.ReplyEnvelope[json.RawMessage]{
+		SchemaVersion: cyjsworker.Version,
 		CommandId:     command.CommandId,
 		CommandType:   command.CommandType,
 		BlockPackId:   command.BlockPackId,
@@ -351,13 +351,13 @@ func (c *YjsCommandConsumer) enqueueReply(
 
 	return crepositories.EnqueueOutboxEvents(
 		tx,
-		yjsworkereventscontract.CoreYjsWorkerReplyTopic,
-		[]eventcontract.EventEnvelope[yjsworkercontract.ReplyEnvelope[json.RawMessage]]{
+		cyjsworkerevents.CoreYjsWorkerReplyTopic,
+		[]cevent.EventEnvelope[cyjsworker.ReplyEnvelope[json.RawMessage]]{
 			{
-				SchemaVersion: eventcontract.Version,
+				SchemaVersion: cevent.Version,
 				EventId:       uuid.New(),
-				EventType:     yjsworkereventscontract.EventType_YjsWorkerCommandCompleted,
-				AggregateType: yjsworkereventscontract.AggregateType_BlockPack,
+				EventType:     cyjsworkerevents.EventType_YjsWorkerCommandCompleted,
+				AggregateType: cyjsworkerevents.AggregateType_BlockPack,
 				AggregateId:   command.BlockPackId,
 				KafkaKey:      command.BlockPackId.String(),
 				OccurredAt:    time.Now().UTC(),

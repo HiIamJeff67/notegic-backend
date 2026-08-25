@@ -12,15 +12,15 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 )
 
-func IncrementMeter(exception *exceptions.Exception, ctx *gin.Context, names ...string) {
+func IncrementMeter(exception *cexceptions.Exception, ctx *gin.Context, names ...string) {
 	if metrics.NotegicMeter == nil {
 		return
 	}
@@ -37,7 +37,7 @@ func IncrementMeter(exception *exceptions.Exception, ctx *gin.Context, names ...
 	}
 }
 
-func GetGinH(exception *exceptions.Exception) gin.H {
+func GetGinH(exception *cexceptions.Exception) gin.H {
 	exception = exception.ToPublic()
 
 	return gin.H{
@@ -49,12 +49,12 @@ func GetGinH(exception *exceptions.Exception) gin.H {
 	}
 }
 
-func GetGinHBytes(exception *exceptions.Exception) ([]byte, error) {
+func GetGinHBytes(exception *cexceptions.Exception) ([]byte, error) {
 	return json.Marshal(GetGinH(exception))
 }
 
-func GetResponseJSONBytes(exception *exceptions.Exception) ([]byte, error) {
-	return json.Marshal(gatewaycontract.ClientResponse[any]{
+func GetResponseJSONBytes(exception *cexceptions.Exception) ([]byte, error) {
+	return json.Marshal(cgateway.ClientResponse[any]{
 		Success:   false,
 		Data:      nil,
 		Exception: ToPublic(context.Background(), exception),
@@ -69,7 +69,7 @@ func getRequestContext(ctx *gin.Context) context.Context {
 	return context.Background()
 }
 
-func ResponseWithJSON(exception *exceptions.Exception, ctx *gin.Context, names ...string) {
+func ResponseWithJSON(exception *cexceptions.Exception, ctx *gin.Context, names ...string) {
 	publicException := ToPublic(getRequestContext(ctx), exception)
 	IncrementMeter(publicException, ctx, names...)
 	if exception != nil &&
@@ -78,14 +78,14 @@ func ResponseWithJSON(exception *exceptions.Exception, ctx *gin.Context, names .
 		traces.NotegicTracer.RecordError(ctx, exception)
 	}
 
-	ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.ClientResponse[any]{
+	ctx.JSON(publicException.HTTPStatusCode(), cgateway.ClientResponse[any]{
 		Success:   false,
 		Data:      nil,
 		Exception: publicException,
 	})
 }
 
-func SafelyResponseWithJSON(exception *exceptions.Exception, ctx *gin.Context, names ...string) {
+func SafelyResponseWithJSON(exception *cexceptions.Exception, ctx *gin.Context, names ...string) {
 	publicException := ToPublic(getRequestContext(ctx), exception)
 	IncrementMeter(publicException, ctx, names...)
 	if exception != nil &&
@@ -94,14 +94,14 @@ func SafelyResponseWithJSON(exception *exceptions.Exception, ctx *gin.Context, n
 		traces.NotegicTracer.RecordError(ctx, exception)
 	}
 
-	ctx.JSON(publicException.HTTPStatusCode(), gatewaycontract.ClientResponse[any]{
+	ctx.JSON(publicException.HTTPStatusCode(), cgateway.ClientResponse[any]{
 		Success:   false,
 		Data:      nil,
 		Exception: publicException,
 	})
 }
 
-func SafelyAbortAndResponseWithJSON(exception *exceptions.Exception, ctx *gin.Context, names ...string) {
+func SafelyAbortAndResponseWithJSON(exception *cexceptions.Exception, ctx *gin.Context, names ...string) {
 	publicException := ToPublic(getRequestContext(ctx), exception)
 	IncrementMeter(publicException, ctx, names...)
 	if exception != nil &&
@@ -110,14 +110,14 @@ func SafelyAbortAndResponseWithJSON(exception *exceptions.Exception, ctx *gin.Co
 		traces.NotegicTracer.RecordError(ctx, exception)
 	}
 
-	ctx.AbortWithStatusJSON(publicException.HTTPStatusCode(), gatewaycontract.ClientResponse[any]{
+	ctx.AbortWithStatusJSON(publicException.HTTPStatusCode(), cgateway.ClientResponse[any]{
 		Success:   false,
 		Data:      nil,
 		Exception: publicException,
 	})
 }
 
-func ToGraphQLError(exception *exceptions.Exception, ctx context.Context) *gqlerror.Error {
+func ToGraphQLError(exception *cexceptions.Exception, ctx context.Context) *gqlerror.Error {
 	exception = ToPublic(ctx, exception)
 	extensions := map[string]any{
 		"reason":     exception.Reason,
@@ -154,9 +154,9 @@ func ToGraphQLError(exception *exceptions.Exception, ctx context.Context) *gqler
 	return gqlError
 }
 
-func ToPublic(ctx context.Context, exception *exceptions.Exception) *exceptions.Exception {
+func ToPublic(ctx context.Context, exception *cexceptions.Exception) *cexceptions.Exception {
 	if exception == nil {
-		return exceptions.InternalServerError()
+		return cexceptions.InternalServerError()
 	}
 	if logs.NotegicLogger != nil {
 		if err := logs.NotegicLogger.JSON(

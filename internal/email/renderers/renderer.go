@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
 
 	emailconfig "github.com/HiIamJeff67/notegic-backend/internal/email/configs"
 	emailexceptions "github.com/HiIamJeff67/notegic-backend/internal/email/exceptions"
@@ -15,7 +15,7 @@ import (
 
 type RendererInterface interface {
 	Render(data map[string]any) (string, error)
-	ContentType() emailcontract.EmailContentType
+	ContentType() cemail.EmailContentType
 }
 
 type Renderer struct {
@@ -25,11 +25,11 @@ type Renderer struct {
 
 func NewRenderer(config emailconfig.RendererConfig) (RendererInterface, error) {
 	switch config.ContentType {
-	case emailcontract.EmailContentType_HTML:
+	case cemail.EmailContentType_HTML:
 		return &HTMLEmailRenderer{Renderer: newRenderer(config, "html")}, nil
-	case emailcontract.EmailContentType_PlainText:
+	case cemail.EmailContentType_PlainText:
 		return &PlainTextEmailRenderer{Renderer: newRenderer(config, "txt")}, nil
-	case emailcontract.EmailContentType_Markdown:
+	case cemail.EmailContentType_Markdown:
 		return &MarkdownEmailRenderer{Renderer: newRenderer(config, "md")}, nil
 	default:
 		return nil, emailexceptions.
@@ -52,7 +52,7 @@ func (r *Renderer) Render(data map[string]any) (string, error) {
 	return renderTemplate(r.config, r.expectedExtension, data)
 }
 
-func (r *Renderer) ContentType() emailcontract.EmailContentType {
+func (r *Renderer) ContentType() cemail.EmailContentType {
 	return r.config.ContentType
 }
 

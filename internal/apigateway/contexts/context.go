@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 )
@@ -25,10 +25,10 @@ func GetOptionalGatewaySource(ctx *gin.Context) string {
 	return source
 }
 
-func GetAndConvertContextFieldToBoolean(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*bool, *exceptions.Exception) {
+func GetAndConvertContextFieldToBoolean(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*bool, *cexceptions.Exception) {
 	value, exists := ctx.Get(name.String())
 	if !exists {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldMissing",
 			"Gateway",
 			"ReadContextField",
@@ -40,7 +40,7 @@ func GetAndConvertContextFieldToBoolean(ctx *gin.Context, name sharedcontexts.Co
 
 	valueBoolean, ok := value.(bool)
 	if !ok {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadContextField",
@@ -53,10 +53,10 @@ func GetAndConvertContextFieldToBoolean(ctx *gin.Context, name sharedcontexts.Co
 	return &valueBoolean, nil
 }
 
-func GetAndConvertContextFieldToString(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*string, *exceptions.Exception) {
+func GetAndConvertContextFieldToString(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*string, *cexceptions.Exception) {
 	value, exists := ctx.Get(name.String())
 	if !exists {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldMissing",
 			"Gateway",
 			"ReadContextField",
@@ -68,7 +68,7 @@ func GetAndConvertContextFieldToString(ctx *gin.Context, name sharedcontexts.Con
 
 	valueString, ok := value.(string)
 	if !ok {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadContextField",
@@ -81,10 +81,10 @@ func GetAndConvertContextFieldToString(ctx *gin.Context, name sharedcontexts.Con
 	return &valueString, nil
 }
 
-func GetAndConvertContextFieldToUUID(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*uuid.UUID, *exceptions.Exception) {
+func GetAndConvertContextFieldToUUID(ctx *gin.Context, name sharedcontexts.ContextFieldName) (*uuid.UUID, *cexceptions.Exception) {
 	value, exists := ctx.Get(name.String())
 	if !exists {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldMissing",
 			"Gateway",
 			"ReadContextField",
@@ -100,7 +100,7 @@ func GetAndConvertContextFieldToUUID(ctx *gin.Context, name sharedcontexts.Conte
 
 	valueString, ok := value.(string)
 	if !ok {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadContextField",
@@ -112,7 +112,7 @@ func GetAndConvertContextFieldToUUID(ctx *gin.Context, name sharedcontexts.Conte
 
 	id, err := uuid.Parse(valueString)
 	if err != nil {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"InvalidInput",
 			"Gateway",
 			"ReadContextField",
@@ -124,10 +124,10 @@ func GetAndConvertContextFieldToUUID(ctx *gin.Context, name sharedcontexts.Conte
 	return &id, nil
 }
 
-func GetAndConvertContextToGinContext(ctx context.Context) (*gin.Context, *exceptions.Exception) {
+func GetAndConvertContextToGinContext(ctx context.Context) (*gin.Context, *cexceptions.Exception) {
 	ginCtx, ok := ctx.Value(sharedcontexts.ContextFieldName_GinContext).(*gin.Context)
 	if !ok {
-		return nil, exceptions.New(
+		return nil, cexceptions.New(
 			"ContextFieldInvalid",
 			"Gateway",
 			"ReadGinContext",

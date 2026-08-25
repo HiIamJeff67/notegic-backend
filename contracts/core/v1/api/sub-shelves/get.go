@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	coreapicontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
 type SubShelfResponseDto struct {
@@ -20,7 +20,7 @@ type SubShelfResponseDto struct {
 }
 
 type GetMySubShelfByIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -36,7 +36,7 @@ type GetMySubShelfByIdRequestDto struct {
 type GetMySubShelfByIdResponseDto = SubShelfResponseDto
 
 type GetMySubShelvesByPrevSubShelfIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -52,7 +52,7 @@ type GetMySubShelvesByPrevSubShelfIdRequestDto struct {
 type GetMySubShelvesByPrevSubShelfIdResponseDto []SubShelfResponseDto
 
 type GetAllMySubShelvesByRootShelfIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
@@ -68,7 +68,7 @@ type GetAllMySubShelvesByRootShelfIdRequestDto struct {
 type GetAllMySubShelvesByRootShelfIdResponseDto []SubShelfResponseDto
 
 type GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto struct {
-	coreapicontract.RequestDto[
+	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},

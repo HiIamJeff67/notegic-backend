@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 
-	blockpackscontract "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
-	blocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	blockenums "github.com/HiIamJeff67/notegic-backend/contracts/types/models/enums"
+	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 )
@@ -20,7 +20,7 @@ import (
 func TestDocumentInitializationClientInitializeDocuments(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
 		var requestBody struct {
-			Documents []blockpackscontract.InitializeBlockPackYjsDocumentReqDto `json:"documents"`
+			Documents []cblockpacks.InitializeBlockPackYjsDocumentReqDto `json:"documents"`
 		}
 		if err := json.NewDecoder(request.Body).Decode(&requestBody); err != nil {
 			t.Fatalf("Decode() error = %v", err)
@@ -40,15 +40,15 @@ func TestDocumentInitializationClientInitializeDocuments(t *testing.T) {
 	})
 	responseDtos, err := client.InitializeDocuments(
 		context.Background(),
-		[]blockpackscontract.InitializeBlockPackYjsDocumentReqDto{
+		[]cblockpacks.InitializeBlockPackYjsDocumentReqDto{
 			{
-				Blocks: []blocknote.ArborizedEditableBlock{
+				Blocks: []cblocknote.ArborizedEditableBlock{
 					{
 						Id:       uuid.New(),
-						Type:     blockenums.BlockType_Paragraph,
-						Props:    &blocknote.BaseProps{},
-						Content:  blocknote.InlineContentList{},
-						Children: []blocknote.ArborizedEditableBlock{},
+						Type:     enums.BlockType_Paragraph,
+						Props:    &cblocknote.BaseProps{},
+						Content:  cblocknote.InlineContentList{},
+						Children: []cblocknote.ArborizedEditableBlock{},
 					},
 				},
 			},

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type UserException struct {
@@ -15,8 +15,8 @@ func NewUserException() UserException {
 	return UserException{CoreException: NewCoreException("User")}
 }
 
-func (UserException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"User",
 		"Repository",
@@ -25,8 +25,8 @@ func (UserException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (UserException) FailedToCreate() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) FailedToCreate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCreate",
 		"User",
 		"Repository",
@@ -36,8 +36,8 @@ func (UserException) FailedToCreate() *exceptions.Exception {
 	)
 }
 
-func (UserException) FailedToUpdate() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) FailedToUpdate() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToUpdate",
 		"User",
 		"Repository",
@@ -47,8 +47,8 @@ func (UserException) FailedToUpdate() *exceptions.Exception {
 	)
 }
 
-func (UserException) FailedToDelete() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) FailedToDelete() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToDelete",
 		"User",
 		"Repository",
@@ -58,8 +58,8 @@ func (UserException) FailedToDelete() *exceptions.Exception {
 	)
 }
 
-func (UserException) NoChanges() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) NoChanges() *cexceptions.Exception {
+	return cexceptions.New(
 		"NoChanges",
 		"User",
 		"Repository",
@@ -68,8 +68,8 @@ func (UserException) NoChanges() *exceptions.Exception {
 	)
 }
 
-func (UserException) FailedToCommitTransaction() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) FailedToCommitTransaction() *cexceptions.Exception {
+	return cexceptions.New(
 		"FailedToCommitTransaction",
 		"User",
 		"Transaction",
@@ -79,8 +79,8 @@ func (UserException) FailedToCommitTransaction() *exceptions.Exception {
 	)
 }
 
-func (UserException) InvalidInput() *exceptions.Exception {
-	return exceptions.New(
+func (UserException) InvalidInput() *cexceptions.Exception {
+	return cexceptions.New(
 		"InvalidInput",
 		"User",
 		"Validate",
@@ -89,8 +89,8 @@ func (UserException) InvalidInput() *exceptions.Exception {
 	)
 }
 
-func (UserException) DuplicateName(name string) *exceptions.Exception {
-	return exceptions.New(
+func (UserException) DuplicateName(name string) *cexceptions.Exception {
+	return cexceptions.New(
 		"DuplicateName",
 		"User",
 		"Create",
@@ -99,8 +99,8 @@ func (UserException) DuplicateName(name string) *exceptions.Exception {
 	)
 }
 
-func (UserException) DuplicateEmail(email string) *exceptions.Exception {
-	return exceptions.New(
+func (UserException) DuplicateEmail(email string) *cexceptions.Exception {
+	return cexceptions.New(
 		"DuplicateEmail",
 		"User",
 		"Create",

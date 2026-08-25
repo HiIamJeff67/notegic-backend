@@ -3,7 +3,7 @@ package apiexceptions
 import (
 	"net/http"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
 type ItemException struct {
@@ -14,8 +14,8 @@ func NewItemException() ItemException {
 	return ItemException{CoreException: NewCoreException("Item")}
 }
 
-func (ItemException) NotFound() *exceptions.Exception {
-	return exceptions.New(
+func (ItemException) NotFound() *cexceptions.Exception {
+	return cexceptions.New(
 		"NotFound",
 		"Item",
 		"Repository",
@@ -24,8 +24,8 @@ func (ItemException) NotFound() *exceptions.Exception {
 	)
 }
 
-func (ItemException) NoPermission(_ ...string) *exceptions.Exception {
-	return exceptions.New(
+func (ItemException) NoPermission(_ ...string) *cexceptions.Exception {
+	return cexceptions.New(
 		"PermissionDenied",
 		"Item",
 		"Authorize",

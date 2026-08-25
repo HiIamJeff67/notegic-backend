@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -29,7 +29,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _SearchRoutineTagConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagConnection_searchEdges(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -55,7 +55,7 @@ func (ec *executionContext) _SearchRoutineTagConnection_searchEdges(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*gqlmodels.SearchRoutineTagEdge)
+	res := resTmp.([]*cgqlmodels.SearchRoutineTagEdge)
 	fc.Result = res
 	return ec.marshalNSearchRoutineTagEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagEdgeᚄ(ctx, field.Selections, res)
 }
@@ -79,7 +79,7 @@ func (ec *executionContext) fieldContext_SearchRoutineTagConnection_searchEdges(
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchRoutineTagConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagConnection_searchPageInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -105,7 +105,7 @@ func (ec *executionContext) _SearchRoutineTagConnection_searchPageInfo(ctx conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.SearchPageInfo)
+	res := resTmp.(*cgqlmodels.SearchPageInfo)
 	fc.Result = res
 	return ec.marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx, field.Selections, res)
 }
@@ -133,7 +133,7 @@ func (ec *executionContext) fieldContext_SearchRoutineTagConnection_searchPageIn
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchRoutineTagConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -177,7 +177,7 @@ func (ec *executionContext) fieldContext_SearchRoutineTagConnection_totalCount(_
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchRoutineTagConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagConnection_searchTime(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -221,7 +221,7 @@ func (ec *executionContext) fieldContext_SearchRoutineTagConnection_searchTime(_
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchRoutineTagEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagEdge_encodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -265,7 +265,7 @@ func (ec *executionContext) fieldContext_SearchRoutineTagEdge_encodedSearchCurso
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchRoutineTagEdge_node(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchRoutineTagEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchRoutineTagEdge_node(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchRoutineTagEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchRoutineTagEdge_node(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -291,7 +291,7 @@ func (ec *executionContext) _SearchRoutineTagEdge_node(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*gqlmodels.PrivateRoutineTag)
+	res := resTmp.(*cgqlmodels.PrivateRoutineTag)
 	fc.Result = res
 	return ec.marshalNPrivateRoutineTag2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRoutineTag(ctx, field.Selections, res)
 }
@@ -327,8 +327,8 @@ func (ec *executionContext) fieldContext_SearchRoutineTagEdge_node(_ context.Con
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputSearchRoutineTagCursorFields(ctx context.Context, obj any) (gqlmodels.SearchRoutineTagCursorFields, error) {
-	var it gqlmodels.SearchRoutineTagCursorFields
+func (ec *executionContext) unmarshalInputSearchRoutineTagCursorFields(ctx context.Context, obj any) (cgqlmodels.SearchRoutineTagCursorFields, error) {
+	var it cgqlmodels.SearchRoutineTagCursorFields
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -354,8 +354,8 @@ func (ec *executionContext) unmarshalInputSearchRoutineTagCursorFields(ctx conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchRoutineTagInput(ctx context.Context, obj any) (gqlmodels.SearchRoutineTagInput, error) {
-	var it gqlmodels.SearchRoutineTagInput
+func (ec *executionContext) unmarshalInputSearchRoutineTagInput(ctx context.Context, obj any) (cgqlmodels.SearchRoutineTagInput, error) {
+	var it cgqlmodels.SearchRoutineTagInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -429,7 +429,7 @@ func (ec *executionContext) unmarshalInputSearchRoutineTagInput(ctx context.Cont
 
 var searchRoutineTagConnectionImplementors = []string{"SearchRoutineTagConnection", "SearchConnection"}
 
-func (ec *executionContext) _SearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
+func (ec *executionContext) _SearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchRoutineTagConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -483,7 +483,7 @@ func (ec *executionContext) _SearchRoutineTagConnection(ctx context.Context, sel
 
 var searchRoutineTagEdgeImplementors = []string{"SearchRoutineTagEdge", "SearchEdge"}
 
-func (ec *executionContext) _SearchRoutineTagEdge(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
+func (ec *executionContext) _SearchRoutineTagEdge(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchRoutineTagEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -529,11 +529,11 @@ func (ec *executionContext) _SearchRoutineTagEdge(ctx context.Context, sel ast.S
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNSearchRoutineTagConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, v gqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchRoutineTagConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, v cgqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
 	return ec._SearchRoutineTagConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSearchRoutineTagConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchRoutineTagConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagConnection(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchRoutineTagConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -543,7 +543,7 @@ func (ec *executionContext) marshalNSearchRoutineTagConnection2ᚖgithubᚗcom�
 	return ec._SearchRoutineTagConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*gqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*cgqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -587,7 +587,7 @@ func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚕᚖgithubᚗcomᚋHi
 	return ret
 }
 
-func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagEdge(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagEdge(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchRoutineTagEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -597,21 +597,21 @@ func (ec *executionContext) marshalNSearchRoutineTagEdge2ᚖgithubᚗcomᚋHiIam
 	return ec._SearchRoutineTagEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSearchRoutineTagInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagInput(ctx context.Context, v any) (gqlmodels.SearchRoutineTagInput, error) {
+func (ec *executionContext) unmarshalNSearchRoutineTagInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagInput(ctx context.Context, v any) (cgqlmodels.SearchRoutineTagInput, error) {
 	res, err := ec.unmarshalInputSearchRoutineTagInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchRoutineTagSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagSortBy(ctx context.Context, v any) (*gqlmodels.SearchRoutineTagSortBy, error) {
+func (ec *executionContext) unmarshalOSearchRoutineTagSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagSortBy(ctx context.Context, v any) (*cgqlmodels.SearchRoutineTagSortBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(gqlmodels.SearchRoutineTagSortBy)
+	var res = new(cgqlmodels.SearchRoutineTagSortBy)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSearchRoutineTagSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagSortBy(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchRoutineTagSortBy) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchRoutineTagSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagSortBy(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchRoutineTagSortBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

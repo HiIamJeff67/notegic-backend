@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	emailcontract "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
+	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
 )
 
 type EmailTaskType string
@@ -20,7 +20,7 @@ type EmailObject struct {
 	To               string `json:"to"`
 	Subject          string `json:"subject"`
 	Body             string `json:"body"`
-	EmailContentType emailcontract.EmailContentType
+	EmailContentType cemail.EmailContentType
 }
 
 type EmailTask struct {

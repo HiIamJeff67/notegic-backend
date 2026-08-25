@@ -7,27 +7,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
-	gatewaycontract "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
-	enums "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas/enums"
+	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		currentUserPlanValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Plan.String())
 		if !exists {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"WrongMiddlewareOrder",
 					"Context",
 					"Middleware",
@@ -41,14 +41,14 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 
 		currentUserPlan, ok := currentUserPlanValue.(enums.UserPlan)
 		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"InvalidType",
 					"User",
 					"Authorize",
@@ -70,14 +70,14 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 				return
 			}
 			if userPlan == atLeastUserPlan {
-				ctx.AbortWithStatusJSON(http.StatusForbidden, gatewaycontract.Response[struct{}]{
-					Version: gatewaycontract.Version,
-					Metadata: gatewaycontract.ResponseMetadata{
+				ctx.AbortWithStatusJSON(http.StatusForbidden, cgateway.Response[struct{}]{
+					Version: cgateway.Version,
+					Metadata: cgateway.ResponseMetadata{
 						RequestId:   ctx.GetHeader("X-Request-Id"),
 						RespondedAt: time.Now(),
 					},
 					Data: struct{}{},
-					Exception: exceptions.New(
+					Exception: cexceptions.New(
 						"PermissionDeniedDueToUserPlan",
 						"Auth",
 						"Authorize",
@@ -89,14 +89,14 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 			}
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   ctx.GetHeader("X-Request-Id"),
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"AuthenticationContextInvalid",
 				"Core",
 				"Authorize",
@@ -113,14 +113,14 @@ func AllowedUserPlanMiddleware(allowedPlans []enums.UserPlan) gin.HandlerFunc {
 		currentUserPlanValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Plan.String())
 		currentUserPlan, ok := currentUserPlanValue.(enums.UserPlan)
 		if !exists || !ok {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gatewaycontract.Response[struct{}]{
-				Version: gatewaycontract.Version,
-				Metadata: gatewaycontract.ResponseMetadata{
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
+				Version: cgateway.Version,
+				Metadata: cgateway.ResponseMetadata{
 					RequestId:   ctx.GetHeader("X-Request-Id"),
 					RespondedAt: time.Now(),
 				},
 				Data: struct{}{},
-				Exception: exceptions.New(
+				Exception: cexceptions.New(
 					"AuthenticationContextInvalid",
 					"Core",
 					"Authorize",
@@ -143,14 +143,14 @@ func AllowedUserPlanMiddleware(allowedPlans []enums.UserPlan) gin.HandlerFunc {
 			}
 		}
 
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gatewaycontract.Response[struct{}]{
-			Version: gatewaycontract.Version,
-			Metadata: gatewaycontract.ResponseMetadata{
+		ctx.AbortWithStatusJSON(http.StatusForbidden, cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
 				RequestId:   ctx.GetHeader("X-Request-Id"),
 				RespondedAt: time.Now(),
 			},
 			Data: struct{}{},
-			Exception: exceptions.New(
+			Exception: cexceptions.New(
 				"PermissionDeniedDueToUserPlan",
 				"Auth",
 				"Authorize",
