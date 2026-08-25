@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
@@ -15,7 +15,7 @@ func TestConnectorPrioritizesControlFramesOverChannelData(t *testing.T) {
 	connector := newOutboundTestConnector()
 
 	if err := connector.writeBinary(realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               realtimetypes.BinaryFrameType_YjsDocument,
 		ConnectorChannelId: 1,
 		Payload:            []byte{1},
@@ -23,7 +23,7 @@ func TestConnectorPrioritizesControlFramesOverChannelData(t *testing.T) {
 		t.Fatalf("failed to enqueue binary frame: %v", err)
 	}
 	if err := connector.writeJSON(realtimetypes.ErrorFrame{
-		Version: constants.RealtimeProtocolVersion,
+		Version: sconstants.RealtimeProtocolVersion,
 		Type:    realtimetypes.FrameType_Error,
 		Code:    realtimetypes.ErrorCode_ChannelBackpressure,
 		Message: "resubscribe",
@@ -53,7 +53,7 @@ func TestConnectorCoalescesQueuedAwarenessPerChannel(t *testing.T) {
 
 	for _, payload := range [][]byte{{1}, {2}} {
 		if err := connector.writeBinary(realtimetypes.BinaryFrame{
-			Version:            byte(constants.RealtimeProtocolVersion),
+			Version:            byte(sconstants.RealtimeProtocolVersion),
 			Type:               realtimetypes.BinaryFrameType_Awareness,
 			ConnectorChannelId: 1,
 			Payload:            payload,
@@ -79,13 +79,13 @@ func TestConnectorCoalescesQueuedAwarenessPerChannel(t *testing.T) {
 func TestConnectorLimitsYjsQueueWithoutDroppingQueuedUpdates(t *testing.T) {
 	connector := newOutboundTestConnector()
 	frame := realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               realtimetypes.BinaryFrameType_YjsDocument,
 		ConnectorChannelId: 1,
 		Payload:            []byte{1},
 	}
 
-	for index := 0; index < constants.RealtimeMaxOutboundFramesPerChannel; index++ {
+	for index := 0; index < sconstants.RealtimeMaxOutboundFramesPerChannel; index++ {
 		if err := connector.writeBinary(frame); err != nil {
 			t.Fatalf("failed to enqueue update %d: %v", index, err)
 		}
@@ -94,7 +94,7 @@ func TestConnectorLimitsYjsQueueWithoutDroppingQueuedUpdates(t *testing.T) {
 	if err := connector.writeBinary(frame); err == nil {
 		t.Fatal("expected queue overflow")
 	}
-	if len(connector.outbound.channelQueues[1].messages) != constants.RealtimeMaxOutboundFramesPerChannel {
+	if len(connector.outbound.channelQueues[1].messages) != sconstants.RealtimeMaxOutboundFramesPerChannel {
 		t.Fatalf("queued updates were dropped: %d", len(connector.outbound.channelQueues[1].messages))
 	}
 }
@@ -118,7 +118,7 @@ func TestConnectorUnsubscribeClearsOutboundChannelQueue(t *testing.T) {
 	}
 
 	if err := connector.writeBinary(realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               realtimetypes.BinaryFrameType_YjsDocument,
 		ConnectorChannelId: 1,
 		Payload:            []byte{1},

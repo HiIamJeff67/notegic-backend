@@ -3,7 +3,6 @@ package routines
 import (
 	"context"
 	"errors"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -13,23 +12,21 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type StationServiceInterface interface {
@@ -65,17 +62,17 @@ type StationServiceInterface interface {
 type StationService struct {
 	validator                 *validator.Validate
 	db                        *gorm.DB
-	stationScope              scopes.StationScopeInterface
-	stationRepository         repositories.StationRepositoryInterface
-	usersToStationsRepository repositories.UsersToStationsRepositoryInterface
+	stationScope              sscopes.StationScopeInterface
+	stationRepository         srepositories.StationRepositoryInterface
+	usersToStationsRepository srepositories.UsersToStationsRepositoryInterface
 }
 
 func NewStationService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	stationScope scopes.StationScopeInterface,
-	stationRepository repositories.StationRepositoryInterface,
-	usersToStationsRepository repositories.UsersToStationsRepositoryInterface,
+	stationScope sscopes.StationScopeInterface,
+	stationRepository srepositories.StationRepositoryInterface,
+	usersToStationsRepository srepositories.UsersToStationsRepositoryInterface,
 ) StationServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -93,7 +90,7 @@ func NewStationService(
 
 type stationPermissionValues struct {
 	UserPublicId uuid.UUID
-	Permission   enums.AccessControlPermission
+	Permission   cenums.AccessControlPermission
 	UpdatedAt    time.Time
 	CreatedAt    time.Time
 }
@@ -103,10 +100,10 @@ func (s *StationService) saveMyStationPermission(
 	actorUserId uuid.UUID,
 	stationId uuid.UUID,
 	targetUserPublicId uuid.UUID,
-	permission enums.AccessControlPermission,
+	permission cenums.AccessControlPermission,
 	requireExisting *bool,
 ) (*stationPermissionValues, *cexceptions.Exception) {
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		return nil, cexceptions.New(
 			"PermissionDenied",
 			"Station",
@@ -135,16 +132,16 @@ func (s *StationService) saveMyStationPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := tx.Where("public_id = ?", targetUserPublicId).First(&targetUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -158,8 +155,8 @@ func (s *StationService) saveMyStationPermission(
 	targetPermission, targetException := s.usersToStationsRepository.GetOne(
 		station.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if targetException != nil && !errors.Is(targetException.Origin(), gorm.ErrRecordNotFound) {
 		tx.Rollback()
@@ -178,7 +175,7 @@ func (s *StationService) saveMyStationPermission(
 			http.StatusNotModified,
 		)
 	}
-	if targetPermission != nil && targetPermission.Permission == enums.AccessControlPermission_Owner {
+	if targetPermission != nil && targetPermission.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -188,7 +185,7 @@ func (s *StationService) saveMyStationPermission(
 			http.StatusBadRequest,
 		)
 	}
-	if actorPermission != enums.AccessControlPermission_Owner && (permission == enums.AccessControlPermission_Admin || targetPermission != nil && targetPermission.Permission == enums.AccessControlPermission_Admin) {
+	if actorPermission != cenums.AccessControlPermission_Owner && (permission == cenums.AccessControlPermission_Admin || targetPermission != nil && targetPermission.Permission == cenums.AccessControlPermission_Admin) {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -198,20 +195,20 @@ func (s *StationService) saveMyStationPermission(
 			http.StatusBadRequest,
 		)
 	}
-	var relation *schemas.UsersToStations
+	var relation *sschemas.UsersToStations
 	if targetPermission == nil {
 		relation, exception = s.usersToStationsRepository.CreateOne(
 			station.Id,
 			targetUser.Id,
 			permission,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 	} else {
 		relation, exception = s.usersToStationsRepository.UpdateOne(
 			station.Id,
 			targetUser.Id,
 			permission,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 	}
 	if exception != nil {
@@ -264,12 +261,12 @@ func (s *StationService) GetMyStationById(
 
 	db := s.db.WithContext(ctx)
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -277,9 +274,9 @@ func (s *StationService) GetMyStationById(
 		requestDto.Param.StationId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -330,21 +327,21 @@ func (s *StationService) GetAllMyStations(
 
 	db := s.db.WithContext(ctx)
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Query.AreDeleted != nil {
 		if *requestDto.Query.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	stations, permissions, exception := s.stationRepository.GetAllByUserId(
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -392,22 +389,22 @@ func (s *StationService) CreateStation(
 		return nil, exception
 	}
 
-	var icon *enums.SupportedIcon
+	var icon *cenums.SupportedIcon
 	if requestDto.Body.Icon != nil {
-		parsedIcon := enums.SupportedIcon(*requestDto.Body.Icon)
+		parsedIcon := cenums.SupportedIcon(*requestDto.Body.Icon)
 		icon = &parsedIcon
 	}
 
 	newStationId, exception := s.stationRepository.CreateOne(
 		actorUserId,
-		inputs.CreateStationInput{
+		sinputs.CreateStationInput{
 			Id:                  requestDto.Body.Id,
 			Name:                requestDto.Body.Name,
 			Description:         requestDto.Body.Description,
 			Icon:                icon,
 			HeaderBackgroundURL: requestDto.Body.HeaderBackgroundURL,
 		},
-		options.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithDB(s.db.WithContext(ctx)),
 	)
 	if exception != nil {
 		return nil, exception
@@ -438,14 +435,14 @@ func (s *StationService) CreateStations(
 		return nil, exception
 	}
 
-	input := make([]inputs.CreateStationInput, len(requestDto.Body.CreatedStations))
+	input := make([]sinputs.CreateStationInput, len(requestDto.Body.CreatedStations))
 	for index, createdStation := range requestDto.Body.CreatedStations {
-		var icon *enums.SupportedIcon
+		var icon *cenums.SupportedIcon
 		if createdStation.Icon != nil {
-			parsedIcon := enums.SupportedIcon(*createdStation.Icon)
+			parsedIcon := cenums.SupportedIcon(*createdStation.Icon)
 			icon = &parsedIcon
 		}
-		input[index] = inputs.CreateStationInput{
+		input[index] = sinputs.CreateStationInput{
 			Id:                  createdStation.Id,
 			Name:                createdStation.Name,
 			Description:         createdStation.Description,
@@ -456,7 +453,7 @@ func (s *StationService) CreateStations(
 	newStationIds, exception := s.stationRepository.CreateMany(
 		actorUserId,
 		input,
-		options.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithDB(s.db.WithContext(ctx)),
 	)
 	if exception != nil {
 		return nil, exception
@@ -492,17 +489,17 @@ func (s *StationService) UpdateMyStationById(
 		return nil, exception
 	}
 
-	var icon *enums.SupportedIcon
+	var icon *cenums.SupportedIcon
 	if requestDto.Body.Values.Icon != nil {
-		parsedIcon := enums.SupportedIcon(*requestDto.Body.Values.Icon)
+		parsedIcon := cenums.SupportedIcon(*requestDto.Body.Values.Icon)
 		icon = &parsedIcon
 	}
 
 	updatedStation, exception := s.stationRepository.UpdateOneById(
 		requestDto.Param.StationId,
 		actorUserId,
-		inputs.PartialUpdateStationInput{
-			Values: inputs.UpdateStationInput{
+		sinputs.PartialUpdateStationInput{
+			Values: sinputs.UpdateStationInput{
 				Name:                requestDto.Body.Values.Name,
 				Description:         requestDto.Body.Values.Description,
 				Icon:                icon,
@@ -510,8 +507,8 @@ func (s *StationService) UpdateMyStationById(
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -546,17 +543,17 @@ func (s *StationService) UpdateMyStationsByIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateStationByIdInput, len(requestDto.Body.UpdatedStations))
+	input := make([]sinputs.UpdateStationByIdInput, len(requestDto.Body.UpdatedStations))
 	for index, updatedStation := range requestDto.Body.UpdatedStations {
-		var icon *enums.SupportedIcon
+		var icon *cenums.SupportedIcon
 		if updatedStation.Values.Icon != nil {
-			parsedIcon := enums.SupportedIcon(*updatedStation.Values.Icon)
+			parsedIcon := cenums.SupportedIcon(*updatedStation.Values.Icon)
 			icon = &parsedIcon
 		}
-		input[index] = inputs.UpdateStationByIdInput{
+		input[index] = sinputs.UpdateStationByIdInput{
 			Id: updatedStation.StationId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateStationInput]{
-				Values: inputs.UpdateStationInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateStationInput]{
+				Values: sinputs.UpdateStationInput{
 					Name:                updatedStation.Values.Name,
 					Description:         updatedStation.Values.Description,
 					Icon:                icon,
@@ -569,8 +566,8 @@ func (s *StationService) UpdateMyStationsByIds(
 	exception = s.stationRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -608,8 +605,8 @@ func (s *StationService) RestoreMyStationById(
 	restoredStation, exception := s.stationRepository.RestoreSoftDeletedOneById(
 		requestDto.Body.StationId,
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -661,8 +658,8 @@ func (s *StationService) RestoreMyStationsByIds(
 	restoredStations, exception := s.stationRepository.RestoreSoftDeletedManyByIds(
 		requestDto.Body.StationIds,
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -722,19 +719,19 @@ func (s *StationService) DeleteMyStationById(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		result := tx.
-			Model(&schemas.Station{}).
+			Model(&sschemas.Station{}).
 			Where("id = ?", station.Id).
 			Update("deleted_at", time.Now())
 		if result.Error != nil {
@@ -762,7 +759,7 @@ func (s *StationService) DeleteMyStationById(
 		exception = s.usersToStationsRepository.DeleteOne(
 			station.Id,
 			actorUserId,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 		if exception != nil {
 			tx.Rollback()
@@ -813,8 +810,8 @@ func (s *StationService) DeleteMyStationsByIds(
 	exception = s.stationRepository.SoftDeleteManyByIds(
 		requestDto.Body.StationIds,
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -852,8 +849,8 @@ func (s *StationService) HardDeleteMyStationById(
 	exception = s.stationRepository.HardDeleteOneById(
 		requestDto.Body.StationId,
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -891,8 +888,8 @@ func (s *StationService) HardDeleteMyStationsByIds(
 	exception = s.stationRepository.HardDeleteManyByIds(
 		requestDto.Body.StationIds,
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -918,7 +915,7 @@ func (s *StationService) VisualizeMyTotalCount(
 		).WithOrigin(err)
 	}
 
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Query.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Query.Permission)
 	if err != nil {
 		return nil, cexceptions.New(
 			"InvalidRequest",
@@ -942,8 +939,8 @@ func (s *StationService) VisualizeMyTotalCount(
 		RoutineTagCount  int64 `gorm:"column:routine_tag_count;"`
 	}
 
-	if *permission == enums.AccessControlPermission_Owner {
-		result := db.Model(&platformschemas.UserAccount{}).
+	if *permission == cenums.AccessControlPermission_Owner {
+		result := db.Model(&sschemas.UserAccount{}).
 			Select("station_count, routine_count, routine_tag_count").
 			Where(`user_id = ?`, actorUserId).
 			Scan(&totals)
@@ -957,7 +954,7 @@ func (s *StationService) VisualizeMyTotalCount(
 			).WithOrigin(result.Error)
 		}
 
-		result = db.Model(&schemas.RoutineTask{}).
+		result = db.Model(&sschemas.RoutineTask{}).
 			Joins(`INNER JOIN "RoutineTable" routine ON routine.id = "RoutineTaskTable".routine_id`).
 			Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
 			Joins(`INNER JOIN "StationTable" station ON station.id = routine.station_id AND station.deleted_at IS NULL`).
@@ -999,7 +996,7 @@ func (s *StationService) VisualizeMyTotalCount(
 		}, nil
 	}
 
-	result := db.Model(&schemas.Station{}).
+	result := db.Model(&sschemas.Station{}).
 		Select(`
 			COUNT(DISTINCT "StationTable".id) AS station_count,
 			COALESCE(SUM("StationTable".routine_count), 0) AS routine_count
@@ -1018,7 +1015,7 @@ func (s *StationService) VisualizeMyTotalCount(
 		).WithOrigin(result.Error)
 	}
 
-	result = db.Model(&schemas.RoutineTask{}).
+	result = db.Model(&sschemas.RoutineTask{}).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = "RoutineTaskTable".routine_id`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
 		Joins(`INNER JOIN "StationTable" station ON station.id = routine.station_id AND station.deleted_at IS NULL`).
@@ -1090,14 +1087,14 @@ func (s *StationService) GetMyStationPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	); exception != nil {
 		return nil, exception
 	}
 
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := db.Where("public_id = ?", requestDto.Param.UserPublicId).First(&targetUser); result.Error != nil {
 		return nil, cexceptions.New(
 			"NotFound",
@@ -1110,7 +1107,7 @@ func (s *StationService) GetMyStationPermission(
 	relation, exception := s.usersToStationsRepository.GetOne(
 		requestDto.Param.StationId,
 		targetUser.Id,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1136,7 +1133,7 @@ func (s *StationService) CreateMyStationPermission(
 			http.StatusBadRequest,
 		).WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("Station").WithOrigin(err)
 	}
@@ -1176,7 +1173,7 @@ func (s *StationService) UpsertMyStationPermission(
 			http.StatusBadRequest,
 		).WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("Station").WithOrigin(err)
 	}
@@ -1221,13 +1218,13 @@ func (s *StationService) UpsertMyStationPermissions(
 		return nil, exception
 	}
 	userPublicIds := make([]uuid.UUID, len(requestDto.Body.Permissions))
-	permissionByPublicId := make(map[uuid.UUID]enums.AccessControlPermission, len(requestDto.Body.Permissions))
+	permissionByPublicId := make(map[uuid.UUID]cenums.AccessControlPermission, len(requestDto.Body.Permissions))
 	for index, input := range requestDto.Body.Permissions {
-		permission, err := enums.ConvertStringToAccessControlPermission(input.Permission)
+		permission, err := cenums.ConvertStringToAccessControlPermission(input.Permission)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("Station").WithOrigin(err)
 		}
-		if *permission == enums.AccessControlPermission_Owner {
+		if *permission == cenums.AccessControlPermission_Owner {
 			return nil, cexceptions.New(
 				"PermissionDenied",
 				"Station",
@@ -1272,19 +1269,19 @@ func (s *StationService) UpsertMyStationPermissions(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUsers []schemas.User
+	var targetUsers []sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select("id, public_id").
 		Where("public_id IN ?", userPublicIds).
 		Find(&targetUsers)
@@ -1309,8 +1306,8 @@ func (s *StationService) UpsertMyStationPermissions(
 		)
 	}
 
-	userByPublicId := make(map[uuid.UUID]schemas.User, len(targetUsers))
-	userById := make(map[uuid.UUID]schemas.User, len(targetUsers))
+	userByPublicId := make(map[uuid.UUID]sschemas.User, len(targetUsers))
+	userById := make(map[uuid.UUID]sschemas.User, len(targetUsers))
 	for _, user := range targetUsers {
 		userByPublicId[user.PublicId] = user
 		userById[user.Id] = user
@@ -1324,24 +1321,24 @@ func (s *StationService) UpsertMyStationPermissions(
 	existingPermissions, exception := s.usersToStationsRepository.GetMany(
 		station.Id,
 		userIds,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	existingPermissionByUserId := make(map[uuid.UUID]enums.AccessControlPermission, len(existingPermissions))
+	existingPermissionByUserId := make(map[uuid.UUID]cenums.AccessControlPermission, len(existingPermissions))
 	for _, existingPermission := range existingPermissions {
 		existingPermissionByUserId[existingPermission.UserId] = existingPermission.Permission
 	}
 
-	permissions := make([]enums.AccessControlPermission, len(userIds))
+	permissions := make([]cenums.AccessControlPermission, len(userIds))
 	for index, userId := range userIds {
 		user := userById[userId]
 		permission := permissionByPublicId[user.PublicId]
-		if existingPermissionByUserId[userId] == enums.AccessControlPermission_Owner {
+		if existingPermissionByUserId[userId] == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1351,9 +1348,9 @@ func (s *StationService) UpsertMyStationPermissions(
 				http.StatusBadRequest,
 			)
 		}
-		if actorPermission != enums.AccessControlPermission_Owner &&
-			(permission == enums.AccessControlPermission_Admin ||
-				existingPermissionByUserId[userId] == enums.AccessControlPermission_Admin) {
+		if actorPermission != cenums.AccessControlPermission_Owner &&
+			(permission == cenums.AccessControlPermission_Admin ||
+				existingPermissionByUserId[userId] == cenums.AccessControlPermission_Admin) {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1371,7 +1368,7 @@ func (s *StationService) UpsertMyStationPermissions(
 		station.Id,
 		userIds,
 		permissions,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1390,7 +1387,7 @@ func (s *StationService) UpsertMyStationPermissions(
 		).WithOrigin(err)
 	}
 
-	updatedPermissionByUserId := make(map[uuid.UUID]schemas.UsersToStations, len(updatedPermissions))
+	updatedPermissionByUserId := make(map[uuid.UUID]sschemas.UsersToStations, len(updatedPermissions))
 	for _, updatedPermission := range updatedPermissions {
 		updatedPermissionByUserId[updatedPermission.UserId] = updatedPermission
 	}
@@ -1422,7 +1419,7 @@ func (s *StationService) UpdateMyStationPermission(
 			http.StatusBadRequest,
 		).WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("Station").WithOrigin(err)
 	}
@@ -1487,16 +1484,16 @@ func (s *StationService) TransferMyStationOwnership(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if permission != enums.AccessControlPermission_Owner {
+	if permission != cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1507,7 +1504,7 @@ func (s *StationService) TransferMyStationOwnership(
 		)
 	}
 
-	var actorUser schemas.User
+	var actorUser sschemas.User
 	if result := tx.Select("id, public_id").Where("id = ?", actorUserId).First(&actorUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1518,7 +1515,7 @@ func (s *StationService) TransferMyStationOwnership(
 			http.StatusNotFound,
 		).WithOrigin(result.Error)
 	}
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := tx.Select("id, public_id").Where("public_id = ?", requestDto.Body.TargetUserPublicId).First(&targetUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1543,14 +1540,14 @@ func (s *StationService) TransferMyStationOwnership(
 	targetMembership, exception := s.usersToStationsRepository.GetOne(
 		station.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if targetMembership.Permission == enums.AccessControlPermission_Owner {
+	if targetMembership.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"NoChanges",
@@ -1561,9 +1558,9 @@ func (s *StationService) TransferMyStationOwnership(
 		)
 	}
 
-	var accounts []platformschemas.UserAccount
+	var accounts []sschemas.UserAccount
 	result := tx.
-		Clauses(clause.Locking{Strength: options.LockingStrengthUpdate}).
+		Clauses(clause.Locking{Strength: srepositories.LockingStrengthUpdate}).
 		Where("user_id IN ?", []uuid.UUID{actorUserId, targetUser.Id}).
 		Order("user_id").
 		Find(&accounts)
@@ -1592,8 +1589,8 @@ func (s *StationService) TransferMyStationOwnership(
 	if _, exception = s.usersToStationsRepository.UpdateOne(
 		station.Id,
 		actorUserId,
-		enums.AccessControlPermission_Admin,
-		options.WithTransactionDB(tx),
+		cenums.AccessControlPermission_Admin,
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -1601,14 +1598,14 @@ func (s *StationService) TransferMyStationOwnership(
 	newOwnerMembership, exception := s.usersToStationsRepository.UpdateOne(
 		station.Id,
 		targetUser.Id,
-		enums.AccessControlPermission_Owner,
-		options.WithTransactionDB(tx),
+		cenums.AccessControlPermission_Owner,
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	result = tx.Model(&schemas.Station{}).
+	result = tx.Model(&sschemas.Station{}).
 		Where("id = ?", station.Id).
 		Update("owner_id", targetUser.Id)
 	if result.Error != nil {
@@ -1691,19 +1688,19 @@ func (s *StationService) DeleteMyStationPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Where("public_id = ?", requestDto.Param.UserPublicId).
 		First(&targetUser)
 	if result.Error != nil {
@@ -1720,14 +1717,14 @@ func (s *StationService) DeleteMyStationPermission(
 	targetPermission, exception := s.usersToStationsRepository.GetOne(
 		station.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if targetPermission.Permission == enums.AccessControlPermission_Owner {
+	if targetPermission.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1737,8 +1734,8 @@ func (s *StationService) DeleteMyStationPermission(
 			http.StatusBadRequest,
 		)
 	}
-	if actorPermission != enums.AccessControlPermission_Owner &&
-		targetPermission.Permission == enums.AccessControlPermission_Admin {
+	if actorPermission != cenums.AccessControlPermission_Owner &&
+		targetPermission.Permission == cenums.AccessControlPermission_Admin {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1752,7 +1749,7 @@ func (s *StationService) DeleteMyStationPermission(
 	exception = s.usersToStationsRepository.DeleteOne(
 		station.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1828,19 +1825,19 @@ func (s *StationService) DeleteMyStationPermissions(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUsers []schemas.User
+	var targetUsers []sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select("id, public_id").
 		Where("public_id IN ?", requestDto.Body.UserPublicIds).
 		Find(&targetUsers)
@@ -1878,8 +1875,8 @@ func (s *StationService) DeleteMyStationPermissions(
 	targetPermissions, exception := s.usersToStationsRepository.GetMany(
 		station.Id,
 		userIds,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1897,7 +1894,7 @@ func (s *StationService) DeleteMyStationPermissions(
 	}
 
 	for _, targetPermission := range targetPermissions {
-		if targetPermission.Permission == enums.AccessControlPermission_Owner {
+		if targetPermission.Permission == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1907,8 +1904,8 @@ func (s *StationService) DeleteMyStationPermissions(
 				http.StatusBadRequest,
 			)
 		}
-		if actorPermission != enums.AccessControlPermission_Owner &&
-			targetPermission.Permission == enums.AccessControlPermission_Admin {
+		if actorPermission != cenums.AccessControlPermission_Owner &&
+			targetPermission.Permission == cenums.AccessControlPermission_Admin {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1923,7 +1920,7 @@ func (s *StationService) DeleteMyStationPermissions(
 	exception = s.usersToStationsRepository.DeleteMany(
 		station.Id,
 		userIds,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1977,15 +1974,15 @@ func (s *StationService) LeaveMyStation(
 		actorUserId,
 		nil,
 		nil,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return exception
 	}
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return cexceptions.New(
 			"PermissionDenied",
@@ -1998,7 +1995,7 @@ func (s *StationService) LeaveMyStation(
 	if exception = s.usersToStationsRepository.DeleteOne(
 		station.Id,
 		actorUserId,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return exception
@@ -2062,8 +2059,8 @@ func (s *StationService) LeaveMyStations(
 	relations, exception := s.usersToStationsRepository.GetManyByStationIdsAndUserId(
 		stationIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -2080,7 +2077,7 @@ func (s *StationService) LeaveMyStations(
 		)
 	}
 	for _, relation := range relations {
-		if relation.Permission == enums.AccessControlPermission_Owner {
+		if relation.Permission == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return cexceptions.New(
 				"PermissionDenied",
@@ -2095,7 +2092,7 @@ func (s *StationService) LeaveMyStations(
 	if exception = s.usersToStationsRepository.DeleteManyByStationIdsAndUserId(
 		stationIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return exception
@@ -2120,8 +2117,8 @@ func (s *StationService) SearchPrivateStations(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchStationInput,
 ) (*cgqlmodels.SearchStationConnection, *cexceptions.Exception) {
 	type PrivateStation struct {
-		schemas.Station
-		Permission enums.AccessControlPermission `gorm:"column:permission"`
+		sschemas.Station
+		Permission cenums.AccessControlPermission `gorm:"column:permission"`
 	}
 
 	startTime := time.Now()
@@ -2132,12 +2129,12 @@ func (s *StationService) SearchPrivateStations(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.Station{}).
+	query := db.Model(&sschemas.Station{}).
 		Select(`"StationTable".*, uts.permission AS permission`).
 		Joins(`LEFT JOIN "UsersToStationsTable" uts ON "StationTable".id = uts.station_id`).
 		Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions).
@@ -2150,7 +2147,7 @@ func (s *StationService) SearchPrivateStations(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchStationCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchStationCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, cexceptions.New(
 				"CursorDecodeFailed",
@@ -2200,11 +2197,11 @@ func (s *StationService) SearchPrivateStations(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
 	var stations []PrivateStation
@@ -2222,7 +2219,7 @@ func (s *StationService) SearchPrivateStations(
 	searchEdges := make([]*cgqlmodels.SearchStationEdge, len(stations))
 
 	for index, station := range stations {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchStationCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchStationCursorFields]{
 			Fields: cgqlmodels.SearchStationCursorFields{
 				ID: station.Id,
 			},

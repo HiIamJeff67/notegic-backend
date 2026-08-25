@@ -8,7 +8,7 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestPreparedRoutineTaskContractRoundTripPreservesAttempt(t *testing.T) {
@@ -19,7 +19,7 @@ func TestPreparedRoutineTaskContractRoundTripPreservesAttempt(t *testing.T) {
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
 		Attempt:             2,
-		Purpose:             enums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
 		Payload:             json.RawMessage(`{"name":"daily"}`),
 		PreparedAt:          time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC),
 	}
@@ -49,7 +49,7 @@ func TestCompletedRoutineTaskContractRequiresAttempt(t *testing.T) {
 			RoutineId:           uuid.New(),
 			ActorUserId:         uuid.New(),
 			ActorUserPublicId:   uuid.New(),
-			Purpose:             enums.RoutineTaskPurpose_CreateRootShelf,
+			Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
 			Payload:             json.RawMessage(`{"name":"daily"}`),
 			PreparedAt:          time.Now().UTC(),
 		},

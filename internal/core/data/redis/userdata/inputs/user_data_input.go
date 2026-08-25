@@ -3,7 +3,7 @@ package inputs
 import (
 	"time"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type UpdateUserDataCacheInput struct {
@@ -11,9 +11,9 @@ type UpdateUserDataCacheInput struct {
 	Email       *string
 	AccessToken *string
 	CSRFToken   *string
-	Role        *enums.UserRole
-	Plan        *enums.UserPlan
-	Status      *enums.UserStatus
+	Role        *cenums.UserRole
+	Plan        *cenums.UserPlan
+	Status      *cenums.UserStatus
 	AvatarURL   *string
 }
 

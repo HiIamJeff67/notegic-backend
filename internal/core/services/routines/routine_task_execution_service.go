@@ -10,35 +10,35 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+
 	handlers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/handlers"
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"
 	durablejobeventbuilders "github.com/HiIamJeff67/notegic-backend/internal/core/transports/durablejob/eventbuilders"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTaskExecutionServiceInterface interface {
 	ValidateRoutineTaskPayload(
-		purpose enums.RoutineTaskPurpose,
+		purpose cenums.RoutineTaskPurpose,
 		payload datatypes.JSON,
 	) *cexceptions.Exception
 	ResolveRoutineTaskPatterns(
 		ctx context.Context,
-		tasks []schemas.RoutineTask,
+		tasks []sschemas.RoutineTask,
 		actorUserIds []uuid.UUID,
 		patterns []croutinetasktypes.RoutineTaskPattern,
-		allowedPermissions []enums.AccessControlPermission,
+		allowedPermissions []cenums.AccessControlPermission,
 	) ([]map[string]string, []bool, *cexceptions.Exception)
 	ApplyPreparedRoutineTasks(
 		ctx context.Context,
@@ -108,7 +108,7 @@ func NewRoutineTaskExecutionService(
 /* ============================== Service Methods for RoutineTaskExecution ============================== */
 
 func (s *RoutineTaskExecutionService) ValidateRoutineTaskPayload(
-	purpose enums.RoutineTaskPurpose,
+	purpose cenums.RoutineTaskPurpose,
 	payload datatypes.JSON,
 ) *cexceptions.Exception {
 	return s.routineTaskHandler.HandleValidateRoutineTaskPayload(purpose, payload)
@@ -116,10 +116,10 @@ func (s *RoutineTaskExecutionService) ValidateRoutineTaskPayload(
 
 func (s *RoutineTaskExecutionService) ResolveRoutineTaskPatterns(
 	ctx context.Context,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	actorUserIds []uuid.UUID,
 	patterns []croutinetasktypes.RoutineTaskPattern,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]map[string]string, []bool, *cexceptions.Exception) {
 	return s.patternResolver.ResolveMany(ctx, s.db, tasks, actorUserIds, patterns, allowedPermissions)
 }
@@ -160,9 +160,9 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		).WithOrigin(tx.Error)
 	}
 
-	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
-		cinputs.CreateInboxEventInput{EventId: eventId},
-		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	isNewInboxEvent, inboxException := srepositories.NewInboxEventRepository().CreateOne(
+		sinputs.CreateInboxEventInput{EventId: eventId},
+		srepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
 	)
 	if inboxException != nil {
 		tx.Rollback()
@@ -206,7 +206,7 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			time.Now().UTC(),
 		)
 	}
-	if err := crepositories.EnqueueOutboxEvents(
+	if err := srepositories.EnqueueOutboxEvents(
 		tx,
 		coreevents.CoreLifecycleTopic,
 		completionEvents,
@@ -254,7 +254,7 @@ func (s *RoutineTaskExecutionService) applyPreparedRoutineTasks(
 		taskIds[index] = task.RoutineTaskId
 	}
 
-	var storedTasks []schemas.RoutineTask
+	var storedTasks []sschemas.RoutineTask
 	if err := db.WithContext(ctx).Where("id IN ?", taskIds).Find(&storedTasks).Error; err != nil {
 		return cexceptions.New(
 			"FailedToRead",
@@ -266,12 +266,12 @@ func (s *RoutineTaskExecutionService) applyPreparedRoutineTasks(
 		).WithOrigin(err)
 	}
 
-	storedTaskById := make(map[uuid.UUID]schemas.RoutineTask, len(storedTasks))
+	storedTaskById := make(map[uuid.UUID]sschemas.RoutineTask, len(storedTasks))
 	for _, task := range storedTasks {
 		storedTaskById[task.Id] = task
 	}
-	groupedTasks := make(map[enums.RoutineTaskPurpose][]schemas.RoutineTask)
-	actorsByTaskId := make(map[enums.RoutineTaskPurpose]map[uuid.UUID]uuid.UUID)
+	groupedTasks := make(map[cenums.RoutineTaskPurpose][]sschemas.RoutineTask)
+	actorsByTaskId := make(map[cenums.RoutineTaskPurpose]map[uuid.UUID]uuid.UUID)
 	for _, completedTask := range request.Tasks {
 		preparedTask := completedTask.PreparedTask
 		storedTask, exists := storedTaskById[completedTask.RoutineTaskId]
@@ -290,7 +290,7 @@ func (s *RoutineTaskExecutionService) applyPreparedRoutineTasks(
 		storedTask.RecordId = completedTask.RoutineTaskRecordId
 		storedTask.RecordScheduledAt = storedTask.ScheduledAt
 		storedTask.ActualStartedAt = &completedTask.CompletedAt
-		purpose := enums.RoutineTaskPurpose(preparedTask.Purpose)
+		purpose := cenums.RoutineTaskPurpose(preparedTask.Purpose)
 		groupedTasks[purpose] = append(groupedTasks[purpose], storedTask)
 		if actorsByTaskId[purpose] == nil {
 			actorsByTaskId[purpose] = make(map[uuid.UUID]uuid.UUID)
@@ -302,80 +302,80 @@ func (s *RoutineTaskExecutionService) applyPreparedRoutineTasks(
 		var (
 			successes          []bool
 			exception          *cexceptions.Exception
-			allowedPermissions []enums.AccessControlPermission
+			allowedPermissions []cenums.AccessControlPermission
 		)
 		switch purpose {
-		case enums.RoutineTaskPurpose_CreateRootShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
-				enums.AccessControlPermission_Read,
+		case cenums.RoutineTaskPurpose_CreateRootShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
+				cenums.AccessControlPermission_Read,
 			}
 			successes, exception = s.rootShelfHandler.HandleCreateRootShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_UpdateRootShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
+		case cenums.RoutineTaskPurpose_UpdateRootShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
 			}
 			successes, exception = s.rootShelfHandler.HandleUpdateRootShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_ResetRootShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
+		case cenums.RoutineTaskPurpose_ResetRootShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
 			}
 			successes, exception = s.rootShelfHandler.HandleResetRootShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_CreateSubShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
+		case cenums.RoutineTaskPurpose_CreateSubShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
 			}
 			successes, exception = s.subShelfHandler.HandleCreateSubShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_UpdateSubShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
+		case cenums.RoutineTaskPurpose_UpdateSubShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
 			}
 			successes, exception = s.subShelfHandler.HandleUpdateSubShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_ResetSubShelf:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
+		case cenums.RoutineTaskPurpose_ResetSubShelf:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
 			}
 			successes, exception = s.subShelfHandler.HandleResetSubShelf(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_CreateBlockPack:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
+		case cenums.RoutineTaskPurpose_CreateBlockPack:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
 			}
 			successes, exception = s.blockPackHandler.HandleCreateBlockPack(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_UpdateBlockPack:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
+		case cenums.RoutineTaskPurpose_UpdateBlockPack:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
 			}
 			successes, exception = s.blockPackHandler.HandleUpdateBlockPack(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_ResetBlockPack:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
+		case cenums.RoutineTaskPurpose_ResetBlockPack:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
 			}
 			successes, exception = s.blockPackHandler.HandleResetBlockPack(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_CreateRoutine:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
+		case cenums.RoutineTaskPurpose_CreateRoutine:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
 			}
 			successes, exception = s.routineHandler.HandleCreateRoutine(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
-		case enums.RoutineTaskPurpose_UpdateRoutine:
-			allowedPermissions = []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Write,
+		case cenums.RoutineTaskPurpose_UpdateRoutine:
+			allowedPermissions = []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Write,
 			}
 			successes, exception = s.routineHandler.HandleUpdateRoutine(ctx, db, tasks, actorsByTaskId[purpose], allowedPermissions)
 		default:
@@ -419,10 +419,10 @@ func finalizeCompletedRoutineTasks(
 		recordIds[index] = task.RoutineTaskRecordId
 	}
 
-	result := tx.Model(&schemas.RoutineTask{}).
-		Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Running).
+	result := tx.Model(&sschemas.RoutineTask{}).
+		Where("id IN ? AND status = ?", taskIds, cenums.RoutineTaskStatus_Running).
 		Updates(map[string]any{
-			"status":          enums.RoutineTaskStatus_Idle,
+			"status":          cenums.RoutineTaskStatus_Idle,
 			"attempts":        0,
 			"actual_ended_at": now,
 			"updated_at":      now,
@@ -439,8 +439,8 @@ func finalizeCompletedRoutineTasks(
 	}
 	if result.RowsAffected != int64(len(taskIds)) {
 		var finalizedTaskCount int64
-		tx.Model(&schemas.RoutineTask{}).
-			Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Idle).
+		tx.Model(&sschemas.RoutineTask{}).
+			Where("id IN ? AND status = ?", taskIds, cenums.RoutineTaskStatus_Idle).
 			Count(&finalizedTaskCount)
 		if finalizedTaskCount != int64(len(taskIds)) {
 			return cexceptions.New(
@@ -454,10 +454,10 @@ func finalizeCompletedRoutineTasks(
 		}
 	}
 
-	result = tx.Model(&schemas.RoutineTaskRecord{}).
-		Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Running).
+	result = tx.Model(&sschemas.RoutineTaskRecord{}).
+		Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Running).
 		Updates(map[string]any{
-			"status":          enums.RoutineTaskRecordStatus_Success,
+			"status":          cenums.RoutineTaskRecordStatus_Success,
 			"actual_ended_at": now,
 			"error_code":      nil,
 			"error_reason":    nil,
@@ -475,8 +475,8 @@ func finalizeCompletedRoutineTasks(
 	}
 	if result.RowsAffected != int64(len(recordIds)) {
 		var finalizedRecordCount int64
-		tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Success).
+		tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Success).
 			Count(&finalizedRecordCount)
 		if finalizedRecordCount != int64(len(recordIds)) {
 			return cexceptions.New(

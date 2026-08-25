@@ -7,11 +7,11 @@ import (
 )
 
 type UsersToBillingPlansException struct {
-	CoreException
+	Exception
 }
 
 func NewUsersToBillingPlansException() UsersToBillingPlansException {
-	return UsersToBillingPlansException{CoreException: NewCoreException("UsersToBillingPlans")}
+	return UsersToBillingPlansException{Exception: NewException("UsersToBillingPlans")}
 }
 
 func (UsersToBillingPlansException) NotFound() *cexceptions.Exception {

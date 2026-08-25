@@ -5,8 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	realtimegatewaystatus "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/status"
 	gin "github.com/gin-gonic/gin"
+
+	realtimegatewaystatus "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/transports/status"
 )
 
 func TestStatusRoutes(t *testing.T) {

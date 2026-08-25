@@ -3,7 +3,6 @@ package material
 import (
 	"bytes"
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 	"time"
 
@@ -12,27 +11,25 @@ import (
 	pg "github.com/lib/pq"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	materialsql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/material"
 	storage "github.com/HiIamJeff67/notegic-backend/internal/core/data/storage"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
-	materialsql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/sqls/material"
 )
 
 type MaterialServiceInterface interface {
@@ -57,9 +54,9 @@ type MaterialService struct {
 	validator          *validator.Validate
 	db                 *gorm.DB
 	storage            storage.StorageInterface
-	materialScope      scopes.MaterialScopeInterface
-	subShelfRepository repositories.SubShelfRepositoryInterface
-	materialRepository repositories.MaterialRepositoryInterface
+	materialScope      sscopes.MaterialScopeInterface
+	subShelfRepository srepositories.SubShelfRepositoryInterface
+	materialRepository srepositories.MaterialRepositoryInterface
 	storageKeySalt     string
 }
 
@@ -67,9 +64,9 @@ func NewMaterialService(
 	validator *validator.Validate,
 	db *gorm.DB,
 	storage storage.StorageInterface,
-	materialScope scopes.MaterialScopeInterface,
-	subShelfRepository repositories.SubShelfRepositoryInterface,
-	materialRepository repositories.MaterialRepositoryInterface,
+	materialScope sscopes.MaterialScopeInterface,
+	subShelfRepository srepositories.SubShelfRepositoryInterface,
+	materialRepository srepositories.MaterialRepositoryInterface,
 	storageKeySalt string,
 ) MaterialServiceInterface {
 	return &MaterialService{
@@ -100,21 +97,21 @@ func (s *MaterialService) GetMyMaterialById(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	material, exception := s.materialRepository.GetOneById(
 		requestDto.Param.MaterialId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -122,7 +119,7 @@ func (s *MaterialService) GetMyMaterialById(
 
 	downloadURL, err := s.storage.PresignGetObjectByKey(ctx, material.ContentKey, nil)
 	if err != nil {
-		logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+		slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 	}
 
 	return &capi.GetMyMaterialByIdResponseDto{
@@ -157,12 +154,12 @@ func (s *MaterialService) GetMyMaterialAndItsParentById(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -198,7 +195,7 @@ func (s *MaterialService) GetMyMaterialAndItsParentById(
 
 	downloadURL, err := s.storage.PresignGetObjectByKey(ctx, contentKey, nil)
 	if err != nil {
-		logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+		slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 	}
 	resDto.DownloadURL = downloadURL // could be empty string
 
@@ -223,24 +220,24 @@ func (s *MaterialService) GetMyMaterialsByParentSubShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
-	materials := []schemas.Material{}
-	result := db.Model(&schemas.Material{}).
+	materials := []sschemas.Material{}
+	result := db.Model(&sschemas.Material{}).
 		Joins(`LEFT JOIN "SubShelfTable" ss ON "MaterialTable".parent_sub_shelf_id = ss.id`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
 		Where("ss.id = ? AND uts.user_id = ? AND uts.permission IN ?",
 			requestDto.Param.ParentSubShelfId,
 			actorUserId,
 			allowedPermissions,
-		).Scopes(scopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
 		Order("name ASC").
 		Limit(int(data.MaxMaterialsOfSubShelf)).
 		Find(&materials)
@@ -252,7 +249,7 @@ func (s *MaterialService) GetMyMaterialsByParentSubShelfId(
 	for _, material := range materials {
 		downloadURL, err := s.storage.PresignGetObjectByKey(ctx, material.ContentKey, nil)
 		if err != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 		}
 		resDto = append(resDto, capi.GetMyMaterialByIdResponseDto{
 			Id:               material.Id,
@@ -289,22 +286,22 @@ func (s *MaterialService) GetAllMyMaterialsByRootShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
-	materials := []schemas.Material{}
-	result := db.Model(&schemas.Material{}).
+	materials := []sschemas.Material{}
+	result := db.Model(&sschemas.Material{}).
 		Joins(`LEFT JOIN "SubShelfTable" ss ON "MaterialTable".parent_sub_shelf_id = ss.id`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
 		Where("ss.root_shelf_id = ? AND uts.user_id = ? AND uts.permission IN ?",
 			requestDto.Param.RootShelfId, actorUserId, allowedPermissions,
-		).Scopes(scopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
 		Limit(int(data.MaxMaterialsOfRootShelf)).
 		Order("name ASC").
 		Find(&materials)
@@ -316,7 +313,7 @@ func (s *MaterialService) GetAllMyMaterialsByRootShelfId(
 	for _, material := range materials {
 		downloadURL, err := s.storage.PresignGetObjectByKey(ctx, material.ContentKey, nil)
 		if err != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 		}
 		resDto = append(resDto, capi.GetMyMaterialByIdResponseDto{
 			Id:               material.Id,
@@ -366,15 +363,15 @@ func (s *MaterialService) CreateMyMaterial(
 	_, exception = s.materialRepository.CreateOneBySubShelfId(
 		requestDto.Body.ParentSubShelfId,
 		actorUserId,
-		inputs.CreateMaterialInput{
+		sinputs.CreateMaterialInput{
 			Id:             newMaterialId,
 			Name:           requestDto.Body.Name,
 			Size:           zeroSize,
 			ContentKey:     newContentKey,
 			ParseMediaType: "",
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -417,14 +414,14 @@ func (s *MaterialService) UpdateMyMaterialById(
 	material, exception := s.materialRepository.UpdateOneById(
 		requestDto.Param.MaterialId,
 		actorUserId,
-		inputs.PartialUpdateMaterialInput{
-			Values: inputs.UpdateMaterialInput{
+		sinputs.PartialUpdateMaterialInput{
+			Values: sinputs.UpdateMaterialInput{
 				Name: requestDto.Body.Values.Name,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -460,8 +457,8 @@ func (s *MaterialService) SaveMyMaterialById(
 		return nil, exception
 	}
 
-	partialUpdate := inputs.PartialUpdateMaterialInput{
-		Values: inputs.UpdateMaterialInput{
+	partialUpdate := sinputs.PartialUpdateMaterialInput{
+		Values: sinputs.UpdateMaterialInput{
 			// content key remain the same here
 		},
 		SetNull: nil,
@@ -484,7 +481,7 @@ func (s *MaterialService) SaveMyMaterialById(
 	}
 
 	size := object.Size
-	contentType, err := enums.ConvertStringToMaterialContentType(object.ContentType)
+	contentType, err := cenums.ConvertStringToMaterialContentType(object.ContentType)
 	if err != nil {
 		return nil, apiexceptions.NewMaterialException().InvalidType(object.ContentType).WithOrigin(err)
 	}
@@ -496,8 +493,8 @@ func (s *MaterialService) SaveMyMaterialById(
 		requestDto.Param.MaterialId,
 		actorUserId,
 		partialUpdate,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -611,8 +608,8 @@ func (s *MaterialService) RestoreMyMaterialById(
 	restoredMaterial, exception := s.materialRepository.RestoreSoftDeletedOneById(
 		requestDto.Param.MaterialId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -620,7 +617,7 @@ func (s *MaterialService) RestoreMyMaterialById(
 
 	downloadURL, err := s.storage.PresignGetObjectByKey(ctx, restoredMaterial.ContentKey, nil)
 	if err != nil {
-		logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+		slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 	}
 
 	return &capi.RestoreMyMaterialByIdResponseDto{
@@ -657,8 +654,8 @@ func (s *MaterialService) RestoreMyMaterialsByIds(
 	restoredMaterials, exception := s.materialRepository.RestoreSoftDeletedManyByIds(
 		requestDto.Body.MaterialIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -668,7 +665,7 @@ func (s *MaterialService) RestoreMyMaterialsByIds(
 	for _, restoredMaterial := range restoredMaterials {
 		downloadURL, err := s.storage.PresignGetObjectByKey(ctx, restoredMaterial.ContentKey, nil)
 		if err != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to presign Material object")
 		}
 		resDto = append(resDto, capi.RestoreMyMaterialByIdResponseDto{
 			Id:               restoredMaterial.Id,
@@ -706,8 +703,8 @@ func (s *MaterialService) DeleteMyMaterialById(
 	exception = s.materialRepository.SoftDeleteOneById(
 		requestDto.Param.MaterialId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -738,8 +735,8 @@ func (s *MaterialService) DeleteMyMaterialsByIds(
 	exception = s.materialRepository.SoftDeleteManyByIds(
 		requestDto.Body.MaterialIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -763,12 +760,12 @@ func (s *MaterialService) SearchPrivateMaterials(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.Material{}).
+	query := db.Model(&sschemas.Material{}).
 		Select(`"MaterialTable".*`).
 		Joins(`INNER JOIN "SubShelfTable" ss ON ss.id = "MaterialTable".parent_sub_shelf_id`).
 		Joins(`INNER JOIN "UsersToShelvesTable" uts ON uts.root_shelf_id = ss.root_shelf_id`).
@@ -792,7 +789,7 @@ func (s *MaterialService) SearchPrivateMaterials(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchMaterialCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchMaterialCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -836,14 +833,14 @@ func (s *MaterialService) SearchPrivateMaterials(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var materials []schemas.Material
+	var materials []sschemas.Material
 	if err := query.Find(&materials).Error; err != nil {
 		return nil, apiexceptions.NewMaterialException().NotFound().WithOrigin(err)
 	}
@@ -852,7 +849,7 @@ func (s *MaterialService) SearchPrivateMaterials(
 	searchEdges := make([]*cgqlmodels.SearchMaterialEdge, len(materials))
 
 	for index, material := range materials {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchMaterialCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchMaterialCursorFields]{
 			Fields: cgqlmodels.SearchMaterialCursorFields{
 				ID: material.Id,
 			},

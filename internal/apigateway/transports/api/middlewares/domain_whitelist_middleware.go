@@ -8,9 +8,8 @@ import (
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
 func isAllowedOrigin(origin string, allowedDomains []string) bool {
@@ -36,12 +35,12 @@ func DomainWhiteListMiddleware(allowedDomains []string) gin.HandlerFunc {
 		origin := ctx.GetHeader("Origin")
 		if origin != "" {
 			if !isAllowedOrigin(origin, allowedDomains) {
-				logs.NotegicLogger.Alert(ctx.Request.Context(), nil, fmt.Sprintf("Blocked Origin: %s, allowed origins: ", origin))
+				slogs.NotegicLogger.Alert(ctx.Request.Context(), nil, fmt.Sprintf("Blocked Origin: %s, allowed origins: ", origin))
 				for _, domain := range allowedDomains {
-					logs.NotegicLogger.Alert(ctx.Request.Context(), nil, domain)
+					slogs.NotegicLogger.Alert(ctx.Request.Context(), nil, domain)
 				}
 				ctx.AbortWithStatusJSON(http.StatusForbidden,
-					exceptionwriter.GetGinH(cexceptions.New(
+					sexceptionwriter.GetGinH(cexceptions.New(
 						"PermissionDeniedDueToInvalidRequestOriginDomain",
 						"Auth",
 						"Authorize",
@@ -55,9 +54,9 @@ func DomainWhiteListMiddleware(allowedDomains []string) gin.HandlerFunc {
 		referer := ctx.GetHeader("Referer")
 		if referer != "" && origin == "" {
 			if !isAllowedReferer(referer, allowedDomains) {
-				logs.NotegicLogger.Alert(ctx.Request.Context(), nil, fmt.Sprintf("Blocked Referer: %s", referer))
+				slogs.NotegicLogger.Alert(ctx.Request.Context(), nil, fmt.Sprintf("Blocked Referer: %s", referer))
 				ctx.AbortWithStatusJSON(http.StatusForbidden,
-					exceptionwriter.GetGinH(cexceptions.New(
+					sexceptionwriter.GetGinH(cexceptions.New(
 						"PermissionDeniedDueToInvalidRequestOriginDomain",
 						"Auth",
 						"Authorize",

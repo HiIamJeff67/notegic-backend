@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,16 +13,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+	"go.opentelemetry.io/otel/attribute"
 
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	straces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	realtimeconfig "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/configs"
 	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
@@ -72,8 +71,8 @@ func NewWebSocketAdapter(
 		realtimeDisabled:            !config.RealtimeEnabled,
 		realtimeBetaUserPublicIdSet: realtimeBetaUserPublicIdSet,
 		connectors:                  make(map[uuid.UUID]*Connector),
-		maximumConnectors:           constants.RealtimeMaxConnectorsPerGateway,
-		maximumConnectionsPerUser:   constants.RealtimeMaxConnectionsPerUser,
+		maximumConnectors:           sconstants.RealtimeMaxConnectorsPerGateway,
+		maximumConnectionsPerUser:   sconstants.RealtimeMaxConnectionsPerUser,
 	}
 	application.upgrader = websocket.Upgrader{
 		CheckOrigin: func(req *http.Request) bool {
@@ -94,7 +93,7 @@ func NewWebSocketAdapter(
 func (g *WebSocketAdapter) subscribeBlockPackChannelRevocations() {
 	shutdown, err := g.leaseStore.SubscribeBlockPackChannelRevocations(g.revokeBlockPackChannels)
 	if err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime BlockPack channel revocations")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime BlockPack channel revocations")
 		return
 	}
 
@@ -104,7 +103,7 @@ func (g *WebSocketAdapter) subscribeBlockPackChannelRevocations() {
 func (g *WebSocketAdapter) subscribeBlockPackPresenceEvents() {
 	shutdown, err := g.leaseStore.SubscribeBlockPackPresenceEvents(g.broadcastBlockPackPresenceEvent)
 	if err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime BlockPack presence events")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime BlockPack presence events")
 		return
 	}
 
@@ -114,7 +113,7 @@ func (g *WebSocketAdapter) subscribeBlockPackPresenceEvents() {
 func (g *WebSocketAdapter) subscribeUserSessionRevocations() {
 	shutdown, err := g.leaseStore.SubscribeUserSessionRevocations(g.revokeUserSessions)
 	if err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime user session revocations")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime user session revocations")
 		return
 	}
 
@@ -124,7 +123,7 @@ func (g *WebSocketAdapter) subscribeUserSessionRevocations() {
 func (g *WebSocketAdapter) subscribeResourceEvents() {
 	shutdown, err := g.leaseStore.SubscribeResourceEvents(g.broadcastResourceEvent)
 	if err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime resource events")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime resource events")
 		return
 	}
 
@@ -134,7 +133,7 @@ func (g *WebSocketAdapter) subscribeResourceEvents() {
 func (g *WebSocketAdapter) subscribeNotifications() {
 	shutdown, err := g.leaseStore.SubscribeNotifications(g.broadcastNotification)
 	if err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime notifications")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to subscribe to realtime notifications")
 		return
 	}
 
@@ -146,7 +145,7 @@ func (g *WebSocketAdapter) subscribeRoutineTaskLifecycleEvents() {
 		g.broadcastRoutineTaskLifecycleEvent,
 	)
 	if err != nil {
-		logs.NotegicLogger.Error(
+		slogs.NotegicLogger.Error(
 			context.Background(),
 			err,
 			"Failed to subscribe to realtime RoutineTask lifecycle events",
@@ -169,7 +168,7 @@ func (g *WebSocketAdapter) broadcastNotification(event realtimeleasecache.Notifi
 
 	for _, connector := range connectors {
 		if err := connector.writeJSON(realtimetypes.NotificationFrame{
-			Version:          constants.RealtimeProtocolVersion,
+			Version:          sconstants.RealtimeProtocolVersion,
 			Type:             realtimetypes.FrameType_Notification,
 			EventId:          event.EventId,
 			NotificationId:   event.NotificationId,
@@ -181,7 +180,7 @@ func (g *WebSocketAdapter) broadcastNotification(event realtimeleasecache.Notifi
 			CreatedAt:        event.CreatedAt,
 			ExpiresAt:        event.ExpiresAt,
 		}); err != nil {
-			logs.NotegicLogger.Error(context.Background(), err, "Failed to enqueue realtime notification")
+			slogs.NotegicLogger.Error(context.Background(), err, "Failed to enqueue realtime notification")
 		}
 	}
 }
@@ -200,7 +199,7 @@ func (g *WebSocketAdapter) broadcastRoutineTaskLifecycleEvent(
 
 	for _, connector := range connectors {
 		if err := connector.writeJSON(realtimetypes.RoutineTaskLifecycleFrame{
-			Version:             constants.RealtimeProtocolVersion,
+			Version:             sconstants.RealtimeProtocolVersion,
 			Type:                realtimetypes.FrameType_RoutineTaskLifecycle,
 			EventId:             event.EventId,
 			RoutineTaskId:       event.RoutineTaskId,
@@ -211,7 +210,7 @@ func (g *WebSocketAdapter) broadcastRoutineTaskLifecycleEvent(
 			Attempt:             event.Attempt,
 			OccurredAt:          event.OccurredAt,
 		}); err != nil {
-			logs.NotegicLogger.Error(
+			slogs.NotegicLogger.Error(
 				context.Background(),
 				err,
 				"Failed to enqueue realtime RoutineTask lifecycle event",
@@ -248,7 +247,7 @@ func (g *WebSocketAdapter) broadcastResourceEvent(event realtimeleasecache.Resou
 		}
 
 		if err := connector.writeJSON(realtimetypes.ResourceEventFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_ResourceEvent,
 			EventId:            event.EventId,
 			EventType:          event.EventType,
@@ -257,7 +256,7 @@ func (g *WebSocketAdapter) broadcastResourceEvent(event realtimeleasecache.Resou
 			Change:             event.Change,
 			Permission:         event.Permission,
 		}); err != nil {
-			logs.NotegicLogger.Error(context.Background(), err, "Failed to enqueue realtime resource event")
+			slogs.NotegicLogger.Error(context.Background(), err, "Failed to enqueue realtime resource event")
 		}
 	}
 }
@@ -373,11 +372,11 @@ func (g *WebSocketAdapter) detachBlockPackChannel(
 		channel.Id,
 		fmt.Sprintf("%s:%d", connector.Id, connectorChannelId),
 	); err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to release realtime BlockPack subscriber lease")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to release realtime BlockPack subscriber lease")
 	}
 
 	g.workerManager.Detach(realtimetypes.InternalFrame{
-		Version:            byte(constants.RealtimeWorkerProtocolVersion),
+		Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 		Type:               realtimetypes.InternalFrameType_Detach,
 		ChannelType:        channel.Type,
 		ConnectionId:       connector.Id,
@@ -385,18 +384,18 @@ func (g *WebSocketAdapter) detachBlockPackChannel(
 		ChannelId:          channel.Id,
 	})
 
-	metrics.NotegicMeter.Count(context.Background(), "realtime.channel.subscription.count", 1,
+	smetrics.NotegicMeter.Count(context.Background(), "realtime.channel.subscription.count", 1,
 		attribute.String("action", "detach"),
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("outcome", outcome),
 	)
-	metrics.NotegicMeter.UpDown(context.Background(), "realtime.channel.count", -1,
+	smetrics.NotegicMeter.UpDown(context.Background(), "realtime.channel.count", -1,
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("permission", string(channel.Permission)),
 	)
 
 	connector.writeError(realtimetypes.ErrorFrame{
-		Version:            constants.RealtimeProtocolVersion,
+		Version:            sconstants.RealtimeProtocolVersion,
 		Type:               realtimetypes.FrameType_Error,
 		ChannelType:        channel.Type,
 		ChannelId:          &channel.Id,
@@ -441,7 +440,7 @@ func (g *WebSocketAdapter) broadcastBlockPackPresenceEvent(event realtimeleaseca
 		}
 
 		_ = connector.writeJSON(realtimetypes.BlockPackPresenceDeltaFrame{
-			Version:     constants.RealtimeProtocolVersion,
+			Version:     sconstants.RealtimeProtocolVersion,
 			Type:        frameType,
 			ChannelType: realtimetypes.ChannelType_BlockPack,
 			ChannelId:   event.BlockPackId,
@@ -504,7 +503,7 @@ func (g *WebSocketAdapter) publishBlockPackPresenceEvent(
 	}
 
 	if err := g.leaseStore.PublishBlockPackPresenceEvent(event); err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to publish realtime BlockPack presence event")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to publish realtime BlockPack presence event")
 	}
 }
 
@@ -555,10 +554,10 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 	// extract and validate the ticket which is in Sec-WebSocket-Protocol header
 	connectionTicket := websocket.Subprotocols(ctx.Request)
 	if len(connectionTicket) != 1 {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "missing_connection_ticket"),
 		)
-		logs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: expected one connection ticket, got %d subprotocols", len(connectionTicket)))
+		slogs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: expected one connection ticket, got %d subprotocols", len(connectionTicket)))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -568,29 +567,29 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 		ctx.GetHeader("User-Agent"),
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "invalid_connection_ticket"),
 		)
-		logs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: invalid connection ticket: %v", err))
+		slogs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: invalid connection ticket: %v", err))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	userPublicId, err := uuid.Parse(connectionClaims.Subject)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "invalid_user_public_id"),
 		)
-		logs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: connection ticket subject is not a user public id: %v", err))
+		slogs.NotegicLogger.Warn(ctx.Request.Context(), fmt.Sprintf("Rejected realtime connection: connection ticket subject is not a user public id: %v", err))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 	if g.realtimeDisabled ||
 		len(g.realtimeBetaUserPublicIdSet) > 0 && !g.realtimeBetaUserPublicIdSet[userPublicId] {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "rollout_not_enabled"),
 		)
-		logs.NotegicLogger.Info(ctx.Request.Context(), "Rejected realtime connection because rollout is not enabled")
+		slogs.NotegicLogger.Info(ctx.Request.Context(), "Rejected realtime connection because rollout is not enabled")
 		ctx.AbortWithStatus(http.StatusServiceUnavailable)
 
 		return
@@ -600,13 +599,13 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 
 	maximumConnectors := g.maximumConnectors
 	if maximumConnectors <= 0 {
-		maximumConnectors = constants.RealtimeMaxConnectorsPerGateway
+		maximumConnectors = sconstants.RealtimeMaxConnectorsPerGateway
 	}
 
 	g.connectorMutex.Lock()
 	if len(g.connectors)+g.pendingConnectorCount >= maximumConnectors {
 		g.connectorMutex.Unlock()
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "gateway_capacity_exceeded"),
 		)
 		ctx.AbortWithStatus(http.StatusServiceUnavailable)
@@ -629,7 +628,7 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 
 	maximumConnectionsPerUser := g.maximumConnectionsPerUser
 	if maximumConnectionsPerUser <= 0 {
-		maximumConnectionsPerUser = constants.RealtimeMaxConnectionsPerUser
+		maximumConnectionsPerUser = sconstants.RealtimeMaxConnectionsPerUser
 	}
 
 	acquired, _, err := g.leaseStore.AcquireUserConnection(
@@ -638,26 +637,26 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 		maximumConnectionsPerUser,
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "admission_unavailable"),
 		)
-		logs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to acquire realtime user connection lease")
+		slogs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to acquire realtime user connection lease")
 		ctx.AbortWithStatus(http.StatusServiceUnavailable)
 
 		return
 	}
 	if !acquired {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "user_connection_limit_exceeded"),
 		)
-		ctx.Header("Retry-After", strconv.Itoa(int(constants.RealtimeLeaseTTL.Seconds())))
+		ctx.Header("Retry-After", strconv.Itoa(int(sconstants.RealtimeLeaseTTL.Seconds())))
 		ctx.AbortWithStatus(http.StatusTooManyRequests)
 
 		return
 	}
 	defer func() {
 		if err := g.leaseStore.ReleaseUserConnection(userPublicId, connectorId); err != nil {
-			logs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to release realtime user connection lease")
+			slogs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to release realtime user connection lease")
 		}
 	}()
 	consumed, err := g.leaseStore.ConsumeTicket(
@@ -665,16 +664,16 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 		connectionClaims.ExpiresAt.Time,
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "ticket_consumption_unavailable"),
 		)
-		logs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to consume realtime connection ticket")
+		slogs.NotegicLogger.Error(ctx.Request.Context(), err, "Failed to consume realtime connection ticket")
 		ctx.AbortWithStatus(http.StatusServiceUnavailable)
 
 		return
 	}
 	if !consumed {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "connection_ticket_already_used"),
 		)
 		ctx.AbortWithStatus(http.StatusConflict)
@@ -687,20 +686,20 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 		http.Header{"Sec-WebSocket-Protocol": []string{connectionTicket[0]}},
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx.Request.Context(), "realtime.connection.rejected.count", 1,
 			attribute.String("reason", "websocket_upgrade_failed"),
 		)
-		traces.NotegicTracer.RecordError(ctx.Request.Context(), err)
+		straces.NotegicTracer.RecordError(ctx.Request.Context(), err)
 
 		return
 	}
 	defer websocketConnection.Close()
 
 	connectionStart := time.Now()
-	connectionContext, connectionSpan := traces.NotegicTracer.Start(
+	connectionContext, connectionSpan := straces.NotegicTracer.Start(
 		ctx.Request.Context(), "realtime.connection",
 	)
-	defer func() { traces.NotegicTracer.End(connectionSpan, nil) }()
+	defer func() { straces.NotegicTracer.End(connectionSpan, nil) }()
 
 	connector := Connector{
 		Id:           connectorId,
@@ -719,16 +718,16 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 	g.connectors[connector.Id] = &connector
 	g.connectorMutex.Unlock()
 	pendingConnectorAdmission = false
-	metrics.NotegicMeter.Count(connectionContext, "realtime.connection.accepted.count", 1)
-	metrics.NotegicMeter.UpDown(connectionContext, "realtime.connector.count", 1)
+	smetrics.NotegicMeter.Count(connectionContext, "realtime.connection.accepted.count", 1)
+	smetrics.NotegicMeter.UpDown(connectionContext, "realtime.connector.count", 1)
 
 	defer func() {
 		g.connectorMutex.Lock()
 		delete(g.connectors, connector.Id)
 		g.connectorMutex.Unlock()
-		metrics.NotegicMeter.Count(connectionContext, "realtime.connection.closed.count", 1)
-		metrics.NotegicMeter.Duration(connectionContext, "realtime.connection.duration", time.Since(connectionStart))
-		metrics.NotegicMeter.UpDown(connectionContext, "realtime.connector.count", -1)
+		smetrics.NotegicMeter.Count(connectionContext, "realtime.connection.closed.count", 1)
+		smetrics.NotegicMeter.Duration(connectionContext, "realtime.connection.duration", time.Since(connectionStart))
+		smetrics.NotegicMeter.UpDown(connectionContext, "realtime.connector.count", -1)
 	}()
 	defer func() {
 		connector.channelMutex.Lock()
@@ -741,37 +740,37 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 				channel.Id,
 				fmt.Sprintf("%s:%d", connector.Id, connectorChannelId),
 			); err != nil {
-				logs.NotegicLogger.Error(connectionContext, err, "Failed to release realtime BlockPack subscriber lease")
+				slogs.NotegicLogger.Error(connectionContext, err, "Failed to release realtime BlockPack subscriber lease")
 			}
 
 			g.workerManager.Detach(realtimetypes.InternalFrame{
-				Version:            byte(constants.RealtimeWorkerProtocolVersion),
+				Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 				Type:               realtimetypes.InternalFrameType_Detach,
 				ChannelType:        channel.Type,
 				ConnectionId:       connector.Id,
 				ConnectorChannelId: connectorChannelId,
 				ChannelId:          channel.Id,
 			})
-			metrics.NotegicMeter.Count(connectionContext, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(connectionContext, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "detach"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "connection_closed"),
 			)
-			metrics.NotegicMeter.UpDown(connectionContext, "realtime.channel.count", -1,
+			smetrics.NotegicMeter.UpDown(connectionContext, "realtime.channel.count", -1,
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("permission", string(channel.Permission)),
 			)
 		}
 	}()
 
-	websocketConnection.SetReadLimit(constants.RealtimeMaxMessageSize)
-	websocketConnection.SetReadDeadline(time.Now().Add(constants.RealtimePongWait))
+	websocketConnection.SetReadLimit(sconstants.RealtimeMaxMessageSize)
+	websocketConnection.SetReadDeadline(time.Now().Add(sconstants.RealtimePongWait))
 	websocketConnection.SetPongHandler(func(string) error {
-		return websocketConnection.SetReadDeadline(time.Now().Add(constants.RealtimePongWait))
+		return websocketConnection.SetReadDeadline(time.Now().Add(sconstants.RealtimePongWait))
 	})
 
 	if err := connector.writeJSON(realtimetypes.ReadyFrame{
-		Version:             constants.RealtimeProtocolVersion,
+		Version:             sconstants.RealtimeProtocolVersion,
 		Type:                realtimetypes.FrameType_Ready,
 		ConnectionId:        connector.Id.String(),
 		ResubscribeRequired: true,
@@ -783,7 +782,7 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 	defer close(pingDone)
 
 	go func() {
-		ticker := time.NewTicker(constants.RealtimePingInterval)
+		ticker := time.NewTicker(sconstants.RealtimePingInterval)
 		defer ticker.Stop()
 
 		for {
@@ -794,7 +793,7 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 				refreshed, err := g.leaseStore.RefreshUserConnection(connector.UserPublicId, connector.Id)
 				if err != nil || !refreshed {
 					if err != nil {
-						logs.NotegicLogger.Error(connectionContext, err, "Failed to refresh realtime user connection lease")
+						slogs.NotegicLogger.Error(connectionContext, err, "Failed to refresh realtime user connection lease")
 					}
 					_ = websocketConnection.Close()
 
@@ -815,7 +814,7 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 					)
 					if err != nil || !refreshed {
 						if err != nil {
-							logs.NotegicLogger.Error(connectionContext, err, "Failed to refresh realtime BlockPack subscriber lease")
+							slogs.NotegicLogger.Error(connectionContext, err, "Failed to refresh realtime BlockPack subscriber lease")
 						}
 						_ = websocketConnection.Close()
 
@@ -847,7 +846,7 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 			}
 		default:
 			if !connector.writeError(realtimetypes.ErrorFrame{
-				Version: constants.RealtimeProtocolVersion,
+				Version: sconstants.RealtimeProtocolVersion,
 				Type:    realtimetypes.FrameType_Error,
 				Code:    realtimetypes.ErrorCode_UnsupportedMessageType,
 				Message: "only text control frames and binary channel frames are supported",
@@ -861,24 +860,24 @@ func (g *WebSocketAdapter) Handle(ctx *gin.Context) {
 func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Connector, payload []byte) bool {
 	var frame realtimetypes.BinaryFrame
 	if err := frame.UnmarshalBytes(payload); err != nil {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "invalid_binary_frame"),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version: constants.RealtimeProtocolVersion,
+			Version: sconstants.RealtimeProtocolVersion,
 			Type:    realtimetypes.FrameType_Error,
 			Code:    realtimetypes.ErrorCode_InvalidBinaryFrame,
 			Message: "binary frames must contain a version, type, channelId, and payload",
 		})
 	}
-	if int(frame.Version) != constants.RealtimeProtocolVersion {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+	if int(frame.Version) != sconstants.RealtimeProtocolVersion {
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "unsupported_protocol_version"),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Error,
 			ConnectorChannelId: frame.ConnectorChannelId,
 			Code:               realtimetypes.ErrorCode_UnsupportedProtocolVersion,
@@ -889,12 +888,12 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 	channel, exists := connector.get(frame.ConnectorChannelId)
 
 	if !exists {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "channel_not_found"),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Error,
 			ConnectorChannelId: frame.ConnectorChannelId,
 			Code:               realtimetypes.ErrorCode_ChannelNotFound,
@@ -902,13 +901,13 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 		})
 	}
 	if !channel.Ready {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "channel_not_ready"),
 			attribute.String("channelType", string(channel.Type)),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Error,
 			ChannelType:        channel.Type,
 			ChannelId:          &channel.Id,
@@ -919,13 +918,13 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 	}
 	if frame.Type != realtimetypes.BinaryFrameType_YjsDocument &&
 		frame.Type != realtimetypes.BinaryFrameType_Awareness {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "unsupported_binary_type"),
 			attribute.String("channelType", string(channel.Type)),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Error,
 			ChannelType:        channel.Type,
 			ChannelId:          &channel.Id,
@@ -936,13 +935,13 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 	}
 	if frame.Type == realtimetypes.BinaryFrameType_YjsDocument &&
 		channel.Permission != realtimetypes.ChannelPermission_Write {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "permission_denied"),
 			attribute.String("channelType", string(channel.Type)),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Error,
 			ChannelType:        channel.Type,
 			ChannelId:          &channel.Id,
@@ -955,19 +954,19 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 	if frame.Type == realtimetypes.BinaryFrameType_Awareness {
 		internalFrameType = realtimetypes.InternalFrameType_Awareness
 	}
-	metrics.NotegicMeter.Count(ctx, "realtime.frame.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "realtime.frame.count", 1,
 		attribute.String("direction", "inbound"),
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("frameType", string(frame.Type)),
 	)
-	metrics.NotegicMeter.Bytes(ctx, "realtime.payload.bytes", int64(len(frame.Payload)),
+	smetrics.NotegicMeter.Bytes(ctx, "realtime.payload.bytes", int64(len(frame.Payload)),
 		attribute.String("direction", "inbound"),
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("frameType", string(frame.Type)),
 	)
 
 	if !g.workerManager.Forward(realtimetypes.InternalFrame{
-		Version:            byte(constants.RealtimeWorkerProtocolVersion),
+		Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 		Type:               internalFrameType,
 		ChannelType:        channel.Type,
 		ConnectionId:       connector.Id,
@@ -975,7 +974,7 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 		ChannelId:          channel.Id,
 		Payload:            frame.Payload,
 	}) {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "worker_unavailable"),
 			attribute.String("channelType", string(channel.Type)),
@@ -998,35 +997,35 @@ func (g *WebSocketAdapter) handleBinaryFrame(ctx context.Context, connector *Con
 func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Connector, payload []byte) bool {
 	var controlFrame realtimetypes.ControlFrame
 	if err := json.Unmarshal(payload, &controlFrame); err != nil {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "invalid_control_frame"),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version: constants.RealtimeProtocolVersion,
+			Version: sconstants.RealtimeProtocolVersion,
 			Type:    realtimetypes.FrameType_Error,
 			Code:    realtimetypes.ErrorCode_InvalidControlFrame,
 			Message: "control frames must be valid JSON",
 		})
 	}
-	if controlFrame.Version != constants.RealtimeProtocolVersion {
-		metrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
+	if controlFrame.Version != sconstants.RealtimeProtocolVersion {
+		smetrics.NotegicMeter.Count(ctx, "realtime.frame.rejected.count", 1,
 			attribute.String("direction", "inbound"),
 			attribute.String("reason", "unsupported_protocol_version"),
 		)
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:   constants.RealtimeProtocolVersion,
+			Version:   sconstants.RealtimeProtocolVersion,
 			Type:      realtimetypes.FrameType_Error,
 			RequestId: controlFrame.RequestId,
 			Code:      realtimetypes.ErrorCode_UnsupportedProtocolVersion,
 			Message:   "unsupported realtime protocol version",
 		})
 	}
-	metrics.NotegicMeter.Count(ctx, "realtime.frame.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "realtime.frame.count", 1,
 		attribute.String("direction", "inbound"),
 		attribute.String("frameType", string(controlFrame.Type)),
 	)
-	metrics.NotegicMeter.Bytes(ctx, "realtime.payload.bytes", int64(len(payload)),
+	smetrics.NotegicMeter.Bytes(ctx, "realtime.payload.bytes", int64(len(payload)),
 		attribute.String("direction", "inbound"),
 		attribute.String("frameType", string(controlFrame.Type)),
 	)
@@ -1034,13 +1033,13 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 	switch controlFrame.Type {
 	case realtimetypes.FrameType_Ping:
 		return connector.writeJSON(realtimetypes.ControlFrame{
-			Version:   constants.RealtimeProtocolVersion,
+			Version:   sconstants.RealtimeProtocolVersion,
 			Type:      realtimetypes.FrameType_Pong,
 			RequestId: controlFrame.RequestId,
 		}) == nil
 	case realtimetypes.FrameType_Heartbeat:
 		return connector.writeJSON(realtimetypes.HeartbeatFrame{
-			Version:      constants.RealtimeProtocolVersion,
+			Version:      sconstants.RealtimeProtocolVersion,
 			Type:         realtimetypes.FrameType_Heartbeat,
 			RequestId:    controlFrame.RequestId,
 			UnixMilliNow: time.Now().UnixMilli(),
@@ -1048,12 +1047,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 	case realtimetypes.FrameType_Subscribe:
 		var subscribeFrame realtimetypes.SubscribeFrame
 		if err := json.Unmarshal(payload, &subscribeFrame); err != nil || subscribeFrame.ChannelId == uuid.Nil {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("outcome", "invalid_channel_id"),
 			)
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:   constants.RealtimeProtocolVersion,
+				Version:   sconstants.RealtimeProtocolVersion,
 				Type:      realtimetypes.FrameType_Error,
 				RequestId: controlFrame.RequestId,
 				Code:      realtimetypes.ErrorCode_InvalidChannelId,
@@ -1065,12 +1064,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		case realtimetypes.ChannelType_BlockPack:
 		default:
 			if subscribeFrame.ChannelType == "" {
-				metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+				smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 					attribute.String("action", "subscribe"),
 					attribute.String("outcome", "invalid_channel_type"),
 				)
 				return connector.writeError(realtimetypes.ErrorFrame{
-					Version:   constants.RealtimeProtocolVersion,
+					Version:   sconstants.RealtimeProtocolVersion,
 					Type:      realtimetypes.FrameType_Error,
 					RequestId: controlFrame.RequestId,
 					ChannelId: &subscribeFrame.ChannelId,
@@ -1078,14 +1077,14 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 					Message:   "subscribe requires a channelType",
 				})
 			}
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(subscribeFrame.ChannelType)),
 				attribute.String("outcome", "unsupported_channel_type"),
 			)
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:     constants.RealtimeProtocolVersion,
+				Version:     sconstants.RealtimeProtocolVersion,
 				Type:        realtimetypes.FrameType_Error,
 				RequestId:   controlFrame.RequestId,
 				ChannelType: subscribeFrame.ChannelType,
@@ -1102,13 +1101,13 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		if err != nil || channelClaims.Subject != connector.UserPublicId.String() ||
 			channelClaims.ChannelType != string(subscribeFrame.ChannelType) ||
 			channelClaims.ChannelId != subscribeFrame.ChannelId.String() {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(subscribeFrame.ChannelType)),
 				attribute.String("outcome", "invalid_channel_ticket"),
 			)
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:     constants.RealtimeProtocolVersion,
+				Version:     sconstants.RealtimeProtocolVersion,
 				Type:        realtimetypes.FrameType_Error,
 				RequestId:   subscribeFrame.RequestId,
 				ChannelType: subscribeFrame.ChannelType,
@@ -1122,15 +1121,15 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			channelClaims.ExpiresAt.Time,
 		)
 		if err != nil {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(subscribeFrame.ChannelType)),
 				attribute.String("outcome", "ticket_consumption_unavailable"),
 			)
-			logs.NotegicLogger.Error(ctx, err, "Failed to consume realtime BlockPack channel ticket")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to consume realtime BlockPack channel ticket")
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:     constants.RealtimeProtocolVersion,
+				Version:     sconstants.RealtimeProtocolVersion,
 				Type:        realtimetypes.FrameType_Error,
 				RequestId:   subscribeFrame.RequestId,
 				ChannelType: subscribeFrame.ChannelType,
@@ -1140,14 +1139,14 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			})
 		}
 		if !consumed {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(subscribeFrame.ChannelType)),
 				attribute.String("outcome", "channel_ticket_already_used"),
 			)
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:     constants.RealtimeProtocolVersion,
+				Version:     sconstants.RealtimeProtocolVersion,
 				Type:        realtimetypes.FrameType_Error,
 				RequestId:   subscribeFrame.RequestId,
 				ChannelType: subscribeFrame.ChannelType,
@@ -1169,13 +1168,13 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		}
 		connectorChannelId, existing := connector.subscribe(channel)
 		if connectorChannelId == 0 {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "channel_limit_exceeded"),
 			)
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:     constants.RealtimeProtocolVersion,
+				Version:     sconstants.RealtimeProtocolVersion,
 				Type:        realtimetypes.FrameType_Error,
 				RequestId:   subscribeFrame.RequestId,
 				ChannelType: subscribeFrame.ChannelType,
@@ -1189,7 +1188,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			existingChannel, exists := connector.get(connectorChannelId)
 			if !exists || !existingChannel.Ready {
 				return connector.writeError(realtimetypes.ErrorFrame{
-					Version:            constants.RealtimeProtocolVersion,
+					Version:            sconstants.RealtimeProtocolVersion,
 					Type:               realtimetypes.FrameType_Error,
 					RequestId:          subscribeFrame.RequestId,
 					ChannelType:        channel.Type,
@@ -1203,7 +1202,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			participants, err := g.leaseStore.GetBlockPackParticipants(channel.Id)
 			if err != nil {
 				return connector.writeError(realtimetypes.ErrorFrame{
-					Version:            constants.RealtimeProtocolVersion,
+					Version:            sconstants.RealtimeProtocolVersion,
 					Type:               realtimetypes.FrameType_Error,
 					RequestId:          subscribeFrame.RequestId,
 					ChannelType:        channel.Type,
@@ -1221,13 +1220,13 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 					ConnectionCount:   participant.ConnectionCount,
 				}
 			}
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "existing"),
 			)
 			return connector.writeJSON(realtimetypes.SubscribedFrame{
-				Version:                    constants.RealtimeProtocolVersion,
+				Version:                    sconstants.RealtimeProtocolVersion,
 				Type:                       realtimetypes.FrameType_Subscribed,
 				RequestId:                  subscribeFrame.RequestId,
 				ChannelType:                subscribeFrame.ChannelType,
@@ -1248,15 +1247,15 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		)
 		if err != nil {
 			connector.unsubscribe(connectorChannelId)
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "admission_unavailable"),
 			)
-			logs.NotegicLogger.Error(ctx, err, "Failed to acquire realtime BlockPack subscriber lease")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to acquire realtime BlockPack subscriber lease")
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1272,27 +1271,27 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			leaseMembers := make([]string, 0)
 			leases, err := g.leaseStore.GetBlockPackSubscriberLeases(channel.Id)
 			if err != nil {
-				logs.NotegicLogger.Error(ctx, err, "Failed to inspect realtime BlockPack subscriber leases")
+				slogs.NotegicLogger.Error(ctx, err, "Failed to inspect realtime BlockPack subscriber leases")
 			} else {
 				for _, lease := range leases {
 					leaseMembers = append(leaseMembers, fmt.Sprintf("%s expiresAt=%s", lease.Member, lease.ExpiresAt.UTC().Format(time.RFC3339Nano)))
 				}
 			}
-			logs.NotegicLogger.Warn(ctx, "Rejected realtime BlockPack subscription because subscriber limit was reached",
+			slogs.NotegicLogger.Warn(ctx, "Rejected realtime BlockPack subscription because subscriber limit was reached",
 				attribute.String("realtime.block_pack.id", channel.Id.String()),
 				attribute.Int("realtime.room.maximum_subscribers", int(channelClaims.MaximumSubscribers)),
 				attribute.Int64("realtime.room.active_subscribers", activeSubscribers),
 				attribute.StringSlice("realtime.room.subscriber_leases", leaseMembers),
 			)
 
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "room_connection_limit_exceeded"),
 			)
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1306,11 +1305,11 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		if err != nil {
 			connector.unsubscribe(connectorChannelId)
 			if releaseErr := g.releaseBlockPackSubscriber(channel.Id, leaseMember); releaseErr != nil {
-				logs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
+				slogs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
 			}
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1328,12 +1327,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			string(channel.Permission),
 		); err != nil {
 			if releaseErr := g.releaseBlockPackSubscriber(channel.Id, leaseMember); releaseErr != nil {
-				logs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
+				slogs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
 			}
 			connector.unsubscribe(connectorChannelId)
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1349,7 +1348,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			MaximumBlockCount: channel.MaximumBlockCount,
 		})
 		if err != nil || !g.workerManager.Attach(realtimetypes.InternalFrame{
-			Version:            byte(constants.RealtimeWorkerProtocolVersion),
+			Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 			Type:               realtimetypes.InternalFrameType_Attach,
 			ChannelType:        channel.Type,
 			ConnectionId:       connector.Id,
@@ -1358,18 +1357,18 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			Payload:            quotaPolicyPayload,
 		}) {
 			if releaseErr := g.releaseBlockPackSubscriber(channel.Id, leaseMember); releaseErr != nil {
-				logs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
+				slogs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
 			}
 
 			connector.unsubscribe(connectorChannelId)
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "subscribe"),
 				attribute.String("channelType", string(channel.Type)),
 				attribute.String("outcome", "worker_unavailable"),
 			)
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1380,7 +1379,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			})
 		}
 
-		time.AfterFunc(constants.RealtimeWorkerAttachTimeout, func() {
+		time.AfterFunc(sconstants.RealtimeWorkerAttachTimeout, func() {
 			pendingChannel, exists := connector.get(connectorChannelId)
 			if exists && !pendingChannel.Ready {
 				g.detachBlockPackChannel(
@@ -1397,11 +1396,11 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		currentParticipants, err := g.leaseStore.GetBlockPackParticipants(channel.Id)
 		if err != nil {
 			if releaseErr := g.releaseBlockPackSubscriber(channel.Id, leaseMember); releaseErr != nil {
-				logs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
+				slogs.NotegicLogger.Error(ctx, releaseErr, "Failed to release realtime BlockPack subscriber lease")
 			}
 			connector.unsubscribe(connectorChannelId)
 			g.workerManager.Detach(realtimetypes.InternalFrame{
-				Version:            byte(constants.RealtimeWorkerProtocolVersion),
+				Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 				Type:               realtimetypes.InternalFrameType_Detach,
 				ChannelType:        channel.Type,
 				ConnectionId:       connector.Id,
@@ -1410,7 +1409,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			})
 
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          subscribeFrame.RequestId,
 				ChannelType:        channel.Type,
@@ -1420,12 +1419,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 				Message:            "realtime participant presence is temporarily unavailable",
 			})
 		}
-		metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 			attribute.String("action", "subscribe"),
 			attribute.String("channelType", string(channel.Type)),
 			attribute.String("outcome", "success"),
 		)
-		metrics.NotegicMeter.UpDown(ctx, "realtime.channel.count", 1,
+		smetrics.NotegicMeter.UpDown(ctx, "realtime.channel.count", 1,
 			attribute.String("channelType", string(channel.Type)),
 			attribute.String("permission", string(channel.Permission)),
 		)
@@ -1442,12 +1441,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 	case realtimetypes.FrameType_Unsubscribe:
 		var unsubscribeFrame realtimetypes.UnsubscribeFrame
 		if err := json.Unmarshal(payload, &unsubscribeFrame); err != nil || unsubscribeFrame.ConnectorChannelId == 0 {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "unsubscribe"),
 				attribute.String("outcome", "invalid_connector_channel_id"),
 			)
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:   constants.RealtimeProtocolVersion,
+				Version:   sconstants.RealtimeProtocolVersion,
 				Type:      realtimetypes.FrameType_Error,
 				RequestId: controlFrame.RequestId,
 				Code:      realtimetypes.ErrorCode_InvalidConnectorChannelId,
@@ -1458,12 +1457,12 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		channel, exists := connector.unsubscribe(unsubscribeFrame.ConnectorChannelId)
 
 		if !exists {
-			metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+			smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 				attribute.String("action", "unsubscribe"),
 				attribute.String("outcome", "channel_not_found"),
 			)
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          unsubscribeFrame.RequestId,
 				ConnectorChannelId: unsubscribeFrame.ConnectorChannelId,
@@ -1475,29 +1474,29 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 			channel.Id,
 			fmt.Sprintf("%s:%d", connector.Id, unsubscribeFrame.ConnectorChannelId),
 		); err != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to release realtime BlockPack subscriber lease")
+			slogs.NotegicLogger.Error(ctx, err, "Failed to release realtime BlockPack subscriber lease")
 		}
 
 		g.workerManager.Detach(realtimetypes.InternalFrame{
-			Version:            byte(constants.RealtimeWorkerProtocolVersion),
+			Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 			Type:               realtimetypes.InternalFrameType_Detach,
 			ChannelType:        channel.Type,
 			ConnectionId:       connector.Id,
 			ConnectorChannelId: unsubscribeFrame.ConnectorChannelId,
 			ChannelId:          channel.Id,
 		})
-		metrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "realtime.channel.subscription.count", 1,
 			attribute.String("action", "unsubscribe"),
 			attribute.String("channelType", string(channel.Type)),
 			attribute.String("outcome", "success"),
 		)
-		metrics.NotegicMeter.UpDown(ctx, "realtime.channel.count", -1,
+		smetrics.NotegicMeter.UpDown(ctx, "realtime.channel.count", -1,
 			attribute.String("channelType", string(channel.Type)),
 			attribute.String("permission", string(channel.Permission)),
 		)
 
 		return connector.writeJSON(realtimetypes.UnsubscribedFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Unsubscribed,
 			RequestId:          unsubscribeFrame.RequestId,
 			ChannelType:        channel.Type,
@@ -1508,7 +1507,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		var acknowledgeFrame realtimetypes.AcknowledgeFrame
 		if err := json.Unmarshal(payload, &acknowledgeFrame); err != nil || acknowledgeFrame.ConnectorChannelId == 0 {
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:   constants.RealtimeProtocolVersion,
+				Version:   sconstants.RealtimeProtocolVersion,
 				Type:      realtimetypes.FrameType_Error,
 				RequestId: controlFrame.RequestId,
 				Code:      realtimetypes.ErrorCode_InvalidConnectorChannelId,
@@ -1523,7 +1522,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 
 		if !exists {
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          acknowledgeFrame.RequestId,
 				ConnectorChannelId: acknowledgeFrame.ConnectorChannelId,
@@ -1533,7 +1532,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		}
 		if !acknowledged {
 			return connector.writeError(realtimetypes.ErrorFrame{
-				Version:            constants.RealtimeProtocolVersion,
+				Version:            sconstants.RealtimeProtocolVersion,
 				Type:               realtimetypes.FrameType_Error,
 				RequestId:          acknowledgeFrame.RequestId,
 				ConnectorChannelId: acknowledgeFrame.ConnectorChannelId,
@@ -1543,7 +1542,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		}
 
 		return connector.writeJSON(realtimetypes.AcknowledgedFrame{
-			Version:            constants.RealtimeProtocolVersion,
+			Version:            sconstants.RealtimeProtocolVersion,
 			Type:               realtimetypes.FrameType_Acknowledged,
 			RequestId:          acknowledgeFrame.RequestId,
 			ConnectorChannelId: acknowledgeFrame.ConnectorChannelId,
@@ -1551,7 +1550,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		}) == nil
 	case realtimetypes.FrameType_Reconnect:
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:   constants.RealtimeProtocolVersion,
+			Version:   sconstants.RealtimeProtocolVersion,
 			Type:      realtimetypes.FrameType_Error,
 			RequestId: controlFrame.RequestId,
 			Code:      realtimetypes.ErrorCode_ResubscribeRequired,
@@ -1559,7 +1558,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		})
 	case realtimetypes.FrameType_Authenticate:
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:   constants.RealtimeProtocolVersion,
+			Version:   sconstants.RealtimeProtocolVersion,
 			Type:      realtimetypes.FrameType_Error,
 			RequestId: controlFrame.RequestId,
 			Code:      realtimetypes.ErrorCode_AuthenticationManagedByUpgrade,
@@ -1567,7 +1566,7 @@ func (g *WebSocketAdapter) handleControlFrame(ctx context.Context, connector *Co
 		})
 	default:
 		return connector.writeError(realtimetypes.ErrorFrame{
-			Version:   constants.RealtimeProtocolVersion,
+			Version:   sconstants.RealtimeProtocolVersion,
 			Type:      realtimetypes.FrameType_Error,
 			RequestId: controlFrame.RequestId,
 			Code:      realtimetypes.ErrorCode_UnsupportedControlType,
@@ -1622,7 +1621,7 @@ func (g *WebSocketAdapter) handleInternalFrame(frame realtimetypes.InternalFrame
 			}
 		}
 		if err := connector.writeJSON(realtimetypes.SubscribedFrame{
-			Version:                    constants.RealtimeProtocolVersion,
+			Version:                    sconstants.RealtimeProtocolVersion,
 			Type:                       realtimetypes.FrameType_Subscribed,
 			RequestId:                  channel.SubscribeRequestId,
 			ChannelType:                channel.Type,
@@ -1641,7 +1640,7 @@ func (g *WebSocketAdapter) handleInternalFrame(frame realtimetypes.InternalFrame
 	if frame.Type == realtimetypes.InternalFrameType_ResyncRequired ||
 		frame.Type == realtimetypes.InternalFrameType_PermissionRevoked ||
 		frame.Type == realtimetypes.InternalFrameType_BlockPackQuotaExceeded {
-		logs.NotegicLogger.Error(
+		slogs.NotegicLogger.Error(
 			context.Background(),
 			nil,
 			"Yjs worker requested realtime channel resync",
@@ -1682,7 +1681,7 @@ func (g *WebSocketAdapter) handleInternalFrame(frame realtimetypes.InternalFrame
 	}
 
 	if err := connector.writeBinary(realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               binaryFrameType,
 		ConnectorChannelId: frame.ConnectorChannelId,
 		Payload:            frame.Payload,
@@ -1691,7 +1690,7 @@ func (g *WebSocketAdapter) handleInternalFrame(frame realtimetypes.InternalFrame
 
 		return
 	}
-	metrics.NotegicMeter.Count(context.Background(), "realtime.frame.count", 1,
+	smetrics.NotegicMeter.Count(context.Background(), "realtime.frame.count", 1,
 		attribute.String("direction", "outbound"),
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("frameType", string(binaryFrameType)),
@@ -1707,7 +1706,7 @@ func (g *WebSocketAdapter) handleChannelBackpressure(
 	connector *Connector,
 	channel realtimetypes.Channel,
 ) {
-	logs.NotegicLogger.Error(
+	slogs.NotegicLogger.Error(
 		context.Background(),
 		nil,
 		"Realtime channel outbound backpressure",
@@ -1715,7 +1714,7 @@ func (g *WebSocketAdapter) handleChannelBackpressure(
 		attribute.String("connectionId", connector.Id.String()),
 		attribute.String("channelType", string(channel.Type)),
 	)
-	metrics.NotegicMeter.Count(
+	smetrics.NotegicMeter.Count(
 		context.Background(),
 		"realtime.channel.backpressure.count",
 		1,
@@ -1732,29 +1731,29 @@ func (g *WebSocketAdapter) handleChannelBackpressure(
 		channel.Id,
 		fmt.Sprintf("%s:%d", connector.Id, connectorChannelId),
 	); err != nil {
-		logs.NotegicLogger.Error(context.Background(), err, "Failed to release realtime BlockPack subscriber lease")
+		slogs.NotegicLogger.Error(context.Background(), err, "Failed to release realtime BlockPack subscriber lease")
 	}
 
 	g.workerManager.Detach(realtimetypes.InternalFrame{
-		Version:            byte(constants.RealtimeWorkerProtocolVersion),
+		Version:            byte(sconstants.RealtimeWorkerProtocolVersion),
 		Type:               realtimetypes.InternalFrameType_Detach,
 		ChannelType:        channel.Type,
 		ConnectionId:       connector.Id,
 		ConnectorChannelId: connectorChannelId,
 		ChannelId:          channel.Id,
 	})
-	metrics.NotegicMeter.Count(context.Background(), "realtime.channel.subscription.count", 1,
+	smetrics.NotegicMeter.Count(context.Background(), "realtime.channel.subscription.count", 1,
 		attribute.String("action", "detach"),
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("outcome", "backpressure"),
 	)
-	metrics.NotegicMeter.UpDown(context.Background(), "realtime.channel.count", -1,
+	smetrics.NotegicMeter.UpDown(context.Background(), "realtime.channel.count", -1,
 		attribute.String("channelType", string(channel.Type)),
 		attribute.String("permission", string(channel.Permission)),
 	)
 
 	if !connector.writeError(realtimetypes.ErrorFrame{
-		Version:            constants.RealtimeProtocolVersion,
+		Version:            sconstants.RealtimeProtocolVersion,
 		Type:               realtimetypes.FrameType_Error,
 		ChannelType:        channel.Type,
 		ChannelId:          &channel.Id,

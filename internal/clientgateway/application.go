@@ -11,12 +11,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	platform "github.com/HiIamJeff67/notegic-backend/shared/platform"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	splatform "github.com/HiIamJeff67/notegic-backend/shared/platform"
+	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/configs"
 	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/data/redis/ratelimitrecord"
@@ -38,11 +37,11 @@ type ApplicationInterface interface {
 	IsHealthy() bool
 	IsReady() bool
 	loadConfig() gatewayconfig.Config
-	loadRedisConfig() platformredis.Config
+	loadRedisConfig() sredis.Config
 	initializeObservability() func()
-	initializeRateLimiters(*platformredis.ClientSet, func()) (*ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter)
-	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *platformredis.ClientSet, func()) *gin.Engine
-	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *platformredis.ClientSet, func()) func()
+	initializeRateLimiters(*sredis.ClientSet, func()) (*ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter)
+	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) *gin.Engine
+	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) func()
 }
 
 func NewApplication() *Application {
@@ -65,8 +64,8 @@ func (a *Application) loadConfig() gatewayconfig.Config {
 	return config
 }
 
-func (a *Application) loadRedisConfig() platformredis.Config {
-	redisConfig, err := platformredis.LoadConfig()
+func (a *Application) loadRedisConfig() sredis.Config {
+	redisConfig, err := sredis.LoadConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -74,15 +73,15 @@ func (a *Application) loadRedisConfig() platformredis.Config {
 }
 
 func (a *Application) initializeObservability() func() {
-	return observability.Initialize(
+	return sobservability.Initialize(
 		context.Background(),
-		observability.LoadConfig("notegic-client-gateway"),
+		sobservability.LoadConfig("notegic-client-gateway"),
 	)
 
 }
 
 func (a *Application) initializeRateLimiters(
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) (*ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter) {
 	rateLimitRecordCacheStore := ratelimitrecord.Register(context.Background(), redisClientSet)
@@ -103,22 +102,22 @@ func (a *Application) buildRouter(
 	config gatewayconfig.Config,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
 	authorizedRateLimiter *ratelimit.HybridRateLimiter,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) *gin.Engine {
-	accessTokenCookieHandler := cookies.New(cookies.Config{
-		Name:     cookies.ValidCookieName_AccessToken,
+	accessTokenCookieHandler := scookies.New(scookies.Config{
+		Name:     scookies.ValidCookieName_AccessToken,
 		Path:     "/",
 		Duration: 30 * time.Minute,
-		Secure:   platform.CurrentEnvironment == types.Environment_Production,
+		Secure:   splatform.CurrentEnvironment == stypes.Environment_Production,
 		HTTPOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	refreshTokenCookieHandler := cookies.New(cookies.Config{
-		Name:     cookies.ValidCookieName_RefreshToken,
+	refreshTokenCookieHandler := scookies.New(scookies.Config{
+		Name:     scookies.ValidCookieName_RefreshToken,
 		Path:     "/",
 		Duration: 14 * 24 * time.Hour,
-		Secure:   platform.CurrentEnvironment == types.Environment_Production,
+		Secure:   splatform.CurrentEnvironment == stypes.Environment_Production,
 		HTTPOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -150,7 +149,7 @@ func (a *Application) startHTTP(
 	router *gin.Engine,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
 	authorizedRateLimiter *ratelimit.HybridRateLimiter,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) func() {
 	listener, err := net.Listen("tcp", config.ListenAddress)
@@ -195,7 +194,7 @@ func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
 	config := a.loadConfig()
 	redisConfig := a.loadRedisConfig()
-	redisClientSet, err := platformredis.NewClientSet(redisConfig)
+	redisClientSet, err := sredis.NewClientSet(redisConfig)
 	if err != nil {
 		shutdownObservability()
 		panic(err)

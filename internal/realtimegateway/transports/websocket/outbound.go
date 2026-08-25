@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go.opentelemetry.io/otel/attribute"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.opentelemetry.io/otel/attribute"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
@@ -44,7 +43,7 @@ type outboundQueue struct {
 func newOutboundQueue(connection *websocket.Conn) *outboundQueue {
 	return &outboundQueue{
 		connection:   connection,
-		controlQueue: make([][]byte, 0, constants.RealtimeMaxOutboundControlFrames),
+		controlQueue: make([][]byte, 0, sconstants.RealtimeMaxOutboundControlFrames),
 		channelQueues: make(map[uint32]*struct {
 			messages []struct {
 				payload   []byte
@@ -52,7 +51,7 @@ func newOutboundQueue(connection *websocket.Conn) *outboundQueue {
 			}
 			queuedBytes int64
 		}),
-		channelOrder: make([]uint32, 0, constants.RealtimeMaxChannelsPerConnection),
+		channelOrder: make([]uint32, 0, sconstants.RealtimeMaxChannelsPerConnection),
 	}
 }
 
@@ -99,16 +98,16 @@ func (q *outboundQueue) writeJSON(frame any) error {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
 
-	if !q.started || len(q.controlQueue) >= constants.RealtimeMaxOutboundControlFrames {
+	if !q.started || len(q.controlQueue) >= sconstants.RealtimeMaxOutboundControlFrames {
 		return errors.New("realtime control queue is full")
 	}
 
 	q.controlQueue = append(q.controlQueue, payload)
 	q.controlQueuedBytes += int64(len(payload))
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(q.controlQueue)),
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(q.controlQueue)),
 		attribute.String("queueType", "control"),
 	)
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", q.controlQueuedBytes,
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", q.controlQueuedBytes,
 		attribute.String("queueType", "control"),
 	)
 	q.trySignalWriterLocked()
@@ -123,7 +122,7 @@ func (q *outboundQueue) writeControl(messageType int, payload []byte) error {
 	return q.connection.WriteControl(
 		messageType,
 		payload,
-		time.Now().Add(constants.RealtimeControlWriteTimeout),
+		time.Now().Add(sconstants.RealtimeControlWriteTimeout),
 	)
 }
 
@@ -161,7 +160,7 @@ func (q *outboundQueue) writeBinary(frame realtimetypes.BinaryFrame) error {
 			}
 
 			queuedBytesWithoutAwareness := queue.queuedBytes - int64(len(message.payload))
-			if queuedBytesWithoutAwareness+int64(len(payload)) > constants.RealtimeMaxOutboundBytesPerChannel {
+			if queuedBytesWithoutAwareness+int64(len(payload)) > sconstants.RealtimeMaxOutboundBytesPerChannel {
 				return errors.New("realtime channel outbound queue is full")
 			}
 
@@ -173,11 +172,11 @@ func (q *outboundQueue) writeBinary(frame realtimetypes.BinaryFrame) error {
 				frameType: frame.Type,
 			}
 			queue.queuedBytes = queuedBytesWithoutAwareness + int64(len(payload))
-			metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
+			smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
 				attribute.String("queueType", "channel"),
 				attribute.String("frameType", string(frame.Type)),
 			)
-			metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
+			smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
 				attribute.String("queueType", "channel"),
 				attribute.String("frameType", string(frame.Type)),
 			)
@@ -187,8 +186,8 @@ func (q *outboundQueue) writeBinary(frame realtimetypes.BinaryFrame) error {
 		}
 	}
 
-	if len(queue.messages) >= constants.RealtimeMaxOutboundFramesPerChannel ||
-		queue.queuedBytes+int64(len(payload)) > constants.RealtimeMaxOutboundBytesPerChannel {
+	if len(queue.messages) >= sconstants.RealtimeMaxOutboundFramesPerChannel ||
+		queue.queuedBytes+int64(len(payload)) > sconstants.RealtimeMaxOutboundBytesPerChannel {
 		return errors.New("realtime channel outbound queue is full")
 	}
 
@@ -200,11 +199,11 @@ func (q *outboundQueue) writeBinary(frame realtimetypes.BinaryFrame) error {
 		frameType: frame.Type,
 	})
 	queue.queuedBytes += int64(len(payload))
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
 		attribute.String("queueType", "channel"),
 		attribute.String("frameType", string(frame.Type)),
 	)
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
 		attribute.String("queueType", "channel"),
 		attribute.String("frameType", string(frame.Type)),
 	)
@@ -218,10 +217,10 @@ func (q *outboundQueue) clearChannel(connectorChannelId uint32) {
 	defer q.mutex.Unlock()
 
 	delete(q.channelQueues, connectorChannelId)
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", 0,
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", 0,
 		attribute.String("queueType", "channel"),
 	)
-	metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", 0,
+	smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", 0,
 		attribute.String("queueType", "channel"),
 	)
 	for index, channelId := range q.channelOrder {
@@ -250,10 +249,10 @@ func (q *outboundQueue) runWriter() {
 			payload = q.controlQueue[0]
 			q.controlQueue = q.controlQueue[1:]
 			q.controlQueuedBytes -= int64(len(payload))
-			metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(q.controlQueue)),
+			smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(q.controlQueue)),
 				attribute.String("queueType", "control"),
 			)
-			metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", q.controlQueuedBytes,
+			smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", q.controlQueuedBytes,
 				attribute.String("queueType", "control"),
 			)
 		} else {
@@ -271,11 +270,11 @@ func (q *outboundQueue) runWriter() {
 				payload = message.payload
 				queue.messages = queue.messages[1:]
 				queue.queuedBytes -= int64(len(message.payload))
-				metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
+				smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.depth", int64(len(queue.messages)),
 					attribute.String("queueType", "channel"),
 					attribute.String("frameType", string(message.frameType)),
 				)
-				metrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
+				smetrics.NotegicMeter.Value(context.Background(), "realtime.outbound.queue.bytes", queue.queuedBytes,
 					attribute.String("queueType", "channel"),
 					attribute.String("frameType", string(message.frameType)),
 				)
@@ -302,7 +301,7 @@ func (q *outboundQueue) runWriter() {
 
 		q.writeMutex.Lock()
 		err := q.connection.SetWriteDeadline(
-			time.Now().Add(constants.RealtimeControlWriteTimeout),
+			time.Now().Add(sconstants.RealtimeControlWriteTimeout),
 		)
 		if err == nil {
 			err = q.connection.WriteMessage(messageType, payload)

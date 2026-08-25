@@ -8,12 +8,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
-	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"

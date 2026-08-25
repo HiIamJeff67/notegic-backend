@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 )
 
 var rootCommand = &cobra.Command{
@@ -37,7 +37,7 @@ func init() {
 
 func Execute() {
 	if len(os.Args) > 1 {
-		logs.NotegicLogger = logs.NewCommandLineInterfaceLogger()
+		slogs.NotegicLogger = slogs.NewCommandLineInterfaceLogger()
 	}
 	if err := rootCommand.Execute(); err != nil {
 		panic(err)

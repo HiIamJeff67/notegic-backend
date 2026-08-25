@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
@@ -36,7 +36,7 @@ func NewWorkerManager(endpoints []string) *WorkerManager {
 		worker := &realtimeWorker{
 			endpoint:       endpoint,
 			activeChannels: make(map[string]realtimetypes.InternalFrame),
-			outbound:       make(chan realtimetypes.InternalFrame, constants.RealtimeWorkerQueueSize),
+			outbound:       make(chan realtimetypes.InternalFrame, sconstants.RealtimeWorkerQueueSize),
 		}
 		workers = append(workers, worker)
 	}
@@ -155,7 +155,7 @@ func (w *realtimeWorker) run(ctx context.Context) {
 		connection, _, err := websocket.DefaultDialer.DialContext(ctx, w.endpoint, nil)
 		if err != nil {
 			w.ready.Store(false)
-			if !wait(ctx, constants.RealtimeWorkerReconnectDelay) {
+			if !wait(ctx, sconstants.RealtimeWorkerReconnectDelay) {
 				return
 			}
 
@@ -172,7 +172,7 @@ func (w *realtimeWorker) run(ctx context.Context) {
 			w.connectionMutex.Lock()
 			w.connection = nil
 			w.connectionMutex.Unlock()
-			if !wait(ctx, constants.RealtimeWorkerReconnectDelay) {
+			if !wait(ctx, sconstants.RealtimeWorkerReconnectDelay) {
 				return
 			}
 
@@ -191,7 +191,7 @@ func (w *realtimeWorker) run(ctx context.Context) {
 				connected = false
 			case frame := <-w.outbound:
 				payload, err := frame.MarshalBytes()
-				if err != nil || connection.SetWriteDeadline(time.Now().Add(constants.RealtimeControlWriteTimeout)) != nil ||
+				if err != nil || connection.SetWriteDeadline(time.Now().Add(sconstants.RealtimeControlWriteTimeout)) != nil ||
 					connection.WriteMessage(websocket.BinaryMessage, payload) != nil {
 					connected = false
 				}
@@ -203,7 +203,7 @@ func (w *realtimeWorker) run(ctx context.Context) {
 		w.connectionMutex.Lock()
 		w.connection = nil
 		w.connectionMutex.Unlock()
-		if !wait(ctx, constants.RealtimeWorkerReconnectDelay) {
+		if !wait(ctx, sconstants.RealtimeWorkerReconnectDelay) {
 			return
 		}
 	}
@@ -240,7 +240,7 @@ func (w *realtimeWorker) replayActiveChannels(connection *websocket.Conn) bool {
 
 	for _, frame := range frames {
 		payload, err := frame.MarshalBytes()
-		if err != nil || connection.SetWriteDeadline(time.Now().Add(constants.RealtimeControlWriteTimeout)) != nil ||
+		if err != nil || connection.SetWriteDeadline(time.Now().Add(sconstants.RealtimeControlWriteTimeout)) != nil ||
 			connection.WriteMessage(websocket.BinaryMessage, payload) != nil {
 			return false
 		}
@@ -259,7 +259,7 @@ func (w *realtimeWorker) read(connection *websocket.Conn, readError chan<- struc
 		}
 
 		var frame realtimetypes.InternalFrame
-		if err := frame.UnmarshalBytes(payload); err != nil || int(frame.Version) != constants.RealtimeWorkerProtocolVersion {
+		if err := frame.UnmarshalBytes(payload); err != nil || int(frame.Version) != sconstants.RealtimeWorkerProtocolVersion {
 			return
 		}
 

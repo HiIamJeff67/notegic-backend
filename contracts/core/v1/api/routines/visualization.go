@@ -5,7 +5,7 @@ import (
 	"time"
 
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type RoutineCountDatum struct {
@@ -24,7 +24,7 @@ type VisualizeMyRoutineStatusCountRequestDto struct {
 		},
 		struct{},
 		struct {
-			Permission enums.AccessControlPermission `json:"permission" validate:"isaccesscontrolpermission,required"`
+			Permission cenums.AccessControlPermission `json:"permission" validate:"isaccesscontrolpermission,required"`
 		},
 		struct{},
 	]
@@ -39,10 +39,10 @@ type VisualizeMyRoutineScheduledStartAtCountRequestDto struct {
 		},
 		struct{},
 		struct {
-			Permission          enums.AccessControlPermission `json:"permission" validate:"isaccesscontrolpermission,required"`
-			TimeHourUnit        int                           `json:"timeHourUnit" validate:"required,min=1"`
-			QueryRangeStartedAt time.Time                     `json:"queryRangeStartedAt" validate:"required"`
-			QueryRangeEndedAt   time.Time                     `json:"queryRangeEndedAt" validate:"required"`
+			Permission          cenums.AccessControlPermission `json:"permission" validate:"isaccesscontrolpermission,required"`
+			TimeHourUnit        int                            `json:"timeHourUnit" validate:"required,min=1"`
+			QueryRangeStartedAt time.Time                      `json:"queryRangeStartedAt" validate:"required"`
+			QueryRangeEndedAt   time.Time                      `json:"queryRangeEndedAt" validate:"required"`
 		},
 		struct{},
 	]

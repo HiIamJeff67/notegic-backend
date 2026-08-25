@@ -11,30 +11,28 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
-	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	straces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type OutboxRelay struct {
 	db                    *gorm.DB
-	outboxEventRepository repositories.OutboxEventRepositoryInterface
-	producer              *platformkafka.Producer
+	outboxEventRepository srepositories.OutboxEventRepositoryInterface
+	producer              *skafka.Producer
 	config                coreconfig.OutboxRelayConfig
 	workerId              string
 }
 
 func NewOutboxRelay(
 	db *gorm.DB,
-	outboxEventRepository repositories.OutboxEventRepositoryInterface,
-	producer *platformkafka.Producer,
+	outboxEventRepository srepositories.OutboxEventRepositoryInterface,
+	producer *skafka.Producer,
 	config coreconfig.OutboxRelayConfig,
 ) *OutboxRelay {
 	hostname, err := os.Hostname()
@@ -86,9 +84,9 @@ func (r *OutboxRelay) run(ctx context.Context) {
 }
 
 func (r *OutboxRelay) relay(ctx context.Context) {
-	if traces.NotegicTracer != nil {
-		relayCtx, span := traces.NotegicTracer.Start(ctx, "outbox.relay")
-		defer traces.NotegicTracer.End(span, nil)
+	if straces.NotegicTracer != nil {
+		relayCtx, span := straces.NotegicTracer.Start(ctx, "outbox.relay")
+		defer straces.NotegicTracer.End(span, nil)
 		ctx = relayCtx
 	}
 
@@ -97,28 +95,28 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		r.workerId,
 		r.config.BatchSize,
 		r.config.ClaimTimeout,
-		options.WithDB(r.db),
+		srepositories.WithDB(r.db),
 	)
 	if exception != nil {
-		if traces.NotegicTracer != nil {
-			traces.NotegicTracer.RecordError(ctx, exception)
+		if straces.NotegicTracer != nil {
+			straces.NotegicTracer.RecordError(ctx, exception)
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, exception, "Failed to claim outbox events")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, exception, "Failed to claim outbox events")
 		}
 		return
 	}
 	if len(events) == 0 {
 		return
 	}
-	if metrics.NotegicMeter != nil {
-		metrics.NotegicMeter.Count(ctx, "outbox.relay.claimed.count", int64(len(events)))
+	if smetrics.NotegicMeter != nil {
+		smetrics.NotegicMeter.Count(ctx, "outbox.relay.claimed.count", int64(len(events)))
 	}
 
 	publishedEventIds := make([]uuid.UUID, 0, len(events))
-	failureInputs := make([]cinputs.FailedOutboxEventInput, 0)
+	failureInputs := make([]sinputs.FailedOutboxEventInput, 0)
 	for _, event := range events {
-		payload, err := crepositories.SerializeOutboxEvent(event)
+		payload, err := srepositories.SerializeOutboxEvent(event)
 		if err == nil && r.producer == nil {
 			err = errors.New("Kafka producer is unavailable")
 		}
@@ -137,19 +135,19 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		if backoff > r.config.MaximumBackoff {
 			backoff = r.config.MaximumBackoff
 		}
-		failureInputs = append(failureInputs, cinputs.FailedOutboxEventInput{
+		failureInputs = append(failureInputs, sinputs.FailedOutboxEventInput{
 			Id:          event.Id,
 			LastError:   err.Error(),
 			AvailableAt: time.Now().Add(backoff),
 		})
-		if metrics.NotegicMeter != nil {
-			metrics.NotegicMeter.Count(ctx, "outbox.relay.failure.count", 1)
+		if smetrics.NotegicMeter != nil {
+			smetrics.NotegicMeter.Count(ctx, "outbox.relay.failure.count", 1)
 		}
-		if traces.NotegicTracer != nil {
-			traces.NotegicTracer.RecordError(ctx, err)
+		if straces.NotegicTracer != nil {
+			straces.NotegicTracer.RecordError(ctx, err)
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to publish outbox event")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to publish outbox event")
 		}
 	}
 
@@ -157,32 +155,32 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		ctx,
 		publishedEventIds,
 		r.workerId,
-		options.WithDB(r.db),
+		srepositories.WithDB(r.db),
 	); exception != nil {
-		if traces.NotegicTracer != nil {
-			traces.NotegicTracer.RecordError(ctx, exception)
+		if straces.NotegicTracer != nil {
+			straces.NotegicTracer.RecordError(ctx, exception)
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, exception, "Failed to mark outbox events as published")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, exception, "Failed to mark outbox events as published")
 		}
-	} else if metrics.NotegicMeter != nil && len(publishedEventIds) > 0 {
-		metrics.NotegicMeter.Count(ctx, "outbox.relay.published.count", int64(len(publishedEventIds)))
+	} else if smetrics.NotegicMeter != nil && len(publishedEventIds) > 0 {
+		smetrics.NotegicMeter.Count(ctx, "outbox.relay.published.count", int64(len(publishedEventIds)))
 	}
 
 	if exception := r.outboxEventRepository.MarkFailedMany(
 		ctx,
 		failureInputs,
 		r.workerId,
-		options.WithDB(r.db),
+		srepositories.WithDB(r.db),
 	); exception != nil {
-		if traces.NotegicTracer != nil {
-			traces.NotegicTracer.RecordError(ctx, exception)
+		if straces.NotegicTracer != nil {
+			straces.NotegicTracer.RecordError(ctx, exception)
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, exception, "Failed to schedule outbox event retries")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, exception, "Failed to schedule outbox event retries")
 		}
-	} else if metrics.NotegicMeter != nil && len(failureInputs) > 0 {
-		metrics.NotegicMeter.Count(ctx, "outbox.relay.retry.count", int64(len(failureInputs)))
+	} else if smetrics.NotegicMeter != nil && len(failureInputs) > 0 {
+		smetrics.NotegicMeter.Count(ctx, "outbox.relay.retry.count", int64(len(failureInputs)))
 	}
 }
 
@@ -190,18 +188,18 @@ func (r *OutboxRelay) cleanup(ctx context.Context) {
 	deletedCount, exception := r.outboxEventRepository.DeletePublishedBefore(
 		ctx,
 		time.Now().Add(-r.config.Retention),
-		options.WithDB(r.db),
+		srepositories.WithDB(r.db),
 	)
 	if exception != nil {
-		if traces.NotegicTracer != nil {
-			traces.NotegicTracer.RecordError(ctx, exception)
+		if straces.NotegicTracer != nil {
+			straces.NotegicTracer.RecordError(ctx, exception)
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, exception, "Failed to clean published outbox events")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, exception, "Failed to clean published outbox events")
 		}
 		return
 	}
-	if metrics.NotegicMeter != nil && deletedCount > 0 {
-		metrics.NotegicMeter.Count(ctx, "outbox.cleanup.deleted.count", deletedCount)
+	if smetrics.NotegicMeter != nil && deletedCount > 0 {
+		smetrics.NotegicMeter.Count(ctx, "outbox.cleanup.deleted.count", deletedCount)
 	}
 }

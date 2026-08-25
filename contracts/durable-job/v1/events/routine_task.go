@@ -5,15 +5,15 @@ import (
 
 	"github.com/google/uuid"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type RoutineTaskRunningData struct {
-	RoutineTaskId       uuid.UUID                `json:"routineTaskId"`
-	RoutineTaskRecordId uuid.UUID                `json:"routineTaskRecordId"`
-	RoutineId           uuid.UUID                `json:"routineId"`
-	ActorUserPublicId   uuid.UUID                `json:"actorUserPublicId"`
-	Purpose             enums.RoutineTaskPurpose `json:"purpose"`
-	Attempt             int32                    `json:"attempt"`
-	StartedAt           time.Time                `json:"startedAt"`
+	RoutineTaskId       uuid.UUID                 `json:"routineTaskId"`
+	RoutineTaskRecordId uuid.UUID                 `json:"routineTaskRecordId"`
+	RoutineId           uuid.UUID                 `json:"routineId"`
+	ActorUserPublicId   uuid.UUID                 `json:"actorUserPublicId"`
+	Purpose             cenums.RoutineTaskPurpose `json:"purpose"`
+	Attempt             int32                     `json:"attempt"`
+	StartedAt           time.Time                 `json:"startedAt"`
 }

@@ -6,8 +6,9 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -40,7 +41,7 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx context.Context, v any) (*enums.SupportedIcon, error) {
+func (ec *executionContext) unmarshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx context.Context, v any) (*cenums.SupportedIcon, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -49,7 +50,7 @@ func (ec *executionContext) unmarshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff6
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx context.Context, sel ast.SelectionSet, v *enums.SupportedIcon) graphql.Marshaler {
+func (ec *executionContext) marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx context.Context, sel ast.SelectionSet, v *cenums.SupportedIcon) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -60,39 +61,39 @@ func (ec *executionContext) marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67�
 }
 
 var (
-	unmarshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon = map[string]enums.SupportedIcon{
-		"SupportedIcon_GrinningFace":               enums.SupportedIcon_GrinningFace,
-		"SupportedIcon_SmilingFaceWithSmilingEyes": enums.SupportedIcon_SmilingFaceWithSmilingEyes,
-		"SupportedIcon_RedHeart":                   enums.SupportedIcon_RedHeart,
-		"SupportedIcon_Fire":                       enums.SupportedIcon_Fire,
-		"SupportedIcon_Star":                       enums.SupportedIcon_Star,
-		"SupportedIcon_Books":                      enums.SupportedIcon_Books,
-		"SupportedIcon_Notebook":                   enums.SupportedIcon_Notebook,
-		"SupportedIcon_PencilPaper":                enums.SupportedIcon_PencilPaper,
-		"SupportedIcon_Lightbulb":                  enums.SupportedIcon_Lightbulb,
-		"SupportedIcon_Rocket":                     enums.SupportedIcon_Rocket,
-		"SupportedIcon_CheckMark":                  enums.SupportedIcon_CheckMark,
-		"SupportedIcon_Pin":                        enums.SupportedIcon_Pin,
-		"SupportedIcon_FolderOpen":                 enums.SupportedIcon_FolderOpen,
-		"SupportedIcon_Calendar":                   enums.SupportedIcon_Calendar,
-		"SupportedIcon_Clock":                      enums.SupportedIcon_Clock,
+	unmarshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon = map[string]cenums.SupportedIcon{
+		"SupportedIcon_GrinningFace":               cenums.SupportedIcon_GrinningFace,
+		"SupportedIcon_SmilingFaceWithSmilingEyes": cenums.SupportedIcon_SmilingFaceWithSmilingEyes,
+		"SupportedIcon_RedHeart":                   cenums.SupportedIcon_RedHeart,
+		"SupportedIcon_Fire":                       cenums.SupportedIcon_Fire,
+		"SupportedIcon_Star":                       cenums.SupportedIcon_Star,
+		"SupportedIcon_Books":                      cenums.SupportedIcon_Books,
+		"SupportedIcon_Notebook":                   cenums.SupportedIcon_Notebook,
+		"SupportedIcon_PencilPaper":                cenums.SupportedIcon_PencilPaper,
+		"SupportedIcon_Lightbulb":                  cenums.SupportedIcon_Lightbulb,
+		"SupportedIcon_Rocket":                     cenums.SupportedIcon_Rocket,
+		"SupportedIcon_CheckMark":                  cenums.SupportedIcon_CheckMark,
+		"SupportedIcon_Pin":                        cenums.SupportedIcon_Pin,
+		"SupportedIcon_FolderOpen":                 cenums.SupportedIcon_FolderOpen,
+		"SupportedIcon_Calendar":                   cenums.SupportedIcon_Calendar,
+		"SupportedIcon_Clock":                      cenums.SupportedIcon_Clock,
 	}
-	marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon = map[enums.SupportedIcon]string{
-		enums.SupportedIcon_GrinningFace:               "SupportedIcon_GrinningFace",
-		enums.SupportedIcon_SmilingFaceWithSmilingEyes: "SupportedIcon_SmilingFaceWithSmilingEyes",
-		enums.SupportedIcon_RedHeart:                   "SupportedIcon_RedHeart",
-		enums.SupportedIcon_Fire:                       "SupportedIcon_Fire",
-		enums.SupportedIcon_Star:                       "SupportedIcon_Star",
-		enums.SupportedIcon_Books:                      "SupportedIcon_Books",
-		enums.SupportedIcon_Notebook:                   "SupportedIcon_Notebook",
-		enums.SupportedIcon_PencilPaper:                "SupportedIcon_PencilPaper",
-		enums.SupportedIcon_Lightbulb:                  "SupportedIcon_Lightbulb",
-		enums.SupportedIcon_Rocket:                     "SupportedIcon_Rocket",
-		enums.SupportedIcon_CheckMark:                  "SupportedIcon_CheckMark",
-		enums.SupportedIcon_Pin:                        "SupportedIcon_Pin",
-		enums.SupportedIcon_FolderOpen:                 "SupportedIcon_FolderOpen",
-		enums.SupportedIcon_Calendar:                   "SupportedIcon_Calendar",
-		enums.SupportedIcon_Clock:                      "SupportedIcon_Clock",
+	marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon = map[cenums.SupportedIcon]string{
+		cenums.SupportedIcon_GrinningFace:               "SupportedIcon_GrinningFace",
+		cenums.SupportedIcon_SmilingFaceWithSmilingEyes: "SupportedIcon_SmilingFaceWithSmilingEyes",
+		cenums.SupportedIcon_RedHeart:                   "SupportedIcon_RedHeart",
+		cenums.SupportedIcon_Fire:                       "SupportedIcon_Fire",
+		cenums.SupportedIcon_Star:                       "SupportedIcon_Star",
+		cenums.SupportedIcon_Books:                      "SupportedIcon_Books",
+		cenums.SupportedIcon_Notebook:                   "SupportedIcon_Notebook",
+		cenums.SupportedIcon_PencilPaper:                "SupportedIcon_PencilPaper",
+		cenums.SupportedIcon_Lightbulb:                  "SupportedIcon_Lightbulb",
+		cenums.SupportedIcon_Rocket:                     "SupportedIcon_Rocket",
+		cenums.SupportedIcon_CheckMark:                  "SupportedIcon_CheckMark",
+		cenums.SupportedIcon_Pin:                        "SupportedIcon_Pin",
+		cenums.SupportedIcon_FolderOpen:                 "SupportedIcon_FolderOpen",
+		cenums.SupportedIcon_Calendar:                   "SupportedIcon_Calendar",
+		cenums.SupportedIcon_Clock:                      "SupportedIcon_Clock",
 	}
 )
 

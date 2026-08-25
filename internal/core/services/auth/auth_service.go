@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -17,26 +16,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	stringutil "github.com/HiIamJeff67/notegic-backend/shared/lib/strings"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
-	authcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
-	snowflake "github.com/HiIamJeff67/notegic-backend/shared/lib/snowflake"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cemaildto "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sauthcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
+	snowflake "github.com/HiIamJeff67/notegic-backend/shared/lib/snowflake"
+	sstrings "github.com/HiIamJeff67/notegic-backend/shared/lib/strings"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	authsql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/auth"
 	badgesql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/badge"
 	usersql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/user"
@@ -44,8 +42,6 @@ import (
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 	emailtransport "github.com/HiIamJeff67/notegic-backend/internal/core/transports/email"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type AuthServiceInterface interface {
@@ -65,40 +61,40 @@ type AuthServiceInterface interface {
 type AuthService struct {
 	validator             *validator.Validate
 	db                    *gorm.DB
-	userRepository        repositories.UserRepositoryInterface
-	userInfoRepository    repositories.UserInfoRepositoryInterface
-	userAccountRepository repositories.UserAccountRepositoryInterface
-	userSettingRepository repositories.UserSettingRepositoryInterface
-	rootShelfRepository   repositories.RootShelfRepositoryInterface
-	outboxRepository      repositories.OutboxEventRepositoryInterface
+	userRepository        srepositories.UserRepositoryInterface
+	userInfoRepository    srepositories.UserInfoRepositoryInterface
+	userAccountRepository srepositories.UserAccountRepositoryInterface
+	userSettingRepository srepositories.UserSettingRepositoryInterface
+	rootShelfRepository   srepositories.RootShelfRepositoryInterface
+	outboxRepository      srepositories.OutboxEventRepositoryInterface
 	oauthService          OAuthServiceInterface
 	emailClient           emailtransport.ClientInterface
 	userDataCacheClient   *userdata.UserDataCacheClient
-	authCodeGenerator     *authcode.AuthCodeGenerator
+	authCodeGenerator     *sauthcode.AuthCodeGenerator
 }
 
 func NewAuthService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	userRepository repositories.UserRepositoryInterface,
-	userInfoRepository repositories.UserInfoRepositoryInterface,
-	userAccountRepository repositories.UserAccountRepositoryInterface,
-	userSettingRepository repositories.UserSettingRepositoryInterface,
-	rootShelfRepository repositories.RootShelfRepositoryInterface,
-	outboxRepository repositories.OutboxEventRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
+	userInfoRepository srepositories.UserInfoRepositoryInterface,
+	userAccountRepository srepositories.UserAccountRepositoryInterface,
+	userSettingRepository srepositories.UserSettingRepositoryInterface,
+	rootShelfRepository srepositories.RootShelfRepositoryInterface,
+	outboxRepository srepositories.OutboxEventRepositoryInterface,
 	oauthService OAuthServiceInterface,
 	emailClient emailtransport.ClientInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
-	authCodeGenerator *authcode.AuthCodeGenerator,
+	authCodeGenerator *sauthcode.AuthCodeGenerator,
 ) AuthServiceInterface {
 	if db == nil {
 		db = data.DB
 	}
 	if authCodeGenerator == nil {
-		authCodeGenerator = authcode.New()
+		authCodeGenerator = sauthcode.New()
 	}
 	if outboxRepository == nil {
-		outboxRepository = repositories.NewOutboxEventRepository()
+		outboxRepository = srepositories.NewOutboxEventRepository()
 	}
 	return &AuthService{
 		validator:             validator,
@@ -119,7 +115,7 @@ func NewAuthService(
 func (s *AuthService) loginByGoogleUserInfo(
 	ctx context.Context,
 	tx *gorm.DB,
-	user *schemas.User,
+	user *sschemas.User,
 	userInfo *capi.GetGoogleUserInfoResponseDto,
 	userAgent string,
 ) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception) {
@@ -138,15 +134,15 @@ func (s *AuthService) loginByGoogleUserInfo(
 
 		_, exception = s.userRepository.UpdateOneById(
 			user.Id,
-			inputs.PartialUpdateUserInput{
-				Values: inputs.UpdateUserInput{
+			sinputs.PartialUpdateUserInput{
+				Values: sinputs.UpdateUserInput{
 					LoginCount:     &newLoginCount,
 					BlockLoginUtil: blockLoginUntil,
 				},
 				SetNull: nil,
 			},
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		)
 		if exception != nil {
 			tx.Rollback()
@@ -173,7 +169,7 @@ func (s *AuthService) loginByGoogleUserInfo(
 			TimeOfOccurrence: time.Now(),
 			OtherDetails:     "",
 		}); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
 	}
 
@@ -203,24 +199,24 @@ func (s *AuthService) loginByGoogleUserInfo(
 				CSRFToken:   newCSRFToken,
 			},
 		); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
 	} else { // else if it does not exist
 		// then we have to first get the relative data from different tables
 		// we done this by one custom sql so it's not that slow...
 		// once we have the required data, we set it as the user data cache
 		output := struct {
-			Id          uuid.UUID        `gorm:"id"`
-			PublicId    uuid.UUID        `gorm:"public_id"`
-			Name        string           `gorm:"name"`
-			DisplayName string           `gorm:"display_name"`
-			Email       string           `gorm:"email"`
-			Role        enums.UserRole   `gorm:"role"`
-			Plan        enums.UserPlan   `gorm:"plan"`
-			Status      enums.UserStatus `gorm:"status"`
-			AvatarURL   *string          `gorm:"avatar_url"`
-			CreatedAt   time.Time        `gorm:"created_at"`
-			UpdatedAt   time.Time        `gorm:"updated_at"`
+			Id          uuid.UUID         `gorm:"id"`
+			PublicId    uuid.UUID         `gorm:"public_id"`
+			Name        string            `gorm:"name"`
+			DisplayName string            `gorm:"display_name"`
+			Email       string            `gorm:"email"`
+			Role        cenums.UserRole   `gorm:"role"`
+			Plan        cenums.UserPlan   `gorm:"plan"`
+			Status      cenums.UserStatus `gorm:"status"`
+			AvatarURL   *string           `gorm:"avatar_url"`
+			CreatedAt   time.Time         `gorm:"created_at"`
+			UpdatedAt   time.Time         `gorm:"updated_at"`
 		}{}
 		err := tx.Raw(usersql.GetUserDataCacheByIdSQL, user.Id).
 			Row().
@@ -274,8 +270,8 @@ func (s *AuthService) loginByGoogleUserInfo(
 	var zeroLoginCount int32 = 0 // reset the login count if the login procedure is valid
 	updatedUser, exception := s.userRepository.UpdateOneById(
 		user.Id,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				Status:       &user.PrevStatus,
 				RefreshToken: newRefreshToken,
 				UserAgent:    &userAgent,
@@ -283,8 +279,8 @@ func (s *AuthService) loginByGoogleUserInfo(
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -484,7 +480,7 @@ func (s *AuthService) Register(
 
 	tx := s.db.WithContext(ctx).Begin()
 
-	createUserInput := inputs.CreateUserInput{
+	createUserInput := sinputs.CreateUserInput{
 		Name:        reqDto.Body.Name,
 		DisplayName: s.generateRandomFakeDisplayName(), // we generate a default display name for the new user
 		Email:       reqDto.Body.Email,
@@ -493,8 +489,8 @@ func (s *AuthService) Register(
 	}
 	newUserId, exception := s.userRepository.CreateOne(
 		createUserInput,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -503,7 +499,7 @@ func (s *AuthService) Register(
 	createdUser, exception := s.userRepository.GetOneById(
 		*newUserId,
 		nil,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -541,14 +537,14 @@ func (s *AuthService) Register(
 
 	newUser, exception := s.userRepository.UpdateOneById(
 		*newUserId,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				RefreshToken: newRefreshToken,
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -557,9 +553,9 @@ func (s *AuthService) Register(
 
 	_, exception = s.userInfoRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserInfoInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserInfoInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -568,12 +564,12 @@ func (s *AuthService) Register(
 
 	_, exception = s.userAccountRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserAccountInput{
+		sinputs.CreateUserAccountInput{
 			AuthCode:          authCode,
 			AuthCodeExpiredAt: authCodeExpiredAt,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -582,9 +578,9 @@ func (s *AuthService) Register(
 
 	_, exception = s.userSettingRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserSettingInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserSettingInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -618,7 +614,7 @@ func (s *AuthService) Register(
 		},
 	)
 	if exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
 	if exception = s.emailClient.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
@@ -626,7 +622,7 @@ func (s *AuthService) Register(
 		UserName: newUser.Name,
 		Status:   newUser.Status.String(),
 	}); exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
 	return &capi.RegisterResponseDto{
@@ -661,9 +657,9 @@ func (s *AuthService) RegisterViaGoogle(
 	tx := s.db.WithContext(ctx).Begin()
 	existingUser, lookupException := s.userRepository.GetOneByEmail(
 		userInfo.Email,
-		[]schemas.UserRelation{schemas.UserRelation_UserAccount},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		[]sschemas.UserRelation{sschemas.UserRelation_UserAccount},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if lookupException == nil && existingUser != nil {
 		loginResponse, loginException := s.loginByGoogleUserInfo(
@@ -724,11 +720,11 @@ func (s *AuthService) RegisterViaGoogle(
 	if len(fakeName) < 6 {
 		fakeName += snowflake.GenerateRepeatableID()
 	}
-	if len(fakeName) > constants.MaxNameLength {
-		fakeName = fakeName[:constants.MaxNameLength]
+	if len(fakeName) > sconstants.MaxNameLength {
+		fakeName = fakeName[:sconstants.MaxNameLength]
 	}
 
-	createUserInput := inputs.CreateUserInput{
+	createUserInput := sinputs.CreateUserInput{
 		Name:        fakeName,
 		DisplayName: s.generateRandomFakeDisplayName(), // we generate a default display name for the new user
 		Email:       userInfo.Email,
@@ -737,8 +733,8 @@ func (s *AuthService) RegisterViaGoogle(
 	}
 	newUserId, exception := s.userRepository.CreateOne(
 		createUserInput,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -747,7 +743,7 @@ func (s *AuthService) RegisterViaGoogle(
 	createdUser, exception := s.userRepository.GetOneById(
 		*newUserId,
 		nil,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -785,14 +781,14 @@ func (s *AuthService) RegisterViaGoogle(
 
 	newUser, exception := s.userRepository.UpdateOneById(
 		*newUserId,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				RefreshToken: newRefreshToken,
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -801,9 +797,9 @@ func (s *AuthService) RegisterViaGoogle(
 
 	_, exception = s.userInfoRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserInfoInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserInfoInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -812,13 +808,13 @@ func (s *AuthService) RegisterViaGoogle(
 
 	_, exception = s.userAccountRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserAccountInput{
+		sinputs.CreateUserAccountInput{
 			AuthCode:          authCode,
 			AuthCodeExpiredAt: authCodeExpiredAt,
 			GoogleCredential:  &userInfo.Id,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -827,9 +823,9 @@ func (s *AuthService) RegisterViaGoogle(
 
 	_, exception = s.userSettingRepository.CreateOneByUserId(
 		*newUserId,
-		inputs.CreateUserSettingInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserSettingInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -855,7 +851,7 @@ func (s *AuthService) RegisterViaGoogle(
 		},
 	)
 	if exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
 	if exception = s.enqueueWelcomeNotification(tx, newUser.PublicId); exception != nil {
@@ -874,7 +870,7 @@ func (s *AuthService) RegisterViaGoogle(
 		UserName: newUser.Name,
 		Status:   newUser.Status.String(),
 	}); exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
 	return &capi.RegisterViaGoogleResponseDto{
@@ -899,24 +895,24 @@ func (s *AuthService) Login(
 	tx := s.db.WithContext(ctx).Begin()
 
 	// otherwise, the user should provide their account and password
-	var user *schemas.User = nil
+	var user *sschemas.User = nil
 	var exception *cexceptions.Exception = nil
-	if stringutil.IsAlphaAndNumberString(reqDto.Body.Account) { // if the account field contains user name
+	if sstrings.IsAlphaAndNumberString(reqDto.Body.Account) { // if the account field contains user name
 		if user, exception = s.userRepository.GetOneByName(
 			reqDto.Body.Account,
 			nil,
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		); exception != nil {
 			tx.Rollback()
 			return nil, exception
 		}
-	} else if stringutil.IsEmailString(reqDto.Body.Account) { // if the account field contains email
+	} else if sstrings.IsEmailString(reqDto.Body.Account) { // if the account field contains email
 		if user, exception = s.userRepository.GetOneByEmail(
 			reqDto.Body.Account,
 			nil,
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		); exception != nil {
 			tx.Rollback()
 			return nil, exception
@@ -946,15 +942,15 @@ func (s *AuthService) Login(
 
 		_, exception = s.userRepository.UpdateOneById(
 			user.Id,
-			inputs.PartialUpdateUserInput{
-				Values: inputs.UpdateUserInput{
+			sinputs.PartialUpdateUserInput{
+				Values: sinputs.UpdateUserInput{
 					LoginCount:     &newLoginCount,
 					BlockLoginUtil: blockLoginUntil,
 				},
 				SetNull: nil,
 			},
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		)
 		if exception != nil {
 			tx.Rollback()
@@ -981,7 +977,7 @@ func (s *AuthService) Login(
 			TimeOfOccurrence: time.Now(),
 			OtherDetails:     "",
 		}); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
 	}
 
@@ -1011,24 +1007,24 @@ func (s *AuthService) Login(
 				CSRFToken:   newCSRFToken,
 			},
 		); exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
 	} else { // else if it does not exist
 		// then we have to first get the relative data from different tables
 		// we done this by one custom sql so it's not that slow...
 		// once we have the required data, we set it as the user data cache
 		output := struct {
-			Id          uuid.UUID        `gorm:"id"`
-			PublicId    uuid.UUID        `gorm:"public_id"`
-			Name        string           `gorm:"name"`
-			DisplayName string           `gorm:"display_name"`
-			Email       string           `gorm:"email"`
-			Role        enums.UserRole   `gorm:"role"`
-			Plan        enums.UserPlan   `gorm:"plan"`
-			Status      enums.UserStatus `gorm:"status"`
-			AvatarURL   *string          `gorm:"avatar_url"`
-			CreatedAt   time.Time        `gorm:"created_at"`
-			UpdatedAt   time.Time        `gorm:"updated_at"`
+			Id          uuid.UUID         `gorm:"id"`
+			PublicId    uuid.UUID         `gorm:"public_id"`
+			Name        string            `gorm:"name"`
+			DisplayName string            `gorm:"display_name"`
+			Email       string            `gorm:"email"`
+			Role        cenums.UserRole   `gorm:"role"`
+			Plan        cenums.UserPlan   `gorm:"plan"`
+			Status      cenums.UserStatus `gorm:"status"`
+			AvatarURL   *string           `gorm:"avatar_url"`
+			CreatedAt   time.Time         `gorm:"created_at"`
+			UpdatedAt   time.Time         `gorm:"updated_at"`
 		}{}
 		err := tx.Raw(usersql.GetUserDataCacheByIdSQL, user.Id).
 			Row().
@@ -1082,8 +1078,8 @@ func (s *AuthService) Login(
 	var zeroLoginCount int32 = 0 // reset the login count if the login procedure is valid
 	updatedUser, exception := s.userRepository.UpdateOneById(
 		user.Id,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				Status:       &user.PrevStatus,
 				RefreshToken: newRefreshToken,
 				UserAgent:    &reqDto.Header.UserAgent,
@@ -1091,8 +1087,8 @@ func (s *AuthService) Login(
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1137,9 +1133,9 @@ func (s *AuthService) LoginViaGoogle(
 	tx := s.db.WithContext(ctx).Begin()
 	user, exception := s.userRepository.GetOneByEmail(
 		userInfo.Email,
-		[]schemas.UserRelation{schemas.UserRelation_UserAccount},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		[]sschemas.UserRelation{sschemas.UserRelation_UserAccount},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1184,18 +1180,18 @@ func (s *AuthService) Logout(
 		).WithOrigin(tx.Error)
 	}
 
-	offlineStatus := enums.UserStatus_Offline
+	offlineStatus := cenums.UserStatus_Offline
 	emptyString := ""
 	updatedUser, exception := s.userRepository.UpdateOneById(
 		actorUserId,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				Status:       &offlineStatus,
 				RefreshToken: &emptyString,
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1326,15 +1322,15 @@ func (s *AuthService) ResetEmail(
 	authCodeExpiredAt := s.authCodeGenerator.ExpireAt(time.Now())
 	_, exception = s.userAccountRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserAccountInput{
-			Values: inputs.UpdateUserAccountInput{
+		sinputs.PartialUpdateUserAccountInput{
+			Values: sinputs.UpdateUserAccountInput{
 				AuthCode:          &authCode,
 				AuthCodeExpiredAt: &authCodeExpiredAt,
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1359,25 +1355,25 @@ func (s *AuthService) ForgetPassword(
 
 	tx := s.db.WithContext(ctx).Begin()
 
-	var user *schemas.User = nil
+	var user *sschemas.User = nil
 	var exception *cexceptions.Exception = nil
-	var preloads = []schemas.UserRelation{schemas.UserRelation_UserAccount, schemas.UserRelation_UserInfo, schemas.UserRelation_UserSetting}
-	if stringutil.IsEmailString(reqDto.Body.Account) { // if the account field contains email
+	var preloads = []sschemas.UserRelation{sschemas.UserRelation_UserAccount, sschemas.UserRelation_UserInfo, sschemas.UserRelation_UserSetting}
+	if sstrings.IsEmailString(reqDto.Body.Account) { // if the account field contains email
 		if user, exception = s.userRepository.GetOneByEmail(
 			reqDto.Body.Account,
 			preloads,
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		); exception != nil {
 			tx.Rollback()
 			return nil, exception
 		}
-	} else if stringutil.IsAlphaAndNumberString(reqDto.Body.Account) { // if the account field contains user name
+	} else if sstrings.IsAlphaAndNumberString(reqDto.Body.Account) { // if the account field contains user name
 		if user, exception = s.userRepository.GetOneByName(
 			reqDto.Body.Account,
 			preloads,
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		); exception != nil {
 			tx.Rollback()
 			return nil, exception
@@ -1411,7 +1407,7 @@ func (s *AuthService) ForgetPassword(
 	// update the access token of the user
 	exception = s.userDataCacheClient.Update(user.Name, cacheinputs.UpdateUserDataCacheInput{AccessToken: newAccessToken})
 	if exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		// and also try to set the new user cache data
 		exception = s.userDataCacheClient.Set(user.Name, userdata.UserDataCache{
 			Id:          user.Id,
@@ -1429,7 +1425,7 @@ func (s *AuthService) ForgetPassword(
 			UpdatedAt:   user.UpdatedAt,
 		})
 		if exception != nil {
-			_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
 	}
 
@@ -1443,8 +1439,8 @@ func (s *AuthService) ForgetPassword(
 	var zeroLoginCount int32 = 0 // reset the login count if the login procedure is valid
 	updatedUser, exception := s.userRepository.UpdateOneById(
 		user.Id,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				Password:     &hashedPassword,
 				RefreshToken: newRefreshToken,
 				UserAgent:    &reqDto.Header.UserAgent,
@@ -1452,14 +1448,14 @@ func (s *AuthService) ForgetPassword(
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueUserSessionsRevoked(
+	if err := srepositories.NewOutboxEventRepository().EnqueueUserSessionsRevoked(
 		tx,
 		user.PublicId.String(),
 		user.PublicId,
@@ -1502,7 +1498,7 @@ func (s *AuthService) ResetMe(
 	// Note that the user will not logged out after the reset operation
 
 	// try to retrieve the target user to reset and validate his/her auth code first
-	var resetUserAccount platformschemas.UserAccount
+	var resetUserAccount sschemas.UserAccount
 	result := tx.Model(&resetUserAccount).
 		Where("user_id = ? AND auth_code = ?", actorUserId, reqDto.Body.AuthCode).
 		First(&resetUserAccount)
@@ -1512,32 +1508,32 @@ func (s *AuthService) ResetMe(
 	}
 
 	// delete the user info
-	if err := tx.Where("user_id = ?", actorUserId).Delete(&schemas.UserInfo{}).Error; err != nil {
+	if err := tx.Where("user_id = ?", actorUserId).Delete(&sschemas.UserInfo{}).Error; err != nil {
 		tx.Rollback()
 		return nil, apiexceptions.NewUserInfoException().FailedToDelete().WithOrigin(err)
 	}
 	// and then re-create a new user info
 	if _, exception := s.userInfoRepository.CreateOneByUserId(
 		resetUserAccount.UserId,
-		inputs.CreateUserInfoInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserInfoInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
 	// delete the user setting
-	if err := tx.Where("user_id = ?", actorUserId).Delete(&schemas.UserSetting{}).Error; err != nil {
+	if err := tx.Where("user_id = ?", actorUserId).Delete(&sschemas.UserSetting{}).Error; err != nil {
 		tx.Rollback()
 		return nil, apiexceptions.NewUserSettingException().FailedToDelete().WithOrigin(err)
 	}
 	// and then re-create a new user setting
 	if _, exception := s.userSettingRepository.CreateOneByUserId(
 		resetUserAccount.UserId,
-		inputs.CreateUserSettingInput{},
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		sinputs.CreateUserSettingInput{},
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -1551,16 +1547,16 @@ func (s *AuthService) ResetMe(
 	// soft delete all the root shelves of the user
 	if exception := s.rootShelfRepository.SoftDeleteManyByUserId(
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	); exception != nil {
 		// skip if there's no root shelves to soft delete
 	} else {
 		// then hard delete all the root shelves of the user
 		if exception := s.rootShelfRepository.HardDeleteManyByUserId(
 			actorUserId,
-			options.WithTransactionDB(tx),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 		); exception != nil {
 			// skip if there's no root shelves to hard delete
 		}
@@ -1640,7 +1636,7 @@ func (s *AuthService) DeleteMe(
 
 	exception = s.userDataCacheClient.Delete(actorUserName)
 	if exception != nil {
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
+		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
 	return &capi.DeleteMeResponseDto{

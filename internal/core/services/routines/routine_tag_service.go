@@ -2,7 +2,6 @@ package routines
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 	"time"
 
@@ -10,21 +9,20 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTagServiceInterface interface {
@@ -43,13 +41,13 @@ type RoutineTagServiceInterface interface {
 type RoutineTagService struct {
 	validator            *validator.Validate
 	db                   *gorm.DB
-	routineTagRepository repositories.RoutineTagRepositoryInterface
+	routineTagRepository srepositories.RoutineTagRepositoryInterface
 }
 
 func NewRoutineTagService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	routineTagRepository repositories.RoutineTagRepositoryInterface,
+	routineTagRepository srepositories.RoutineTagRepositoryInterface,
 ) RoutineTagServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -63,11 +61,11 @@ func NewRoutineTagService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func convertRoutineTagIcon(icon *string) (*enums.SupportedIcon, *cexceptions.Exception) {
+func convertRoutineTagIcon(icon *string) (*cenums.SupportedIcon, *cexceptions.Exception) {
 	if icon == nil {
 		return nil, nil
 	}
-	convertedIcon, err := enums.ConvertStringToSupportedIcon(*icon)
+	convertedIcon, err := cenums.ConvertStringToSupportedIcon(*icon)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
 	}
@@ -75,7 +73,7 @@ func convertRoutineTagIcon(icon *string) (*enums.SupportedIcon, *cexceptions.Exc
 	return convertedIcon, nil
 }
 
-func newRoutineTagResponseDto(routineTag schemas.RoutineTag) capi.RoutineTagResponseDto {
+func newRoutineTagResponseDto(routineTag sschemas.RoutineTag) capi.RoutineTagResponseDto {
 	var icon *string
 	if routineTag.Icon != nil {
 		iconValue := routineTag.Icon.String()
@@ -114,7 +112,7 @@ func (s *RoutineTagService) GetMyRoutineTagById(
 		requestDto.Param.RoutineTagId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -145,7 +143,7 @@ func (s *RoutineTagService) GetAllMyRoutineTags(
 	routineTags, exception := s.routineTagRepository.GetAllByUserId(
 		actorUserId,
 		nil,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -179,13 +177,13 @@ func (s *RoutineTagService) CreateRoutineTag(
 
 	newRoutineTagId, exception := s.routineTagRepository.CreateOne(
 		actorUserId,
-		inputs.CreateRoutineTagInput{
+		sinputs.CreateRoutineTagInput{
 			Id:    requestDto.Body.Id,
 			Name:  requestDto.Body.Name,
 			Color: requestDto.Body.Color,
 			Icon:  icon,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -211,13 +209,13 @@ func (s *RoutineTagService) CreateRoutineTags(
 		return nil, exception
 	}
 
-	input := make([]inputs.CreateRoutineTagInput, len(requestDto.Body.CreatedRoutineTags))
+	input := make([]sinputs.CreateRoutineTagInput, len(requestDto.Body.CreatedRoutineTags))
 	for index, createdRoutineTag := range requestDto.Body.CreatedRoutineTags {
 		icon, exception := convertRoutineTagIcon(createdRoutineTag.Icon)
 		if exception != nil {
 			return nil, exception
 		}
-		input[index] = inputs.CreateRoutineTagInput{
+		input[index] = sinputs.CreateRoutineTagInput{
 			Id:    createdRoutineTag.Id,
 			Name:  createdRoutineTag.Name,
 			Color: createdRoutineTag.Color,
@@ -227,7 +225,7 @@ func (s *RoutineTagService) CreateRoutineTags(
 	newRoutineTagIds, exception := s.routineTagRepository.CreateMany(
 		actorUserId,
 		input,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -260,15 +258,15 @@ func (s *RoutineTagService) UpdateMyRoutineTagById(
 	updatedRoutineTag, exception := s.routineTagRepository.UpdateOneById(
 		requestDto.Param.RoutineTagId,
 		actorUserId,
-		inputs.PartialUpdateRoutineTagInput{
-			Values: inputs.UpdateRoutineTagInput{
+		sinputs.PartialUpdateRoutineTagInput{
+			Values: sinputs.UpdateRoutineTagInput{
 				Name:  requestDto.Body.Values.Name,
 				Color: requestDto.Body.Values.Color,
 				Icon:  icon,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -293,16 +291,16 @@ func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateRoutineTagByIdInput, len(requestDto.Body.UpdatedRoutineTags))
+	input := make([]sinputs.UpdateRoutineTagByIdInput, len(requestDto.Body.UpdatedRoutineTags))
 	for index, updatedRoutineTag := range requestDto.Body.UpdatedRoutineTags {
 		icon, exception := convertRoutineTagIcon(updatedRoutineTag.Values.Icon)
 		if exception != nil {
 			return nil, exception
 		}
-		input[index] = inputs.UpdateRoutineTagByIdInput{
+		input[index] = sinputs.UpdateRoutineTagByIdInput{
 			Id: updatedRoutineTag.RoutineTagId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateRoutineTagInput]{
-				Values: inputs.UpdateRoutineTagInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateRoutineTagInput]{
+				Values: sinputs.UpdateRoutineTagInput{
 					Name:  updatedRoutineTag.Values.Name,
 					Color: updatedRoutineTag.Values.Color,
 					Icon:  icon,
@@ -314,7 +312,7 @@ func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 	exception = s.routineTagRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -342,7 +340,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagById(
 	exception = s.routineTagRepository.HardDeleteOneById(
 		requestDto.Param.RoutineTagId,
 		actorUserId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -370,7 +368,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 	exception = s.routineTagRepository.HardDeleteManyByIds(
 		requestDto.Body.RoutineTagIds,
 		actorUserId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -389,7 +387,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 	startTime := time.Now()
 	db := s.db.WithContext(ctx)
 
-	query := db.Model(&schemas.RoutineTag{}).
+	query := db.Model(&sschemas.RoutineTag{}).
 		Select(`"RoutineTagTable".*`).
 		Where(`"RoutineTagTable".owner_id = ?`, userId)
 
@@ -400,7 +398,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineTagCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineTagCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -434,14 +432,14 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var routineTags []schemas.RoutineTag
+	var routineTags []sschemas.RoutineTag
 	if err := query.Find(&routineTags).Error; err != nil {
 		return nil, apiexceptions.NewRoutineTagException().NotFound().WithOrigin(err)
 	}
@@ -450,7 +448,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 	searchEdges := make([]*cgqlmodels.SearchRoutineTagEdge, len(routineTags))
 
 	for index, routineTag := range routineTags {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineTagCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchRoutineTagCursorFields]{
 			Fields: cgqlmodels.SearchRoutineTagCursorFields{
 				ID: routineTag.Id,
 			},

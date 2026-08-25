@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Config struct {
-	Postgres                  platformpostgres.Config
+	Postgres                  spostgres.Config
 	ListenAddress             string
 	OAuthGoogle               OAuthGoogleConfig
 	OutboxRelay               OutboxRelayConfig

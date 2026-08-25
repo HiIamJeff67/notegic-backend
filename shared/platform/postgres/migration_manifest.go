@@ -1,11 +1,11 @@
 package postgres
 
-import types "github.com/HiIamJeff67/notegic-backend/contracts/types"
+import ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 // MigrationManifest contains the database objects a runtime is responsible
 // for migrating. It intentionally does not contain database permissions.
 type MigrationManifest struct {
-	Runtime     types.Runtime
+	Runtime     ctypes.Runtime
 	Enums       map[string][]string
 	Tables      []any
 	Views       []string
@@ -13,6 +13,6 @@ type MigrationManifest struct {
 	Constraints []string
 }
 
-func (manifest MigrationManifest) IsFor(runtime types.Runtime) bool {
+func (manifest MigrationManifest) IsFor(runtime ctypes.Runtime) bool {
 	return manifest.Runtime == runtime
 }

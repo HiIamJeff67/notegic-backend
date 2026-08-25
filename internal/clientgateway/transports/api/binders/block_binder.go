@@ -4,11 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -32,7 +31,7 @@ func (b *BlockBinder) BindGetMyBlockById(controllerFunc controllers.Func[*capi.G
 
 		blockId, err := uuid.Parse(ctx.Param("block-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockId = blockId
@@ -47,7 +46,7 @@ func (b *BlockBinder) BindGetMyBlocksByIds(controllerFunc controllers.Func[*capi
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindQuery(&requestDto.Param); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Block").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Block").WithOrigin(err), ctx)
 			return
 		}
 
@@ -62,7 +61,7 @@ func (b *BlockBinder) BindGetMyBlocksByBlockPackId(controllerFunc controllers.Fu
 
 		blockPackId, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Block").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = blockPackId

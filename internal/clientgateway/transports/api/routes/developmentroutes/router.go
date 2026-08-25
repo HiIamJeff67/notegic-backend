@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/ratelimit"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/middlewares"
@@ -30,13 +30,13 @@ type APIRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
 	NotificationClient        *notificationadapters.NotificationAdapter
 	AllowedDomains            []string
-	AccessTokenCookieHandler  *cookies.CookieHandler
-	RefreshTokenCookieHandler *cookies.CookieHandler
+	AccessTokenCookieHandler  *scookies.CookieHandler
+	RefreshTokenCookieHandler *scookies.CookieHandler
 	RateLimiters              RateLimiters
 }
 
 func NewRouter(deps APIRouteDependencies) *gin.Engine {
-	DevelopmentRouter = logs.WithGinLogger(gin.New())
+	DevelopmentRouter = slogs.WithGinLogger(gin.New())
 	coreAdapter, notificationClient := deps.CoreAdapter, deps.NotificationClient
 	allowedDomains, accessTokenCookieHandler := deps.AllowedDomains, deps.AccessTokenCookieHandler
 	refreshTokenCookieHandler, rateLimiters := deps.RefreshTokenCookieHandler, deps.RateLimiters

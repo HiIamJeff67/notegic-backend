@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
+	sresponsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/apigateway/ratelimit"
 )
@@ -24,7 +24,7 @@ func ShareableResponseWriterInterceptor(interceptors ...func(string) gin.Handler
 			buffer.Reset()
 			shareableResponseWritersReusableBufferPool.Put(buffer)
 		}()
-		writer := responsewriter.NewResponseWriter(ctx.Writer, buffer)
+		writer := sresponsewriter.NewResponseWriter(ctx.Writer, buffer)
 
 		ctx.Writer = writer // replace the response writer with the declared writer here
 		// so that we can re-write the response after the controller sent the response !!

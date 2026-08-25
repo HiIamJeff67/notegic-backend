@@ -10,11 +10,12 @@ import (
 	"gorm.io/gorm"
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+
 	routineexecution "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTaskResultWriter struct {
@@ -65,10 +66,10 @@ func (w *RoutineTaskResultWriter) markFailed(
 	now := time.Now().UTC()
 	for _, task := range request.Tasks {
 		reason := task.ErrorReason
-		result := tx.Model(&schemas.RoutineTask{}).
-			Where("id = ? AND status = ?", task.RoutineTaskId, enums.RoutineTaskStatus_Running).
+		result := tx.Model(&sschemas.RoutineTask{}).
+			Where("id = ? AND status = ?", task.RoutineTaskId, cenums.RoutineTaskStatus_Running).
 			Updates(map[string]any{
-				"status":          enums.RoutineTaskStatus_Idle,
+				"status":          cenums.RoutineTaskStatus_Idle,
 				"attempts":        0,
 				"actual_ended_at": task.FailedAt,
 				"updated_at":      now,
@@ -78,20 +79,20 @@ func (w *RoutineTaskResultWriter) markFailed(
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			var status enums.RoutineTaskStatus
-			if err := tx.Model(&schemas.RoutineTask{}).Select("status").Where("id = ?", task.RoutineTaskId).Scan(&status).Error; err != nil {
+			var status cenums.RoutineTaskStatus
+			if err := tx.Model(&sschemas.RoutineTask{}).Select("status").Where("id = ?", task.RoutineTaskId).Scan(&status).Error; err != nil {
 				tx.Rollback()
 				return err
 			}
-			if status != enums.RoutineTaskStatus_Idle {
+			if status != cenums.RoutineTaskStatus_Idle {
 				tx.Rollback()
 				return fmt.Errorf("routine task %s is not claimable for failure finalization", task.RoutineTaskId)
 			}
 		}
-		result = tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id = ? AND status = ?", task.RoutineTaskRecordId, enums.RoutineTaskRecordStatus_Running).
+		result = tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id = ? AND status = ?", task.RoutineTaskRecordId, cenums.RoutineTaskRecordStatus_Running).
 			Updates(map[string]any{
-				"status":          enums.RoutineTaskRecordStatus_Failed,
+				"status":          cenums.RoutineTaskRecordStatus_Failed,
 				"actual_ended_at": task.FailedAt,
 				"error_code":      task.ErrorCode,
 				"error_reason":    reason,
@@ -102,12 +103,12 @@ func (w *RoutineTaskResultWriter) markFailed(
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			var status enums.RoutineTaskRecordStatus
-			if err := tx.Model(&schemas.RoutineTaskRecord{}).Select("status").Where("id = ?", task.RoutineTaskRecordId).Scan(&status).Error; err != nil {
+			var status cenums.RoutineTaskRecordStatus
+			if err := tx.Model(&sschemas.RoutineTaskRecord{}).Select("status").Where("id = ?", task.RoutineTaskRecordId).Scan(&status).Error; err != nil {
 				tx.Rollback()
 				return err
 			}
-			if status != enums.RoutineTaskRecordStatus_Failed {
+			if status != cenums.RoutineTaskRecordStatus_Failed {
 				tx.Rollback()
 				return fmt.Errorf("routine task record %s is not claimable for failure finalization", task.RoutineTaskRecordId)
 			}

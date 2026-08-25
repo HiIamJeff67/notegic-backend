@@ -8,12 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
@@ -50,7 +49,7 @@ func NewRoutineBinder() RoutineBinderInterface { return &RoutineBinder{} }
 
 func bindRoutineJSON[T any](ctx *gin.Context, requestDto *T, body any, controllerFunc controllers.Func[*T]) {
 	if err := ctx.ShouldBindJSON(body); err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Routine").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Routine").WithOrigin(err), ctx)
 		return
 	}
 	controllerFunc(ctx, requestDto)
@@ -59,7 +58,7 @@ func bindRoutineJSON[T any](ctx *gin.Context, requestDto *T, body any, controlle
 func parseRoutineUUID(ctx *gin.Context, name string) (uuid.UUID, bool) {
 	value, err := uuid.Parse(ctx.Param(name))
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
 		return uuid.Nil, false
 	}
 	return value, true
@@ -72,22 +71,22 @@ func parseRoutineBool(ctx *gin.Context, name string) (*bool, bool) {
 	}
 	value, err := strconv.ParseBool(valueString)
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
 		return nil, false
 	}
 	return &value, true
 }
 
-func parseRoutinePermission(ctx *gin.Context) (enums.AccessControlPermission, bool) {
-	permission := enums.AccessControlPermission(ctx.Query("permission"))
+func parseRoutinePermission(ctx *gin.Context) (cenums.AccessControlPermission, bool) {
+	permission := cenums.AccessControlPermission(ctx.Query("permission"))
 	switch permission {
-	case enums.AccessControlPermission_Read,
-		enums.AccessControlPermission_Write,
-		enums.AccessControlPermission_Admin,
-		enums.AccessControlPermission_Owner:
+	case cenums.AccessControlPermission_Read,
+		cenums.AccessControlPermission_Write,
+		cenums.AccessControlPermission_Admin,
+		cenums.AccessControlPermission_Owner:
 		return permission, true
 	default:
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine"), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine"), ctx)
 		return "", false
 	}
 }
@@ -95,7 +94,7 @@ func parseRoutinePermission(ctx *gin.Context) (enums.AccessControlPermission, bo
 func parseRoutineTime(ctx *gin.Context, name string) (time.Time, bool) {
 	value, err := time.Parse(time.RFC3339, ctx.Query(name))
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
 		return time.Time{}, false
 	}
 	return value, true
@@ -164,7 +163,7 @@ func (b *RoutineBinder) BindGetAllMyRoutinesByTimeRange(controllerFunc controlle
 		for index, value := range stationIdValues {
 			parsed, err := uuid.Parse(value)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Routine").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.StationIds[index] = parsed
@@ -263,7 +262,7 @@ func (b *RoutineBinder) BindLinkRoutineItemById(controllerFunc controllers.Func[
 			return
 		}
 		requestDto.Body.ItemId = value
-		requestDto.Body.ItemType = enums.ItemType(ctx.Query("itemType"))
+		requestDto.Body.ItemType = cenums.ItemType(ctx.Query("itemType"))
 		requestDto.Body.IsUnlink = ctx.Query("isUnlink") == "true"
 		controllerFunc(ctx, requestDto)
 		return

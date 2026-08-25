@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 // APIKey stores only the digest of a credential. The clear-text secret is
@@ -25,7 +25,7 @@ type APIKey struct {
 }
 
 func (APIKey) TableName() string {
-	return platformpostgres.TableName_APIKeyTable.String()
+	return postgres.TableName_APIKeyTable.String()
 }
 
-type APIKeyRelation platformpostgres.RelationName
+type APIKeyRelation postgres.RelationName

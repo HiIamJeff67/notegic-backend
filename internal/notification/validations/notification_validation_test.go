@@ -6,13 +6,14 @@ import (
 	validator "github.com/go-playground/validator/v10"
 
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
-	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
+
+	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 )
 
 func TestRegisterNotificationValidations(t *testing.T) {
 	validate := validator.New()
-	sharedvalidations.RegisterStringsValidation(validate)
-	sharedvalidations.RegisterTimesValidation(validate)
+	svalidations.RegisterStringsValidation(validate)
+	svalidations.RegisterTimesValidation(validate)
 	RegisterNotificationValidation(validate)
 	RegisterNewsValidation(validate)
 	RegisterWarningValidation(validate)

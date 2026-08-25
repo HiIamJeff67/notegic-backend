@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -42,7 +42,7 @@ func (c *UserAccountController) GetMyAccount(
 		"/core/v1/user-accounts/get",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (c *UserAccountController) UpdateMyAccount(
 		"/core/v1/user-accounts/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (c *UserAccountController) BindGoogleAccount(
 		"/core/v1/user-accounts/google/bind",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -108,7 +108,7 @@ func (c *UserAccountController) UnbindGoogleAccount(
 		"/core/v1/user-accounts/google/unbind",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

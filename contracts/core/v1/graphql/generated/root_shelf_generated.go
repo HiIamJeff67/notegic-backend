@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -145,7 +146,7 @@ func (ec *executionContext) _PrivateRootShelf_permission(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.AccessControlPermission)
+	res := resTmp.(cenums.AccessControlPermission)
 	fc.Result = res
 	return ec.marshalNAccessControlPermission2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐAccessControlPermission(ctx, field.Selections, res)
 }

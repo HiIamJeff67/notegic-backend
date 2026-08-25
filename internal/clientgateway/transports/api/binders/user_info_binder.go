@@ -3,11 +3,10 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -37,7 +36,7 @@ func (b *UserInfoBinder) BindUpdateMyInfo(controllerFunc controllers.Func[*capi.
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
 			exception := cexceptions.InvalidDto("UserInfo").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 

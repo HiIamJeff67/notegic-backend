@@ -3,17 +3,17 @@ package realtimetypes
 import (
 	"testing"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestChannelPermissionAllowedAccessControlPermissions(t *testing.T) {
 	readPermissions := ChannelPermission_Read.AllowedAccessControlPermissions()
-	if len(readPermissions) != 4 || readPermissions[3] != enums.AccessControlPermission_Read {
+	if len(readPermissions) != 4 || readPermissions[3] != cenums.AccessControlPermission_Read {
 		t.Fatalf("expected read channel to include Read access: %#v", readPermissions)
 	}
 
 	writePermissions := ChannelPermission_Write.AllowedAccessControlPermissions()
-	if len(writePermissions) != 3 || writePermissions[2] != enums.AccessControlPermission_Write {
+	if len(writePermissions) != 3 || writePermissions[2] != cenums.AccessControlPermission_Write {
 		t.Fatalf("expected write channel to stop at Write access: %#v", writePermissions)
 	}
 

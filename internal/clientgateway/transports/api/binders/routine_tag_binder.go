@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -41,7 +40,7 @@ func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Fu
 		if isDeletedString != "" {
 			isDeleted, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &isDeleted
@@ -49,7 +48,7 @@ func (b *RoutineTagBinder) BindGetMyRoutineTagById(controllerFunc controllers.Fu
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -67,7 +66,7 @@ func (b *RoutineTagBinder) BindGetAllMyRoutineTags(controllerFunc controllers.Fu
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &areDeleted
@@ -83,7 +82,7 @@ func (b *RoutineTagBinder) BindCreateRoutineTag(controllerFunc controllers.Func[
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -97,7 +96,7 @@ func (b *RoutineTagBinder) BindCreateRoutineTags(controllerFunc controllers.Func
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -111,13 +110,13 @@ func (b *RoutineTagBinder) BindUpdateMyRoutineTagById(controllerFunc controllers
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -132,7 +131,7 @@ func (b *RoutineTagBinder) BindUpdateMyRoutineTagsByIds(controllerFunc controlle
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 
@@ -147,7 +146,7 @@ func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagById(controllerFunc control
 
 		routineTagId, err := uuid.Parse(ctx.Param("routine-tag-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTagId = routineTagId
@@ -162,7 +161,7 @@ func (b *RoutineTagBinder) BindHardDeleteMyRoutineTagsByIds(controllerFunc contr
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTag").WithOrigin(err), ctx)
 			return
 		}
 

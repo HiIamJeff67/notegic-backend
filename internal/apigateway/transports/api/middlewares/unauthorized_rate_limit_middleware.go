@@ -11,9 +11,8 @@ import (
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/apigateway/configs"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/apigateway/ratelimit"
@@ -21,14 +20,14 @@ import (
 
 func InitUnauthorizedRateLimiter(config gatewayconfig.RateLimitConfig) *ratelimit.HybridRateLimiter {
 	limiter := ratelimit.NewHybridRateLimiter(config, false)
-	logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Unauthorized rate limiter initialized with rate: %v, burst: %d, user limit: %d, window: %v", config.RateLimit, config.Burst, config.UserLimit, config.WindowDuration))
+	slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Unauthorized rate limiter initialized with rate: %v, burst: %d, user limit: %d, window: %v", config.RateLimit, config.Burst, config.UserLimit, config.WindowDuration))
 	return limiter
 }
 
 func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if rateLimiter == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"RateLimiterRequired",
 				"Gateway",
 				"RateLimit",
@@ -44,8 +43,8 @@ func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) g
 		allowed, remaining := rateLimiter.AllowByFingerprint(fingerprint)
 		if !allowed {
 			setRateLimitHeaders(ctx, remaining, rateLimiter)
-			logs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for fingerprint: %s", fingerprint))
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			slogs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for fingerprint: %s", fingerprint))
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"PermissionDeniedDueToTooManyRequests",
 				"Auth",
 				"Authorize",

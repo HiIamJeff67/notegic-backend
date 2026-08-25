@@ -3,7 +3,7 @@ package repositories
 import (
 	"testing"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestAllowedPermissionsPresence(t *testing.T) {
@@ -17,7 +17,7 @@ func TestAllowedPermissionsPresence(t *testing.T) {
 
 	t.Run("empty option", func(t *testing.T) {
 		parsedOptions := ParseRepositoryOptions(
-			WithAllowedPermissions([]enums.AccessControlPermission{}),
+			WithAllowedPermissions([]cenums.AccessControlPermission{}),
 		)
 
 		if !parsedOptions.HasAllowedPermissions() {
@@ -27,8 +27,8 @@ func TestAllowedPermissionsPresence(t *testing.T) {
 
 	t.Run("non-empty option", func(t *testing.T) {
 		parsedOptions := ParseRepositoryOptions(
-			WithAllowedPermissions([]enums.AccessControlPermission{
-				enums.AccessControlPermission_Read,
+			WithAllowedPermissions([]cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Read,
 			}),
 		)
 

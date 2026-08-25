@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -219,7 +220,7 @@ func (ec *executionContext) _PublicUserInfo_gender(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.UserGender)
+	res := resTmp.(cenums.UserGender)
 	fc.Result = res
 	return ec.marshalNUserGender2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserGender(ctx, field.Selections, res)
 }
@@ -260,7 +261,7 @@ func (ec *executionContext) _PublicUserInfo_country(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*enums.Country)
+	res := resTmp.(*cenums.Country)
 	fc.Result = res
 	return ec.marshalOCountry2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐCountry(ctx, field.Selections, res)
 }

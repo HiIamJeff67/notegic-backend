@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
 )
@@ -56,7 +56,7 @@ func (c *Connector) subscribe(channel realtimetypes.Channel) (uint32, bool) {
 			return connectorChannelId, true
 		}
 	}
-	if len(c.channels) >= constants.RealtimeMaxChannelsPerConnection || c.nextChannelId == constants.MAX_UINT32 {
+	if len(c.channels) >= sconstants.RealtimeMaxChannelsPerConnection || c.nextChannelId == sconstants.MAX_UINT32 {
 		return 0, false
 	}
 

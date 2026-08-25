@@ -11,15 +11,15 @@ import (
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
 type RoutineTaskLifecycleProducer struct {
-	producer *platformkafka.Producer
+	producer *skafka.Producer
 }
 
 func NewRoutineTaskLifecycleProducer(
-	producer *platformkafka.Producer,
+	producer *skafka.Producer,
 ) *RoutineTaskLifecycleProducer {
 	return &RoutineTaskLifecycleProducer{
 		producer: producer,

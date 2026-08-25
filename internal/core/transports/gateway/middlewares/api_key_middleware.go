@@ -11,10 +11,11 @@ import (
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+
+	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
+	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
 )
 
 const APIKeyHeader = "X-API-Key"
@@ -23,8 +24,8 @@ const APIKeyHeader = "X-API-Key"
 // credential has been verified. The raw key is hashed in memory and never
 // enters logs, context, Redis values, or the database.
 func APIKeyMiddleware(
-	apiKeyRepository repositories.APIKeyRepositoryInterface,
-	userRepository repositories.UserRepositoryInterface,
+	apiKeyRepository srepositories.APIKeyRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
 	cacheClients ...*apikeycache.APIKeyCacheClient,
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {

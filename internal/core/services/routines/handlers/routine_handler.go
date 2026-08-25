@@ -2,30 +2,29 @@ package handlers
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/core/services/routines/resolvers"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RoutineHandlerInterface interface {
-	HandleCreateRoutine(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
-	HandleUpdateRoutine(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleCreateRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleUpdateRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 }
 
 type RoutineHandler struct {
@@ -33,7 +32,7 @@ type RoutineHandler struct {
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface
-	routineRepository    repositories.RoutineRepositoryInterface
+	routineRepository    srepositories.RoutineRepositoryInterface
 }
 
 func NewRoutineHandler(
@@ -56,20 +55,20 @@ func NewRoutineHandler(
 		validator:            validatorInstance,
 		patternResolver:      patternResolver,
 		templateBlockMatcher: templateBlockMatcher,
-		routineRepository:    repositories.NewRoutineRepository(scopes.NewRoutineScope()),
+		routineRepository:    srepositories.NewRoutineRepository(db, sscopes.NewRoutineScope()),
 	}
 }
 
 func (s *RoutineHandler) HandleCreateRoutine(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
-	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
+	candidateTasks := make([]sschemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
 	candidatePayloads := make([]croutinetasktypes.CreateRoutineRoutineTaskPayload, 0, len(tasks))
 	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
@@ -106,7 +105,7 @@ func (s *RoutineHandler) HandleCreateRoutine(
 		return successes, exception
 	}
 
-	bulkInputs := make([]inputs.BulkCreateRoutineInput, 0, len(candidateTasks))
+	bulkInputs := make([]sinputs.BulkCreateRoutineInput, 0, len(candidateTasks))
 	taskIndexes := make([]int, 0, len(candidateTasks))
 	for candidateIndex, payload := range candidatePayloads {
 		if !patternSuccesses[candidateIndex] {
@@ -115,17 +114,17 @@ func (s *RoutineHandler) HandleCreateRoutine(
 		patternValues := patternValuesByCandidate[candidateIndex]
 		title := s.templateBlockMatcher.MatchString(payload.Title, patternValues)
 		description := s.templateBlockMatcher.MatchString(payload.Description, patternValues)
-		bulkInputs = append(bulkInputs, inputs.BulkCreateRoutineInput{
+		bulkInputs = append(bulkInputs, sinputs.BulkCreateRoutineInput{
 			UserId:           candidateActorUserIds[candidateIndex],
 			Id:               payload.Id,
 			StationId:        payload.StationId,
 			Title:            title,
 			Description:      description,
-			Status:           (*enums.RoutineStatus)(payload.Status),
+			Status:           (*cenums.RoutineStatus)(payload.Status),
 			IsPinned:         payload.IsPinned,
 			ScheduledStartAt: payload.ScheduledStartAt,
 			ScheduledEndAt:   payload.ScheduledEndAt,
-			Period:           (*enums.RoutinePeriod)(payload.Period),
+			Period:           (*cenums.RoutinePeriod)(payload.Period),
 			Timezone:         payload.Timezone,
 		})
 		taskIndexes = append(taskIndexes, candidateTaskIndexes[candidateIndex])
@@ -136,10 +135,10 @@ func (s *RoutineHandler) HandleCreateRoutine(
 	}
 	bulkSuccesses, exception := s.routineRepository.BulkCreateMany(
 		bulkInputs,
-		options.WithTransactionDB(db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return successes, exception
@@ -155,13 +154,13 @@ func (s *RoutineHandler) HandleCreateRoutine(
 func (s *RoutineHandler) HandleUpdateRoutine(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
-	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
+	candidateTasks := make([]sschemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
 	candidatePayloads := make([]croutinetasktypes.UpdateRoutineRoutineTaskPayload, 0, len(tasks))
 	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
@@ -198,7 +197,7 @@ func (s *RoutineHandler) HandleUpdateRoutine(
 		return successes, exception
 	}
 
-	bulkInputs := make([]inputs.BulkUpdateRoutineInput, 0, len(candidateTasks))
+	bulkInputs := make([]sinputs.BulkUpdateRoutineInput, 0, len(candidateTasks))
 	taskIndexes := make([]int, 0, len(candidateTasks))
 	for candidateIndex, payload := range candidatePayloads {
 		if !patternSuccesses[candidateIndex] {
@@ -215,18 +214,18 @@ func (s *RoutineHandler) HandleUpdateRoutine(
 			matchedDescription := s.templateBlockMatcher.MatchString(*description, patternValues)
 			description = &matchedDescription
 		}
-		bulkInputs = append(bulkInputs, inputs.BulkUpdateRoutineInput{
+		bulkInputs = append(bulkInputs, sinputs.BulkUpdateRoutineInput{
 			UserId: candidateActorUserIds[candidateIndex],
 			Id:     payload.RoutineId,
-			PartialUpdateInput: inputs.PartialUpdateRoutineInput{
-				Values: inputs.UpdateRoutineInput{
+			PartialUpdateInput: sinputs.PartialUpdateRoutineInput{
+				Values: sinputs.UpdateRoutineInput{
 					Title:            title,
 					Description:      description,
-					Status:           (*enums.RoutineStatus)(payload.Status),
+					Status:           (*cenums.RoutineStatus)(payload.Status),
 					IsPinned:         payload.IsPinned,
 					ScheduledStartAt: payload.ScheduledStartAt,
 					ScheduledEndAt:   payload.ScheduledEndAt,
-					Period:           (*enums.RoutinePeriod)(payload.Period),
+					Period:           (*cenums.RoutinePeriod)(payload.Period),
 					Timezone:         payload.Timezone,
 				},
 			},
@@ -239,10 +238,10 @@ func (s *RoutineHandler) HandleUpdateRoutine(
 	}
 	bulkSuccesses, exception := s.routineRepository.BulkUpdateMany(
 		bulkInputs,
-		options.WithTransactionDB(db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return successes, exception

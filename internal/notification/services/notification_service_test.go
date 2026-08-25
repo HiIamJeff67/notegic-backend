@@ -13,11 +13,10 @@ import (
 	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	notificationvalidations "github.com/HiIamJeff67/notegic-backend/internal/notification/validations"
 )
 
@@ -26,7 +25,7 @@ type notificationRepositoryStub struct {
 	createErr          error
 	deleteForUserCalls int
 	deleteForUserErr   error
-	notifications      []schemas.Notification
+	notifications      []sschemas.Notification
 }
 
 func (r *notificationRepositoryStub) CreateFromRequest(
@@ -37,7 +36,7 @@ func (r *notificationRepositoryStub) CreateFromRequest(
 	return r.createErr
 }
 
-func (r *notificationRepositoryStub) List(context.Context, uuid.UUID, *time.Time, *uuid.UUID, int) ([]schemas.Notification, error) {
+func (r *notificationRepositoryStub) List(context.Context, uuid.UUID, *time.Time, *uuid.UUID, int) ([]sschemas.Notification, error) {
 	return r.notifications, nil
 }
 
@@ -62,7 +61,7 @@ func (r *notificationRepositoryStub) DeleteExpired(context.Context, time.Time, t
 	return 0, nil
 }
 
-func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]platformschemas.OutboxEvent, error) {
+func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]sschemas.OutboxEvent, error) {
 	return nil, nil
 }
 
@@ -80,8 +79,8 @@ func (r *notificationRepositoryStub) DeletePublishedOutbox(context.Context, time
 
 func newNotificationServiceForTest(repository *notificationRepositoryStub) NotificationServiceInterface {
 	validate := validator.New()
-	sharedvalidations.RegisterStringsValidation(validate)
-	sharedvalidations.RegisterTimesValidation(validate)
+	svalidations.RegisterStringsValidation(validate)
+	svalidations.RegisterTimesValidation(validate)
 	notificationvalidations.RegisterNotificationValidation(validate)
 	notificationvalidations.RegisterNewsValidation(validate)
 	notificationvalidations.RegisterWarningValidation(validate)
@@ -182,7 +181,7 @@ func TestSearchPrivateNotificationsReturnsGraphQLStyleCursorPage(t *testing.T) {
 	recipientUserPublicId := uuid.New()
 	createdAt := time.Now().UTC().Truncate(time.Microsecond)
 	repository := &notificationRepositoryStub{
-		notifications: []schemas.Notification{
+		notifications: []sschemas.Notification{
 			{
 				Id:                    uuid.New(),
 				RecipientUserPublicId: recipientUserPublicId,

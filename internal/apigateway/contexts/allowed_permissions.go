@@ -5,16 +5,15 @@ import (
 	"net/http"
 	"slices"
 
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func WithAllowedPermissions(
 	ctx context.Context,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) context.Context {
 	return sharedcontexts.WithValue(
 		ctx,
@@ -25,8 +24,8 @@ func WithAllowedPermissions(
 
 func GetAllowedPermissions(
 	ctx context.Context,
-) ([]enums.AccessControlPermission, *cexceptions.Exception) {
-	allowedPermissions, err := sharedcontexts.GetValue[[]enums.AccessControlPermission](
+) ([]cenums.AccessControlPermission, *cexceptions.Exception) {
+	allowedPermissions, err := sharedcontexts.GetValue[[]cenums.AccessControlPermission](
 		ctx,
 		sharedcontexts.ContextFieldName_Allowed_Permissions,
 	)
@@ -46,7 +45,7 @@ func GetAllowedPermissions(
 
 func GetOptionalAllowedPermissions(
 	ctx context.Context,
-) ([]enums.AccessControlPermission, *cexceptions.Exception) {
+) ([]cenums.AccessControlPermission, *cexceptions.Exception) {
 	if ctx.Value(sharedcontexts.ContextFieldName_Allowed_Permissions) == nil {
 		return nil, nil
 	}

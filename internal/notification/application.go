@@ -13,16 +13,17 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
-	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-	sharedvalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
+	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
+
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
 	configs "github.com/HiIamJeff67/notegic-backend/internal/notification/configs"
 	postgres "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
 	notificationtransports "github.com/HiIamJeff67/notegic-backend/internal/notification/transports"
 	consumers "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/core/consumers"
@@ -43,12 +44,12 @@ type ApplicationInterface interface {
 	IsReady() bool
 	loadConfig() configs.Config
 	initializeObservability() func()
-	initializeDatabase(platformpostgres.Config, func()) *gorm.DB
-	initializeKafka(platformkafka.ConnectionConfig, *gorm.DB, func()) *platformkafka.Producer
+	initializeDatabase(spostgres.Config, func()) *gorm.DB
+	initializeKafka(skafka.ConnectionConfig, *gorm.DB, func()) *skafka.Producer
 	initializeService(*gorm.DB) services.NotificationServiceInterface
-	initializeWorkers(configs.Config, services.NotificationServiceInterface, *gorm.DB, *platformkafka.Producer) func()
+	initializeWorkers(configs.Config, services.NotificationServiceInterface, *gorm.DB, *skafka.Producer) func()
 	buildRouter(services.NotificationServiceInterface) *gin.Engine
-	startHTTP(configs.Config, *gin.Engine, func(), *gorm.DB, *platformkafka.Producer, func()) func()
+	startHTTP(configs.Config, *gin.Engine, func(), *gorm.DB, *skafka.Producer, func()) func()
 }
 
 func NewApplication() *Application {
@@ -72,21 +73,21 @@ func (a *Application) loadConfig() configs.Config {
 }
 
 func (a *Application) initializeObservability() func() {
-	return observability.Initialize(
+	return sobservability.Initialize(
 		context.Background(),
-		observability.LoadConfig("notegic-notification"),
+		sobservability.LoadConfig("notegic-notification"),
 	)
 }
 
-func (a *Application) initializeDatabase(config platformpostgres.Config, shutdownObservability func()) *gorm.DB {
+func (a *Application) initializeDatabase(config spostgres.Config, shutdownObservability func()) *gorm.DB {
 	db, err := postgres.Connect(config)
 	if err != nil {
 		shutdownObservability()
 		panic(err)
 	}
-	if err := platformpostgres.Migrate(
+	if err := spostgres.Migrate(
 		db,
-		types.Runtime_Notification,
+		ctypes.Runtime_Notification,
 		postgres.DatabaseMigrationManifest,
 	); err != nil {
 		_ = postgres.Disconnect(db)
@@ -97,11 +98,11 @@ func (a *Application) initializeDatabase(config platformpostgres.Config, shutdow
 }
 
 func (a *Application) initializeKafka(
-	config platformkafka.ConnectionConfig,
+	config skafka.ConnectionConfig,
 	db *gorm.DB,
 	shutdownObservability func(),
-) *platformkafka.Producer {
-	producer, err := platformkafka.NewProducer(platformkafka.ClientConfig{
+) *skafka.Producer {
+	producer, err := skafka.NewProducer(skafka.ClientConfig{
 		ConnectionConfig: config,
 		ClientId:         "notegic-notification-producer",
 	})
@@ -114,10 +115,10 @@ func (a *Application) initializeKafka(
 }
 
 func (a *Application) initializeService(db *gorm.DB) services.NotificationServiceInterface {
-	repository := repositories.NewNotificationRepository(db)
+	repository := srepositories.NewNotificationRepository(db)
 	notificationValidator := validator.New()
-	sharedvalidations.RegisterStringsValidation(notificationValidator)
-	sharedvalidations.RegisterTimesValidation(notificationValidator)
+	svalidations.RegisterStringsValidation(notificationValidator)
+	svalidations.RegisterTimesValidation(notificationValidator)
 	validations.RegisterNotificationValidation(notificationValidator)
 	validations.RegisterNewsValidation(notificationValidator)
 	validations.RegisterWarningValidation(notificationValidator)
@@ -129,9 +130,9 @@ func (a *Application) initializeWorkers(
 	config configs.Config,
 	service services.NotificationServiceInterface,
 	db *gorm.DB,
-	producer *platformkafka.Producer,
+	producer *skafka.Producer,
 ) func() {
-	repository := repositories.NewNotificationRepository(db)
+	repository := srepositories.NewNotificationRepository(db)
 	consumer := consumers.NewNotificationRequestConsumer(service, config.Kafka.ConsumerConfig())
 	relay := notificationtransports.NewOutboxRelay(
 		repository,
@@ -160,7 +161,7 @@ func (a *Application) initializeWorkers(
 }
 
 func (a *Application) buildRouter(service services.NotificationServiceInterface) *gin.Engine {
-	router := logs.WithGinLogger(gin.New())
+	router := slogs.WithGinLogger(gin.New())
 	router.GET("/healthz", func(ctx *gin.Context) {
 		if !a.IsReady() {
 			ctx.Status(http.StatusServiceUnavailable)
@@ -185,7 +186,7 @@ func (a *Application) startHTTP(
 	router *gin.Engine,
 	shutdownWorkers func(),
 	db *gorm.DB,
-	producer *platformkafka.Producer,
+	producer *skafka.Producer,
 	shutdownObservability func(),
 ) func() {
 	listener, err := net.Listen("tcp", config.ListenAddress)

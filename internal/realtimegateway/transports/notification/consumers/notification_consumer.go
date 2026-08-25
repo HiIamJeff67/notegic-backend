@@ -12,20 +12,20 @@ import (
 	cnotificationevents "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 type NotificationConsumer struct {
 	leaseStore  *realtimeleasecache.RealtimeLeaseCacheClient
-	kafkaConfig platformkafka.ConsumerConfig
+	kafkaConfig skafka.ConsumerConfig
 }
 
 func NewNotificationConsumer(
 	leaseStore *realtimeleasecache.RealtimeLeaseCacheClient,
-	kafkaConfig platformkafka.ConsumerConfig,
+	kafkaConfig skafka.ConsumerConfig,
 ) *NotificationConsumer {
 	return &NotificationConsumer{
 		leaseStore:  leaseStore,
@@ -50,7 +50,7 @@ func (c *NotificationConsumer) Start(ctx context.Context) func() {
 
 func (c *NotificationConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
-		consumer, err := platformkafka.NewConsumer(
+		consumer, err := skafka.NewConsumer(
 			c.kafkaConfig,
 			cnotificationevents.NotificationTopic.String(),
 		)
@@ -61,8 +61,8 @@ func (c *NotificationConsumer) run(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "RealtimeGateway notification consumer stopped")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "RealtimeGateway notification consumer stopped")
 		}
 		select {
 		case <-ctx.Done():
@@ -74,25 +74,25 @@ func (c *NotificationConsumer) run(ctx context.Context) {
 
 func (c *NotificationConsumer) consume(
 	ctx context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	event cevent.EventEnvelope[json.RawMessage],
 ) error {
 	if event.EventType != cnotificationevents.EventType_NotificationCreated {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_PoisonMessage,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_PoisonMessage,
 			Origin:         errors.New("unsupported Notification event type"),
 		}
 	}
 	var data cnotificationevents.NotificationCreatedData
 	if err := json.Unmarshal(event.Data, &data); err != nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         err,
 		}
 	}
 	if data.RecipientUserPublicId == uuid.Nil || data.NotificationId == uuid.Nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         errors.New("Notification event recipient or notification ID is missing"),
 		}
 	}

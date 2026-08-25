@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
 	graphql "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql"
 	interceptors "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/interceptors"
@@ -17,8 +17,8 @@ import (
 
 type GraphQLRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
-	AccessTokenCookieHandler  *cookies.CookieHandler
-	RefreshTokenCookieHandler *cookies.CookieHandler
+	AccessTokenCookieHandler  *scookies.CookieHandler
+	RefreshTokenCookieHandler *scookies.CookieHandler
 	RateLimiters              RateLimiters
 }
 
@@ -37,7 +37,7 @@ func configureDevelopmentGraphQLRoutes(
 		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
 		middlewares.TimeoutMiddleware(3*time.Second),
 		middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
-		middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+		middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.RefreshTokenInterceptor(accessTokenCookieHandler),
 			interceptors.EmbeddedInterceptor,

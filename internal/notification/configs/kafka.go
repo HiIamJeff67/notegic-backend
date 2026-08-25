@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
 type KafkaConsumerConfig struct {
-	Connection          platformkafka.ConnectionConfig
+	Connection          skafka.ConnectionConfig
 	ConsumerGroup       string
 	MaximumAttempts     int
 	InitialRetryBackoff time.Duration
@@ -19,9 +19,9 @@ type KafkaConsumerConfig struct {
 	MaximumPollRecords  int
 }
 
-func (config KafkaConsumerConfig) ConsumerConfig() platformkafka.ConsumerConfig {
-	return platformkafka.ConsumerConfig{
-		ClientConfig: platformkafka.ClientConfig{
+func (config KafkaConsumerConfig) ConsumerConfig() skafka.ConsumerConfig {
+	return skafka.ConsumerConfig{
+		ClientConfig: skafka.ClientConfig{
 			ConnectionConfig: config.Connection,
 			ClientId:         "notegic-notification-consumer",
 		},
@@ -34,7 +34,7 @@ func (config KafkaConsumerConfig) ConsumerConfig() platformkafka.ConsumerConfig 
 }
 
 func loadKafkaConsumerConfig() (KafkaConsumerConfig, error) {
-	connection, err := platformkafka.LoadConnectionConfig()
+	connection, err := skafka.LoadConnectionConfig()
 	if err != nil {
 		return KafkaConsumerConfig{}, err
 	}

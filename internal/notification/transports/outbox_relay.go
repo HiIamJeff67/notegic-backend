@@ -7,15 +7,14 @@ import (
 
 	"github.com/google/uuid"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type OutboxRelay struct {
-	repository      repositories.NotificationRepository
-	producer        *platformkafka.Producer
+	repository      srepositories.NotificationRepository
+	producer        *skafka.Producer
 	pollInterval    time.Duration
 	claimTimeout    time.Duration
 	initialBackoff  time.Duration
@@ -27,8 +26,8 @@ type OutboxRelay struct {
 }
 
 func NewOutboxRelay(
-	repository repositories.NotificationRepository,
-	producer *platformkafka.Producer,
+	repository srepositories.NotificationRepository,
+	producer *skafka.Producer,
 	pollInterval time.Duration,
 	claimTimeout time.Duration,
 	initialBackoff time.Duration,
@@ -63,8 +62,8 @@ func (r *OutboxRelay) Start(ctx context.Context) func() {
 		for {
 			r.relay(workerCtx)
 			if time.Since(lastCleanup) >= r.cleanupInterval {
-				if _, err := r.repository.DeletePublishedOutbox(workerCtx, time.Now().UTC().Add(-r.retention)); err != nil && logs.NotegicLogger != nil {
-					logs.NotegicLogger.Error(workerCtx, err, "Failed to clean Notification outbox events")
+				if _, err := r.repository.DeletePublishedOutbox(workerCtx, time.Now().UTC().Add(-r.retention)); err != nil && slogs.NotegicLogger != nil {
+					slogs.NotegicLogger.Error(workerCtx, err, "Failed to clean Notification outbox events")
 				}
 				lastCleanup = time.Now().UTC()
 			}
@@ -85,8 +84,8 @@ func (r *OutboxRelay) Start(ctx context.Context) func() {
 func (r *OutboxRelay) relay(ctx context.Context) {
 	events, err := r.repository.ClaimOutbox(ctx, r.workerId, r.batchSize, r.claimTimeout)
 	if err != nil {
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to claim Notification outbox events")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to claim Notification outbox events")
 		}
 		return
 	}
@@ -102,15 +101,15 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		}
 		if err := r.producer.Produce(ctx, event.Topic.String(), event.KafkaKey, event.Payload); err != nil {
 			failedIds = append(failedIds, event.Id)
-			if logs.NotegicLogger != nil {
-				logs.NotegicLogger.Error(ctx, err, "Failed to publish Notification outbox event")
+			if slogs.NotegicLogger != nil {
+				slogs.NotegicLogger.Error(ctx, err, "Failed to publish Notification outbox event")
 			}
 			continue
 		}
 		publishedIds = append(publishedIds, event.Id)
 	}
-	if err := r.repository.MarkOutboxPublished(ctx, r.workerId, publishedIds); err != nil && logs.NotegicLogger != nil {
-		logs.NotegicLogger.Error(ctx, err, "Failed to mark Notification outbox events published")
+	if err := r.repository.MarkOutboxPublished(ctx, r.workerId, publishedIds); err != nil && slogs.NotegicLogger != nil {
+		slogs.NotegicLogger.Error(ctx, err, "Failed to mark Notification outbox events published")
 	}
 	if len(failedIds) > 0 {
 		failedSet := make(map[uuid.UUID]struct{}, len(failedIds))
@@ -133,8 +132,8 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 		if retryBackoff > r.maximumBackoff {
 			retryBackoff = r.maximumBackoff
 		}
-		if err := r.repository.MarkOutboxFailed(ctx, r.workerId, failedIds, "Kafka publish failed", time.Now().UTC().Add(retryBackoff)); err != nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to schedule Notification outbox retries")
+		if err := r.repository.MarkOutboxFailed(ctx, r.workerId, failedIds, "Kafka publish failed", time.Now().UTC().Add(retryBackoff)); err != nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to schedule Notification outbox retries")
 		}
 	}
 }

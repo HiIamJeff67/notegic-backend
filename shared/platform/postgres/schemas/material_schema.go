@@ -6,23 +6,22 @@ import (
 	"github.com/google/uuid"
 
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Material struct {
-	Id               uuid.UUID                 `json:"id" gorm:"column:id; type:uuid; primaryKey; not null;"`
-	ParentSubShelfId uuid.UUID                 `json:"parentSubShelfId" gorm:"column:parent_sub_shelf_id; type:uuid; not null;"` // Previous unique-name constraint: uniqueIndex:material_idx_parent_sub_shelf_id_name,where:deleted_at IS NULL
-	Name             string                    `json:"name" gorm:"column:name; size:128; not null; default:'undefined';"`        // Previous unique-name constraint: uniqueIndex:material_idx_parent_sub_shelf_id_name,where:deleted_at IS NULL
-	Size             int64                     `json:"size" gorm:"column:size; type:bigint; not null; default:0;"`
-	ContentKey       string                    `json:"contentKey" gorm:"column:content_key; unique; not null;"`
-	ContentType      enums.MaterialContentType `json:"contentType" gorm:"column:content_type; type:\"MaterialContentType\"; not null; default:'none';"`
-	ParseMediaType   string                    `json:"parseMediaType" gorm:"column:parse_media_type; size:128; not null; default:'';"`
-	DeletedAt        *time.Time                `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
-	UpdatedAt        time.Time                 `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
-	CreatedAt        time.Time                 `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
+	Id               uuid.UUID                  `json:"id" gorm:"column:id; type:uuid; primaryKey; not null;"`
+	ParentSubShelfId uuid.UUID                  `json:"parentSubShelfId" gorm:"column:parent_sub_shelf_id; type:uuid; not null;"` // Previous unique-name constraint: uniqueIndex:material_idx_parent_sub_shelf_id_name,where:deleted_at IS NULL
+	Name             string                     `json:"name" gorm:"column:name; size:128; not null; default:'undefined';"`        // Previous unique-name constraint: uniqueIndex:material_idx_parent_sub_shelf_id_name,where:deleted_at IS NULL
+	Size             int64                      `json:"size" gorm:"column:size; type:bigint; not null; default:0;"`
+	ContentKey       string                     `json:"contentKey" gorm:"column:content_key; unique; not null;"`
+	ContentType      cenums.MaterialContentType `json:"contentType" gorm:"column:content_type; type:\"MaterialContentType\"; not null; default:'none';"`
+	ParseMediaType   string                     `json:"parseMediaType" gorm:"column:parse_media_type; size:128; not null; default:'';"`
+	DeletedAt        *time.Time                 `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
+	UpdatedAt        time.Time                  `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
+	CreatedAt        time.Time                  `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
 	// relations
 	ParentSubShelf SubShelf `json:"parentSubShelf" gorm:"foreignKey:ParentSubShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
@@ -33,11 +32,11 @@ type Material struct {
 
 // Material Table Name
 func (Material) TableName() string {
-	return platformpostgres.TableName_MaterialTable.String()
+	return postgres.TableName_MaterialTable.String()
 }
 
 // Material Table Relations
-type MaterialRelation platformpostgres.RelationName
+type MaterialRelation postgres.RelationName
 
 const (
 	MaterialRelation_ParentSubShelf MaterialRelation = "ParentSubShelf"

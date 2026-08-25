@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
@@ -49,7 +48,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func
 		if isDeletedString != "" {
 			value, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -57,7 +56,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackById(controllerFunc controllers.Func
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -76,7 +75,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc cont
 		if isDeletedString != "" {
 			value, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &value
@@ -84,7 +83,7 @@ func (b *BlockPackBinder) BindGetMyBlockPackAndItsParentById(controllerFunc cont
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -103,7 +102,7 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 		if areDeletedString != "" {
 			value, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -111,7 +110,7 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.ParentSubShelfId = value
@@ -130,7 +129,7 @@ func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc con
 		if areDeletedString != "" {
 			value, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &value
@@ -138,7 +137,7 @@ func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc con
 
 		value, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = value
@@ -155,13 +154,13 @@ func (b *BlockPackBinder) BindCreateBlockPack(controllerFunc controllers.Func[*c
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("parent-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.ParentSubShelfId = value
@@ -178,7 +177,7 @@ func (b *BlockPackBinder) BindCreateBlockPacks(controllerFunc controllers.Func[*
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -194,13 +193,13 @@ func (b *BlockPackBinder) BindUpdateMyBlockPackById(controllerFunc controllers.F
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -217,7 +216,7 @@ func (b *BlockPackBinder) BindUpdateMyBlockPacksByIds(controllerFunc controllers
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -233,13 +232,13 @@ func (b *BlockPackBinder) BindMoveMyBlockPackByParentSubShelfId(controllerFunc c
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.BlockPackId = value
@@ -256,7 +255,7 @@ func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfId(controllerFunc 
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -272,7 +271,7 @@ func (b *BlockPackBinder) BindMoveMyBlockPacksByParentSubShelfIds(controllerFunc
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -288,7 +287,7 @@ func (b *BlockPackBinder) BindRestoreMyBlockPackById(controllerFunc controllers.
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -305,7 +304,7 @@ func (b *BlockPackBinder) BindRestoreMyBlockPacksByIds(controllerFunc controller
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -321,7 +320,7 @@ func (b *BlockPackBinder) BindDeleteMyBlockPackById(controllerFunc controllers.F
 
 		value, err := uuid.Parse(ctx.Param("block-pack-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.BlockPackId = value
@@ -338,7 +337,7 @@ func (b *BlockPackBinder) BindDeleteMyBlockPacksByIds(controllerFunc controllers
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("BlockPack").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 

@@ -3,15 +3,15 @@ package apikey
 import (
 	"context"
 
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 )
 
 type APIKeyCacheStore struct {
-	clientSet *platformredis.ClientSet
+	clientSet *sredis.ClientSet
 }
 
 func NewAPIKeyCacheStore(
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) *APIKeyCacheStore {
 	return &APIKeyCacheStore{
 		clientSet: clientSet,
@@ -20,7 +20,7 @@ func NewAPIKeyCacheStore(
 
 func Register(
 	_ context.Context,
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) *APIKeyCacheStore {
 	return NewAPIKeyCacheStore(clientSet)
 }
@@ -29,7 +29,7 @@ func (s *APIKeyCacheStore) Initialize(_ context.Context) error {
 	return nil
 }
 
-func (s *APIKeyCacheStore) ClientSet() *platformredis.ClientSet {
+func (s *APIKeyCacheStore) ClientSet() *sredis.ClientSet {
 	if s == nil {
 		return nil
 	}

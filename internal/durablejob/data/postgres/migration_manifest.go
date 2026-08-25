@@ -1,22 +1,23 @@
 package postgres
 
 import (
-	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	constraints "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/constraints"
-	triggers "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers"
+	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
+
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sconstraints "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/constraints"
+	striggers "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers"
 )
 
 // DatabaseMigrationManifest describes the schemas owned and migrated by
 // DurableJob. Database permissions are intentionally configured separately.
-var DatabaseMigrationManifest = platformpostgres.MigrationManifest{
-	Runtime:     types.Runtime_DurableJob,
-	Triggers:    triggers.RoutineTaskTriggerSQLs,
-	Constraints: constraints.UserQuotaConstraintSQLs,
+var DatabaseMigrationManifest = spostgres.MigrationManifest{
+	Runtime:     ctypes.Runtime_DurableJob,
+	Triggers:    striggers.RoutineTaskTriggerSQLs,
+	Constraints: sconstraints.UserQuotaConstraintSQLs,
 	Tables: []any{
-		&platformschemas.RoutineTask{},
-		&platformschemas.RoutineTaskRecord{},
-		&platformschemas.UserQuota{},
+		&sschemas.RoutineTask{},
+		&sschemas.RoutineTaskRecord{},
+		&sschemas.UserQuota{},
 	},
 }

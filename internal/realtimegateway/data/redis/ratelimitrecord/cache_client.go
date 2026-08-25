@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-redis/redis"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord/inputs"
 	redislibraries "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord/libraries"
@@ -45,7 +45,7 @@ func NewRateLimitRecordCacheClient(cacheStore *RateLimitRecordCacheStore) *RateL
 
 /* ============================== Auxiliary Methods ============================== */
 
-func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName platformredis.BackendServerName) (*redis.Client, int, error) {
+func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName sredis.BackendServerName) (*redis.Client, int, error) {
 	if s == nil || s.cacheStore == nil {
 		return nil, 0, realtimeexceptions.
 			NewCacheException("RateLimitRecord").
@@ -60,8 +60,8 @@ func (s *RateLimitRecordCacheClient) getRedisClient(backendServerName platformre
 	return redisClient, shardIndex, nil
 }
 
-func (s *RateLimitRecordCacheClient) formatRateLimitRecordKey(backendServerName platformredis.BackendServerName, identifier string) string {
-	return fmt.Sprintf("%s:%s:%s", platformredis.CachePurpose_RateLimit.String(), backendServerName, identifier)
+func (s *RateLimitRecordCacheClient) formatRateLimitRecordKey(backendServerName sredis.BackendServerName, identifier string) string {
+	return fmt.Sprintf("%s:%s:%s", sredis.CachePurpose_RateLimit.String(), backendServerName, identifier)
 }
 
 func (s *RateLimitRecordCacheClient) calculateExpiration(identifier string, windowStart time.Time, windowDuration time.Duration) time.Duration {
@@ -81,7 +81,7 @@ func (s *RateLimitRecordCacheClient) calculateExpiration(identifier string, wind
 
 func (s *RateLimitRecordCacheClient) Get(
 	identifier string,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 ) (*RateLimitRecordCache, error) {
 	redisClient, shardIndex, err := s.getRedisClient(backendServerName)
 	if err != nil {
@@ -102,13 +102,13 @@ func (s *RateLimitRecordCacheClient) Get(
 			DeserializationFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached rate limit record from Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached rate limit record from Redis shard %d", shardIndex))
 	return &rateLimitRecordCache, nil
 }
 
 func (s *RateLimitRecordCacheClient) Set(
 	identifier string,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 	rateLimitRecordCache RateLimitRecordCache,
 ) error {
 	redisClient, shardIndex, err := s.getRedisClient(backendServerName)
@@ -126,13 +126,13 @@ func (s *RateLimitRecordCacheClient) Set(
 		return realtimeexceptions.NewCacheException("RateLimitRecord").CreateFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached rate limit record in Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached rate limit record in Redis shard %d", shardIndex))
 	return nil
 }
 
 func (s *RateLimitRecordCacheClient) Update(
 	identifier string,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 	input cacheinputs.SynchronizeRateLimitRecordCacheInput,
 ) error {
 	rateLimitRecordCache, err := s.Get(identifier, backendServerName)
@@ -166,13 +166,13 @@ func (s *RateLimitRecordCacheClient) Update(
 		return realtimeexceptions.NewCacheException("RateLimitRecord").UpdateFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully updated cached rate limit record in Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully updated cached rate limit record in Redis shard %d", shardIndex))
 	return nil
 }
 
 func (s *RateLimitRecordCacheClient) Delete(
 	identifier string,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 ) error {
 	redisClient, shardIndex, err := s.getRedisClient(backendServerName)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s *RateLimitRecordCacheClient) Delete(
 		return realtimeexceptions.NewCacheException("RateLimitRecord").DeleteFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached rate limit record from Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached rate limit record from Redis shard %d", shardIndex))
 	return nil
 }
 
@@ -191,7 +191,7 @@ func (s *RateLimitRecordCacheClient) Delete(
 
 func (s *RateLimitRecordCacheClient) BatchSynchronize(
 	inputs []cacheinputs.BatchSynchronizeRateLimitRecordCacheInput,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 ) error {
 	if len(inputs) == 0 {
 		return nil
@@ -220,13 +220,13 @@ func (s *RateLimitRecordCacheClient) BatchSynchronize(
 		return realtimeexceptions.NewCacheException("RateLimitRecord").UpdateFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully batch synchronized rate limit records in Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully batch synchronized rate limit records in Redis shard %d", shardIndex))
 	return nil
 }
 
 func (s *RateLimitRecordCacheClient) BatchDelete(
 	identifiers []string,
-	backendServerName platformredis.BackendServerName,
+	backendServerName sredis.BackendServerName,
 ) error {
 	if len(identifiers) == 0 {
 		return nil
@@ -252,6 +252,6 @@ func (s *RateLimitRecordCacheClient) BatchDelete(
 		return realtimeexceptions.NewCacheException("RateLimitRecord").DeleteFailed(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully batch deleted rate limit records from Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully batch deleted rate limit records from Redis shard %d", shardIndex))
 	return nil
 }

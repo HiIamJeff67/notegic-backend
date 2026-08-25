@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
 	binder "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
@@ -16,8 +16,8 @@ import (
 
 type NotificationRouteDependencies struct {
 	NotificationClient        *notificationadapters.NotificationAdapter
-	AccessTokenCookieHandler  *cookies.CookieHandler
-	RefreshTokenCookieHandler *cookies.CookieHandler
+	AccessTokenCookieHandler  *scookies.CookieHandler
+	RefreshTokenCookieHandler *scookies.CookieHandler
 	RateLimiters              RateLimiters
 }
 

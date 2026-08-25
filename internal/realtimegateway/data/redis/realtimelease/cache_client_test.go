@@ -10,15 +10,14 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 )
 
 func newTestRealtimeLeaseCacheClient(t *testing.T, redisClient *redis.Client) *RealtimeLeaseCacheClient {
 	t.Helper()
 
-	clientSet := platformredis.NewClientSetFromClients(redisClient)
+	clientSet := sredis.NewClientSetFromClients(redisClient)
 	cacheStore := NewRealtimeLeaseCacheStore(clientSet)
 	return NewRealtimeLeaseCacheClient(cacheStore)
 }
@@ -129,7 +128,7 @@ func TestRealtimeLeaseCacheClientReclaimsExpiredUserConnectionLease(t *testing.T
 		t.Fatal("expected the second Redis client to observe the distributed user connection cap")
 	}
 
-	server.FastForward(constants.RealtimeLeaseTTL)
+	server.FastForward(sconstants.RealtimeLeaseTTL)
 
 	acquired, _, err = secondStore.AcquireUserConnection(userPublicId, uuid.New(), 1)
 	if err != nil || !acquired {

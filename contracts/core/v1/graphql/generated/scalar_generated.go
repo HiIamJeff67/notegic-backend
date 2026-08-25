@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cscalars "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/datatypes"
+
+	cscalars "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars"
 )
 
 // region    ************************** generated!.gotpl **************************

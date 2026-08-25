@@ -7,19 +7,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
-func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
+func UserRoleMiddleware(atLeastUserRole cenums.UserRole) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		currentUserRoleValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Role.String())
-		currentUserRole, ok := currentUserRoleValue.(enums.UserRole)
+		currentUserRole, ok := currentUserRoleValue.(cenums.UserRole)
 		if !exists || !ok {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
 				Version: cgateway.Version,
@@ -44,7 +42,7 @@ func UserRoleMiddleware(atLeastUserRole enums.UserRole) gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		for _, userRole := range enums.AllUserRoles {
+		for _, userRole := range cenums.AllUserRoles {
 			if userRole == currentUserRole {
 				ctx.Next()
 				return

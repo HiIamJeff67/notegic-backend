@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type RoutinesToTags struct {
@@ -23,11 +23,11 @@ type RoutinesToTags struct {
 
 // RoutinesToTags Table Name
 func (RoutinesToTags) TableName() string {
-	return platformpostgres.TableName_RoutinesToTagsTable.String()
+	return postgres.TableName_RoutinesToTagsTable.String()
 }
 
 // RoutinesToTags Table Relations
-type RoutinesToTagsRelation platformpostgres.RelationName
+type RoutinesToTagsRelation postgres.RelationName
 
 const (
 	RoutinesToTagsRelation_Routine        RoutinesToTagsRelation = "Routine"

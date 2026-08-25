@@ -2,21 +2,19 @@ package blocks
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
-	"go.opentelemetry.io/otel/attribute"
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
 	"gorm.io/gorm"
 
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
-
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	straces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 )
 
 type YjsPersistenceServiceInterface interface {
@@ -28,13 +26,13 @@ type YjsPersistenceServiceInterface interface {
 
 type YjsPersistenceService struct {
 	db                     *gorm.DB
-	blockPackYjsRepository repositories.BlockPackYjsRepositoryInterface
+	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface
 }
 
 func NewYjsPersistenceService(db *gorm.DB) YjsPersistenceServiceInterface {
 	return &YjsPersistenceService{
 		db:                     db,
-		blockPackYjsRepository: repositories.NewBlockPackYjsRepository(),
+		blockPackYjsRepository: srepositories.NewBlockPackYjsRepository(db),
 	}
 }
 
@@ -42,25 +40,25 @@ func (s *YjsPersistenceService) LoadDocument(
 	ctx context.Context, blockPackId uuid.UUID,
 ) (state *cyjsworker.YjsDocumentState, err error) {
 	start := time.Now()
-	ctx, span := traces.NotegicTracer.Start(ctx, "yjs.document.load")
-	defer func() { traces.NotegicTracer.End(span, err) }()
+	ctx, span := straces.NotegicTracer.Start(ctx, "yjs.document.load")
+	defer func() { straces.NotegicTracer.End(span, err) }()
 
 	db := s.db.WithContext(ctx)
 
 	document, updates, err := s.blockPackYjsRepository.LoadDocumentAndUpdates(
 		blockPackId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 			attribute.String("operation", "document.load"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+		smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 			attribute.String("operation", "document.load"),
 			attribute.String("outcome", "error"),
 		)
-		logs.NotegicLogger.Error(ctx, err, "failed to load Yjs document", attribute.String("operation", "document.load"))
+		slogs.NotegicLogger.Error(ctx, err, "failed to load Yjs document", attribute.String("operation", "document.load"))
 
 		return nil, err
 	}
@@ -81,11 +79,11 @@ func (s *YjsPersistenceService) LoadDocument(
 	}
 
 	span.SetAttributes(attribute.Int("yjs.update_count", len(updates)))
-	metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 		attribute.String("operation", "document.load"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+	smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 		attribute.String("operation", "document.load"),
 		attribute.String("outcome", "success"),
 	)
@@ -101,45 +99,45 @@ func (s *YjsPersistenceService) AppendUpdate(
 	payload []byte,
 ) (updateSequence int64, err error) {
 	start := time.Now()
-	ctx, span := traces.NotegicTracer.Start(ctx, "yjs.update.append")
-	defer func() { traces.NotegicTracer.End(span, err) }()
+	ctx, span := straces.NotegicTracer.Start(ctx, "yjs.update.append")
+	defer func() { straces.NotegicTracer.End(span, err) }()
 
 	db := s.db.WithContext(ctx)
 
 	updateSequence, err = s.blockPackYjsRepository.AppendUpdate(
 		blockPackId,
-		inputs.AppendBlockPackYjsUpdateInput{
+		sinputs.AppendBlockPackYjsUpdateInput{
 			PersistenceBatchId: persistenceBatchId,
 			OriginConnectionId: originConnectionId,
 			Payload:            payload,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 			attribute.String("operation", "update.append"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+		smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 			attribute.String("operation", "update.append"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(payload)), attribute.String("operation", "update.append"))
-		logs.NotegicLogger.Error(ctx, err, "failed to append Yjs update", attribute.String("operation", "update.append"))
+		smetrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(payload)), attribute.String("operation", "update.append"))
+		slogs.NotegicLogger.Error(ctx, err, "failed to append Yjs update", attribute.String("operation", "update.append"))
 
 		return 0, err
 	}
 
 	span.SetAttributes(attribute.Int("yjs.payload_bytes", len(payload)))
-	metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 		attribute.String("operation", "update.append"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+	smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 		attribute.String("operation", "update.append"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(payload)), attribute.String("operation", "update.append"))
+	smetrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(payload)), attribute.String("operation", "update.append"))
 
 	return updateSequence, nil
 }
@@ -148,24 +146,24 @@ func (s *YjsPersistenceService) GetCompactableYjsDocumentWithUpdates(
 	ctx context.Context, blockPackId uuid.UUID,
 ) (input *cyjsworker.YjsCompactionInput, err error) {
 	start := time.Now()
-	ctx, span := traces.NotegicTracer.Start(ctx, "yjs.compaction.load")
-	defer func() { traces.NotegicTracer.End(span, err) }()
+	ctx, span := straces.NotegicTracer.Start(ctx, "yjs.compaction.load")
+	defer func() { straces.NotegicTracer.End(span, err) }()
 
 	db := s.db.WithContext(ctx)
 
 	document, updates, err := s.blockPackYjsRepository.GetCompactableYjsDocumentWithUpdates(
 		blockPackId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if err != nil || document == nil {
 		if err != nil {
-			logs.NotegicLogger.Error(ctx, err, "failed to load compactable Yjs document", attribute.String("operation", "compaction.load"))
+			slogs.NotegicLogger.Error(ctx, err, "failed to load compactable Yjs document", attribute.String("operation", "compaction.load"))
 		}
-		metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 			attribute.String("operation", "compaction.load"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+		smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 			attribute.String("operation", "compaction.load"),
 			attribute.String("outcome", "error"),
 		)
@@ -188,11 +186,11 @@ func (s *YjsPersistenceService) GetCompactableYjsDocumentWithUpdates(
 	}
 
 	span.SetAttributes(attribute.Int("yjs.update_count", len(updates)))
-	metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 		attribute.String("operation", "compaction.load"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+	smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 		attribute.String("operation", "compaction.load"),
 		attribute.String("outcome", "success"),
 	)
@@ -204,46 +202,46 @@ func (s *YjsPersistenceService) ApplyCompactedYjsDocument(
 	ctx context.Context, blockPackId uuid.UUID, result cyjsworker.YjsCompactionResult,
 ) (applied bool, err error) {
 	start := time.Now()
-	ctx, span := traces.NotegicTracer.Start(ctx, "yjs.compaction.apply")
-	defer func() { traces.NotegicTracer.End(span, err) }()
+	ctx, span := straces.NotegicTracer.Start(ctx, "yjs.compaction.apply")
+	defer func() { straces.NotegicTracer.End(span, err) }()
 
 	db := s.db.WithContext(ctx)
 
 	applied, err = s.blockPackYjsRepository.ApplyCompactedYjsDocument(
 		blockPackId,
-		inputs.ApplyCompactedBlockPackYjsDocumentInput{
+		sinputs.ApplyCompactedBlockPackYjsDocumentInput{
 			BaseCompactedUntilSequence: result.BaseCompactedUntilSequence,
 			CutoffSequence:             result.CutoffSequence,
 			Snapshot:                   result.Snapshot,
 			StateVector:                result.StateVector,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if err != nil {
-		metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+		smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 			attribute.String("operation", "compaction.apply"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+		smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 			attribute.String("operation", "compaction.apply"),
 			attribute.String("outcome", "error"),
 		)
-		metrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(result.Snapshot)), attribute.String("operation", "compaction.apply"))
-		logs.NotegicLogger.Error(ctx, err, "failed to apply compacted Yjs document", attribute.String("operation", "compaction.apply"))
+		smetrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(result.Snapshot)), attribute.String("operation", "compaction.apply"))
+		slogs.NotegicLogger.Error(ctx, err, "failed to apply compacted Yjs document", attribute.String("operation", "compaction.apply"))
 
 		return false, err
 	}
 
 	span.SetAttributes(attribute.Bool("yjs.applied", applied))
-	metrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
+	smetrics.NotegicMeter.Count(ctx, "yjs.operation.count", 1,
 		attribute.String("operation", "compaction.apply"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
+	smetrics.NotegicMeter.Duration(ctx, "yjs.operation.duration", time.Since(start),
 		attribute.String("operation", "compaction.apply"),
 		attribute.String("outcome", "success"),
 	)
-	metrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(result.Snapshot)), attribute.String("operation", "compaction.apply"))
+	smetrics.NotegicMeter.Bytes(ctx, "yjs.payload.bytes", int64(len(result.Snapshot)), attribute.String("operation", "compaction.apply"))
 
 	return applied, nil
 }

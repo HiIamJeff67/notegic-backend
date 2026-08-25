@@ -3,7 +3,8 @@ package repositories
 import (
 	"gorm.io/gorm"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
@@ -13,20 +14,11 @@ const (
 	LockingStrengthShare       = "SHARE"
 )
 
-var defaultDB *gorm.DB
-
-// SetDefaultDB configures the current runtime's default connection pool.
-// Each runtime is a separate process, so this package-level default remains
-// isolated per runtime while repository code stays platform-shared.
-func SetDefaultDB(db *gorm.DB) {
-	defaultDB = db
-}
-
 type RepositoryOptionFields struct {
 	DB                   *gorm.DB
 	IsTransactionStarted bool
 	BatchSize            int
-	AllowedPermissions   []enums.AccessControlPermission
+	AllowedPermissions   []cenums.AccessControlPermission
 	OnlyDeleted          types.Ternary
 	LockingStrength      *string
 }
@@ -58,9 +50,9 @@ func WithBatchSize(batchSize int) RepositoryOptions {
 	}
 }
 
-func WithAllowedPermissions(allowedPermissions []enums.AccessControlPermission) RepositoryOptions {
+func WithAllowedPermissions(allowedPermissions []cenums.AccessControlPermission) RepositoryOptions {
 	return func(options *RepositoryOptionFields) {
-		options.AllowedPermissions = append([]enums.AccessControlPermission{}, allowedPermissions...)
+		options.AllowedPermissions = append([]cenums.AccessControlPermission{}, allowedPermissions...)
 	}
 }
 
@@ -82,7 +74,6 @@ func (options RepositoryOptionFields) HasAllowedPermissions() bool {
 
 func GetDefaultOptions() RepositoryOptionFields {
 	return RepositoryOptionFields{
-		DB:                   defaultDB,
 		IsTransactionStarted: false,
 		BatchSize:            1000,
 		OnlyDeleted:          types.Ternary_Neutral,

@@ -12,7 +12,7 @@ import (
 
 	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 )
@@ -45,7 +45,7 @@ func TestDocumentInitializationClientInitializeDocuments(t *testing.T) {
 				Blocks: []cblocknote.ArborizedEditableBlock{
 					{
 						Id:       uuid.New(),
-						Type:     enums.BlockType_Paragraph,
+						Type:     cenums.BlockType_Paragraph,
 						Props:    &cblocknote.BaseProps{},
 						Content:  cblocknote.InlineContentList{},
 						Children: []cblocknote.ArborizedEditableBlock{},

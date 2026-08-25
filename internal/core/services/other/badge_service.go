@@ -7,12 +7,12 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type BadgeServiceInterface interface {
@@ -42,8 +42,8 @@ func (s *BadgeService) GetPublicBadgeByPublicId(
 ) (*cgqlmodels.PublicBadge, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
-	badge := schemas.Badge{}
-	result := db.Table(schemas.Badge{}.TableName()).
+	badge := sschemas.Badge{}
+	result := db.Table(sschemas.Badge{}.TableName()).
 		Where("public_id = ?", publicId).
 		First(&badge)
 	if err := result.Error; err != nil {
@@ -64,8 +64,8 @@ func (s *BadgeService) GetPublicBadgeByUserPublicId(
 ) (*cgqlmodels.PublicBadge, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
-	badge := schemas.Badge{}
-	result := db.Table(schemas.Badge{}.TableName()+" b").
+	badge := sschemas.Badge{}
+	result := db.Table(sschemas.Badge{}.TableName()+" b").
 		Select("b.*, utb.user_id").
 		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = b.id`).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = utb.user_id`).
@@ -106,10 +106,10 @@ func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 	}
 
 	var badgesWithPublicUserIds []*struct {
-		schemas.Badge
+		sschemas.Badge
 		UserPublicId uuid.UUID `gorm:"column:user_public_id"`
 	}
-	result := db.Table(schemas.Badge{}.TableName()+" b").
+	result := db.Table(sschemas.Badge{}.TableName()+" b").
 		Select("b.*, u.public_id as user_public_id").
 		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = b.id`).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = utb.user_id`).

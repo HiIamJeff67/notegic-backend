@@ -3,39 +3,37 @@ package resolvers
 import (
 	"context"
 	"fmt"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres/repositories/inputs"
 	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
 type BlockPackPatternResolverInterface interface {
-	Resolve(ctx context.Context, db *gorm.DB, actorUserId uuid.UUID, pattern croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) (map[string]string, *cexceptions.Exception)
-	ResolveMany(ctx context.Context, db *gorm.DB, actorUserIds []uuid.UUID, patterns []croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) ([]map[string]string, []bool, *cexceptions.Exception)
+	Resolve(ctx context.Context, db *gorm.DB, actorUserId uuid.UUID, pattern croutinetasktypes.RoutineTaskPattern, allowedPermissions []cenums.AccessControlPermission) (map[string]string, *cexceptions.Exception)
+	ResolveMany(ctx context.Context, db *gorm.DB, actorUserIds []uuid.UUID, patterns []croutinetasktypes.RoutineTaskPattern, allowedPermissions []cenums.AccessControlPermission) ([]map[string]string, []bool, *cexceptions.Exception)
 }
 
 type BlockPackPatternResolver struct {
 	db                  *gorm.DB
-	blockPackRepository repositories.BlockPackRepositoryInterface
+	blockPackRepository srepositories.BlockPackRepositoryInterface
 }
 
 func NewBlockPackPatternResolver(db *gorm.DB) BlockPackPatternResolverInterface {
 	return BlockPackPatternResolver{
 		db:                  db,
-		blockPackRepository: repositories.NewBlockPackRepository(scopes.NewBlockPackScope()),
+		blockPackRepository: srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
 	}
 }
 
@@ -44,7 +42,7 @@ func (r BlockPackPatternResolver) Resolve(
 	db *gorm.DB,
 	actorUserId uuid.UUID,
 	pattern croutinetasktypes.RoutineTaskPattern,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) (map[string]string, *cexceptions.Exception) {
 	values, successes, exception := r.ResolveMany(
 		ctx,
@@ -73,7 +71,7 @@ func (r BlockPackPatternResolver) ResolveMany(
 	db *gorm.DB,
 	actorUserIds []uuid.UUID,
 	patterns []croutinetasktypes.RoutineTaskPattern,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]map[string]string, []bool, *cexceptions.Exception) {
 	values := make([]map[string]string, len(patterns))
 	taskSuccesses := make([]bool, len(patterns))
@@ -92,7 +90,7 @@ func (r BlockPackPatternResolver) ResolveMany(
 			WithOrigin(fmt.Errorf("actorUserIds and patterns length mismatch"))
 	}
 
-	checkInputs := make([]inputs.BulkCheckBlockPackPermissionInput, 0)
+	checkInputs := make([]sinputs.BulkCheckBlockPackPermissionInput, 0)
 	keysByUserAndBlockPackId := map[[2]uuid.UUID][]struct {
 		taskIndex int
 		key       string
@@ -109,7 +107,7 @@ func (r BlockPackPatternResolver) ResolveMany(
 			}
 			mapKey := [2]uuid.UUID{actorUserIds[patternIndex], *binding.BlockPackId}
 			if _, exists := keysByUserAndBlockPackId[mapKey]; !exists {
-				checkInputs = append(checkInputs, inputs.BulkCheckBlockPackPermissionInput{
+				checkInputs = append(checkInputs, sinputs.BulkCheckBlockPackPermissionInput{
 					UserId: actorUserIds[patternIndex],
 					Id:     *binding.BlockPackId,
 				})
@@ -138,9 +136,9 @@ func (r BlockPackPatternResolver) ResolveMany(
 		checkInputs,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return nil, nil, exception
@@ -168,9 +166,9 @@ func (r BlockPackPatternResolver) ResolveMany(
 		Checked     bool      `gorm:"column:checked"`
 	}
 	if err := db.WithContext(ctx).
-		Model(&schemas.Block{}).
+		Model(&sschemas.Block{}).
 		Select(`block_pack_id, COALESCE((props->>'checked')::boolean, false) AS checked`).
-		Where("block_pack_id IN ? AND type = ? AND deleted_at IS NULL", validBlockPackIds, enums.BlockType_CheckListItem).
+		Where("block_pack_id IN ? AND type = ? AND deleted_at IS NULL", validBlockPackIds, cenums.BlockType_CheckListItem).
 		Find(&rows).Error; err != nil {
 		return nil, nil, cexceptions.New(
 			"QueryFailed",

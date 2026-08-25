@@ -3,11 +3,10 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -38,7 +37,7 @@ func (b *RealtimeBinder) BindCreateMyBlockPackChannelTicket(controllerFunc contr
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("BlockPack").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("BlockPack").WithOrigin(err), ctx)
 			return
 		}
 

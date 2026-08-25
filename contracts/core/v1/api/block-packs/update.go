@@ -7,7 +7,7 @@ import (
 
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/block-packs"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type UpdateMyBlockPackByIdRequestDto struct {
@@ -17,9 +17,9 @@ type UpdateMyBlockPackByIdRequestDto struct {
 		},
 		struct {
 			Values struct {
-				Name                *string              `json:"name" validate:"omitnil,min=1,max=128"`
-				Icon                *enums.SupportedIcon `json:"icon" validate:"omitnil,issupportedicon"`
-				HeaderBackgroundURL *string              `json:"headerBackgroundURL" validate:"omitnil"`
+				Name                *string               `json:"name" validate:"omitnil,min=1,max=128"`
+				Icon                *cenums.SupportedIcon `json:"icon" validate:"omitnil,issupportedicon"`
+				HeaderBackgroundURL *string               `json:"headerBackgroundURL" validate:"omitnil"`
 			} `json:"values"`
 			SetNull *map[string]bool `json:"setNull,omitempty"`
 		},

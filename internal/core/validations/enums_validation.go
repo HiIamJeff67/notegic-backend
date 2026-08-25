@@ -5,96 +5,96 @@ import (
 
 	"github.com/go-playground/validator/v10" // make sure we use the version 10
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func RegisterEnumsValidation(validate *validator.Validate) {
 	validate.RegisterValidation("isaccesscontrolpermission", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllAccessControlPermissionStrings, val)
+		return slices.Contains(cenums.AllAccessControlPermissionStrings, val)
 	})
 	validate.RegisterValidation("isbadgetype", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllBadgeTypeStrings, val)
+		return slices.Contains(cenums.AllBadgeTypeStrings, val)
 	})
 	validate.RegisterValidation("isbillingintervalunit", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllBillingIntervalUnitStrings, val)
+		return slices.Contains(cenums.AllBillingIntervalUnitStrings, val)
 	})
 	validate.RegisterValidation("isbillingplanname", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllBillingPlanNameStrings, val)
+		return slices.Contains(cenums.AllBillingPlanNameStrings, val)
 	})
 	validate.RegisterValidation("isbillingplanstatus", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllBillingPlanStatusStrings, val)
+		return slices.Contains(cenums.AllBillingPlanStatusStrings, val)
 	})
 	validate.RegisterValidation("isblocktype", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllBlockTypeStrings, val)
+		return slices.Contains(cenums.AllBlockTypeStrings, val)
 	})
 	validate.RegisterValidation("iscountrycode", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllCountryCodeStrings, val)
+		return slices.Contains(cenums.AllCountryCodeStrings, val)
 	})
 	validate.RegisterValidation("iscountry", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllCountryStrings, val)
+		return slices.Contains(cenums.AllCountryStrings, val)
 	})
 	validate.RegisterValidation("isitemtype", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllItemTypeStrings, val)
+		return slices.Contains(cenums.AllItemTypeStrings, val)
 	})
 	validate.RegisterValidation("islanguage", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllLanguageStrings, val)
+		return slices.Contains(cenums.AllLanguageStrings, val)
 	})
 	validate.RegisterValidation("ismaterialcontenttype", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllMaterialContentTypeStrings, val)
+		return slices.Contains(cenums.AllMaterialContentTypeStrings, val)
 	})
 	validate.RegisterValidation("isroutineperiod", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllRoutinePeriodStrings, val)
+		return slices.Contains(cenums.AllRoutinePeriodStrings, val)
 	})
 	validate.RegisterValidation("isroutinestatus", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllRoutineStatusStrings, val)
+		return slices.Contains(cenums.AllRoutineStatusStrings, val)
 	})
 	validate.RegisterValidation("isroutinetaskpurpose", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllRoutineTaskPurposeStrings, val)
+		return slices.Contains(cenums.AllRoutineTaskPurposeStrings, val)
 	})
 	validate.RegisterValidation("isroutinetaskstatus", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllRoutineTaskStatusStrings, val)
+		return slices.Contains(cenums.AllRoutineTaskStatusStrings, val)
 	})
 	validate.RegisterValidation("issupportedicon", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllSupportedIconStrings, val)
+		return slices.Contains(cenums.AllSupportedIconStrings, val)
 	})
 	validate.RegisterValidation("issupportedcurrencycode", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllSupportedCurrencyCodeStrings, val)
+		return slices.Contains(cenums.AllSupportedCurrencyCodeStrings, val)
 	})
 	validate.RegisterValidation("isgender", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllUserGenderStrings, val)
+		return slices.Contains(cenums.AllUserGenderStrings, val)
 	})
 	validate.RegisterValidation("isplan", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllUserPlanStrings, val)
+		return slices.Contains(cenums.AllUserPlanStrings, val)
 	})
 	validate.RegisterValidation("isrole", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllUserRoleStrings, val)
+		return slices.Contains(cenums.AllUserRoleStrings, val)
 	})
 	validate.RegisterValidation("isstatus", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllUserStatusStrings, val)
+		return slices.Contains(cenums.AllUserStatusStrings, val)
 	})
 	validate.RegisterValidation("isuserstobillingplansstatus", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
-		return slices.Contains(enums.AllUsersToBillingPlansStatusStrings, val)
+		return slices.Contains(cenums.AllUsersToBillingPlansStatusStrings, val)
 	})
 }

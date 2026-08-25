@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 // UserQuota is the shared per-user quota projection persisted in
@@ -23,5 +23,5 @@ type UserQuota struct {
 }
 
 func (UserQuota) TableName() string {
-	return platformpostgres.TableName_UserQuotaTable.String()
+	return postgres.TableName_UserQuotaTable.String()
 }

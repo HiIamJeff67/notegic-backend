@@ -14,8 +14,9 @@ import (
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	kafkatopics "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka/topics"
+
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafkatopics "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka/topics"
 )
 
 func TestCoreNotificationKafkaContract(t *testing.T) {
@@ -24,8 +25,8 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 	}
 
 	brokers := configuredKafkaBrokers(t)
-	producer, err := platformkafka.NewProducer(platformkafka.ClientConfig{
-		ConnectionConfig: platformkafka.ConnectionConfig{
+	producer, err := skafka.NewProducer(skafka.ClientConfig{
+		ConnectionConfig: skafka.ConnectionConfig{
 			Brokers:     brokers,
 			DialTimeout: 10 * time.Second,
 		},
@@ -42,9 +43,9 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 		t.Skipf("Kafka broker is unavailable: %v", err)
 	}
 
-	consumer, err := platformkafka.NewConsumer(platformkafka.ConsumerConfig{
-		ClientConfig: platformkafka.ClientConfig{
-			ConnectionConfig: platformkafka.ConnectionConfig{
+	consumer, err := skafka.NewConsumer(skafka.ConsumerConfig{
+		ClientConfig: skafka.ClientConfig{
+			ConnectionConfig: skafka.ConnectionConfig{
 				Brokers:     brokers,
 				DialTimeout: 10 * time.Second,
 			},
@@ -76,7 +77,7 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 	go func() {
 		_ = consumer.Run(consumerContext, func(
 			_ context.Context,
-			_ platformkafka.ConsumerRecord,
+			_ skafka.ConsumerRecord,
 			event cevent.EventEnvelope[json.RawMessage],
 		) error {
 			if event.CorrelationId != correlationId {
@@ -147,7 +148,7 @@ func (e *notificationContractError) Error() string {
 func publishNotificationContract(
 	t *testing.T,
 	ctx context.Context,
-	producer *platformkafka.Producer,
+	producer *skafka.Producer,
 	topic string,
 	correlationId string,
 	aggregateId uuid.UUID,
@@ -189,8 +190,8 @@ func configuredKafkaBrokers(t *testing.T) []string {
 		t.Skip("KAFKA_BROKERS is not set; start the integration Compose stack first")
 	}
 
-	provisioner, err := platformkafka.NewTopicProvisioner(platformkafka.ClientConfig{
-		ConnectionConfig: platformkafka.ConnectionConfig{Brokers: brokers, DialTimeout: 10 * time.Second},
+	provisioner, err := skafka.NewTopicProvisioner(skafka.ClientConfig{
+		ConnectionConfig: skafka.ConnectionConfig{Brokers: brokers, DialTimeout: 10 * time.Second},
 		ClientId:         "notegic-test-kafka-topic-bootstrap",
 	})
 	if err != nil {
@@ -199,7 +200,7 @@ func configuredKafkaBrokers(t *testing.T) []string {
 	t.Cleanup(provisioner.Close)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
-	if err := provisioner.EnsureTopics(ctx, kafkatopics.All()); err != nil {
+	if err := provisioner.EnsureTopics(ctx, skafkatopics.All()); err != nil {
 		t.Fatalf("ensure Kafka topics: %v", err)
 	}
 	return brokers

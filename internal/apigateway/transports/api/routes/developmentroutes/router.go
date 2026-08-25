@@ -6,7 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/apigateway/ratelimit"
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/middlewares"
@@ -29,7 +30,7 @@ type APIRouteDependencies struct {
 }
 
 func NewRouter(deps APIRouteDependencies) *gin.Engine {
-	DevelopmentRouter = logs.WithGinLogger(gin.New())
+	DevelopmentRouter = slogs.WithGinLogger(gin.New())
 	coreAdapter, allowedDomains, rateLimiters := deps.CoreAdapter, deps.AllowedDomains, deps.RateLimiters
 	DevelopmentAPIRouterGroup = DevelopmentRouter.Group("/" + cgateway.APIDevelopmentBaseURL) // use in development mode
 	DevelopmentAPIRouterGroup.Use(

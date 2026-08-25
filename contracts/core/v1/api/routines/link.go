@@ -7,7 +7,7 @@ import (
 
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/routines"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type LinkRoutineTagByIdRequestDto struct {
@@ -49,10 +49,10 @@ type LinkRoutineItemByIdRequestDto struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
 		},
 		struct {
-			RoutineId uuid.UUID      `json:"routineId" validate:"required"`
-			ItemId    uuid.UUID      `json:"itemId" validate:"required"`
-			ItemType  enums.ItemType `json:"itemType" validate:"required,isitemtype"`
-			IsUnlink  bool           `json:"isUnlink"`
+			RoutineId uuid.UUID       `json:"routineId" validate:"required"`
+			ItemId    uuid.UUID       `json:"itemId" validate:"required"`
+			ItemType  cenums.ItemType `json:"itemType" validate:"required,isitemtype"`
+			IsUnlink  bool            `json:"isUnlink"`
 		},
 		struct{},
 		struct{},

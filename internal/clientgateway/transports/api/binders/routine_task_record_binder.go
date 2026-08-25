@@ -9,11 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -99,7 +98,7 @@ func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(
 
 		routineTaskId, err := uuid.Parse(ctx.Param("routine-task-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RoutineTaskId = routineTaskId
@@ -108,7 +107,7 @@ func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(
 		if limitString != "" {
 			limit, err := strconv.Atoi(limitString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.Limit = limit
@@ -126,7 +125,7 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordStatusCount(co
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		requestDto.Param.Permission = params.permission
@@ -141,7 +140,7 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordPurposeCount(c
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		requestDto.Param.Permission = params.permission
@@ -156,12 +155,12 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordScheduledAtCou
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, exception := parseRoutineTaskRecordVisualizationTimeRange(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		requestDto.Param.Permission = params.permission
@@ -179,12 +178,12 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualStartedA
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, exception := parseRoutineTaskRecordVisualizationTimeRange(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		requestDto.Param.Permission = params.permission
@@ -202,12 +201,12 @@ func (b *RoutineTaskRecordBinder) BindVisualizeMyRoutineTaskRecordActualEndedAtC
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		params, exception := parseRoutineTaskRecordVisualizationParams(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		timeHourUnit, queryRangeStartedAt, queryRangeEndedAt, exception := parseRoutineTaskRecordVisualizationTimeRange(ctx)
 		if exception != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 		requestDto.Param.Permission = params.permission

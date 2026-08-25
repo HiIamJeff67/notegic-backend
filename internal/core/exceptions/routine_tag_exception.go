@@ -1,11 +1,11 @@
 package apiexceptions
 
 type RoutineTagException struct {
-	CoreException
+	Exception
 }
 
 func NewRoutineTagException() RoutineTagException {
 	return RoutineTagException{
-		CoreException: NewCoreException("RoutineTag"),
+		Exception: NewException("RoutineTag"),
 	}
 }

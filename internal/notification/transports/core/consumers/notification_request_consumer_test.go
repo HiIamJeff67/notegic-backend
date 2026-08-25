@@ -12,7 +12,7 @@ import (
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
 )
@@ -56,7 +56,7 @@ func TestNotificationRequestConsumerConsumesNotificationRequestedEvent(t *testin
 		}),
 	}
 
-	if err := consumer.consume(context.Background(), platformkafka.ConsumerRecord{}, event); err != nil {
+	if err := consumer.consume(context.Background(), skafka.ConsumerRecord{}, event); err != nil {
 		t.Fatalf("consume notification event: %v", err)
 	}
 	if service.consumeCalls != 1 {
@@ -89,13 +89,13 @@ func TestNotificationRequestConsumerClassifiesServiceFailureAsTransient(t *testi
 		}),
 	}
 
-	resultErr := consumer.consume(context.Background(), platformkafka.ConsumerRecord{}, event)
-	consumerErr, ok := resultErr.(*platformkafka.ConsumerError)
+	resultErr := consumer.consume(context.Background(), skafka.ConsumerRecord{}, event)
+	consumerErr, ok := resultErr.(*skafka.ConsumerError)
 	if !ok {
-		t.Fatalf("error type = %T, want *platformkafka.ConsumerError", resultErr)
+		t.Fatalf("error type = %T, want *skafka.ConsumerError", resultErr)
 	}
-	if consumerErr.Classification != platformkafka.ErrorClassification_Transient {
-		t.Fatalf("classification = %q, want %q", consumerErr.Classification, platformkafka.ErrorClassification_Transient)
+	if consumerErr.Classification != skafka.ErrorClassification_Transient {
+		t.Fatalf("classification = %q, want %q", consumerErr.Classification, skafka.ErrorClassification_Transient)
 	}
 }
 

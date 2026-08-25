@@ -3,17 +3,17 @@ package ratelimitrecord
 import (
 	"context"
 
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	redislibraries "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord/libraries"
 )
 
 type RateLimitRecordCacheStore struct {
-	clientSet *platformredis.ClientSet
+	clientSet *sredis.ClientSet
 }
 
 func NewRateLimitRecordCacheStore(
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) *RateLimitRecordCacheStore {
 	return &RateLimitRecordCacheStore{
 		clientSet: clientSet,
@@ -22,7 +22,7 @@ func NewRateLimitRecordCacheStore(
 
 func Register(
 	_ context.Context,
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) *RateLimitRecordCacheStore {
 	return NewRateLimitRecordCacheStore(clientSet)
 }
@@ -42,6 +42,6 @@ func (s *RateLimitRecordCacheStore) Initialize(_ context.Context) error {
 	return nil
 }
 
-func (s *RateLimitRecordCacheStore) ClientSet() *platformredis.ClientSet {
+func (s *RateLimitRecordCacheStore) ClientSet() *sredis.ClientSet {
 	return s.clientSet
 }

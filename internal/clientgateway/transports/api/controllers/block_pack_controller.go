@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -50,7 +50,7 @@ func (c *BlockPackController) GetMyBlockPackById(ctx *gin.Context, requestDto *c
 		"/core/v1/block-packs/get-by-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, r
 		"/core/v1/block-packs/get-and-parent-by-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context
 		"/core/v1/block-packs/get-by-parent-sub-shelf-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, 
 		"/core/v1/block-packs/get-all-by-root-shelf-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *capi
 		"/core/v1/block-packs/create",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *cap
 		"/core/v1/block-packs/create-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -164,7 +164,7 @@ func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto
 		"/core/v1/block-packs/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -183,7 +183,7 @@ func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestD
 		"/core/v1/block-packs/update-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context
 		"/core/v1/block-packs/move",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -221,7 +221,7 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Contex
 		"/core/v1/block-packs/move-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -240,7 +240,7 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Conte
 		"/core/v1/block-packs/move-many-by-parent-sub-shelves",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -259,7 +259,7 @@ func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDt
 		"/core/v1/block-packs/restore",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -278,7 +278,7 @@ func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, request
 		"/core/v1/block-packs/restore-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -297,7 +297,7 @@ func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto
 		"/core/v1/block-packs/delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -316,7 +316,7 @@ func (c *BlockPackController) DeleteMyBlockPacksByIds(ctx *gin.Context, requestD
 		"/core/v1/block-packs/delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

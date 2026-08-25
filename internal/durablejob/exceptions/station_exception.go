@@ -1,11 +1,11 @@
 package exceptions
 
 type StationException struct {
-	CoreException
+	Exception
 }
 
 func NewStationException() StationException {
 	return StationException{
-		CoreException: NewCoreException("Station"),
+		Exception: NewException("Station"),
 	}
 }

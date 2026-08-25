@@ -2,21 +2,20 @@ package user
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-settings"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type UserSettingServiceInterface interface {
@@ -27,13 +26,13 @@ type UserSettingServiceInterface interface {
 type UserSettingService struct {
 	validator             *validator.Validate
 	db                    *gorm.DB
-	userSettingRepository repositories.UserSettingRepositoryInterface
+	userSettingRepository srepositories.UserSettingRepositoryInterface
 }
 
 func NewUserSettingService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	userSettingRepository repositories.UserSettingRepositoryInterface,
+	userSettingRepository srepositories.UserSettingRepositoryInterface,
 ) UserSettingServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -69,7 +68,7 @@ func (s *UserSettingService) GetMySetting(
 
 	userSetting, exception := s.userSettingRepository.GetOneByUserId(
 		actorUserId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -110,22 +109,22 @@ func (s *UserSettingService) UpdateMySetting(
 	}
 
 	db := s.db.WithContext(ctx)
-	var language *enums.Language
+	var language *cenums.Language
 	if requestDto.Body.Values.Language != nil {
 		language = requestDto.Body.Values.Language
 	}
-	var density *enums.UserSettingDensity
+	var density *cenums.UserSettingDensity
 	if requestDto.Body.Values.Density != nil {
 		density = requestDto.Body.Values.Density
 	}
-	var startSurface *enums.UserSettingStartSurface
+	var startSurface *cenums.UserSettingStartSurface
 	if requestDto.Body.Values.StartSurface != nil {
 		startSurface = requestDto.Body.Values.StartSurface
 	}
 	updatedUserSetting, exception := s.userSettingRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserSettingInput{
-			Values: inputs.UpdateUserSettingInput{
+		sinputs.PartialUpdateUserSettingInput{
+			Values: sinputs.UpdateUserSettingInput{
 				Language:             language,
 				Density:              density,
 				StartSurface:         startSurface,
@@ -141,7 +140,7 @@ func (s *UserSettingService) UpdateMySetting(
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception

@@ -6,8 +6,9 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -40,13 +41,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus(ctx context.Context, v any) (enums.RoutineTaskRecordStatus, error) {
+func (ec *executionContext) unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus(ctx context.Context, v any) (cenums.RoutineTaskRecordStatus, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus(ctx context.Context, sel ast.SelectionSet, v enums.RoutineTaskRecordStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus(ctx context.Context, sel ast.SelectionSet, v cenums.RoutineTaskRecordStatus) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus[v])
 	if res == graphql.Null {
@@ -58,17 +59,17 @@ func (ec *executionContext) marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIam
 }
 
 var (
-	unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[string]enums.RoutineTaskRecordStatus{
-		"RoutineTaskRecordStatus_Running": enums.RoutineTaskRecordStatus_Running,
-		"RoutineTaskRecordStatus_Success": enums.RoutineTaskRecordStatus_Success,
-		"RoutineTaskRecordStatus_Failed":  enums.RoutineTaskRecordStatus_Failed,
-		"RoutineTaskRecordStatus_Cancel":  enums.RoutineTaskRecordStatus_Cancel,
+	unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[string]cenums.RoutineTaskRecordStatus{
+		"RoutineTaskRecordStatus_Running": cenums.RoutineTaskRecordStatus_Running,
+		"RoutineTaskRecordStatus_Success": cenums.RoutineTaskRecordStatus_Success,
+		"RoutineTaskRecordStatus_Failed":  cenums.RoutineTaskRecordStatus_Failed,
+		"RoutineTaskRecordStatus_Cancel":  cenums.RoutineTaskRecordStatus_Cancel,
 	}
-	marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[enums.RoutineTaskRecordStatus]string{
-		enums.RoutineTaskRecordStatus_Running: "RoutineTaskRecordStatus_Running",
-		enums.RoutineTaskRecordStatus_Success: "RoutineTaskRecordStatus_Success",
-		enums.RoutineTaskRecordStatus_Failed:  "RoutineTaskRecordStatus_Failed",
-		enums.RoutineTaskRecordStatus_Cancel:  "RoutineTaskRecordStatus_Cancel",
+	marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[cenums.RoutineTaskRecordStatus]string{
+		cenums.RoutineTaskRecordStatus_Running: "RoutineTaskRecordStatus_Running",
+		cenums.RoutineTaskRecordStatus_Success: "RoutineTaskRecordStatus_Success",
+		cenums.RoutineTaskRecordStatus_Failed:  "RoutineTaskRecordStatus_Failed",
+		cenums.RoutineTaskRecordStatus_Cancel:  "RoutineTaskRecordStatus_Cancel",
 	}
 )
 

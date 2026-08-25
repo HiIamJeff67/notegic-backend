@@ -3,7 +3,6 @@ package shelves
 import (
 	"context"
 	"errors"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"slices"
 	"strings"
@@ -14,25 +13,23 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RootShelfServiceInterface interface {
@@ -63,19 +60,19 @@ type RootShelfServiceInterface interface {
 type RootShelfService struct {
 	validator                *validator.Validate
 	db                       *gorm.DB
-	rootShelfScope           scopes.RootShelfScopeInterface
-	rootShelfRepository      repositories.RootShelfRepositoryInterface
-	usersToShelvesRepository repositories.UsersToShelvesRepositoryInterface
-	blockPackRepository      repositories.BlockPackRepositoryInterface
+	rootShelfScope           sscopes.RootShelfScopeInterface
+	rootShelfRepository      srepositories.RootShelfRepositoryInterface
+	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface
+	blockPackRepository      srepositories.BlockPackRepositoryInterface
 }
 
 func NewRootShelfService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	rootShelfScope scopes.RootShelfScopeInterface,
-	rootShelfRepository repositories.RootShelfRepositoryInterface,
-	usersToShelvesRepository repositories.UsersToShelvesRepositoryInterface,
-	blockPackRepository repositories.BlockPackRepositoryInterface,
+	rootShelfScope sscopes.RootShelfScopeInterface,
+	rootShelfRepository srepositories.RootShelfRepositoryInterface,
+	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) RootShelfServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -97,10 +94,10 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 	actorUserId uuid.UUID,
 	rootShelfId uuid.UUID,
 	targetUserPublicId uuid.UUID,
-	permission enums.AccessControlPermission,
+	permission cenums.AccessControlPermission,
 	requireExisting *bool,
 ) (*capi.RootShelfPermissionResponseDto, *cexceptions.Exception) {
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		return nil, cexceptions.New(
 			"PermissionDenied",
 			"RootShelf",
@@ -131,17 +128,17 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := tx.Where("public_id = ?", targetUserPublicId).First(&targetUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -156,8 +153,8 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 	targetPermission, targetException := s.usersToShelvesRepository.GetOne(
 		rootShelf.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if targetException != nil && !errors.Is(targetException.Origin(), gorm.ErrRecordNotFound) {
 		tx.Rollback()
@@ -176,7 +173,7 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 			http.StatusNotModified,
 		)
 	}
-	if targetPermission != nil && targetPermission.Permission == enums.AccessControlPermission_Owner {
+	if targetPermission != nil && targetPermission.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -186,7 +183,7 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 			http.StatusBadRequest,
 		)
 	}
-	if actorPermission != enums.AccessControlPermission_Owner && (permission == enums.AccessControlPermission_Admin || targetPermission != nil && targetPermission.Permission == enums.AccessControlPermission_Admin) {
+	if actorPermission != cenums.AccessControlPermission_Owner && (permission == cenums.AccessControlPermission_Admin || targetPermission != nil && targetPermission.Permission == cenums.AccessControlPermission_Admin) {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -197,20 +194,20 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 		)
 	}
 
-	var relation *schemas.UsersToShelves
+	var relation *sschemas.UsersToShelves
 	if targetPermission == nil {
 		relation, exception = s.usersToShelvesRepository.CreateOne(
 			rootShelf.Id,
 			targetUser.Id,
 			permission,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 	} else {
 		relation, exception = s.usersToShelvesRepository.UpdateOne(
 			rootShelf.Id,
 			targetUser.Id,
 			permission,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 	}
 	if exception != nil {
@@ -220,8 +217,8 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{rootShelf.Id},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -232,9 +229,9 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 		blockPackIds[index] = blockPack.Id
 	}
 	if targetPermission != nil &&
-		slices.Index(enums.AllAccessControlPermissions, permission) <
-			slices.Index(enums.AllAccessControlPermissions, targetPermission.Permission) {
-		if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+		slices.Index(cenums.AllAccessControlPermissions, permission) <
+			slices.Index(cenums.AllAccessControlPermissions, targetPermission.Permission) {
+		if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 			tx,
 			rootShelf.Id.String(),
 			blockPackIds,
@@ -252,7 +249,7 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 			).WithOrigin(err)
 		}
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -307,12 +304,12 @@ func (s *RootShelfService) GetMyRootShelfById(
 
 	db := s.db.WithContext(ctx)
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -320,9 +317,9 @@ func (s *RootShelfService) GetMyRootShelfById(
 		requestDto.Param.RootShelfId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -356,12 +353,12 @@ func (s *RootShelfService) CreateRootShelf(
 	now := time.Now()
 	newRootShelfId, exception := s.rootShelfRepository.CreateOne(
 		actorUserId,
-		inputs.CreateRootShelfInput{
+		sinputs.CreateRootShelfInput{
 			Id:             requestDto.Body.Id,
 			Name:           requestDto.Body.Name,
 			LastAnalyzedAt: &now,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -387,9 +384,9 @@ func (s *RootShelfService) CreateRootShelves(
 	db := s.db.WithContext(ctx)
 
 	now := time.Now()
-	input := make([]inputs.CreateRootShelfInput, len(requestDto.Body.RootShelves))
+	input := make([]sinputs.CreateRootShelfInput, len(requestDto.Body.RootShelves))
 	for index, createdRootShelf := range requestDto.Body.RootShelves {
-		input[index] = inputs.CreateRootShelfInput{
+		input[index] = sinputs.CreateRootShelfInput{
 			Id:             createdRootShelf.Id,
 			Name:           createdRootShelf.Name,
 			LastAnalyzedAt: &now,
@@ -398,7 +395,7 @@ func (s *RootShelfService) CreateRootShelves(
 	newRootShelfIds, exception := s.rootShelfRepository.CreateMany(
 		actorUserId,
 		input,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -431,14 +428,14 @@ func (s *RootShelfService) UpdateMyRootShelfById(
 	rootShelf, exception := s.rootShelfRepository.UpdateOneById(
 		requestDto.Param.RootShelfId,
 		actorUserId,
-		inputs.PartialUpdateRootShelfInput{
-			Values: inputs.UpdateRootShelfInput{
+		sinputs.PartialUpdateRootShelfInput{
+			Values: sinputs.UpdateRootShelfInput{
 				Name: requestDto.Body.Values.Name,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -465,12 +462,12 @@ func (s *RootShelfService) UpdateMyRootShelvesByIds(
 		return nil, exception
 	}
 	db := s.db.WithContext(ctx)
-	input := make([]inputs.UpdateRootShelfByIdInput, len(requestDto.Body.UpdatedRootShelves))
+	input := make([]sinputs.UpdateRootShelfByIdInput, len(requestDto.Body.UpdatedRootShelves))
 	for index, updatedRootShelf := range requestDto.Body.UpdatedRootShelves {
-		input[index] = inputs.UpdateRootShelfByIdInput{
+		input[index] = sinputs.UpdateRootShelfByIdInput{
 			Id: updatedRootShelf.RootShelfId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateRootShelfInput]{
-				Values: inputs.UpdateRootShelfInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateRootShelfInput]{
+				Values: sinputs.UpdateRootShelfInput{
 					Name: updatedRootShelf.Values.Name,
 				},
 				SetNull: updatedRootShelf.SetNull,
@@ -480,8 +477,8 @@ func (s *RootShelfService) UpdateMyRootShelvesByIds(
 	exception = s.rootShelfRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -513,8 +510,8 @@ func (s *RootShelfService) RestoreMyRootShelfById(
 	restoredRootShelf, exception := s.rootShelfRepository.RestoreSoftDeletedOneById(
 		requestDto.Body.RootShelfId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -553,8 +550,8 @@ func (s *RootShelfService) RestoreMyRootShelvesByIds(
 	restoredRootShelves, exception := s.rootShelfRepository.RestoreSoftDeletedManyByIds(
 		requestDto.Body.RootShelfIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -600,10 +597,10 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -611,8 +608,8 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{rootShelf.Id},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -623,10 +620,10 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		blockPackIds[index] = blockPack.Id
 	}
 	var rootShelfMemberPublicIds []uuid.UUID
-	if permission == enums.AccessControlPermission_Owner {
-		var relations []schemas.UsersToShelves
+	if permission == cenums.AccessControlPermission_Owner {
+		var relations []sschemas.UsersToShelves
 		result := tx.
-			Preload(string(schemas.UsersToShelvesRelation_User)).
+			Preload(string(sschemas.UsersToShelvesRelation_User)).
 			Where("root_shelf_id = ?", rootShelf.Id).
 			Find(&relations)
 		if result.Error != nil {
@@ -648,9 +645,9 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		}
 	}
 
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		result := tx.
-			Model(&schemas.RootShelf{}).
+			Model(&sschemas.RootShelf{}).
 			Where("id = ?", rootShelf.Id).
 			Update("deleted_at", time.Now())
 		if result.Error != nil {
@@ -678,7 +675,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		exception = s.usersToShelvesRepository.DeleteOne(
 			rootShelf.Id,
 			actorUserId,
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 		if exception != nil {
 			tx.Rollback()
@@ -687,7 +684,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 	}
 
 	var targetUserPublicIds []uuid.UUID
-	if permission != enums.AccessControlPermission_Owner {
+	if permission != cenums.AccessControlPermission_Owner {
 		actorUserPublicId, exception := contexts.GetActorUserPublicId(ctx)
 		if exception != nil {
 			tx.Rollback()
@@ -696,10 +693,10 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		targetUserPublicIds = []uuid.UUID{actorUserPublicId}
 	}
 	reason := coreevents.BlockPackAccessRevocationReason_PermissionRevoked
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		reason = coreevents.BlockPackAccessRevocationReason_ResourceUnavailable
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -716,8 +713,8 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 			true,
 		).WithOrigin(err)
 	}
-	if permission == enums.AccessControlPermission_Owner {
-		if err := repositories.NewOutboxEventRepository().EnqueueRootShelfDeleted(
+	if permission == cenums.AccessControlPermission_Owner {
+		if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfDeleted(
 			tx,
 			rootShelf.Id.String(),
 			rootShelf.Id,
@@ -734,7 +731,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 			).WithOrigin(err)
 		}
 	} else if len(targetUserPublicIds) > 0 {
-		if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+		if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
 			tx,
 			rootShelf.Id.String(),
 			rootShelf.Id,
@@ -797,8 +794,8 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		requestDto.Body.RootShelfIds,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -808,9 +805,9 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	var rootShelfRelations []schemas.UsersToShelves
+	var rootShelfRelations []sschemas.UsersToShelves
 	if result := tx.
-		Preload(string(schemas.UsersToShelvesRelation_User)).
+		Preload(string(sschemas.UsersToShelvesRelation_User)).
 		Where("root_shelf_id IN ?", requestDto.Body.RootShelfIds).
 		Find(&rootShelfRelations); result.Error != nil {
 		tx.Rollback()
@@ -836,14 +833,14 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 	exception = s.rootShelfRepository.SoftDeleteManyByIds(
 		requestDto.Body.RootShelfIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"root-shelf-bulk-delete",
 		blockPackIds,
@@ -860,7 +857,7 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueManyRootShelfDeleted(
+	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfDeleted(
 		tx,
 		"root-shelf-bulk-delete",
 		requestDto.Body.RootShelfIds,
@@ -915,14 +912,14 @@ func (s *RootShelfService) GetMyRootShelfPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	); exception != nil {
 		return nil, exception
 	}
 
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := db.Where("public_id = ?", requestDto.Param.UserPublicId).First(&targetUser); result.Error != nil {
 		return nil, cexceptions.New(
 			"NotFound",
@@ -935,7 +932,7 @@ func (s *RootShelfService) GetMyRootShelfPermission(
 	relation, exception := s.usersToShelvesRepository.GetOne(
 		requestDto.Param.RootShelfId,
 		targetUser.Id,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -955,7 +952,7 @@ func (s *RootShelfService) CreateMyRootShelfPermission(
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("RootShelf").WithOrigin(err)
 	}
@@ -973,7 +970,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermission(
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("RootShelf").WithOrigin(err)
 	}
@@ -996,13 +993,13 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	}
 
 	userPublicIds := make([]uuid.UUID, len(requestDto.Body.Permissions))
-	permissionByPublicId := make(map[uuid.UUID]enums.AccessControlPermission, len(requestDto.Body.Permissions))
+	permissionByPublicId := make(map[uuid.UUID]cenums.AccessControlPermission, len(requestDto.Body.Permissions))
 	for index, input := range requestDto.Body.Permissions {
-		permission, err := enums.ConvertStringToAccessControlPermission(input.Permission)
+		permission, err := cenums.ConvertStringToAccessControlPermission(input.Permission)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("RootShelf").WithOrigin(err)
 		}
-		if *permission == enums.AccessControlPermission_Owner {
+		if *permission == cenums.AccessControlPermission_Owner {
 			return nil, cexceptions.New(
 				"PermissionDenied",
 				"RootShelf",
@@ -1047,19 +1044,19 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUsers []schemas.User
+	var targetUsers []sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select("id, public_id").
 		Where("public_id IN ?", userPublicIds).
 		Find(&targetUsers)
@@ -1084,8 +1081,8 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 		)
 	}
 
-	userByPublicId := make(map[uuid.UUID]schemas.User, len(targetUsers))
-	userById := make(map[uuid.UUID]schemas.User, len(targetUsers))
+	userByPublicId := make(map[uuid.UUID]sschemas.User, len(targetUsers))
+	userById := make(map[uuid.UUID]sschemas.User, len(targetUsers))
 	for _, user := range targetUsers {
 		userByPublicId[user.PublicId] = user
 		userById[user.Id] = user
@@ -1099,24 +1096,24 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	existingPermissions, exception := s.usersToShelvesRepository.GetMany(
 		rootShelf.Id,
 		userIds,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	existingPermissionByUserId := make(map[uuid.UUID]enums.AccessControlPermission, len(existingPermissions))
+	existingPermissionByUserId := make(map[uuid.UUID]cenums.AccessControlPermission, len(existingPermissions))
 	for _, existingPermission := range existingPermissions {
 		existingPermissionByUserId[existingPermission.UserId] = existingPermission.Permission
 	}
 
-	permissions := make([]enums.AccessControlPermission, len(userIds))
+	permissions := make([]cenums.AccessControlPermission, len(userIds))
 	for index, userId := range userIds {
 		user := userById[userId]
 		permission := permissionByPublicId[user.PublicId]
-		if existingPermissionByUserId[userId] == enums.AccessControlPermission_Owner {
+		if existingPermissionByUserId[userId] == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1126,9 +1123,9 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 				http.StatusBadRequest,
 			)
 		}
-		if actorPermission != enums.AccessControlPermission_Owner &&
-			(permission == enums.AccessControlPermission_Admin ||
-				existingPermissionByUserId[userId] == enums.AccessControlPermission_Admin) {
+		if actorPermission != cenums.AccessControlPermission_Owner &&
+			(permission == cenums.AccessControlPermission_Admin ||
+				existingPermissionByUserId[userId] == cenums.AccessControlPermission_Admin) {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1146,7 +1143,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 		rootShelf.Id,
 		userIds,
 		permissions,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1156,7 +1153,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	for userId, user := range userById {
 		userPublicIdByUserId[userId] = user.PublicId
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionChanges(
+	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionChanges(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1185,7 +1182,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 		).WithOrigin(err)
 	}
 
-	updatedPermissionByUserId := make(map[uuid.UUID]schemas.UsersToShelves, len(updatedPermissions))
+	updatedPermissionByUserId := make(map[uuid.UUID]sschemas.UsersToShelves, len(updatedPermissions))
 	for _, updatedPermission := range updatedPermissions {
 		updatedPermissionByUserId[updatedPermission.UserId] = updatedPermission
 	}
@@ -1213,7 +1210,7 @@ func (s *RootShelfService) UpdateMyRootShelfPermission(
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
 		return nil, cexceptions.InvalidInput("RootShelf").WithOrigin(err)
 	}
@@ -1256,16 +1253,16 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if permission != enums.AccessControlPermission_Owner {
+	if permission != cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1276,7 +1273,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 		)
 	}
 
-	var actorUser schemas.User
+	var actorUser sschemas.User
 	if result := tx.Select("id, public_id").Where("id = ?", actorUserId).First(&actorUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1287,7 +1284,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			http.StatusNotFound,
 		).WithOrigin(result.Error)
 	}
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	if result := tx.Select("id, public_id").Where("public_id = ?", requestDto.Body.TargetUserPublicId).First(&targetUser); result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1312,14 +1309,14 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 	targetMembership, exception := s.usersToShelvesRepository.GetOne(
 		rootShelf.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if targetMembership.Permission == enums.AccessControlPermission_Owner {
+	if targetMembership.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"NoChanges",
@@ -1330,9 +1327,9 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 		)
 	}
 
-	var accounts []platformschemas.UserAccount
+	var accounts []sschemas.UserAccount
 	result := tx.
-		Clauses(clause.Locking{Strength: options.LockingStrengthUpdate}).
+		Clauses(clause.Locking{Strength: srepositories.LockingStrengthUpdate}).
 		Where("user_id IN ?", []uuid.UUID{actorUserId, targetUser.Id}).
 		Order("user_id").
 		Find(&accounts)
@@ -1360,7 +1357,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 
 	var maximumSubscribers int32
 	result = tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select(`"PlanLimitationTable".max_realtime_room_subscriber_count`).
 		Joins(`INNER JOIN "PlanLimitationTable" ON "PlanLimitationTable".key = "UserTable".plan`).
 		Where(`"UserTable".id = ?`, targetUser.Id).
@@ -1389,7 +1386,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 
 	var blockPackIds []uuid.UUID
 	result = tx.
-		Model(&schemas.BlockPack{}).
+		Model(&sschemas.BlockPack{}).
 		Select(`"BlockPackTable".id`).
 		Joins(`INNER JOIN "SubShelfTable" ON "SubShelfTable".id = "BlockPackTable".parent_sub_shelf_id`).
 		Where(`"SubShelfTable".root_shelf_id = ?`, rootShelf.Id).
@@ -1411,8 +1408,8 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 	if _, exception = s.usersToShelvesRepository.UpdateOne(
 		rootShelf.Id,
 		actorUserId,
-		enums.AccessControlPermission_Admin,
-		options.WithTransactionDB(tx),
+		cenums.AccessControlPermission_Admin,
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -1420,14 +1417,14 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 	newOwnerMembership, exception := s.usersToShelvesRepository.UpdateOne(
 		rootShelf.Id,
 		targetUser.Id,
-		enums.AccessControlPermission_Owner,
-		options.WithTransactionDB(tx),
+		cenums.AccessControlPermission_Owner,
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	result = tx.Model(&schemas.RootShelf{}).
+	result = tx.Model(&sschemas.RootShelf{}).
 		Where("id = ?", rootShelf.Id).
 		Update("owner_id", targetUser.Id)
 	if result.Error != nil {
@@ -1451,12 +1448,12 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			http.StatusNotFound,
 		)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
 		actorUser.PublicId,
-		enums.AccessControlPermission_Admin.String(),
+		cenums.AccessControlPermission_Admin.String(),
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1468,12 +1465,12 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
 		targetUser.PublicId,
-		enums.AccessControlPermission_Owner.String(),
+		cenums.AccessControlPermission_Owner.String(),
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1528,19 +1525,19 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUser schemas.User
+	var targetUser sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Where("public_id = ?", requestDto.Param.UserPublicId).
 		First(&targetUser)
 	if result.Error != nil {
@@ -1557,14 +1554,14 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	targetPermission, exception := s.usersToShelvesRepository.GetOne(
 		rootShelf.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if targetPermission.Permission == enums.AccessControlPermission_Owner {
+	if targetPermission.Permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1574,8 +1571,8 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 			http.StatusBadRequest,
 		)
 	}
-	if actorPermission != enums.AccessControlPermission_Owner &&
-		targetPermission.Permission == enums.AccessControlPermission_Admin {
+	if actorPermission != cenums.AccessControlPermission_Owner &&
+		targetPermission.Permission == cenums.AccessControlPermission_Admin {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"PermissionDenied",
@@ -1589,7 +1586,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	exception = s.usersToShelvesRepository.DeleteOne(
 		rootShelf.Id,
 		targetUser.Id,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1597,8 +1594,8 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{rootShelf.Id},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1608,7 +1605,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1625,7 +1622,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1704,19 +1701,19 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var targetUsers []schemas.User
+	var targetUsers []sschemas.User
 	result := tx.
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select("id, public_id").
 		Where("public_id IN ?", requestDto.Body.UserPublicIds).
 		Find(&targetUsers)
@@ -1754,8 +1751,8 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	targetPermissions, exception := s.usersToShelvesRepository.GetMany(
 		rootShelf.Id,
 		userIds,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1773,7 +1770,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	}
 
 	for _, targetPermission := range targetPermissions {
-		if targetPermission.Permission == enums.AccessControlPermission_Owner {
+		if targetPermission.Permission == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1783,8 +1780,8 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 				http.StatusBadRequest,
 			)
 		}
-		if actorPermission != enums.AccessControlPermission_Owner &&
-			targetPermission.Permission == enums.AccessControlPermission_Admin {
+		if actorPermission != cenums.AccessControlPermission_Owner &&
+			targetPermission.Permission == cenums.AccessControlPermission_Admin {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"PermissionDenied",
@@ -1799,7 +1796,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	exception = s.usersToShelvesRepository.DeleteMany(
 		rootShelf.Id,
 		userIds,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1807,8 +1804,8 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{rootShelf.Id},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1818,7 +1815,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1835,7 +1832,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
 		tx,
 		rootShelf.Id.String(),
 		[]uuid.UUID{rootShelf.Id},
@@ -1890,8 +1887,8 @@ func (s *RootShelfService) LeaveMyRootShelf(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{requestDto.Param.RootShelfId},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1906,15 +1903,15 @@ func (s *RootShelfService) LeaveMyRootShelf(
 		actorUserId,
 		nil,
 		nil,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return exception
 	}
-	if permission == enums.AccessControlPermission_Owner {
+	if permission == cenums.AccessControlPermission_Owner {
 		tx.Rollback()
 		return cexceptions.New(
 			"PermissionDenied",
@@ -1927,7 +1924,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 	if exception = s.usersToShelvesRepository.DeleteOne(
 		rootShelf.Id,
 		actorUserId,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return exception
@@ -1937,7 +1934,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 		tx.Rollback()
 		return exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1954,7 +1951,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -2022,8 +2019,8 @@ func (s *RootShelfService) LeaveMyRootShelves(
 	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		rootShelfIds,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -2036,8 +2033,8 @@ func (s *RootShelfService) LeaveMyRootShelves(
 	relations, exception := s.usersToShelvesRepository.GetManyByRootShelfIdsAndUserId(
 		rootShelfIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -2054,7 +2051,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 		)
 	}
 	for _, relation := range relations {
-		if relation.Permission == enums.AccessControlPermission_Owner {
+		if relation.Permission == cenums.AccessControlPermission_Owner {
 			tx.Rollback()
 			return cexceptions.New(
 				"PermissionDenied",
@@ -2069,7 +2066,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 	if exception = s.usersToShelvesRepository.DeleteManyByRootShelfIdsAndUserId(
 		rootShelfIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return exception
@@ -2079,7 +2076,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 		tx.Rollback()
 		return exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"root-shelf-bulk-leave",
 		blockPackIds,
@@ -2096,7 +2093,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
 		tx,
 		"root-shelf-bulk-leave",
 		rootShelfIds,
@@ -2132,8 +2129,8 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRootShelfInput,
 ) (*cgqlmodels.SearchRootShelfConnection, *cexceptions.Exception) {
 	type PrivateRootShelf struct {
-		schemas.RootShelf
-		Permission enums.AccessControlPermission `gorm:"column:permission"`
+		sschemas.RootShelf
+		Permission cenums.AccessControlPermission `gorm:"column:permission"`
 	}
 
 	startTime := time.Now()
@@ -2144,12 +2141,12 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.RootShelf{}).
+	query := db.Model(&sschemas.RootShelf{}).
 		Select(`"RootShelfTable".*, uts.permission AS permission`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON "RootShelfTable".id = uts.root_shelf_id`).
 		Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions).
@@ -2162,7 +2159,7 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRootShelfCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRootShelfCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, cexceptions.New(
 				"CursorDecodeFailed",
@@ -2203,18 +2200,18 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
 	var shelves []PrivateRootShelf
 	if err := query.Scopes(s.rootShelfScope.IncludePreloads(
-		[]schemas.RootShelfRelation{
-			schemas.RootShelfRelation_UsersToShelves,
-			schemas.RootShelfRelation_Items,
+		[]sschemas.RootShelfRelation{
+			sschemas.RootShelfRelation_UsersToShelves,
+			sschemas.RootShelfRelation_Items,
 		},
 	)).Find(&shelves).Error; err != nil {
 		return nil, cexceptions.New(
@@ -2244,7 +2241,7 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 		}
 	}
 
-	users := make([]schemas.User, 0, len(userIds))
+	users := make([]sschemas.User, 0, len(userIds))
 	if len(userIds) > 0 {
 		if err := db.
 			Where("id IN ?", userIds).
@@ -2268,7 +2265,7 @@ func (s *RootShelfService) SearchPrivateRootShelves(
 	searchEdges := make([]*cgqlmodels.SearchRootShelfEdge, len(shelves))
 
 	for index, shelf := range shelves {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRootShelfCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchRootShelfCursorFields]{
 			Fields: cgqlmodels.SearchRootShelfCursorFields{
 				ID: shelf.Id,
 			},

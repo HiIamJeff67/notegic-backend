@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestRoutineTaskLifecycleProducerReturnsErrorWhenKafkaIsUnavailable(t *testing.T) {
@@ -22,7 +22,7 @@ func TestRoutineTaskLifecycleProducerReturnsErrorWhenKafkaIsUnavailable(t *testi
 			RoutineId:           uuid.New(),
 			ActorUserId:         uuid.New(),
 			ActorUserPublicId:   uuid.New(),
-			Purpose:             enums.RoutineTaskPurpose_CreateBlockPack,
+			Purpose:             cenums.RoutineTaskPurpose_CreateBlockPack,
 			Payload:             json.RawMessage(`{}`),
 			Attempt:             1,
 			StartedAt:           time.Now().UTC(),

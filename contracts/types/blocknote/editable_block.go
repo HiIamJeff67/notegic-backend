@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type ArborizedEditableBlock struct {
 	Id       uuid.UUID                `json:"id" validate:"required"`
-	Type     enums.BlockType          `json:"type" validate:"required,isblocktype"`
+	Type     cenums.BlockType         `json:"type" validate:"required,isblocktype"`
 	Props    BlockProps               `json:"-"`
 	Content  BlockContent             `json:"-"`
 	Children []ArborizedEditableBlock `json:"children" validate:"omitempty"`
@@ -84,11 +84,11 @@ func (block ArborizedEditableBlock) MarshalJSON() ([]byte, error) {
 }
 
 type RawFlattenedEditableBlock struct {
-	Id            uuid.UUID       `json:"id"`
-	ParentBlockId *uuid.UUID      `json:"parentBlockId"`
-	PrevBlockId   *uuid.UUID      `json:"prevBlockId"`
-	NextBlockId   *uuid.UUID      `json:"nextBlockId"`
-	Type          enums.BlockType `json:"type"`
-	Props         json.RawMessage `json:"props"`
-	Content       json.RawMessage `json:"content"`
+	Id            uuid.UUID        `json:"id"`
+	ParentBlockId *uuid.UUID       `json:"parentBlockId"`
+	PrevBlockId   *uuid.UUID       `json:"prevBlockId"`
+	NextBlockId   *uuid.UUID       `json:"nextBlockId"`
+	Type          cenums.BlockType `json:"type"`
+	Props         json.RawMessage  `json:"props"`
+	Content       json.RawMessage  `json:"content"`
 }

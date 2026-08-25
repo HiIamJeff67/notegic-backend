@@ -2,8 +2,9 @@ package kafka
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/attribute"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
 
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 )

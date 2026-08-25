@@ -7,14 +7,13 @@ import (
 
 	"github.com/google/uuid"
 
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type notificationRepositoryStub struct {
-	repositories.NotificationRepository
-	events            []platformschemas.OutboxEvent
+	srepositories.NotificationRepository
+	events            []sschemas.OutboxEvent
 	claimCalls        int
 	failedEventIds    []uuid.UUID
 	failedAvailableAt time.Time
@@ -27,7 +26,7 @@ func (r *notificationRepositoryStub) ClaimOutbox(
 	string,
 	int,
 	time.Duration,
-) ([]platformschemas.OutboxEvent, error) {
+) ([]sschemas.OutboxEvent, error) {
 	r.claimCalls++
 	return r.events, nil
 }
@@ -58,7 +57,7 @@ func TestOutboxRelaySchedulesRetryWhenProducerIsUnavailable(t *testing.T) {
 	eventId := uuid.New()
 	startedAt := time.Now().UTC()
 	repository := &notificationRepositoryStub{
-		events: []platformschemas.OutboxEvent{{
+		events: []sschemas.OutboxEvent{{
 			Id:           eventId,
 			PublishCount: 1,
 		}},

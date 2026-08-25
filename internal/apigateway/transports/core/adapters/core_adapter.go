@@ -12,10 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 
 type CoreAdapter struct {

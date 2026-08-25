@@ -3,7 +3,6 @@ package shelves
 import (
 	"context"
 	"fmt"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -13,25 +12,24 @@ import (
 	pg "github.com/lib/pq"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	cblockpacks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	csubshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	storage "github.com/HiIamJeff67/notegic-backend/internal/core/data/storage"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type SubShelfServiceInterface interface {
@@ -58,22 +56,22 @@ type SubShelfService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
 	storage             storage.StorageInterface
-	subShelfScope       scopes.SubShelfScopeInterface
-	subShelfRepository  repositories.SubShelfRepositoryInterface
-	rootShelfRepository repositories.RootShelfRepositoryInterface
-	materialRepository  repositories.MaterialRepositoryInterface
-	blockPackRepository repositories.BlockPackRepositoryInterface
+	subShelfScope       sscopes.SubShelfScopeInterface
+	subShelfRepository  srepositories.SubShelfRepositoryInterface
+	rootShelfRepository srepositories.RootShelfRepositoryInterface
+	materialRepository  srepositories.MaterialRepositoryInterface
+	blockPackRepository srepositories.BlockPackRepositoryInterface
 }
 
 func NewSubShelfService(
 	validator *validator.Validate,
 	db *gorm.DB,
 	storage storage.StorageInterface,
-	subShelfScope scopes.SubShelfScopeInterface,
-	subShelfRepository repositories.SubShelfRepositoryInterface,
-	rootShelfRepository repositories.RootShelfRepositoryInterface,
-	materialRepository repositories.MaterialRepositoryInterface,
-	blockPackRepository repositories.BlockPackRepositoryInterface,
+	subShelfScope sscopes.SubShelfScopeInterface,
+	subShelfRepository srepositories.SubShelfRepositoryInterface,
+	rootShelfRepository srepositories.RootShelfRepositoryInterface,
+	materialRepository srepositories.MaterialRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) SubShelfServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -92,7 +90,7 @@ func NewSubShelfService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func newSubShelfResponseDto(subShelf schemas.SubShelf) csubshelves.SubShelfResponseDto {
+func newSubShelfResponseDto(subShelf sschemas.SubShelf) csubshelves.SubShelfResponseDto {
 	return csubshelves.SubShelfResponseDto{
 		Id:             subShelf.Id,
 		Name:           subShelf.Name,
@@ -124,12 +122,12 @@ func (s *SubShelfService) GetMySubShelfById(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -137,9 +135,9 @@ func (s *SubShelfService) GetMySubShelfById(
 		requestDto.Param.SubShelfId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -163,12 +161,12 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -177,15 +175,15 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 		return nil, exception
 	}
 	responseDto := make(csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, 0)
-	subQuery := db.Model(&schemas.UsersToShelves{}).
+	subQuery := db.Model(&sschemas.UsersToShelves{}).
 		Select("1").
 		Where(`root_shelf_id = "SubShelfTable".root_shelf_id AND user_id = ? AND permission IN ?`,
 			actorUserId, allowedPermissions,
 		)
-	var subShelves []schemas.SubShelf
-	result := db.Model(&schemas.SubShelf{}).
+	var subShelves []sschemas.SubShelf
+	result := db.Model(&sschemas.SubShelf{}).
 		Where("prev_sub_shelf_id = ? AND EXISTS (?)", requestDto.Param.PrevSubShelfId, subQuery).
-		Scopes(scopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
+		Scopes(sscopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
 		Order(`"SubShelfTable".name ASC`).
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
@@ -212,12 +210,12 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -225,16 +223,16 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 	if exception != nil {
 		return nil, exception
 	}
-	var subShelves []schemas.SubShelf
-	subQuery := db.Model(&schemas.UsersToShelves{}).
+	var subShelves []sschemas.SubShelf
+	subQuery := db.Model(&sschemas.UsersToShelves{}).
 		Select("1").
 		Where(`root_shelf_id = "SubShelfTable".root_shelf_id AND user_id = ? AND permission IN ?`,
 			actorUserId, allowedPermissions,
 		)
-	result := db.Model(&schemas.SubShelf{}).
+	result := db.Model(&sschemas.SubShelf{}).
 		Where("root_shelf_id = ? AND EXISTS (?)",
 			requestDto.Param.RootShelfId, subQuery,
-		).Scopes(scopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
 		Order(`"SubShelfTable".name ASC`).
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
@@ -263,12 +261,12 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -278,16 +276,16 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 	}
 
 	resDto := csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto{}
-	subQuery := db.Model(&schemas.UsersToShelves{}).
+	subQuery := db.Model(&sschemas.UsersToShelves{}).
 		Select("1").
 		Where(`root_shelf_id = "SubShelfTable".root_shelf_id AND user_id = ? AND permission IN ?`,
 			actorUserId, allowedPermissions,
 		)
-	var subShelves []schemas.SubShelf
-	resultOfGettingSubShelves := db.Model(&schemas.SubShelf{}).
+	var subShelves []sschemas.SubShelf
+	resultOfGettingSubShelves := db.Model(&sschemas.SubShelf{}).
 		Where("prev_sub_shelf_id = ? AND EXISTS (?)",
 			requestDto.Param.PrevSubShelfId, subQuery,
-		).Scopes(scopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewSubShelfScope().FilterOnlyDeleted(onlyDeleted)).
 		Order(`"SubShelfTable".name ASC`).
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
@@ -298,15 +296,15 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		resDto.SubShelves = append(resDto.SubShelves, newSubShelfResponseDto(subShelf))
 	}
 
-	materials := []schemas.Material{}
-	resultOfGettingMaterials := db.Model(&schemas.Material{}).
+	materials := []sschemas.Material{}
+	resultOfGettingMaterials := db.Model(&sschemas.Material{}).
 		Joins(`LEFT JOIN "SubShelfTable" ss ON "MaterialTable".parent_sub_shelf_id = ss.id`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
 		Where("ss.id = ? AND uts.user_id = ? AND uts.permission IN ?",
 			requestDto.Param.PrevSubShelfId,
 			actorUserId,
 			allowedPermissions,
-		).Scopes(scopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewMaterialScope().FilterOnlyDeleted(onlyDeleted)).
 		Order(`"MaterialTable".name ASC`).
 		Limit(int(data.MaxMaterialsOfSubShelf)).
 		Find(&materials)
@@ -334,14 +332,14 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 	}
 
 	var blockPacks []cblockpacks.GetMyBlockPackByIdResponseDto
-	resultOfGettingBlockPacks := db.Model(&schemas.BlockPack{}).
+	resultOfGettingBlockPacks := db.Model(&sschemas.BlockPack{}).
 		Joins(`LEFT JOIN "SubShelfTable" ss ON "BlockPackTable".parent_sub_shelf_id = ss.id`).
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
 		Where("ss.id = ? AND uts.user_id = ? AND uts.permission IN ?",
 			requestDto.Param.PrevSubShelfId,
 			actorUserId,
 			allowedPermissions,
-		).Scopes(scopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
 		Order(`"BlockPackTable".name ASC`).
 		Limit(int(data.MaxBlockPackOfSubShelf)).
 		Scan(&blockPacks)
@@ -394,13 +392,13 @@ func (s *SubShelfService) CreateSubShelfByRootShelfId(
 	newSubShelfId, exception := s.subShelfRepository.CreateOneByRootShelfId(
 		requestDto.Body.RootShelfId,
 		actorUserId,
-		inputs.CreateSubShelfInput{
+		sinputs.CreateSubShelfInput{
 			Id:             requestDto.Body.Id,
 			Name:           requestDto.Body.Name,
 			PrevSubShelfId: requestDto.Body.PrevSubShelfId,
 		},
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -429,9 +427,9 @@ func (s *SubShelfService) CreateSubShelvesByRootShelfIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.CreateSubShelfByRootShelfIdInput, len(requestDto.Body.CreatedSubShelves))
+	input := make([]sinputs.CreateSubShelfByRootShelfIdInput, len(requestDto.Body.CreatedSubShelves))
 	for index, createdSubShelf := range requestDto.Body.CreatedSubShelves {
-		input[index] = inputs.CreateSubShelfByRootShelfIdInput{
+		input[index] = sinputs.CreateSubShelfByRootShelfIdInput{
 			Id:             createdSubShelf.Id,
 			RootShelfId:    createdSubShelf.RootShelfId,
 			PrevSubShelfId: createdSubShelf.PrevSubShelfId,
@@ -441,8 +439,8 @@ func (s *SubShelfService) CreateSubShelvesByRootShelfIds(
 	newSubShelfIds, exception := s.subShelfRepository.CreateManyByRootShelfIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -474,14 +472,14 @@ func (s *SubShelfService) UpdateMySubShelfById(
 	subShelf, exception := s.subShelfRepository.UpdateOneById(
 		requestDto.Param.SubShelfId,
 		actorUserId,
-		inputs.PartialUpdateSubShelfInput{
-			Values: inputs.UpdateSubShelfInput{
+		sinputs.PartialUpdateSubShelfInput{
+			Values: sinputs.UpdateSubShelfInput{
 				Name: requestDto.Body.Values.Name,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -509,12 +507,12 @@ func (s *SubShelfService) UpdateMySubShelvesByIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateSubShelfByIdInput, len(requestDto.Body.UpdatedSubShelves))
+	input := make([]sinputs.UpdateSubShelfByIdInput, len(requestDto.Body.UpdatedSubShelves))
 	for index, updatedSubShelf := range requestDto.Body.UpdatedSubShelves {
-		input[index] = inputs.UpdateSubShelfByIdInput{
+		input[index] = sinputs.UpdateSubShelfByIdInput{
 			Id: updatedSubShelf.SubShelfId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateSubShelfInput]{
-				Values: inputs.UpdateSubShelfInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateSubShelfInput]{
+				Values: sinputs.UpdateSubShelfInput{
 					Name: updatedSubShelf.Values.Name,
 				},
 				SetNull: updatedSubShelf.SetNull,
@@ -524,8 +522,8 @@ func (s *SubShelfService) UpdateMySubShelvesByIds(
 	exception = s.subShelfRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -563,10 +561,10 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 		{First: from.RootShelfId != requestDto.Body.SourceRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
@@ -576,8 +574,8 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 	}
 	blockPackIds, exception := s.blockPackRepository.GetIdsBySubShelfIdsAndDescendants(
 		[]uuid.UUID{from.Id},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -590,10 +588,10 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 			actorUserId,
 			nil,
 			allowedPermissions,
-			options.WithTransactionDB(tx),
-			options.WithAllowedPermissions(allowedPermissions),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-			options.WithOnlyDeleted(types.Ternary_Negative),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithAllowedPermissions(allowedPermissions),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
@@ -644,7 +642,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Body.SourceSubShelfId.String(),
 		blockPackIds,
@@ -695,10 +693,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -716,8 +714,8 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 	}
 	blockPackIds, exception := s.blockPackRepository.GetIdsBySubShelfIdsAndDescendants(
 		sourceSubShelfIds,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -730,10 +728,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 			actorUserId,
 			nil,
 			allowedPermissions,
-			options.WithTransactionDB(tx),
-			options.WithAllowedPermissions(allowedPermissions),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-			options.WithOnlyDeleted(types.Ternary_Negative),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithAllowedPermissions(allowedPermissions),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
 			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
@@ -807,7 +805,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-bulk-move",
 		blockPackIds,
@@ -887,10 +885,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -900,16 +898,16 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		isRootShelfValid[validRootShelf.Id] = true
 	}
 
-	validSourceSubShelfMap := make(map[uuid.UUID]schemas.SubShelf)
+	validSourceSubShelfMap := make(map[uuid.UUID]sschemas.SubShelf)
 	validSourceSubShelves, exception := s.subShelfRepository.CheckPermissionsAndGetManyByIds(
 		sourceSubShelfIds,
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -921,16 +919,16 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		}
 	}
 
-	var finalValidDestinationSubShelves []schemas.SubShelf
+	var finalValidDestinationSubShelves []sschemas.SubShelf
 	validDestinationSubShelves, exception := s.subShelfRepository.CheckPermissionsAndGetManyByIds(
 		destinationSubShelfIds,
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -988,8 +986,8 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 	}
 	blockPackIds, exception := s.blockPackRepository.GetIdsBySubShelfIdsAndDescendants(
 		validSourceSubShelfIds,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1040,7 +1038,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-multi-root-move",
 		blockPackIds,
@@ -1088,8 +1086,8 @@ func (s *SubShelfService) RestoreMySubShelfById(
 	restoredSubShelf, exception := s.subShelfRepository.RestoreSoftDeletedOneById(
 		requestDto.Param.SubShelfId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1119,8 +1117,8 @@ func (s *SubShelfService) RestoreMySubShelvesByIds(
 	restoredSubShelves, exception := s.subShelfRepository.RestoreSoftDeletedManyByIds(
 		requestDto.Body.SubShelfIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1161,8 +1159,8 @@ func (s *SubShelfService) DeleteMySubShelfById(
 	}
 	blockPackIds, exception := s.blockPackRepository.GetIdsByParentSubShelfIds(
 		[]uuid.UUID{requestDto.Param.SubShelfId},
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1172,14 +1170,14 @@ func (s *SubShelfService) DeleteMySubShelfById(
 	exception = s.subShelfRepository.SoftDeleteOneById(
 		requestDto.Param.SubShelfId,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Param.SubShelfId.String(),
 		blockPackIds,
@@ -1241,8 +1239,8 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	}
 	blockPackIds, exception := s.blockPackRepository.GetIdsByParentSubShelfIds(
 		requestDto.Body.SubShelfIds,
-		options.WithTransactionDB(tx),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1252,14 +1250,14 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	exception = s.subShelfRepository.SoftDeleteManyByIds(
 		requestDto.Body.SubShelfIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-bulk-delete",
 		blockPackIds,
@@ -1306,12 +1304,12 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.SubShelf{}).
+	query := db.Model(&sschemas.SubShelf{}).
 		Select(`"SubShelfTable".*`).
 		Joins(`INNER JOIN "UsersToShelvesTable" uts ON "SubShelfTable".root_shelf_id = uts.root_shelf_id`).
 		Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions).
@@ -1338,7 +1336,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchSubShelfCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchSubShelfCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1381,18 +1379,18 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var subShelves []schemas.SubShelf
+	var subShelves []sschemas.SubShelf
 	if err := query.Scopes(s.subShelfScope.IncludePreloads(
-		[]schemas.SubShelfRelation{
-			schemas.SubShelfRelation_NextSubShelves,
-			schemas.SubShelfRelation_Items,
+		[]sschemas.SubShelfRelation{
+			sschemas.SubShelfRelation_NextSubShelves,
+			sschemas.SubShelfRelation_Items,
 		},
 	)).Find(&subShelves).Error; err != nil {
 		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
@@ -1402,7 +1400,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 	searchEdges := make([]*cgqlmodels.SearchSubShelfEdge, len(subShelves))
 
 	for index, subShelf := range subShelves {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchSubShelfCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchSubShelfCursorFields]{
 			Fields: cgqlmodels.SearchSubShelfCursorFields{
 				ID: subShelf.Id,
 			},

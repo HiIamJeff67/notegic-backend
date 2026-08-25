@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
 )
@@ -49,7 +48,7 @@ func (b *SubShelfBinder) BindGetMySubShelfById(controllerFunc controllers.Func[*
 		if isDeletedString != "" {
 			isDeleted, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.IsDeleted = &isDeleted
@@ -57,7 +56,7 @@ func (b *SubShelfBinder) BindGetMySubShelfById(controllerFunc controllers.Func[*
 
 		subShelfId, err := uuid.Parse(ctx.Param("sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.SubShelfId = subShelfId
@@ -76,7 +75,7 @@ func (b *SubShelfBinder) BindGetMySubShelvesByPrevSubShelfId(controllerFunc cont
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &areDeleted
@@ -84,7 +83,7 @@ func (b *SubShelfBinder) BindGetMySubShelvesByPrevSubShelfId(controllerFunc cont
 
 		prevSubShelfId, err := uuid.Parse(ctx.Param("prev-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.PrevSubShelfId = prevSubShelfId
@@ -103,7 +102,7 @@ func (b *SubShelfBinder) BindGetAllMySubShelvesByRootShelfId(controllerFunc cont
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &areDeleted
@@ -111,7 +110,7 @@ func (b *SubShelfBinder) BindGetAllMySubShelvesByRootShelfId(controllerFunc cont
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
@@ -130,7 +129,7 @@ func (b *SubShelfBinder) BindGetMySubShelvesAndItemsByPrevSubShelfId(controllerF
 		if areDeletedString != "" {
 			areDeleted, err := strconv.ParseBool(areDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.AreDeleted = &areDeleted
@@ -138,7 +137,7 @@ func (b *SubShelfBinder) BindGetMySubShelvesAndItemsByPrevSubShelfId(controllerF
 
 		prevSubShelfId, err := uuid.Parse(ctx.Param("prev-sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.PrevSubShelfId = prevSubShelfId
@@ -155,13 +154,13 @@ func (b *SubShelfBinder) BindCreateSubShelfByRootShelfId(controllerFunc controll
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.RootShelfId = rootShelfId
@@ -178,7 +177,7 @@ func (b *SubShelfBinder) BindCreateSubShelvesByRootShelfIds(controllerFunc contr
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -194,13 +193,13 @@ func (b *SubShelfBinder) BindUpdateMySubShelfById(controllerFunc controllers.Fun
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		subShelfId, err := uuid.Parse(ctx.Param("sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.SubShelfId = subShelfId
@@ -217,7 +216,7 @@ func (b *SubShelfBinder) BindUpdateMySubShelvesByIds(controllerFunc controllers.
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -233,7 +232,7 @@ func (b *SubShelfBinder) BindMoveMySubShelfByRootShelfId(controllerFunc controll
 
 		subShelfId, err := uuid.Parse(ctx.Param("sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Body.SourceSubShelfId = subShelfId
@@ -250,7 +249,7 @@ func (b *SubShelfBinder) BindMoveMySubShelvesByRootShelfId(controllerFunc contro
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -266,7 +265,7 @@ func (b *SubShelfBinder) BindMoveMySubShelvesByRootShelfIds(controllerFunc contr
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -282,7 +281,7 @@ func (b *SubShelfBinder) BindRestoreMySubShelfById(controllerFunc controllers.Fu
 
 		subShelfId, err := uuid.Parse(ctx.Param("sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.SubShelfId = subShelfId
@@ -299,7 +298,7 @@ func (b *SubShelfBinder) BindRestoreMySubShelvesByIds(controllerFunc controllers
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -315,7 +314,7 @@ func (b *SubShelfBinder) BindDeleteMySubShelfById(controllerFunc controllers.Fun
 
 		subShelfId, err := uuid.Parse(ctx.Param("sub-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.SubShelfId = subShelfId
@@ -332,7 +331,7 @@ func (b *SubShelfBinder) BindDeleteMySubShelvesByIds(controllerFunc controllers.
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 

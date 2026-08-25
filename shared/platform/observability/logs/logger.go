@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
-	otellog "go.opentelemetry.io/otel/log"
-	logglobal "go.opentelemetry.io/otel/log/global"
-	"go.opentelemetry.io/otel/trace"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	otellog "go.opentelemetry.io/otel/log"
+	logglobal "go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/trace"
 
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 )

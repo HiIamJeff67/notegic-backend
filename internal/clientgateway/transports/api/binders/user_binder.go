@@ -3,11 +3,10 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -39,7 +38,7 @@ func (b *UserBinder) BindUpdateMe(controllerFunc controllers.Func[*capi.UpdateMe
 		requestDto := &capi.UpdateMeRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("User").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("User").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)

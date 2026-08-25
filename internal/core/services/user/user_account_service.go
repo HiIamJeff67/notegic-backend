@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"time"
 
@@ -10,18 +9,17 @@ import (
 	"gorm.io/gorm"
 
 	cauthdto "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserAccountServiceInterface interface {
@@ -34,18 +32,18 @@ type UserAccountServiceInterface interface {
 type UserAccountService struct {
 	validator             *validator.Validate
 	db                    *gorm.DB
-	userRepository        repositories.UserRepositoryInterface
-	userAccountRepository repositories.UserAccountRepositoryInterface
-	userQuotaRepository   repositories.UserQuotaRepositoryInterface
+	userRepository        srepositories.UserRepositoryInterface
+	userAccountRepository srepositories.UserAccountRepositoryInterface
+	userQuotaRepository   srepositories.UserQuotaRepositoryInterface
 	oauthService          authservices.OAuthServiceInterface
 }
 
 func NewUserAccountService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	userRepository repositories.UserRepositoryInterface,
-	userAccountRepository repositories.UserAccountRepositoryInterface,
-	userQuotaRepository repositories.UserQuotaRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
+	userAccountRepository srepositories.UserAccountRepositoryInterface,
+	userQuotaRepository srepositories.UserQuotaRepositoryInterface,
 	oauthService authservices.OAuthServiceInterface,
 ) UserAccountServiceInterface {
 	if db == nil {
@@ -85,13 +83,13 @@ func (s *UserAccountService) GetMyAccount(
 	routineTaskCostUnitUsed, exception := s.userQuotaRepository.GetRoutineTaskCostUnitUsed(
 		ctx,
 		actorUserId,
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
 	}
 
-	userAccount, exception := s.userAccountRepository.GetOneByUserId(actorUserId, options.WithDB(db))
+	userAccount, exception := s.userAccountRepository.GetOneByUserId(actorUserId, srepositories.WithDB(db))
 	if exception != nil {
 		return nil, exception
 	}
@@ -136,21 +134,21 @@ func (s *UserAccountService) UpdateMyAccount(
 	if exception != nil {
 		return nil, exception
 	}
-	var countryCode *enums.CountryCode
+	var countryCode *cenums.CountryCode
 	if requestDto.Body.Values.CountryCode != nil {
-		parsedCountryCode, err := enums.ConvertStringToCountryCode(*requestDto.Body.Values.CountryCode)
+		parsedCountryCode, err := cenums.ConvertStringToCountryCode(*requestDto.Body.Values.CountryCode)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("UserAccount").WithOrigin(err)
 		}
-		contractCountryCode := enums.CountryCode(*parsedCountryCode)
+		contractCountryCode := cenums.CountryCode(*parsedCountryCode)
 		countryCode = &contractCountryCode
 	}
 
 	db := s.db.WithContext(ctx)
 
-	result := db.Model(&platformschemas.UserAccount{}).
+	result := db.Model(&sschemas.UserAccount{}).
 		Where("user_id = ? AND auth_code = ?", actorUserId, requestDto.Body.AuthCode).
-		First(&platformschemas.UserAccount{})
+		First(&sschemas.UserAccount{})
 	if err := result.Error; err != nil {
 		return nil, cexceptions.New(
 			"NotFound",
@@ -163,15 +161,15 @@ func (s *UserAccountService) UpdateMyAccount(
 
 	_, exception = s.userAccountRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserAccountInput{
-			Values: inputs.UpdateUserAccountInput{
+		sinputs.PartialUpdateUserAccountInput{
+			Values: sinputs.UpdateUserAccountInput{
 				BackupEmail: requestDto.Body.Values.BackupEmail,
 				CountryCode: countryCode,
 				PhoneNumber: requestDto.Body.Values.PhoneNumber,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -216,8 +214,8 @@ func (s *UserAccountService) BindGoogleAccount(
 
 	user, exception := s.userRepository.GetOneById(
 		actorUserId,
-		[]schemas.UserRelation{schemas.UserRelation_UserAccount},
-		options.WithDB(db),
+		[]sschemas.UserRelation{sschemas.UserRelation_UserAccount},
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -235,13 +233,13 @@ func (s *UserAccountService) BindGoogleAccount(
 
 	_, exception = s.userAccountRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserAccountInput{
-			Values: inputs.UpdateUserAccountInput{
+		sinputs.PartialUpdateUserAccountInput{
+			Values: sinputs.UpdateUserAccountInput{
 				GoogleCredential: &userInfo.Id,
 			},
 			SetNull: nil,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -272,9 +270,9 @@ func (s *UserAccountService) UnbindGoogleAccount(
 	// Start transaction
 	db := s.db.WithContext(ctx)
 
-	result := db.Model(&platformschemas.UserAccount{}).
+	result := db.Model(&sschemas.UserAccount{}).
 		Where("user_id = ? AND auth_code = ?", actorUserId, requestDto.Body.AuthCode).
-		First(&platformschemas.UserAccount{})
+		First(&sschemas.UserAccount{})
 	if err := result.Error; err != nil {
 		return nil, cexceptions.New(
 			"NotFound",
@@ -287,15 +285,15 @@ func (s *UserAccountService) UnbindGoogleAccount(
 
 	_, exception = s.userAccountRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserAccountInput{
-			Values: inputs.UpdateUserAccountInput{
+		sinputs.PartialUpdateUserAccountInput{
+			Values: sinputs.UpdateUserAccountInput{
 				GoogleCredential: nil,
 			},
 			SetNull: &map[string]bool{
 				"GoogleCredential": true,
 			},
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception

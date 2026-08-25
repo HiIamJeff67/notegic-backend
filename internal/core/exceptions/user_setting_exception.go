@@ -7,11 +7,11 @@ import (
 )
 
 type UserSettingException struct {
-	CoreException
+	Exception
 }
 
 func NewUserSettingException() UserSettingException {
-	return UserSettingException{CoreException: NewCoreException("UserSetting")}
+	return UserSettingException{Exception: NewException("UserSetting")}
 }
 
 func (UserSettingException) NotFound() *cexceptions.Exception {

@@ -14,7 +14,7 @@ import (
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
 type senderStub struct {
@@ -37,17 +37,17 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 	cases := []struct {
 		name      string
 		retryable bool
-		wantClass platformkafka.ErrorClassification
+		wantClass skafka.ErrorClassification
 	}{
 		{
 			name:      "retryable delivery error",
 			retryable: true,
-			wantClass: platformkafka.ErrorClassification_Transient,
+			wantClass: skafka.ErrorClassification_Transient,
 		},
 		{
 			name:      "non retryable configuration error",
 			retryable: false,
-			wantClass: platformkafka.ErrorClassification_PoisonMessage,
+			wantClass: skafka.ErrorClassification_PoisonMessage,
 		},
 	}
 
@@ -77,7 +77,7 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 			consumer.validator = validatorpkg.New()
 			resultErr := consumer.consume(
 				context.Background(),
-				platformkafka.ConsumerRecord{},
+				skafka.ConsumerRecord{},
 				cevent.EventEnvelope[json.RawMessage]{
 					SchemaVersion: cevent.Version,
 					EventType:     cemailevents.EventType_EmailRequested,
@@ -87,9 +87,9 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 				},
 			)
 
-			consumerError, ok := resultErr.(*platformkafka.ConsumerError)
+			consumerError, ok := resultErr.(*skafka.ConsumerError)
 			if !ok {
-				t.Fatalf("error type = %T, want *platformkafka.ConsumerError", resultErr)
+				t.Fatalf("error type = %T, want *skafka.ConsumerError", resultErr)
 			}
 			if consumerError.Classification != test.wantClass {
 				t.Fatalf("classification = %q, want %q", consumerError.Classification, test.wantClass)

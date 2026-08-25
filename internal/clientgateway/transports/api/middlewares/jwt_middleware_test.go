@@ -8,21 +8,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 
-func newTestCookieHandlers() (*cookies.CookieHandler, *cookies.CookieHandler) {
-	return cookies.New(cookies.Config{
-			Name:     cookies.ValidCookieName_AccessToken,
+func newTestCookieHandlers() (*scookies.CookieHandler, *scookies.CookieHandler) {
+	return scookies.New(scookies.Config{
+			Name:     scookies.ValidCookieName_AccessToken,
 			Path:     "/",
 			Duration: 30 * time.Minute,
 			HTTPOnly: true,
 			SameSite: http.SameSiteLaxMode,
-		}), cookies.New(cookies.Config{
-			Name:     cookies.ValidCookieName_RefreshToken,
+		}), scookies.New(scookies.Config{
+			Name:     scookies.ValidCookieName_RefreshToken,
 			Path:     "/",
 			Duration: 14 * 24 * time.Hour,
 			HTTPOnly: true,

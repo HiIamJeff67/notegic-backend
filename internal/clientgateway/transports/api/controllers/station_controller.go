@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -64,7 +64,7 @@ func (c *StationController) GetMyStationById(ctx *gin.Context, request *capi.Get
 		"/core/v1/stations/get-by-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (c *StationController) GetAllMyStations(ctx *gin.Context, request *capi.Get
 		"/core/v1/stations/get-all",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (c *StationController) CreateStation(ctx *gin.Context, request *capi.Create
 		"/core/v1/stations/create",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -121,7 +121,7 @@ func (c *StationController) CreateStations(ctx *gin.Context, request *capi.Creat
 		"/core/v1/stations/create-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -140,7 +140,7 @@ func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *capi.
 		"/core/v1/stations/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -159,7 +159,7 @@ func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *cap
 		"/core/v1/stations/update-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -178,7 +178,7 @@ func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *capi
 		"/core/v1/stations/restore",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *ca
 		"/core/v1/stations/restore-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -216,7 +216,7 @@ func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *capi.
 		"/core/v1/stations/delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -235,7 +235,7 @@ func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *cap
 		"/core/v1/stations/delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *c
 		"/core/v1/stations/hard-delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -273,7 +273,7 @@ func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request 
 		"/core/v1/stations/hard-delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -294,7 +294,7 @@ func (c *StationController) VisualizeMyTotalCount(ctx *gin.Context, request *cap
 		"/core/v1/stations/visualizations/total-count",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -315,7 +315,7 @@ func (c *StationController) GetMyStationPermission(ctx *gin.Context, request *ca
 		"/core/v1/stations/permissions/get",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -334,7 +334,7 @@ func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request 
 		"/core/v1/stations/permissions/create",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -355,7 +355,7 @@ func (c *StationController) UpsertMyStationPermission(
 		"/core/v1/stations/permissions/upsert",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -376,7 +376,7 @@ func (c *StationController) UpsertMyStationPermissions(
 		"/core/v1/stations/permissions/upsert-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -395,7 +395,7 @@ func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request 
 		"/core/v1/stations/permissions/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -416,7 +416,7 @@ func (c *StationController) TransferMyStationOwnership(
 		"/core/v1/stations/ownership/transfer",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -437,7 +437,7 @@ func (c *StationController) DeleteMyStationPermission(
 		"/core/v1/stations/permissions/delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -458,7 +458,7 @@ func (c *StationController) DeleteMyStationPermissions(
 		"/core/v1/stations/permissions/delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -477,7 +477,7 @@ func (c *StationController) LeaveMyStation(ctx *gin.Context, request *capi.Leave
 		"/core/v1/stations/memberships/leave",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -496,7 +496,7 @@ func (c *StationController) LeaveMyStations(ctx *gin.Context, request *capi.Leav
 		"/core/v1/stations/memberships/leave-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

@@ -53,7 +53,7 @@ internal/
     workers/                 # YjsWorker connection manager
   core/
     data/
-      postgres/             # Core repositories, scopes, SQL, seeds, and migration manifest
+      postgres/             # Core composition wrappers, SQL, seeds, and migration manifest
       redis/                # Core-owned Redis caches and Lua libraries
       storage/              # Core-owned storage implementations
     services/
@@ -64,7 +64,7 @@ internal/
         matchers/            # RoutineTask template matching
     workers/                # Core-owned long-lived reconciliation and background loops
   durablejob/               # independent runtime; direct shared PostgreSQL access
-    data/postgres/           # DurableJob repositories (including inputs), scopes, and migration manifest
+    data/postgres/           # DurableJob repository composition, and migration manifest
   email/                    # independent runtime and SMTP sender
   yjsworker/                # standalone TypeScript runtime; no src/ layer
     configs/                # runtime tuning and environment-backed settings

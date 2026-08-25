@@ -5,7 +5,8 @@ import (
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -25,7 +26,7 @@ func (b *APIKeyBinder) BindCreateMyAPIKey(controllerFunc controllers.Func[*capi.
 		request := &capi.CreateMyAPIKeyRequestDto{}
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("APIKey").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("APIKey").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, request)

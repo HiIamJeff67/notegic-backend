@@ -6,8 +6,9 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -40,13 +41,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, v any) (enums.UserStatus, error) {
+func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, v any) (cenums.UserStatus, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := enums.UserStatus(tmp)
+	res := cenums.UserStatus(tmp)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v enums.UserStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v cenums.UserStatus) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
@@ -57,16 +58,16 @@ func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnote
 	return res
 }
 
-func (ec *executionContext) unmarshalOUserStatus2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, v any) (*enums.UserStatus, error) {
+func (ec *executionContext) unmarshalOUserStatus2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, v any) (*cenums.UserStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
 	tmp, err := graphql.UnmarshalString(v)
-	res := enums.UserStatus(tmp)
+	res := cenums.UserStatus(tmp)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOUserStatus2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v *enums.UserStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOUserStatus2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx context.Context, sel ast.SelectionSet, v *cenums.UserStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -31,14 +30,14 @@ type AuthControllerInterface interface {
 
 type AuthController struct {
 	coreAdapter               *coreadapters.CoreAdapter
-	accessTokenCookieHandler  *cookies.CookieHandler
-	refreshTokenCookieHandler *cookies.CookieHandler
+	accessTokenCookieHandler  *scookies.CookieHandler
+	refreshTokenCookieHandler *scookies.CookieHandler
 }
 
 func NewAuthController(
 	coreAdapter *coreadapters.CoreAdapter,
-	accessTokenCookieHandler *cookies.CookieHandler,
-	refreshTokenCookieHandler *cookies.CookieHandler,
+	accessTokenCookieHandler *scookies.CookieHandler,
+	refreshTokenCookieHandler *scookies.CookieHandler,
 ) AuthControllerInterface {
 	return &AuthController{
 		coreAdapter:               coreAdapter,
@@ -59,7 +58,7 @@ func (c *AuthController) Register(ctx *gin.Context, requestDto *capi.RegisterReq
 		"/core/v1/auth/register",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -94,7 +93,7 @@ func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *capi.Re
 		"/core/v1/auth/register/google",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -129,7 +128,7 @@ func (c *AuthController) Login(ctx *gin.Context, requestDto *capi.LoginRequestDt
 		"/core/v1/auth/login",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -167,7 +166,7 @@ func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *capi.Login
 		"/core/v1/auth/login/google",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -202,7 +201,7 @@ func (c *AuthController) Logout(ctx *gin.Context, requestDto *capi.LogoutRequest
 		"/core/v1/auth/logout",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -214,7 +213,7 @@ func (c *AuthController) Logout(ctx *gin.Context, requestDto *capi.LogoutRequest
 func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *capi.SendAuthCodeRequestDto) {
 	response, exception := coreadapters.Call[capi.SendAuthCodeRequestDto, capi.SendAuthCodeResponseDto](ctx, c.coreAdapter, requestDto, capi.SendAuthCodeOperation, "/core/v1/auth/email/code")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -224,7 +223,7 @@ func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *capi.SendAut
 func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *capi.ValidateEmailRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.ValidateEmailRequestDto, capi.ValidateEmailResponseDto](ctx, c.coreAdapter, requestDto, capi.ValidateEmailOperation, "/core/v1/auth/email/validate")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -234,7 +233,7 @@ func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *capi.Valida
 func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmailRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.ResetEmailRequestDto, capi.ResetEmailResponseDto](ctx, c.coreAdapter, requestDto, capi.ResetEmailOperation, "/core/v1/auth/email/reset")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -244,7 +243,7 @@ func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmai
 func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *capi.ForgetPasswordRequestDto) {
 	response, exception := coreadapters.Call[capi.ForgetPasswordRequestDto, capi.ForgetPasswordResponseDto](ctx, c.coreAdapter, requestDto, capi.ForgetPasswordOperation, "/core/v1/auth/password/forget")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -254,7 +253,7 @@ func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *capi.Forge
 func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *capi.ResetMeRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.ResetMeRequestDto, capi.ResetMeResponseDto](ctx, c.coreAdapter, requestDto, capi.ResetMeOperation, "/core/v1/auth/me/reset")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -264,7 +263,7 @@ func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *capi.ResetMeReque
 func (c *AuthController) DeleteMe(ctx *gin.Context, requestDto *capi.DeleteMeRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.DeleteMeRequestDto, capi.DeleteMeResponseDto](ctx, c.coreAdapter, requestDto, capi.DeleteMeOperation, "/core/v1/auth/me/delete")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

@@ -12,10 +12,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -194,7 +195,7 @@ func (ec *executionContext) _PublicUser_role(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.UserRole)
+	res := resTmp.(cenums.UserRole)
 	fc.Result = res
 	return ec.marshalNUserRole2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserRole(ctx, field.Selections, res)
 }
@@ -238,7 +239,7 @@ func (ec *executionContext) _PublicUser_plan(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.UserPlan)
+	res := resTmp.(cenums.UserPlan)
 	fc.Result = res
 	return ec.marshalNUserPlan2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserPlan(ctx, field.Selections, res)
 }
@@ -282,7 +283,7 @@ func (ec *executionContext) _PublicUser_status(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.UserStatus)
+	res := resTmp.(cenums.UserStatus)
 	fc.Result = res
 	return ec.marshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx, field.Selections, res)
 }

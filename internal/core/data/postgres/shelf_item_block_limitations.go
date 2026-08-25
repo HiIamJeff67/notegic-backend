@@ -1,6 +1,6 @@
 package postgres
 
-import types "github.com/HiIamJeff67/notegic-backend/shared/types"
+import stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 const (
 	MaxSubShelvesOfRootShelf int32 = 1e+2
@@ -13,9 +13,9 @@ const (
 	MaxMaterialsOfSubShelf  int32 = 1e+2
 	MaxBlockPackOfSubShelf  int32 = 1e+2
 
-	PeekFileSize             types.ByteType = 256 * types.Byte
-	MaxMaterialTextFileSize  types.ByteType = 5 * types.MB
-	MaxMaterialImageFileSize types.ByteType = 20 * types.MB
-	MaxMaterialVideoFileSize types.ByteType = 100 * types.MB
-	MaxMaterialAudioFileSize types.ByteType = 20 * types.MB
+	PeekFileSize             stypes.ByteType = 256 * stypes.Byte
+	MaxMaterialTextFileSize  stypes.ByteType = 5 * stypes.MB
+	MaxMaterialImageFileSize stypes.ByteType = 20 * stypes.MB
+	MaxMaterialVideoFileSize stypes.ByteType = 100 * stypes.MB
+	MaxMaterialAudioFileSize stypes.ByteType = 20 * stypes.MB
 )

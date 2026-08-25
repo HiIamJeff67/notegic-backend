@@ -7,11 +7,11 @@ import (
 )
 
 type BlockException struct {
-	CoreException
+	Exception
 }
 
 func NewBlockException() BlockException {
-	return BlockException{CoreException: NewCoreException("Block")}
+	return BlockException{Exception: NewException("Block")}
 }
 
 func (BlockException) NotFound() *cexceptions.Exception {

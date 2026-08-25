@@ -1,11 +1,11 @@
 package apiexceptions
 
 type UserInfoException struct {
-	CoreException
+	Exception
 }
 
 func NewUserInfoException() UserInfoException {
 	return UserInfoException{
-		CoreException: NewCoreException("UserInfo"),
+		Exception: NewException("UserInfo"),
 	}
 }

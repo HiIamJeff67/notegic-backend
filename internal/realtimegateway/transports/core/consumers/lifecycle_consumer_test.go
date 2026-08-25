@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
@@ -34,10 +34,10 @@ func TestLifecycleConsumerPublishesCompletedRoutineTaskToRealtimeGateway(t *test
 
 	leaseStore := realtimelease.NewRealtimeLeaseCacheClient(
 		realtimelease.NewRealtimeLeaseCacheStore(
-			platformredis.NewClientSetFromClients(redisClient),
+			sredis.NewClientSetFromClients(redisClient),
 		),
 	)
-	consumer := NewLifecycleConsumer(leaseStore, platformkafka.ConsumerConfig{})
+	consumer := NewLifecycleConsumer(leaseStore, skafka.ConsumerConfig{})
 	received := make(chan realtimelease.RoutineTaskLifecycleEvent, 1)
 	shutdown, err := leaseStore.SubscribeRoutineTaskLifecycleEvents(func(event realtimelease.RoutineTaskLifecycleEvent) {
 		received <- event
@@ -52,7 +52,7 @@ func TestLifecycleConsumerPublishesCompletedRoutineTaskToRealtimeGateway(t *test
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             enums.RoutineTaskPurpose_CreateBlockPack,
+		Purpose:             cenums.RoutineTaskPurpose_CreateBlockPack,
 		WorkerId:            uuid.New(),
 		Attempt:             1,
 		CompletedAt:         time.Now().UTC(),
@@ -64,7 +64,7 @@ func TestLifecycleConsumerPublishesCompletedRoutineTaskToRealtimeGateway(t *test
 
 	if err := consumer.process(
 		context.Background(),
-		platformkafka.ConsumerRecord{},
+		skafka.ConsumerRecord{},
 		cevent.EventEnvelope[json.RawMessage]{
 			EventId:     uuid.New(),
 			EventType:   coreevents.EventType_RoutineTaskCompleted,

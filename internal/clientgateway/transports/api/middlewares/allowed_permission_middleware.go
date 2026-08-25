@@ -6,19 +6,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 )
 
-var orderedAccessControlPermissions = []enums.AccessControlPermission{
-	enums.AccessControlPermission_Read,
-	enums.AccessControlPermission_Write,
-	enums.AccessControlPermission_Admin,
-	enums.AccessControlPermission_Owner,
+var orderedAccessControlPermissions = []cenums.AccessControlPermission{
+	cenums.AccessControlPermission_Read,
+	cenums.AccessControlPermission_Write,
+	cenums.AccessControlPermission_Admin,
+	cenums.AccessControlPermission_Owner,
 }
 
-func AllowedPermissionsAbove(permission enums.AccessControlPermission) gin.HandlerFunc {
+func AllowedPermissionsAbove(permission cenums.AccessControlPermission) gin.HandlerFunc {
 	index := slices.Index(orderedAccessControlPermissions, permission)
 	if index < 0 {
 		panic(fmt.Sprintf("invalid access control permission: %s", permission))
@@ -27,7 +27,7 @@ func AllowedPermissionsAbove(permission enums.AccessControlPermission) gin.Handl
 	return AllowedPermissionsWithin(orderedAccessControlPermissions[index:]...)
 }
 
-func AllowedPermissionsBelow(permission enums.AccessControlPermission) gin.HandlerFunc {
+func AllowedPermissionsBelow(permission cenums.AccessControlPermission) gin.HandlerFunc {
 	index := slices.Index(orderedAccessControlPermissions, permission)
 	if index < 0 {
 		panic(fmt.Sprintf("invalid access control permission: %s", permission))
@@ -36,7 +36,7 @@ func AllowedPermissionsBelow(permission enums.AccessControlPermission) gin.Handl
 	return AllowedPermissionsWithin(orderedAccessControlPermissions[:index+1]...)
 }
 
-func AllowedPermissionsWithin(allowedPermissions ...enums.AccessControlPermission) gin.HandlerFunc {
+func AllowedPermissionsWithin(allowedPermissions ...cenums.AccessControlPermission) gin.HandlerFunc {
 	if len(allowedPermissions) == 0 {
 		panic("allowed permissions are required")
 	}

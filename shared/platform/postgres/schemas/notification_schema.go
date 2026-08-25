@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Notification struct {
@@ -25,5 +25,5 @@ type Notification struct {
 }
 
 func (Notification) TableName() string {
-	return platformpostgres.TableName_NotificationTable.String()
+	return postgres.TableName_NotificationTable.String()
 }

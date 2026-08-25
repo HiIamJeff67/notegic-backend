@@ -1,11 +1,11 @@
 package apiexceptions
 
 type RoutineTaskException struct {
-	CoreException
+	Exception
 }
 
 func NewRoutineTaskException() RoutineTaskException {
 	return RoutineTaskException{
-		CoreException: NewCoreException("RoutineTask"),
+		Exception: NewException("RoutineTask"),
 	}
 }

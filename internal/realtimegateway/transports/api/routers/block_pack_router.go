@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
 	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/ratelimit"
@@ -16,8 +16,8 @@ import (
 func ConfigureBlockPackRoutes(
 	router *gin.RouterGroup,
 	realtimeLeaseCache *realtimelease.RealtimeLeaseCacheClient,
-	accessTokenCookieHandler *cookies.CookieHandler,
-	refreshTokenCookieHandler *cookies.CookieHandler,
+	accessTokenCookieHandler *scookies.CookieHandler,
+	refreshTokenCookieHandler *scookies.CookieHandler,
 	authorizedRateLimiter *ratelimit.HybridRateLimiter,
 ) {
 	endpoint := endpoints.NewBlockPackEndpoint(realtimeLeaseCache)

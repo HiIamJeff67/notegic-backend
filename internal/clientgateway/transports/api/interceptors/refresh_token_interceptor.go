@@ -6,14 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-
-	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	sresponsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 )
@@ -22,10 +20,10 @@ import (
 // The access token is written only to the Gateway cookie and never to JSON.
 // Note: this interceptor should be placed below the `JWTMiddleware`,
 // so that it can access the `AccessToken` and `CSRFToken` in the context field
-func RefreshTokenInterceptor(accessTokenCookieHandler *cookies.CookieHandler) func(string) gin.HandlerFunc {
+func RefreshTokenInterceptor(accessTokenCookieHandler *scookies.CookieHandler) func(string) gin.HandlerFunc {
 	return func(responseWriterKey string) gin.HandlerFunc {
 		return func(ctx *gin.Context) {
-			var writer *responsewriter.ResponseWriter
+			var writer *sresponsewriter.ResponseWriter
 			existingWriter, exist := ctx.Get(responseWriterKey)
 			if !exist || existingWriter == nil {
 				cexceptions.New(
@@ -39,7 +37,7 @@ func RefreshTokenInterceptor(accessTokenCookieHandler *cookies.CookieHandler) fu
 				)
 				return
 			}
-			writer = existingWriter.(*responsewriter.ResponseWriter)
+			writer = existingWriter.(*sresponsewriter.ResponseWriter)
 
 			ctx.Next() // execute the following first
 

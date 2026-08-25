@@ -4,7 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -26,7 +27,7 @@ func NewAPIKeyController(coreAdapter *coreadapters.CoreAdapter) APIKeyController
 func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *capi.CreateMyAPIKeyRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.CreateMyAPIKeyRequestDto, capi.CreateMyAPIKeyResponseDto](ctx, c.coreAdapter, request, capi.CreateMyAPIKeyOperation, "/core/v1/api-keys/create")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeCreatedClientResponse(ctx, response.Data)
@@ -35,7 +36,7 @@ func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *capi.Create
 func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *capi.ListMyAPIKeysRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.ListMyAPIKeysRequestDto, capi.ListMyAPIKeysResponseDto](ctx, c.coreAdapter, request, capi.ListMyAPIKeysOperation, "/core/v1/api-keys/list")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeClientResponse(ctx, response.Data)
@@ -44,7 +45,7 @@ func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *capi.ListMyA
 func (c *APIKeyController) RevokeMyAPIKey(ctx *gin.Context, request *capi.RevokeMyAPIKeyRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.RevokeMyAPIKeyRequestDto, capi.RevokeMyAPIKeyResponseDto](ctx, c.coreAdapter, request, capi.RevokeMyAPIKeyOperation, "/core/v1/api-keys/revoke")
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeClientResponse(ctx, response.Data)

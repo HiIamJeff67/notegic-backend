@@ -12,20 +12,20 @@ import (
 	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
 
 type RoutineTaskLifecycleConsumer struct {
 	leaseStore  *realtimelease.RealtimeLeaseCacheClient
-	kafkaConfig platformkafka.ConsumerConfig
+	kafkaConfig skafka.ConsumerConfig
 }
 
 func NewRoutineTaskLifecycleConsumer(
 	leaseStore *realtimelease.RealtimeLeaseCacheClient,
-	kafkaConfig platformkafka.ConsumerConfig,
+	kafkaConfig skafka.ConsumerConfig,
 ) *RoutineTaskLifecycleConsumer {
 	return &RoutineTaskLifecycleConsumer{
 		leaseStore:  leaseStore,
@@ -50,7 +50,7 @@ func (c *RoutineTaskLifecycleConsumer) Start(ctx context.Context) func() {
 
 func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
-		consumer, err := platformkafka.NewConsumer(
+		consumer, err := skafka.NewConsumer(
 			c.kafkaConfig,
 			cdurablejobevents.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
 		)
@@ -61,8 +61,8 @@ func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(
 				ctx,
 				err,
 				"RealtimeGateway DurableJob RoutineTask lifecycle consumer stopped",
@@ -79,29 +79,29 @@ func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
 
 func (c *RoutineTaskLifecycleConsumer) consume(
 	_ context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	envelope cevent.EventEnvelope[json.RawMessage],
 ) error {
 	if envelope.EventType != cdurablejobevents.EventType_RoutineTaskRunning ||
 		envelope.AggregateType != cdurablejobevents.AggregateType_RoutineTask {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_PoisonMessage,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_PoisonMessage,
 			Origin:         errors.New("Kafka DurableJob RoutineTask lifecycle event is unsupported"),
 		}
 	}
 
 	var data cdurablejobevents.RoutineTaskRunningData
 	if err := json.Unmarshal(envelope.Data, &data); err != nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         err,
 		}
 	}
 	if data.RoutineTaskId == uuid.Nil || data.RoutineTaskRecordId == uuid.Nil ||
 		data.RoutineId == uuid.Nil || data.ActorUserPublicId == uuid.Nil ||
 		data.Purpose == "" || data.Attempt <= 0 || data.StartedAt.IsZero() {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         errors.New("Kafka DurableJob RoutineTask running lifecycle event is incomplete"),
 		}
 	}

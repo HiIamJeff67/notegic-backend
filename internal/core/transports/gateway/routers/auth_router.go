@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/endpoints"
@@ -102,7 +102,7 @@ func configureAuthenticatedAuthRoutes(
 				capi.ResetEmailOperation,
 			),
 			authMiddleware,
-			middlewares.UserRoleMiddleware(enums.UserRole_Normal),
+			middlewares.UserRoleMiddleware(cenums.UserRole_Normal),
 			middlewares.CSRFMiddleware(userDataCacheClient),
 			endpoint.ResetEmail,
 		)

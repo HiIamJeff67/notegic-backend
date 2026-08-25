@@ -7,11 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 	cdurablejobdto "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	blockservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/blocks"
 )

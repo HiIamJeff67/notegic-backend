@@ -8,12 +8,12 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-
 	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
 	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type ClientInterface interface {
@@ -100,7 +100,7 @@ func enqueue[D any](
 			true,
 		).WithOrigin(tx.Error)
 	}
-	if err := crepositories.EnqueueOutboxEvents(
+	if err := srepositories.EnqueueOutboxEvents(
 		tx,
 		cemailevents.CoreEmailRequestTopic,
 		[]cevent.EventEnvelope[D]{envelope},

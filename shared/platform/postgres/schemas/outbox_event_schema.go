@@ -7,7 +7,8 @@ import (
 	"gorm.io/datatypes"
 
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 // OutboxEvent is the storage contract shared by runtimes that publish events.
@@ -31,5 +32,5 @@ type OutboxEvent struct {
 }
 
 func (OutboxEvent) TableName() string {
-	return platformpostgres.TableName_OutboxEventTable.String()
+	return postgres.TableName_OutboxEventTable.String()
 }

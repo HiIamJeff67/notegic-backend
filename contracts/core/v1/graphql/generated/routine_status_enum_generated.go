@@ -6,8 +6,9 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -40,13 +41,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx context.Context, v any) (enums.RoutineStatus, error) {
+func (ec *executionContext) unmarshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx context.Context, v any) (cenums.RoutineStatus, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx context.Context, sel ast.SelectionSet, v enums.RoutineStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx context.Context, sel ast.SelectionSet, v cenums.RoutineStatus) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus[v])
 	if res == graphql.Null {
@@ -58,17 +59,17 @@ func (ec *executionContext) marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋn
 }
 
 var (
-	unmarshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus = map[string]enums.RoutineStatus{
-		"RoutineStatus_Scheduled":  enums.RoutineStatus_Scheduled,
-		"RoutineStatus_InProgress": enums.RoutineStatus_InProgress,
-		"RoutineStatus_Completed":  enums.RoutineStatus_Completed,
-		"RoutineStatus_OverDue":    enums.RoutineStatus_OverDue,
+	unmarshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus = map[string]cenums.RoutineStatus{
+		"RoutineStatus_Scheduled":  cenums.RoutineStatus_Scheduled,
+		"RoutineStatus_InProgress": cenums.RoutineStatus_InProgress,
+		"RoutineStatus_Completed":  cenums.RoutineStatus_Completed,
+		"RoutineStatus_OverDue":    cenums.RoutineStatus_OverDue,
 	}
-	marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus = map[enums.RoutineStatus]string{
-		enums.RoutineStatus_Scheduled:  "RoutineStatus_Scheduled",
-		enums.RoutineStatus_InProgress: "RoutineStatus_InProgress",
-		enums.RoutineStatus_Completed:  "RoutineStatus_Completed",
-		enums.RoutineStatus_OverDue:    "RoutineStatus_OverDue",
+	marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus = map[cenums.RoutineStatus]string{
+		cenums.RoutineStatus_Scheduled:  "RoutineStatus_Scheduled",
+		cenums.RoutineStatus_InProgress: "RoutineStatus_InProgress",
+		cenums.RoutineStatus_Completed:  "RoutineStatus_Completed",
+		cenums.RoutineStatus_OverDue:    "RoutineStatus_OverDue",
 	}
 )
 

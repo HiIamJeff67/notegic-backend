@@ -8,11 +8,11 @@ import (
 )
 
 type StorageException struct {
-	CoreException
+	Exception
 }
 
 func NewStorageException() StorageException {
-	return StorageException{CoreException: NewCoreException("Storage")}
+	return StorageException{Exception: NewException("Storage")}
 }
 
 func (StorageException) FailedToReadObjectBytes() *cexceptions.Exception {

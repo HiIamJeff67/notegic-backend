@@ -7,15 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
-func MaxContextSizeMiddleware(limitBytes int64, unit types.ByteType) gin.HandlerFunc {
+func MaxContextSizeMiddleware(limitBytes int64, unit stypes.ByteType) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if ctx.Request.ContentLength > limitBytes*int64(unit) {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"MaxContextBodySizeExceeded",
 				"Context",
 				"Validate",

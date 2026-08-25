@@ -2,7 +2,7 @@ package apiexceptions
 
 import "testing"
 
-func TestNewCoreExceptionKeepsDomain(t *testing.T) {
+func TestNewAuthExceptionKeepsDomain(t *testing.T) {
 	exception := NewAuthException()
 	if exception.Domain != "Auth" {
 		t.Fatalf("domain = %q, want Auth", exception.Domain)

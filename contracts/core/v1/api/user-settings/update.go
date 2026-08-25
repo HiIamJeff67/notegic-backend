@@ -4,7 +4,7 @@ import (
 	"time"
 
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type UpdateMySettingRequestDto struct {
@@ -14,18 +14,18 @@ type UpdateMySettingRequestDto struct {
 		},
 		struct {
 			Values struct {
-				Language             *enums.Language                `json:"language" validate:"omitnil,islanguage"`
-				Density              *enums.UserSettingDensity      `json:"density" validate:"omitnil,oneof=Comfortable Balanced Compact"`
-				StartSurface         *enums.UserSettingStartSurface `json:"startSurface" validate:"omitnil,oneof=Dashboard Routines"`
-				ReduceMotion         *bool                          `json:"reduceMotion"`
-				LineWrap             *bool                          `json:"lineWrap"`
-				QuickInsert          *bool                          `json:"quickInsert"`
-				PrivatePreviews      *bool                          `json:"privatePreviews"`
-				RoutineNudges        *bool                          `json:"routineNudges"`
-				SyncNotifications    *bool                          `json:"syncNotifications"`
-				QuietMode            *bool                          `json:"quietMode"`
-				QuietModeStartMinute *int64                         `json:"quietModeStartMinute" validate:"omitnil,min=0,max=1439"`
-				QuietModeEndMinute   *int64                         `json:"quietModeEndMinute" validate:"omitnil,min=0,max=1439"`
+				Language             *cenums.Language                `json:"language" validate:"omitnil,islanguage"`
+				Density              *cenums.UserSettingDensity      `json:"density" validate:"omitnil,oneof=Comfortable Balanced Compact"`
+				StartSurface         *cenums.UserSettingStartSurface `json:"startSurface" validate:"omitnil,oneof=Dashboard Routines"`
+				ReduceMotion         *bool                           `json:"reduceMotion"`
+				LineWrap             *bool                           `json:"lineWrap"`
+				QuickInsert          *bool                           `json:"quickInsert"`
+				PrivatePreviews      *bool                           `json:"privatePreviews"`
+				RoutineNudges        *bool                           `json:"routineNudges"`
+				SyncNotifications    *bool                           `json:"syncNotifications"`
+				QuietMode            *bool                           `json:"quietMode"`
+				QuietModeStartMinute *int64                          `json:"quietModeStartMinute" validate:"omitnil,min=0,max=1439"`
+				QuietModeEndMinute   *int64                          `json:"quietModeEndMinute" validate:"omitnil,min=0,max=1439"`
 			} `json:"values"`
 			SetNull *map[string]bool `json:"setNull,omitempty"`
 		},

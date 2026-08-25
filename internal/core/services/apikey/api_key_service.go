@@ -12,13 +12,13 @@ import (
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 
 type APIKeyServiceInterface interface {
@@ -30,14 +30,14 @@ type APIKeyServiceInterface interface {
 type APIKeyService struct {
 	validator  *validator.Validate
 	db         *gorm.DB
-	repository repositories.APIKeyRepositoryInterface
+	repository srepositories.APIKeyRepositoryInterface
 	cache      *apikeycache.APIKeyCacheClient
 }
 
 func NewAPIKeyService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	repository repositories.APIKeyRepositoryInterface,
+	repository srepositories.APIKeyRepositoryInterface,
 	cache ...*apikeycache.APIKeyCacheClient,
 ) APIKeyServiceInterface {
 	if db == nil {
@@ -66,11 +66,11 @@ func (s *APIKeyService) CreateMyAPIKey(
 		return nil, cexceptions.New("APIKeyCreateFailed", "APIKey", "CreateMyAPIKey", "The API key could not be generated", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 	now := time.Now()
-	created, exception := s.repository.Create(&schemas.APIKey{
+	created, exception := s.repository.Create(&sschemas.APIKey{
 		Id: uuid.New(), PublicId: uuid.New(), UserId: userId,
 		Name: request.Body.Name, KeyPrefix: keyPrefix, KeyHash: keyHash,
 		ExpiresAt: request.Body.ExpiresAt, CreatedAt: now, UpdatedAt: now,
-	}, options.WithDB(s.db.WithContext(ctx)))
+	}, srepositories.WithDB(s.db.WithContext(ctx)))
 	if exception != nil {
 		return nil, exception
 	}
@@ -91,7 +91,7 @@ func (s *APIKeyService) ListMyAPIKeys(
 	if exception != nil {
 		return nil, exception
 	}
-	keys, exception := s.repository.GetAllByUserId(userId, options.WithDB(s.db.WithContext(ctx)))
+	keys, exception := s.repository.GetAllByUserId(userId, srepositories.WithDB(s.db.WithContext(ctx)))
 	if exception != nil {
 		return nil, exception
 	}
@@ -120,11 +120,11 @@ func (s *APIKeyService) RevokeMyAPIKey(
 	if err != nil {
 		return nil, cexceptions.InvalidInput("APIKey").WithOrigin(err)
 	}
-	keys, exception := s.repository.GetAllByUserId(userId, options.WithDB(s.db.WithContext(ctx)))
+	keys, exception := s.repository.GetAllByUserId(userId, srepositories.WithDB(s.db.WithContext(ctx)))
 	if exception != nil {
 		return nil, exception
 	}
-	var key *schemas.APIKey
+	var key *sschemas.APIKey
 	for index := range keys {
 		if keys[index].PublicId == publicId {
 			key = &keys[index]
@@ -135,7 +135,7 @@ func (s *APIKeyService) RevokeMyAPIKey(
 		return nil, cexceptions.New("APIKeyNotFound", "APIKey", "RevokeMyAPIKey", "The API key was not found", http.StatusNotFound)
 	}
 	now := time.Now()
-	if exception := s.repository.Revoke(key.Id, now, options.WithDB(s.db.WithContext(ctx))); exception != nil {
+	if exception := s.repository.Revoke(key.Id, now, srepositories.WithDB(s.db.WithContext(ctx))); exception != nil {
 		return nil, exception
 	}
 	if s.cache != nil {

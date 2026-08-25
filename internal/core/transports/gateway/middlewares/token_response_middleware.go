@@ -6,17 +6,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
+	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	sresponsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 )
 
 func TokenResponseMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		body := &bytes.Buffer{}
 		originalWriter := ctx.Writer
-		bufferedWriter := responsewriter.NewResponseWriter(originalWriter, body)
+		bufferedWriter := sresponsewriter.NewResponseWriter(originalWriter, body)
 		ctx.Writer = bufferedWriter
 
 		ctx.Next()

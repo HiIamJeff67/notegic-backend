@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/internal/durablejob/exceptions"
 )
@@ -44,68 +44,68 @@ func prepareAssignment(
 	if assignment.RoutineTaskId == uuid.Nil || assignment.RoutineTaskRecordId == uuid.Nil ||
 		assignment.RoutineId == uuid.Nil || assignment.ActorUserId == uuid.Nil || assignment.ActorUserPublicId == uuid.Nil ||
 		assignment.Purpose == "" || len(assignment.Payload) == 0 {
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
 			fmt.Errorf("routine task assignment is incomplete"),
 		)
 	}
 
 	var payload any
 	switch assignment.Purpose {
-	case enums.RoutineTaskPurpose_CreateRootShelf:
+	case cenums.RoutineTaskPurpose_CreateRootShelf:
 		payload = &croutinetasktypes.CreateRootShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_UpdateRootShelf:
+	case cenums.RoutineTaskPurpose_UpdateRootShelf:
 		payload = &croutinetasktypes.UpdateRootShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_ResetRootShelf:
+	case cenums.RoutineTaskPurpose_ResetRootShelf:
 		payload = &croutinetasktypes.ResetRootShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_CreateSubShelf:
+	case cenums.RoutineTaskPurpose_CreateSubShelf:
 		payload = &croutinetasktypes.CreateSubShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_UpdateSubShelf:
+	case cenums.RoutineTaskPurpose_UpdateSubShelf:
 		payload = &croutinetasktypes.UpdateSubShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_ResetSubShelf:
+	case cenums.RoutineTaskPurpose_ResetSubShelf:
 		payload = &croutinetasktypes.ResetSubShelfRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_CreateBlockPack:
+	case cenums.RoutineTaskPurpose_CreateBlockPack:
 		payload = &croutinetasktypes.CreateBlockPackRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_UpdateBlockPack:
+	case cenums.RoutineTaskPurpose_UpdateBlockPack:
 		payload = &croutinetasktypes.UpdateBlockPackRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_ResetBlockPack:
+	case cenums.RoutineTaskPurpose_ResetBlockPack:
 		payload = &croutinetasktypes.ResetBlockPackRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_AppendBlock:
+	case cenums.RoutineTaskPurpose_AppendBlock:
 		payload = &croutinetasktypes.AppendBlockRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_UpdateBlock:
+	case cenums.RoutineTaskPurpose_UpdateBlock:
 		payload = &croutinetasktypes.UpdateBlockRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_ResetBlock:
+	case cenums.RoutineTaskPurpose_ResetBlock:
 		payload = &croutinetasktypes.ResetBlockRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_CreateRoutine:
+	case cenums.RoutineTaskPurpose_CreateRoutine:
 		payload = &croutinetasktypes.CreateRoutineRoutineTaskPayload{}
-	case enums.RoutineTaskPurpose_UpdateRoutine:
+	case cenums.RoutineTaskPurpose_UpdateRoutine:
 		payload = &croutinetasktypes.UpdateRoutineRoutineTaskPayload{}
 	default:
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
 			fmt.Errorf("unsupported routine task purpose: %s", assignment.Purpose),
 		)
 	}
 
 	if err := json.Unmarshal(assignment.Payload, payload); err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
 	if validator != nil {
 		if err := validator.Struct(payload); err != nil {
-			return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
+			return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 		}
 	}
 
 	rawPayload, err := json.Marshal(payload)
 	if err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
 	var payloadValue any
 	if err := json.Unmarshal(rawPayload, &payloadValue); err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
 	payloadValue = matchPayloadValue(payloadValue, assignment.PatternValues, true)
 	preparedPayload, err := json.Marshal(payloadValue)
 	if err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException("RoutineTask").InvalidPayload(err)
+		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
 
 	return &croutinetasktypes.PreparedRoutineTask{

@@ -5,7 +5,8 @@ import (
 
 	"gorm.io/datatypes"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+
 	validation "github.com/HiIamJeff67/notegic-backend/internal/core/validations"
 )
 
@@ -56,7 +57,7 @@ func TestValidateCreateBlockPackRoutineTaskPayloadAcceptsNestedBlockTree(t *test
 	}`)
 
 	if exception := parser.ValidateRoutineTaskPayload(
-		enums.RoutineTaskPurpose_CreateBlockPack,
+		cenums.RoutineTaskPurpose_CreateBlockPack,
 		payload,
 	); exception != nil {
 		t.Fatalf("ValidateRoutineTaskPayload() exception = %v, want nil", exception)

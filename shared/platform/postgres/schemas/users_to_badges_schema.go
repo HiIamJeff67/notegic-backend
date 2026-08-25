@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type UsersToBadges struct {
@@ -20,11 +20,11 @@ type UsersToBadges struct {
 
 // UsersToBadges Table Name
 func (UsersToBadges) TableName() string {
-	return platformpostgres.TableName_UsersToBadgesTable.String()
+	return postgres.TableName_UsersToBadgesTable.String()
 }
 
 // UsersToBadges Table Relations
-type UsersToBadgesRelation platformpostgres.RelationName
+type UsersToBadgesRelation postgres.RelationName
 
 const (
 	UsersToBadgesRelation_User  UsersToBadgesRelation = "User"

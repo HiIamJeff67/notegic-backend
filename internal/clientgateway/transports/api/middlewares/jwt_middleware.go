@@ -6,13 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 )
 
-func JWTMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler *cookies.CookieHandler) gin.HandlerFunc {
+func JWTMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler *scookies.CookieHandler) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Set(sharedcontexts.ContextFieldName_User_Id.String(), nil)
 		ctx.Set(sharedcontexts.ContextFieldName_User_PublicId.String(), nil)

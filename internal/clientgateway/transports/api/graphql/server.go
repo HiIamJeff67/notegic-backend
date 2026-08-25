@@ -7,9 +7,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 
-	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
 	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
+
+	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/graphql/resolvers"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"

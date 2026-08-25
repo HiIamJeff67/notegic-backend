@@ -3,27 +3,27 @@ package routinetask
 import (
 	"testing"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func TestNewHandlerManagerRegistersEveryPurposePolicy(t *testing.T) {
 	manager := NewHandlerManager(1)
 
-	for _, purpose := range []enums.RoutineTaskPurpose{
-		enums.RoutineTaskPurpose_CreateRootShelf,
-		enums.RoutineTaskPurpose_UpdateRootShelf,
-		enums.RoutineTaskPurpose_ResetRootShelf,
-		enums.RoutineTaskPurpose_CreateSubShelf,
-		enums.RoutineTaskPurpose_UpdateSubShelf,
-		enums.RoutineTaskPurpose_ResetSubShelf,
-		enums.RoutineTaskPurpose_CreateBlockPack,
-		enums.RoutineTaskPurpose_UpdateBlockPack,
-		enums.RoutineTaskPurpose_ResetBlockPack,
-		enums.RoutineTaskPurpose_AppendBlock,
-		enums.RoutineTaskPurpose_UpdateBlock,
-		enums.RoutineTaskPurpose_ResetBlock,
-		enums.RoutineTaskPurpose_CreateRoutine,
-		enums.RoutineTaskPurpose_UpdateRoutine,
+	for _, purpose := range []cenums.RoutineTaskPurpose{
+		cenums.RoutineTaskPurpose_CreateRootShelf,
+		cenums.RoutineTaskPurpose_UpdateRootShelf,
+		cenums.RoutineTaskPurpose_ResetRootShelf,
+		cenums.RoutineTaskPurpose_CreateSubShelf,
+		cenums.RoutineTaskPurpose_UpdateSubShelf,
+		cenums.RoutineTaskPurpose_ResetSubShelf,
+		cenums.RoutineTaskPurpose_CreateBlockPack,
+		cenums.RoutineTaskPurpose_UpdateBlockPack,
+		cenums.RoutineTaskPurpose_ResetBlockPack,
+		cenums.RoutineTaskPurpose_AppendBlock,
+		cenums.RoutineTaskPurpose_UpdateBlock,
+		cenums.RoutineTaskPurpose_ResetBlock,
+		cenums.RoutineTaskPurpose_CreateRoutine,
+		cenums.RoutineTaskPurpose_UpdateRoutine,
 	} {
 		registry, exists := manager.registries[purpose]
 		if !exists || registry.HandlerFunc == nil {

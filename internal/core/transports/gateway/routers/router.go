@@ -4,7 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	middlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
 )
@@ -33,7 +34,7 @@ type RouterDependencies struct {
 }
 
 func NewRouter(deps RouterDependencies) *gin.Engine {
-	router := logs.WithGinLogger(gin.New())
+	router := slogs.WithGinLogger(gin.New())
 	router.Use(middlewares.TokenResponseMiddleware())
 
 	coreRouterGroup := router.Group("/core/" + cgateway.Version)

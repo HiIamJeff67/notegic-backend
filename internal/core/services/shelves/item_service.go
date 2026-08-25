@@ -9,19 +9,18 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type ItemServiceInterface interface {
@@ -30,12 +29,12 @@ type ItemServiceInterface interface {
 
 type ItemService struct {
 	db        *gorm.DB
-	itemScope corescopes.ItemScopeInterface
+	itemScope sscopes.ItemScopeInterface
 }
 
 func NewItemService(
 	db *gorm.DB,
-	itemScope corescopes.ItemScopeInterface,
+	itemScope sscopes.ItemScopeInterface,
 ) ItemServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -52,8 +51,8 @@ func (s *ItemService) SearchPrivateItems(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchItemInput,
 ) (*cgqlmodels.SearchItemConnection, *cexceptions.Exception) {
 	type PrivateItem struct {
-		schemas.Item
-		Permission enums.AccessControlPermission `gorm:"column:permission"`
+		sschemas.Item
+		Permission cenums.AccessControlPermission `gorm:"column:permission"`
 	}
 
 	startTime := time.Now()
@@ -64,12 +63,12 @@ func (s *ItemService) SearchPrivateItems(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.Item{}).
+	query := db.Model(&sschemas.Item{}).
 		Select(`"ItemTable".*, uts.permission AS permission`).
 		Joins(`INNER JOIN "UsersToShelvesTable" uts ON "ItemTable".root_shelf_id = uts.root_shelf_id`).
 		Joins(`LEFT JOIN "MaterialTable" m ON "ItemTable".type = 'Material'::"ItemType" AND m.id = "ItemTable".id`).
@@ -98,7 +97,7 @@ func (s *ItemService) SearchPrivateItems(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchItemCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchItemCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, cexceptions.New(
 				"CursorDecodeFailed",
@@ -139,16 +138,16 @@ func (s *ItemService) SearchPrivateItems(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
 	var items []PrivateItem
 	if err := query.Preload(
-		string(schemas.ItemRelation_RoutinesToItems),
+		string(sschemas.ItemRelation_RoutinesToItems),
 		func(preloadDB *gorm.DB) *gorm.DB {
 			return preloadDB.
 				Joins(`INNER JOIN "RoutineTable" ON "RoutineTable".id = "RoutinesToItemsTable".routine_id`).
@@ -171,7 +170,7 @@ func (s *ItemService) SearchPrivateItems(
 	searchEdges := make([]*cgqlmodels.SearchItemEdge, len(items))
 
 	for index, item := range items {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchItemCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchItemCursorFields]{
 			Fields: cgqlmodels.SearchItemCursorFields{
 				ID: item.Id,
 			},

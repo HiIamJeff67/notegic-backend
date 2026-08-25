@@ -15,21 +15,21 @@ import (
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
+
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-
 	yjsworkerproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker/producers"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type YjsMaintenanceWorker struct {
 	db              *gorm.DB
 	commandProducer *yjsworkerproducers.YjsMaintenanceCommandProducer
 	strategy        *yjsMaintenanceStrategy
-	kafkaConfig     platformkafka.ConsumerConfig
+	kafkaConfig     skafka.ConsumerConfig
 	slots           chan struct{}
 }
 
@@ -52,7 +52,7 @@ func NewYjsMaintenanceWorker(
 	db *gorm.DB,
 	producer *yjsworkerproducers.YjsMaintenanceCommandProducer,
 	config coreconfig.YjsMaintenanceStrategyConfig,
-	kafkaConfig platformkafka.ConsumerConfig,
+	kafkaConfig skafka.ConsumerConfig,
 ) *YjsMaintenanceWorker {
 	return &YjsMaintenanceWorker{
 		db:              db,
@@ -75,18 +75,18 @@ func newYjsMaintenanceStrategy(config coreconfig.YjsMaintenanceStrategyConfig) *
 }
 
 func (w *YjsMaintenanceWorker) Start(ctx context.Context) func() {
-	hintConsumer, err := platformkafka.NewConsumer(w.kafkaConfig, coreevents.CoreYjsMaintenanceHintTopic.String())
+	hintConsumer, err := skafka.NewConsumer(w.kafkaConfig, coreevents.CoreYjsMaintenanceHintTopic.String())
 	if err != nil {
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "failed to create Core Yjs maintenance hint consumer")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "failed to create Core Yjs maintenance hint consumer")
 		}
 		return func() {}
 	}
-	resultConsumer, err := platformkafka.NewConsumer(w.kafkaConfig, cyjsworkerevents.CoreYjsWorkerMaintenanceResultTopic.String())
+	resultConsumer, err := skafka.NewConsumer(w.kafkaConfig, cyjsworkerevents.CoreYjsWorkerMaintenanceResultTopic.String())
 	if err != nil {
 		hintConsumer.Close()
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "failed to create Core Yjs maintenance result consumer")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "failed to create Core Yjs maintenance result consumer")
 		}
 		return func() {}
 	}
@@ -96,14 +96,14 @@ func (w *YjsMaintenanceWorker) Start(ctx context.Context) func() {
 	waitGroup.Add(3)
 	go func() {
 		defer waitGroup.Done()
-		if err := hintConsumer.Run(workerCtx, w.consumeHint); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(workerCtx, err, "Core Yjs maintenance hint consumer stopped")
+		if err := hintConsumer.Run(workerCtx, w.consumeHint); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "Core Yjs maintenance hint consumer stopped")
 		}
 	}()
 	go func() {
 		defer waitGroup.Done()
-		if err := resultConsumer.Run(workerCtx, w.consumeResult); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(workerCtx, err, "Core Yjs maintenance result consumer stopped")
+		if err := resultConsumer.Run(workerCtx, w.consumeResult); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "Core Yjs maintenance result consumer stopped")
 		}
 	}()
 	go func() {
@@ -121,44 +121,44 @@ func (w *YjsMaintenanceWorker) Start(ctx context.Context) func() {
 
 func (w *YjsMaintenanceWorker) consumeHint(
 	ctx context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	event cevent.EventEnvelope[json.RawMessage],
 ) error {
 	if event.EventType != coreevents.EventType_YjsMaintenanceHint ||
 		event.AggregateType != coreevents.AggregateType_BlockPack ||
 		event.AggregateId == uuid.Nil || event.KafkaKey != event.AggregateId.String() {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance hint envelope")}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance hint envelope")}
 	}
 	var hint coreevents.YjsMaintenanceHintData
 	if err := json.Unmarshal(event.Data, &hint); err != nil {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: fmt.Errorf("decode Yjs maintenance hint: %w", err)}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: fmt.Errorf("decode Yjs maintenance hint: %w", err)}
 	}
 	if hint.BlockPackId != event.AggregateId || hint.DocumentId == uuid.Nil || hint.LatestUpdateSequence < 0 || hint.CompactedUntilSequence < 0 || hint.ProjectedUntilSequence < -1 {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance hint data")}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance hint data")}
 	}
 	if err := w.enqueue(hint); err != nil {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_Transient, Origin: err}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_Transient, Origin: err}
 	}
-	if metrics.NotegicMeter != nil {
-		metrics.NotegicMeter.Value(ctx, "yjs.maintenance.queue.size", int64(w.pendingCount()))
+	if smetrics.NotegicMeter != nil {
+		smetrics.NotegicMeter.Value(ctx, "yjs.maintenance.queue.size", int64(w.pendingCount()))
 	}
 	return nil
 }
 
 func (w *YjsMaintenanceWorker) consumeResult(
 	ctx context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	event cevent.EventEnvelope[json.RawMessage],
 ) error {
 	if event.EventType != cyjsworkerevents.EventType_YjsMaintenanceCompleted || event.AggregateType != cyjsworkerevents.AggregateType_BlockPack || event.AggregateId == uuid.Nil || event.KafkaKey != event.AggregateId.String() {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance result envelope")}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance result envelope")}
 	}
 	var result cyjsworkerevents.YjsMaintenanceResultData
 	if err := json.Unmarshal(event.Data, &result); err != nil {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: fmt.Errorf("decode Yjs maintenance result: %w", err)}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: fmt.Errorf("decode Yjs maintenance result: %w", err)}
 	}
 	if result.RequestId == uuid.Nil || result.BlockPackId != event.AggregateId || result.DocumentId == uuid.Nil || result.TargetSequence < 0 || (result.Operation != cyjsworkerevents.YjsMaintenanceOperation_Compact && result.Operation != cyjsworkerevents.YjsMaintenanceOperation_Project) {
-		return &platformkafka.ConsumerError{Classification: platformkafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance result data")}
+		return &skafka.ConsumerError{Classification: skafka.ErrorClassification_SchemaIncompatible, Origin: errors.New("invalid Yjs maintenance result data")}
 	}
 	if result.Success {
 		request, exists := w.complete(result.RequestId)
@@ -174,16 +174,16 @@ func (w *YjsMaintenanceWorker) consumeResult(
 				w.retry(ctx, request.hint)
 			}
 		}
-		if metrics.NotegicMeter != nil {
-			metrics.NotegicMeter.Count(ctx, "yjs.maintenance.result.success", 1)
+		if smetrics.NotegicMeter != nil {
+			smetrics.NotegicMeter.Count(ctx, "yjs.maintenance.result.success", 1)
 		}
 		return nil
 	}
 	if request, exists := w.fail(result.RequestId); exists && request.attempt < w.strategy.config.MaximumRequestAttempts {
 		w.retry(ctx, request.hint)
 	}
-	if logs.NotegicLogger != nil {
-		logs.NotegicLogger.Error(ctx, errors.New(result.Error), "Core Yjs maintenance request failed")
+	if slogs.NotegicLogger != nil {
+		slogs.NotegicLogger.Error(ctx, errors.New(result.Error), "Core Yjs maintenance request failed")
 	}
 	return nil
 }
@@ -213,8 +213,8 @@ func (w *YjsMaintenanceWorker) dispatchPending(ctx context.Context) {
 				defer waitGroup.Done()
 				defer func() { <-w.slots }()
 				if err := w.dispatchHint(ctx, hint); err != nil {
-					if logs.NotegicLogger != nil {
-						logs.NotegicLogger.Error(ctx, err, "failed to dispatch Core Yjs maintenance request")
+					if slogs.NotegicLogger != nil {
+						slogs.NotegicLogger.Error(ctx, err, "failed to dispatch Core Yjs maintenance request")
 					}
 					w.retry(ctx, hint)
 				}
@@ -233,7 +233,7 @@ func (w *YjsMaintenanceWorker) dispatchHint(ctx context.Context, hint coreevents
 		return nil
 	}
 
-	var document schemas.BlockPackYjsDocument
+	var document sschemas.BlockPackYjsDocument
 	result := w.db.WithContext(ctx).Select("id, block_pack_id, last_update_sequence, compacted_until_sequence, projected_until_sequence").Where("block_pack_id = ? AND deleted_at IS NULL", hint.BlockPackId).First(&document)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
@@ -274,8 +274,8 @@ func (w *YjsMaintenanceWorker) retry(ctx context.Context, hint coreevents.YjsMai
 		select {
 		case <-ctx.Done():
 		case <-timer.C:
-			if err := w.enqueue(hint); err != nil && logs.NotegicLogger != nil {
-				logs.NotegicLogger.Error(ctx, err, "failed to requeue Core Yjs maintenance hint")
+			if err := w.enqueue(hint); err != nil && slogs.NotegicLogger != nil {
+				slogs.NotegicLogger.Error(ctx, err, "failed to requeue Core Yjs maintenance hint")
 			}
 		}
 	}()

@@ -9,20 +9,20 @@ import (
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
 )
 
 type NotificationRequestConsumer struct {
 	service     services.NotificationServiceInterface
-	kafkaConfig platformkafka.ConsumerConfig
+	kafkaConfig skafka.ConsumerConfig
 }
 
 func NewNotificationRequestConsumer(
 	service services.NotificationServiceInterface,
-	kafkaConfig platformkafka.ConsumerConfig,
+	kafkaConfig skafka.ConsumerConfig,
 ) *NotificationRequestConsumer {
 	return &NotificationRequestConsumer{
 		service:     service,
@@ -47,7 +47,7 @@ func (c *NotificationRequestConsumer) Start(ctx context.Context) func() {
 
 func (c *NotificationRequestConsumer) run(ctx context.Context) {
 	for ctx.Err() == nil {
-		consumer, err := platformkafka.NewConsumer(
+		consumer, err := skafka.NewConsumer(
 			c.kafkaConfig,
 			coreevents.CoreNotificationTopic.String(),
 		)
@@ -58,8 +58,8 @@ func (c *NotificationRequestConsumer) run(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Notification request consumer stopped")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Notification request consumer stopped")
 		}
 		select {
 		case <-ctx.Done():
@@ -71,7 +71,7 @@ func (c *NotificationRequestConsumer) run(ctx context.Context) {
 
 func (c *NotificationRequestConsumer) consume(
 	ctx context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	event cevent.EventEnvelope[json.RawMessage],
 ) error {
 	if event.EventType != coreevents.EventType_NotificationRequested {
@@ -79,8 +79,8 @@ func (c *NotificationRequestConsumer) consume(
 	}
 	var data coreevents.NotificationRequestedData
 	if err := json.Unmarshal(event.Data, &data); err != nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         err,
 		}
 	}
@@ -98,8 +98,8 @@ func (c *NotificationRequestConsumer) consume(
 		Data:          data,
 	}
 	if err := c.service.ConsumeNotificationRequested(ctx, eventWithData); err != nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_Transient,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_Transient,
 			Origin:         err,
 		}
 	}

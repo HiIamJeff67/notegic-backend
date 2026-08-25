@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"strings"
 	"time"
 
@@ -12,24 +11,23 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-	times "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	stimes "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type RoutineServiceInterface interface {
@@ -62,23 +60,23 @@ type RoutineServiceInterface interface {
 type RoutineService struct {
 	validator             *validator.Validate
 	db                    *gorm.DB
-	routineScope          scopes.RoutineScopeInterface
-	stationRepository     repositories.StationRepositoryInterface
-	routineRepository     repositories.RoutineRepositoryInterface
-	routineTagRepository  repositories.RoutineTagRepositoryInterface
-	routineTaskRepository repositories.RoutineTaskRepositoryInterface
-	itemRepository        repositories.ItemRepositoryInterface
+	routineScope          sscopes.RoutineScopeInterface
+	stationRepository     srepositories.StationRepositoryInterface
+	routineRepository     srepositories.RoutineRepositoryInterface
+	routineTagRepository  srepositories.RoutineTagRepositoryInterface
+	routineTaskRepository srepositories.RoutineTaskRepositoryInterface
+	itemRepository        srepositories.ItemRepositoryInterface
 }
 
 func NewRoutineService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	routineScope scopes.RoutineScopeInterface,
-	stationRepository repositories.StationRepositoryInterface,
-	routineRepository repositories.RoutineRepositoryInterface,
-	routineTagRepository repositories.RoutineTagRepositoryInterface,
-	routineTaskRepository repositories.RoutineTaskRepositoryInterface,
-	itemRepository repositories.ItemRepositoryInterface,
+	routineScope sscopes.RoutineScopeInterface,
+	stationRepository srepositories.StationRepositoryInterface,
+	routineRepository srepositories.RoutineRepositoryInterface,
+	routineTagRepository srepositories.RoutineTagRepositoryInterface,
+	routineTaskRepository srepositories.RoutineTaskRepositoryInterface,
+	itemRepository srepositories.ItemRepositoryInterface,
 ) RoutineServiceInterface {
 	if db == nil {
 		db = data.DB
@@ -100,20 +98,20 @@ func NewRoutineService(
 func (s *RoutineService) filterReadableRoutineItems(
 	ctx context.Context,
 	userId uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
-	routines []schemas.Routine,
-) (map[types.Pair[uuid.UUID, enums.ItemType]]struct{}, *cexceptions.Exception) {
-	itemIdentitySet := make(map[types.Pair[uuid.UUID, enums.ItemType]]struct{})
+	allowedPermissions []cenums.AccessControlPermission,
+	routines []sschemas.Routine,
+) (map[stypes.Pair[uuid.UUID, cenums.ItemType]]struct{}, *cexceptions.Exception) {
+	itemIdentitySet := make(map[stypes.Pair[uuid.UUID, cenums.ItemType]]struct{})
 	for _, routine := range routines {
 		for _, routineToItem := range routine.RoutinesToItems {
-			itemIdentitySet[types.Pair[uuid.UUID, enums.ItemType]{
+			itemIdentitySet[stypes.Pair[uuid.UUID, cenums.ItemType]{
 				First:  routineToItem.ItemId,
 				Second: routineToItem.ItemType,
 			}] = struct{}{}
 		}
 	}
 
-	itemIdentities := make([]types.Pair[uuid.UUID, enums.ItemType], 0, len(itemIdentitySet))
+	itemIdentities := make([]stypes.Pair[uuid.UUID, cenums.ItemType], 0, len(itemIdentitySet))
 	for itemIdentity := range itemIdentitySet {
 		itemIdentities = append(itemIdentities, itemIdentity)
 	}
@@ -121,14 +119,14 @@ func (s *RoutineService) filterReadableRoutineItems(
 		itemIdentities,
 		userId,
 		allowedPermissions,
-		options.WithDB(s.db.WithContext(ctx)),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return nil, exception
 	}
 
-	permittedItemIdentitySet := make(map[types.Pair[uuid.UUID, enums.ItemType]]struct{}, len(permittedItemIdentities))
+	permittedItemIdentitySet := make(map[stypes.Pair[uuid.UUID, cenums.ItemType]]struct{}, len(permittedItemIdentities))
 	for _, itemIdentity := range permittedItemIdentities {
 		permittedItemIdentitySet[itemIdentity] = struct{}{}
 	}
@@ -139,7 +137,7 @@ func (s *RoutineService) filterReadableRoutineItems(
 func (s *RoutineService) visualizeMyRoutineTimeCount(
 	ctx context.Context,
 	userId uuid.UUID,
-	permission enums.AccessControlPermission,
+	permission cenums.AccessControlPermission,
 	timeHourUnit int,
 	queryRangeStartedAt time.Time,
 	queryRangeEndedAt time.Time,
@@ -238,26 +236,26 @@ func (s *RoutineService) GetMyRoutineById(
 	if exception != nil {
 		return nil, exception
 	}
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if reqDto.Param.IsDeleted != nil {
 		if *reqDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	routine, exception := s.routineRepository.GetOneById(
 		reqDto.Param.RoutineId,
 		actorUserId,
-		[]schemas.RoutineRelation{
-			schemas.RoutineRelation_RoutinesToTags,
-			schemas.RoutineRelation_RoutineTasks,
-			schemas.RoutineRelation_RoutinesToItems,
+		[]sschemas.RoutineRelation{
+			sschemas.RoutineRelation_RoutinesToTags,
+			sschemas.RoutineRelation_RoutineTasks,
+			sschemas.RoutineRelation_RoutinesToItems,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -266,7 +264,7 @@ func (s *RoutineService) GetMyRoutineById(
 		ctx,
 		actorUserId,
 		allowedPermissions,
-		[]schemas.Routine{*routine},
+		[]sschemas.Routine{*routine},
 	)
 	if exception != nil {
 		return nil, exception
@@ -282,7 +280,7 @@ func (s *RoutineService) GetMyRoutineById(
 	}
 	itemIds := make([]uuid.UUID, 0, len(routine.RoutinesToItems))
 	for _, routineToItem := range routine.RoutinesToItems {
-		if _, exists := permittedItemIdentitySet[types.Pair[uuid.UUID, enums.ItemType]{
+		if _, exists := permittedItemIdentitySet[stypes.Pair[uuid.UUID, cenums.ItemType]{
 			First:  routineToItem.ItemId,
 			Second: routineToItem.ItemType,
 		}]; exists {
@@ -327,27 +325,27 @@ func (s *RoutineService) GetMyRoutinesByStationId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if reqDto.Param.AreDeleted != nil {
 		if *reqDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
-	var routines []schemas.Routine
-	query := db.Model(&schemas.Routine{}).
+	var routines []sschemas.Routine
+	query := db.Model(&sschemas.Routine{}).
 		Select(`"RoutineTable".*`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = "RoutineTable".station_id`).
 		Joins(`INNER JOIN "StationTable" station ON station.id = "RoutineTable".station_id AND station.deleted_at IS NULL`).
 		Where(`"RoutineTable".station_id = ?`, reqDto.Param.StationId).
 		Where("uts.user_id = ? AND uts.permission IN ?", actorUserId, allowedPermissions).
 		Scopes(s.routineScope.IncludePreloads(
-			[]schemas.RoutineRelation{
-				schemas.RoutineRelation_RoutinesToTags,
-				schemas.RoutineRelation_RoutineTasks,
-				schemas.RoutineRelation_RoutinesToItems,
+			[]sschemas.RoutineRelation{
+				sschemas.RoutineRelation_RoutinesToTags,
+				sschemas.RoutineRelation_RoutineTasks,
+				sschemas.RoutineRelation_RoutinesToItems,
 			},
 			&actorUserId,
 		))
@@ -383,7 +381,7 @@ func (s *RoutineService) GetMyRoutinesByStationId(
 		}
 		itemIds := make([]uuid.UUID, 0, len(routine.RoutinesToItems))
 		for _, routineToItem := range routine.RoutinesToItems {
-			if _, exists := permittedItemIdentitySet[types.Pair[uuid.UUID, enums.ItemType]{
+			if _, exists := permittedItemIdentitySet[stypes.Pair[uuid.UUID, cenums.ItemType]{
 				First:  routineToItem.ItemId,
 				Second: routineToItem.ItemType,
 			}]; exists {
@@ -425,7 +423,7 @@ func (s *RoutineService) GetAllMyRoutinesByTimeRange(
 	if !reqDto.Param.From.Before(reqDto.Param.To) { // make sure from is before to
 		return nil, apiexceptions.NewRoutineException().InvalidInput().WithOrigin(fmt.Errorf("from must be before to"))
 	}
-	if !times.IsTimeWithin(reqDto.Param.From, reqDto.Param.To, 360*24*time.Hour) { // make sure the time range is within 360 days which is approximate 1 year
+	if !stimes.IsTimeWithin(reqDto.Param.From, reqDto.Param.To, 360*24*time.Hour) { // make sure the time range is within 360 days which is approximate 1 year
 		return nil, apiexceptions.NewRoutineException().QueriedTimeRangeTooLarge(reqDto.Param.From, reqDto.Param.To)
 	}
 
@@ -434,12 +432,12 @@ func (s *RoutineService) GetAllMyRoutinesByTimeRange(
 	if exception != nil {
 		return nil, exception
 	}
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if reqDto.Param.AreDeleted != nil {
 		if *reqDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
@@ -448,14 +446,14 @@ func (s *RoutineService) GetAllMyRoutinesByTimeRange(
 		reqDto.Param.To,
 		reqDto.Param.StationIds,
 		actorUserId,
-		[]schemas.RoutineRelation{
-			schemas.RoutineRelation_RoutinesToTags,
-			schemas.RoutineRelation_RoutineTasks,
-			schemas.RoutineRelation_RoutinesToItems,
+		[]sschemas.RoutineRelation{
+			sschemas.RoutineRelation_RoutinesToTags,
+			sschemas.RoutineRelation_RoutineTasks,
+			sschemas.RoutineRelation_RoutinesToItems,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -482,7 +480,7 @@ func (s *RoutineService) GetAllMyRoutinesByTimeRange(
 		}
 		itemIds := make([]uuid.UUID, 0, len(routine.RoutinesToItems))
 		for _, routineToItem := range routine.RoutinesToItems {
-			if _, exists := permittedItemIdentitySet[types.Pair[uuid.UUID, enums.ItemType]{
+			if _, exists := permittedItemIdentitySet[stypes.Pair[uuid.UUID, cenums.ItemType]{
 				First:  routineToItem.ItemId,
 				Second: routineToItem.ItemType,
 			}]; exists {
@@ -531,7 +529,7 @@ func (s *RoutineService) CreateRoutineByStationId(
 	newRoutineId, exception := s.routineRepository.CreateOneByStationId(
 		reqDto.Body.StationId,
 		actorUserId,
-		inputs.CreateRoutineInput{
+		sinputs.CreateRoutineInput{
 			Id:               reqDto.Body.Id,
 			Title:            reqDto.Body.Title,
 			Description:      reqDto.Body.Description,
@@ -542,8 +540,8 @@ func (s *RoutineService) CreateRoutineByStationId(
 			Period:           reqDto.Body.Period,
 			Timezone:         reqDto.Body.Timezone,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -572,9 +570,9 @@ func (s *RoutineService) CreateRoutinesByStationIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.CreateRoutineByStationIdInput, len(reqDto.Body.CreatedRoutines))
+	input := make([]sinputs.CreateRoutineByStationIdInput, len(reqDto.Body.CreatedRoutines))
 	for index, createdRoutine := range reqDto.Body.CreatedRoutines {
-		input[index] = inputs.CreateRoutineByStationIdInput{
+		input[index] = sinputs.CreateRoutineByStationIdInput{
 			Id:               createdRoutine.Id,
 			StationId:        createdRoutine.StationId,
 			Title:            createdRoutine.Title,
@@ -590,8 +588,8 @@ func (s *RoutineService) CreateRoutinesByStationIds(
 	newRoutineIds, exception := s.routineRepository.CreateManyByStationIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -623,8 +621,8 @@ func (s *RoutineService) UpdateMyRoutineById(
 	updatedRoutine, exception := s.routineRepository.UpdateOneById(
 		reqDto.Body.RoutineId,
 		actorUserId,
-		inputs.PartialUpdateRoutineInput{
-			Values: inputs.UpdateRoutineInput{
+		sinputs.PartialUpdateRoutineInput{
+			Values: sinputs.UpdateRoutineInput{
 				StationId:        reqDto.Body.Values.StationId,
 				Title:            reqDto.Body.Values.Title,
 				Description:      reqDto.Body.Values.Description,
@@ -637,8 +635,8 @@ func (s *RoutineService) UpdateMyRoutineById(
 			},
 			SetNull: reqDto.Body.SetNull,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -666,12 +664,12 @@ func (s *RoutineService) UpdateMyRoutinesByIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateRoutineByIdInput, len(reqDto.Body.UpdatedRoutines))
+	input := make([]sinputs.UpdateRoutineByIdInput, len(reqDto.Body.UpdatedRoutines))
 	for index, updatedRoutine := range reqDto.Body.UpdatedRoutines {
-		input[index] = inputs.UpdateRoutineByIdInput{
+		input[index] = sinputs.UpdateRoutineByIdInput{
 			Id: updatedRoutine.RoutineId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateRoutineInput]{
-				Values: inputs.UpdateRoutineInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateRoutineInput]{
+				Values: sinputs.UpdateRoutineInput{
 					StationId:        updatedRoutine.Values.StationId,
 					Title:            updatedRoutine.Values.Title,
 					Description:      updatedRoutine.Values.Description,
@@ -689,8 +687,8 @@ func (s *RoutineService) UpdateMyRoutinesByIds(
 	exception = s.routineRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -724,10 +722,10 @@ func (s *RoutineService) LinkRoutineTagById(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -738,15 +736,15 @@ func (s *RoutineService) LinkRoutineTagById(
 		reqDto.Body.RoutineTagId,
 		actorUserId,
 		nil,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	var newRoutinesToTags schemas.RoutinesToTags
+	var newRoutinesToTags sschemas.RoutinesToTags
 	newRoutinesToTags.RoutineId = reqDto.Body.RoutineId
 	newRoutinesToTags.TagId = reqDto.Body.RoutineTagId
 	newRoutinesToTags.UserId = actorUserId
@@ -754,16 +752,16 @@ func (s *RoutineService) LinkRoutineTagById(
 
 	var result *gorm.DB
 	if reqDto.Body.IsUnlink {
-		result = tx.Model(&schemas.RoutinesToTags{}).
+		result = tx.Model(&sschemas.RoutinesToTags{}).
 			Where(
 				"routine_id = ? AND tag_id = ? AND user_id = ?",
 				newRoutinesToTags.RoutineId,
 				newRoutinesToTags.TagId,
 				newRoutinesToTags.UserId,
 			).
-			Delete(&schemas.RoutinesToTags{})
+			Delete(&sschemas.RoutinesToTags{})
 	} else {
-		result = tx.Model(&schemas.RoutinesToTags{}).
+		result = tx.Model(&sschemas.RoutinesToTags{}).
 			Create(&newRoutinesToTags)
 	}
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
@@ -823,10 +821,10 @@ func (s *RoutineService) LinkRoutineTagsByIds(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -841,9 +839,9 @@ func (s *RoutineService) LinkRoutineTagsByIds(
 		routineTagIds,
 		actorUserId,
 		nil,
-		options.WithTransactionDB(tx),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -853,14 +851,14 @@ func (s *RoutineService) LinkRoutineTagsByIds(
 		isRoutineTagValid[validRoutineTag.Id] = true
 	}
 
-	var newRoutinesToTags []schemas.RoutinesToTags
+	var newRoutinesToTags []sschemas.RoutinesToTags
 	for _, linkedRoutineAndTag := range reqDto.Body.LinkedRoutinesAndTags {
 		stationId, isRoutineValid := validRoutineStationIds[linkedRoutineAndTag.RoutineId]
 		if !isRoutineValid ||
 			!isRoutineTagValid[linkedRoutineAndTag.RoutineTagId] {
 			continue
 		}
-		newRoutinesToTags = append(newRoutinesToTags, schemas.RoutinesToTags{
+		newRoutinesToTags = append(newRoutinesToTags, sschemas.RoutinesToTags{
 			RoutineId: linkedRoutineAndTag.RoutineId,
 			TagId:     linkedRoutineAndTag.RoutineTagId,
 			UserId:    actorUserId,
@@ -879,11 +877,11 @@ func (s *RoutineService) LinkRoutineTagsByIds(
 
 	var result *gorm.DB
 	if reqDto.Body.IsUnlink {
-		result = tx.Model(&schemas.RoutinesToTags{}).
+		result = tx.Model(&sschemas.RoutinesToTags{}).
 			Where("(routine_id, tag_id, user_id) IN ?", values).
-			Delete(&schemas.RoutinesToTags{})
+			Delete(&sschemas.RoutinesToTags{})
 	} else {
-		result = tx.Model(&schemas.RoutinesToTags{}).
+		result = tx.Model(&sschemas.RoutinesToTags{}).
 			Create(&newRoutinesToTags)
 	}
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
@@ -926,10 +924,10 @@ func (s *RoutineService) LinkRoutineItemById(
 		reqDto.Body.RoutineId,
 		actorUserId,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	) {
 		tx.Rollback()
 		return nil, apiexceptions.NewRoutineException().NoPermission("get the routine")
@@ -937,35 +935,35 @@ func (s *RoutineService) LinkRoutineItemById(
 
 	if !s.itemRepository.HasPermission(
 		reqDto.Body.ItemId,
-		enums.ItemType(reqDto.Body.ItemType),
+		cenums.ItemType(reqDto.Body.ItemType),
 		actorUserId,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	) {
 		tx.Rollback()
 		return nil, apiexceptions.NewItemException().NoPermission("get the item")
 	}
 
-	var newRoutinesToItems schemas.RoutinesToItems
+	var newRoutinesToItems sschemas.RoutinesToItems
 	newRoutinesToItems.RoutineId = reqDto.Body.RoutineId
 	newRoutinesToItems.ItemId = reqDto.Body.ItemId
-	newRoutinesToItems.ItemType = enums.ItemType(reqDto.Body.ItemType)
+	newRoutinesToItems.ItemType = cenums.ItemType(reqDto.Body.ItemType)
 
 	var result *gorm.DB
 	if reqDto.Body.IsUnlink {
-		result = tx.Model(&schemas.RoutinesToItems{}).
+		result = tx.Model(&sschemas.RoutinesToItems{}).
 			Where(
 				"routine_id = ? AND item_id = ? AND item_type = ?",
 				newRoutinesToItems.RoutineId,
 				newRoutinesToItems.ItemId,
 				newRoutinesToItems.ItemType,
 			).
-			Delete(&schemas.RoutinesToItems{})
+			Delete(&sschemas.RoutinesToItems{})
 	} else {
-		result = tx.Model(&schemas.RoutinesToItems{}).
+		result = tx.Model(&sschemas.RoutinesToItems{}).
 			Create(&newRoutinesToItems)
 	}
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
@@ -1005,17 +1003,17 @@ func (s *RoutineService) LinkRoutineItemsByIds(
 	tx := s.db.WithContext(ctx).Begin()
 
 	isRoutineExist := make(map[uuid.UUID]bool)
-	isItemExist := make(map[types.Pair[uuid.UUID, enums.ItemType]]bool)
+	isItemExist := make(map[stypes.Pair[uuid.UUID, cenums.ItemType]]bool)
 	var routineIds []uuid.UUID
-	var itemIdentities []types.Pair[uuid.UUID, enums.ItemType]
+	var itemIdentities []stypes.Pair[uuid.UUID, cenums.ItemType]
 	for _, linkedRoutineAndItem := range reqDto.Body.LinkedRoutinesAndItems {
 		if !isRoutineExist[linkedRoutineAndItem.RoutineId] {
 			isRoutineExist[linkedRoutineAndItem.RoutineId] = true
 			routineIds = append(routineIds, linkedRoutineAndItem.RoutineId)
 		}
-		itemIdentity := types.Pair[uuid.UUID, enums.ItemType]{
+		itemIdentity := stypes.Pair[uuid.UUID, cenums.ItemType]{
 			First:  linkedRoutineAndItem.ItemId,
-			Second: enums.ItemType(linkedRoutineAndItem.ItemType),
+			Second: cenums.ItemType(linkedRoutineAndItem.ItemType),
 		}
 		if !isItemExist[itemIdentity] {
 			isItemExist[itemIdentity] = true
@@ -1029,10 +1027,10 @@ func (s *RoutineService) LinkRoutineItemsByIds(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1042,42 +1040,42 @@ func (s *RoutineService) LinkRoutineItemsByIds(
 		isRoutineValid[validRoutine.Id] = true
 	}
 
-	isItemValid := make(map[types.Pair[uuid.UUID, enums.ItemType]]bool)
+	isItemValid := make(map[stypes.Pair[uuid.UUID, cenums.ItemType]]bool)
 	validItems, exception := s.itemRepository.CheckPermissionsAndGetManyByIds(
 		itemIdentities,
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 	for _, validItem := range validItems {
-		isItemValid[types.Pair[uuid.UUID, enums.ItemType]{
+		isItemValid[stypes.Pair[uuid.UUID, cenums.ItemType]{
 			First:  validItem.Id,
 			Second: validItem.Type,
 		}] = true
 	}
 
-	var newRoutinesToItems []schemas.RoutinesToItems
+	var newRoutinesToItems []sschemas.RoutinesToItems
 	for _, linkedRoutineAndItem := range reqDto.Body.LinkedRoutinesAndItems {
-		itemIdentity := types.Pair[uuid.UUID, enums.ItemType]{
+		itemIdentity := stypes.Pair[uuid.UUID, cenums.ItemType]{
 			First:  linkedRoutineAndItem.ItemId,
-			Second: enums.ItemType(linkedRoutineAndItem.ItemType),
+			Second: cenums.ItemType(linkedRoutineAndItem.ItemType),
 		}
 		if !isRoutineValid[linkedRoutineAndItem.RoutineId] ||
 			!isItemValid[itemIdentity] {
 			continue
 		}
-		newRoutinesToItems = append(newRoutinesToItems, schemas.RoutinesToItems{
+		newRoutinesToItems = append(newRoutinesToItems, sschemas.RoutinesToItems{
 			RoutineId: linkedRoutineAndItem.RoutineId,
 			ItemId:    linkedRoutineAndItem.ItemId,
-			ItemType:  enums.ItemType(linkedRoutineAndItem.ItemType),
+			ItemType:  cenums.ItemType(linkedRoutineAndItem.ItemType),
 		})
 	}
 	if len(newRoutinesToItems) == 0 {
@@ -1092,11 +1090,11 @@ func (s *RoutineService) LinkRoutineItemsByIds(
 
 	var result *gorm.DB
 	if reqDto.Body.IsUnlink {
-		result = tx.Model(&schemas.RoutinesToItems{}).
+		result = tx.Model(&sschemas.RoutinesToItems{}).
 			Where("(routine_id, item_id, item_type) IN ?", values).
-			Delete(&schemas.RoutinesToItems{})
+			Delete(&sschemas.RoutinesToItems{})
 	} else {
-		result = tx.Model(&schemas.RoutinesToItems{}).
+		result = tx.Model(&sschemas.RoutinesToItems{}).
 			Create(&newRoutinesToItems)
 	}
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
@@ -1137,8 +1135,8 @@ func (s *RoutineService) RestoreMyRoutineById(
 	restoredRoutine, exception := s.routineRepository.RestoreSoftDeletedOneById(
 		reqDto.Body.RoutineId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1181,8 +1179,8 @@ func (s *RoutineService) RestoreMyRoutinesByIds(
 	restoredRoutines, exception := s.routineRepository.RestoreSoftDeletedManyByIds(
 		reqDto.Body.RoutineIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1230,8 +1228,8 @@ func (s *RoutineService) DeleteMyRoutineById(
 	exception = s.routineRepository.SoftDeleteOneById(
 		reqDto.Body.RoutineId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1262,8 +1260,8 @@ func (s *RoutineService) DeleteMyRoutinesByIds(
 	exception = s.routineRepository.SoftDeleteManyByIds(
 		reqDto.Body.RoutineIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1294,8 +1292,8 @@ func (s *RoutineService) HardDeleteMyRoutineById(
 	exception = s.routineRepository.HardDeleteOneById(
 		reqDto.Body.RoutineId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1326,8 +1324,8 @@ func (s *RoutineService) HardDeleteMyRoutinesByIds(
 	exception = s.routineRepository.HardDeleteManyByIds(
 		reqDto.Body.RoutineIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -1359,17 +1357,17 @@ func (s *RoutineService) VisualizeMyRoutineStatusCount(
 		CompletedCount  int64 `gorm:"column:completed_count;"`
 		OverDueCount    int64 `gorm:"column:over_due_count;"`
 	}
-	result := db.Model(&schemas.Routine{}).
+	result := db.Model(&sschemas.Routine{}).
 		Select(`
 			COUNT(*) FILTER (WHERE status = ?) as scheduled_count,
 			COUNT(*) FILTER (WHERE status = ?) as in_progress_count,
 			COUNT(*) FILTER (WHERE status = ?) as completed_count,
 			COUNT(*) FILTER (WHERE status = ?) as over_due_count
 		`,
-			enums.RoutineStatus_Scheduled,
-			enums.RoutineStatus_InProgress,
-			enums.RoutineStatus_Completed,
-			enums.RoutineStatus_OverDue,
+			cenums.RoutineStatus_Scheduled,
+			cenums.RoutineStatus_InProgress,
+			cenums.RoutineStatus_Completed,
+			cenums.RoutineStatus_OverDue,
 		).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = "RoutineTable".station_id`).
 		Where("uts.user_id = ? AND uts.permission = ?", actorUserId, reqDto.Param.Permission).
@@ -1451,15 +1449,15 @@ func (s *RoutineService) VisualizeMyRoutinePeriodCount(
 		WeeklyCount  int64 `gorm:"column:weekly_count;"`
 		MonthlyCount int64 `gorm:"column:monthly_count;"`
 	}
-	result := db.Model(&schemas.Routine{}).
+	result := db.Model(&sschemas.Routine{}).
 		Select(`
 			COUNT(*) FILTER (WHERE period = ?) as daily_count,
 			COUNT(*) FILTER (WHERE period = ?) as weekly_count,
 			COUNT(*) FILTER (WHERE period = ?) as monthly_count
 		`,
-			enums.RoutinePeriod_Daily,
-			enums.RoutinePeriod_Weekly,
-			enums.RoutinePeriod_Monthly,
+			cenums.RoutinePeriod_Daily,
+			cenums.RoutinePeriod_Weekly,
+			cenums.RoutinePeriod_Monthly,
 		).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = "RoutineTable".station_id`).
 		Where("uts.user_id = ? AND uts.permission = ?", actorUserId, reqDto.Param.Permission).
@@ -1524,14 +1522,14 @@ func (s *RoutineService) VisualizeMyRoutineScheduledStartAtCount(
 	if !reqDto.Param.QueryRangeStartedAt.Before(reqDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineException().QueriedTimeRangeTooLarge(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt)
 	}
 
 	data, exception := s.visualizeMyRoutineTimeCount(
 		ctx,
 		actorUserId,
-		enums.AccessControlPermission(reqDto.Param.Permission),
+		cenums.AccessControlPermission(reqDto.Param.Permission),
 		reqDto.Param.TimeHourUnit,
 		reqDto.Param.QueryRangeStartedAt,
 		reqDto.Param.QueryRangeEndedAt,
@@ -1560,14 +1558,14 @@ func (s *RoutineService) VisualizeMyRoutineScheduledEndAtCount(
 	if !reqDto.Param.QueryRangeStartedAt.Before(reqDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineException().QueriedTimeRangeTooLarge(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt)
 	}
 
 	data, exception := s.visualizeMyRoutineTimeCount(
 		ctx,
 		actorUserId,
-		enums.AccessControlPermission(reqDto.Param.Permission),
+		cenums.AccessControlPermission(reqDto.Param.Permission),
 		reqDto.Param.TimeHourUnit,
 		reqDto.Param.QueryRangeStartedAt,
 		reqDto.Param.QueryRangeEndedAt,
@@ -1596,12 +1594,12 @@ func (s *RoutineService) SearchPrivateRoutines(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.Routine{}).
+	query := db.Model(&sschemas.Routine{}).
 		Select(`"RoutineTable".*, uts.permission AS permission`).
 		Joins(`LEFT JOIN "UsersToStationsTable" uts ON "RoutineTable".station_id = uts.station_id`).
 		Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions).
@@ -1617,7 +1615,7 @@ func (s *RoutineService) SearchPrivateRoutines(
 	if len(gqlInput.TagIds) > 0 {
 		subQuery := db.
 			Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.RoutinesToTags{}).
+			Model(&sschemas.RoutinesToTags{}).
 			Select("1").
 			Where(`"RoutinesToTagsTable".routine_id = "RoutineTable".id`).
 			Where(`"RoutinesToTagsTable".user_id = ?`, userId).
@@ -1633,7 +1631,7 @@ func (s *RoutineService) SearchPrivateRoutines(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1690,19 +1688,19 @@ func (s *RoutineService) SearchPrivateRoutines(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var routines []schemas.Routine
+	var routines []sschemas.Routine
 	if err := query.Scopes(s.routineScope.IncludePreloads(
-		[]schemas.RoutineRelation{
-			schemas.RoutineRelation_RoutinesToTags,
-			schemas.RoutineRelation_RoutineTasks,
-			schemas.RoutineRelation_RoutinesToItems,
+		[]sschemas.RoutineRelation{
+			sschemas.RoutineRelation_RoutinesToTags,
+			sschemas.RoutineRelation_RoutineTasks,
+			sschemas.RoutineRelation_RoutinesToItems,
 		},
 		&userId,
 	)).Find(&routines).Error; err != nil {
@@ -1718,9 +1716,9 @@ func (s *RoutineService) SearchPrivateRoutines(
 		return nil, exception
 	}
 	for index := range routines {
-		filteredRoutineToItems := make([]schemas.RoutinesToItems, 0, len(routines[index].RoutinesToItems))
+		filteredRoutineToItems := make([]sschemas.RoutinesToItems, 0, len(routines[index].RoutinesToItems))
 		for _, routineToItem := range routines[index].RoutinesToItems {
-			if _, exists := permittedItemIdentitySet[types.Pair[uuid.UUID, enums.ItemType]{
+			if _, exists := permittedItemIdentitySet[stypes.Pair[uuid.UUID, cenums.ItemType]{
 				First:  routineToItem.ItemId,
 				Second: routineToItem.ItemType,
 			}]; exists {
@@ -1735,7 +1733,7 @@ func (s *RoutineService) SearchPrivateRoutines(
 	searchEdges := make([]*cgqlmodels.SearchRoutineEdge, len(routines))
 
 	for index, routine := range routines {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchRoutineCursorFields]{
 			Fields: cgqlmodels.SearchRoutineCursorFields{
 				ID: routine.Id,
 			},

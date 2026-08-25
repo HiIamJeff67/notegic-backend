@@ -18,20 +18,27 @@
 - Runtime-local exception packages follow the Core shape: one file per owned
   domain, an `exception.go` base helper type, and categorized operation files
   when the domain has multiple concerns. Each package exposes an exported
-  runtime-specific helper type and a
-  `New<Runtime>Exception(domain)` factory. Named helper methods such as
+  runtime-specific helper type and a `New<Domain>Exception()` factory. The
+  package-local base is created with `NewException(domain)`. Named helper methods such as
   `PayloadDecodeFailed` or `InvalidPayload` must return
   `*contracts/types/exceptions.Exception`; the runtime-specific type is never
   the service or transport return type. Do not create a package-level domain
   instance, expose a generic `New(reason, ...)` factory, or add a catch-all
   `errors.go`.
+- Runtime-wide exception packages may be used by that runtime's services,
+  workers, and handlers. If an exception is used by only one component, keep
+  it at that component boundary instead of promoting it into a shared or
+  repository exception package.
 - Every exception implementation file has its own matching unit-test file:
   `renderer_exception.go` is tested by `renderer_exception_test.go`, and so on.
-- Core's `internal/core/exceptions/exception.go` defines `CoreException`, which
-  composes the contract `exceptions.Exception` and stores the domain. Each
-  `*_exception.go` defines an exported domain exception type and a
-  `New<Domain>Exception()` factory. Core must not expose global domain values
-  such as `Auth` or `Shelf`.
+- Core's `internal/core/exceptions/exception.go` and DurableJob's equivalent
+  define their own runtime-local `Exception` helper, which composes the
+  contract `exceptions.Exception` and stores the domain. PostgreSQL repositories
+  use the separate `RepositoryException` under
+  `shared/platform/postgres/repositories/exceptions/`; runtime exception
+  packages must not import it. Each `*_exception.go` defines an exported domain
+  exception type and a `New<Domain>Exception()` factory. Runtimes must not
+  expose global domain values such as `Auth` or `Shelf`.
 - Runtime-local services, repositories and workers return ordinary `error` or
   the shared `*contracts/types/exceptions.Exception` produced by their local
   helper. They must not return the runtime-specific helper type itself. The

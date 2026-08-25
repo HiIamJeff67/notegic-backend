@@ -6,9 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
+
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
@@ -30,8 +31,8 @@ var viewAllDatabaseEnumsCommand = &cobra.Command{
 		}
 		defer data.Disconnect(db)
 
-		if err := platformpostgres.ViewAllDatabaseEnums(db); err != nil {
-			logs.NotegicLogger.Error(context.Background(), err, "Failed to display database enums")
+		if err := spostgres.ViewAllDatabaseEnums(db); err != nil {
+			slogs.NotegicLogger.Error(context.Background(), err, "Failed to display database enums")
 			return
 		}
 	},
@@ -52,19 +53,19 @@ var migrateDatabaseCommand = &cobra.Command{
 		}
 		defer data.Disconnect(db)
 
-		logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of migrating database schema to %v", config.Name))
+		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of migrating database schema to %v", config.Name))
 
 		for _, migrate := range []func() error{
 			func() error {
-				return platformpostgres.Migrate(
+				return spostgres.Migrate(
 					db,
-					types.Runtime_Core,
+					ctypes.Runtime_Core,
 					data.DatabaseMigrationManifest,
 				)
 			},
 		} {
 			if err := migrate(); err != nil {
-				logs.NotegicLogger.Error(context.Background(), err, "Failed to migrate database schema")
+				slogs.NotegicLogger.Error(context.Background(), err, "Failed to migrate database schema")
 				return
 			}
 		}
@@ -86,10 +87,10 @@ var seedDatabaseCommand = &cobra.Command{
 		}
 		defer data.Disconnect(db)
 
-		logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of seeding database default data to %v", config.Name))
+		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of seeding database default data to %v", config.Name))
 
-		if err := platformpostgres.SeedDefaultDataToDatabase(db, seeds.SeedingDefaultDataSQLs); err != nil {
-			logs.NotegicLogger.Error(context.Background(), err, "Failed to seed database default data")
+		if err := spostgres.SeedDefaultDataToDatabase(db, seeds.SeedingDefaultDataSQLs); err != nil {
+			slogs.NotegicLogger.Error(context.Background(), err, "Failed to seed database default data")
 			return
 		}
 	},

@@ -12,11 +12,9 @@ import (
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type ThemeServiceInterface interface {
@@ -47,9 +45,9 @@ func (s *ThemeService) GetPublicThemeByPublicId(
 ) (*cgqlmodels.PublicTheme, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
-	theme := schemas.Theme{}
+	theme := sschemas.Theme{}
 	result := db.
-		Model(&schemas.Theme{}).
+		Model(&sschemas.Theme{}).
 		Where("public_id = ?", publicId).
 		First(&theme)
 	if err := result.Error; err != nil {
@@ -72,7 +70,7 @@ func (s *ThemeService) SearchPublicThemes(
 	startTime := time.Now()
 	db := s.db.WithContext(ctx)
 
-	query := db.Model(&schemas.Theme{})
+	query := db.Model(&sschemas.Theme{})
 
 	if len(strings.ReplaceAll(gqlInput.Query, " ", "")) > 0 {
 		query = query.Where(
@@ -81,7 +79,7 @@ func (s *ThemeService) SearchPublicThemes(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchThemeCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchThemeCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, cexceptions.New(
 				"CursorDecodeFailed",
@@ -122,14 +120,14 @@ func (s *ThemeService) SearchPublicThemes(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var themes []schemas.Theme
+	var themes []sschemas.Theme
 	if err := query.Find(&themes).Error; err != nil {
 		return nil, cexceptions.New(
 			"QueryFailed",
@@ -145,7 +143,7 @@ func (s *ThemeService) SearchPublicThemes(
 	searchEdges := make([]*cgqlmodels.SearchThemeEdge, len(themes))
 
 	for index, theme := range themes {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchThemeCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchThemeCursorFields]{
 			Fields: cgqlmodels.SearchThemeCursorFields{
 				PublicID: theme.PublicId,
 			},

@@ -11,8 +11,9 @@ import (
 	"github.com/google/uuid"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 )
 
 const defaultCacheExpiresIn = 5 * time.Minute
@@ -69,7 +70,7 @@ func (s *APIKeyCacheClient) getRedisClient(identifier string) (*redis.Client, in
 }
 
 func (s *APIKeyCacheClient) formatAPIKeyCacheKey(keyHash string) string {
-	return fmt.Sprintf("%s:%s", platformredis.CachePurpose_APIKey.String(), keyHash)
+	return fmt.Sprintf("%s:%s", sredis.CachePurpose_APIKey.String(), keyHash)
 }
 
 /* ============================== CRUD Method ============================== */
@@ -107,7 +108,7 @@ func (s *APIKeyCacheClient) Get(keyHash string) (*APIKeyCache, *cexceptions.Exce
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached API key from Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached API key from Redis shard %d", shardIndex))
 	return &apiKeyCache, nil
 }
 
@@ -140,7 +141,7 @@ func (s *APIKeyCacheClient) Set(keyHash string, apiKeyCache APIKeyCache) *cexcep
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached API key in Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached API key in Redis shard %d", shardIndex))
 	return nil
 }
 
@@ -161,6 +162,6 @@ func (s *APIKeyCacheClient) Delete(keyHash string) *cexceptions.Exception {
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached API key from Redis shard %d", shardIndex))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached API key from Redis shard %d", shardIndex))
 	return nil
 }

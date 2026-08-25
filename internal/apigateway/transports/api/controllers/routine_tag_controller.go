@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/core/adapters"
 )
@@ -43,7 +43,7 @@ func (c *RoutineTagController) GetMyRoutineTagById(ctx *gin.Context, requestDto 
 		"/core/v1/routine-tags/get-by-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto 
 		"/core/v1/routine-tags/get-all",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *ca
 		"/core/v1/routine-tags/create",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *c
 		"/core/v1/routine-tags/create-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -119,7 +119,7 @@ func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestD
 		"/core/v1/routine-tags/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -138,7 +138,7 @@ func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, reques
 		"/core/v1/routine-tags/update-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -157,7 +157,7 @@ func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requ
 		"/core/v1/routine-tags/hard-delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -176,7 +176,7 @@ func (c *RoutineTagController) HardDeleteMyRoutineTagsByIds(ctx *gin.Context, re
 		"/core/v1/routine-tags/hard-delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

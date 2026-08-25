@@ -9,8 +9,10 @@ import (
 
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
+
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+
+	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
 )
 
 // KeyMiddleware is the APIGateway edge check. It intentionally verifies only

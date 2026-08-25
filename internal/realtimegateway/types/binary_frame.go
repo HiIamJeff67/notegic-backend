@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 )
 
 type BinaryFrame struct {
@@ -18,7 +18,7 @@ func (f *BinaryFrame) UnmarshalBytes(payload []byte) error {
 	*f = BinaryFrame{}
 
 	// [version:1][type:1][connectorChannelId:4 big-endian][raw payload:n]
-	if len(payload) < constants.RealtimeBinaryFrameHeaderSize {
+	if len(payload) < sconstants.RealtimeBinaryFrameHeaderSize {
 		return errors.New("invalid realtime binary frame")
 	}
 
@@ -42,7 +42,7 @@ func (f BinaryFrame) MarshalBytes() ([]byte, error) {
 		return nil, errors.New("invalid realtime binary frame")
 	}
 
-	payload := make([]byte, constants.RealtimeBinaryFrameHeaderSize+len(f.Payload))
+	payload := make([]byte, sconstants.RealtimeBinaryFrameHeaderSize+len(f.Payload))
 	payload[0] = f.Version
 	payload[1] = byte(f.Type)
 	binary.BigEndian.PutUint32(payload[2:6], f.ConnectorChannelId)

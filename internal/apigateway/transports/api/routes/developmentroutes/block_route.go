@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
@@ -48,7 +48,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlockById(blockController.GetMyBlockById),
 			)...,
@@ -62,7 +62,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlocksByIds(blockController.GetMyBlocksByIds),
 			)...,
@@ -76,7 +76,7 @@ func configureDevelopmentBlockRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				blockBinder.BindGetMyBlocksByBlockPackId(blockController.GetMyBlocksByBlockPackId),
 			)...,

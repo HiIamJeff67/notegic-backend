@@ -8,6 +8,7 @@ import (
 
 	cemail "github.com/HiIamJeff67/notegic-backend/contracts/email/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
 	emailconfig "github.com/HiIamJeff67/notegic-backend/internal/email/configs"
 )
 

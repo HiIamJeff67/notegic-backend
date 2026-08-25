@@ -7,11 +7,11 @@ import (
 )
 
 type UserAccountException struct {
-	CoreException
+	Exception
 }
 
 func NewUserAccountException() UserAccountException {
-	return UserAccountException{CoreException: NewCoreException("UserAccount")}
+	return UserAccountException{Exception: NewException("UserAccount")}
 }
 
 func (UserAccountException) NotFound() *cexceptions.Exception {

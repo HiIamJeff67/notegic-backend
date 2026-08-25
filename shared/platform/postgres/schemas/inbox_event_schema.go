@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 // InboxEvent is the shared idempotency record used by runtimes consuming events.
@@ -15,5 +15,5 @@ type InboxEvent struct {
 }
 
 func (InboxEvent) TableName() string {
-	return platformpostgres.TableName_InboxEventTable.String()
+	return postgres.TableName_InboxEventTable.String()
 }

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,44 +14,43 @@ import (
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
-	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	blockservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/blocks"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type YjsCommandConsumer struct {
 	db                     *gorm.DB
 	yjsPersistenceService  blockservices.YjsPersistenceServiceInterface
 	blockService           blockservices.BlockServiceInterface
-	blockPackYjsRepository repositories.BlockPackYjsRepositoryInterface
-	kafkaConfig            platformkafka.ConsumerConfig
+	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface
+	kafkaConfig            skafka.ConsumerConfig
 }
 
 func NewYjsCommandConsumer(
 	db *gorm.DB,
 	yjsPersistenceService blockservices.YjsPersistenceServiceInterface,
 	blockService blockservices.BlockServiceInterface,
-	kafkaConfig platformkafka.ConsumerConfig,
+	kafkaConfig skafka.ConsumerConfig,
 ) *YjsCommandConsumer {
 	return &YjsCommandConsumer{
 		db:                     db,
 		yjsPersistenceService:  yjsPersistenceService,
 		blockService:           blockService,
-		blockPackYjsRepository: repositories.NewBlockPackYjsRepository(),
+		blockPackYjsRepository: srepositories.NewBlockPackYjsRepository(db),
 		kafkaConfig:            kafkaConfig,
 	}
 }
 
 func (c *YjsCommandConsumer) Start(ctx context.Context) func() {
-	consumer, err := platformkafka.NewConsumer(c.kafkaConfig, cyjsworkerevents.YjsWorkerCoreCommandTopic.String())
+	consumer, err := skafka.NewConsumer(c.kafkaConfig, cyjsworkerevents.YjsWorkerCoreCommandTopic.String())
 	if err != nil {
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to create YjsWorker command consumer")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to create YjsWorker command consumer")
 		}
 
 		return func() {}
@@ -60,8 +58,8 @@ func (c *YjsCommandConsumer) Start(ctx context.Context) func() {
 
 	workerCtx, cancel := context.WithCancel(ctx)
 	go func() {
-		if err := consumer.Run(workerCtx, c.consume); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(workerCtx, err, "YjsWorker command consumer stopped")
+		if err := consumer.Run(workerCtx, c.consume); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "YjsWorker command consumer stopped")
 		}
 	}()
 
@@ -73,13 +71,13 @@ func (c *YjsCommandConsumer) Start(ctx context.Context) func() {
 
 func (c *YjsCommandConsumer) consume(
 	ctx context.Context,
-	_ platformkafka.ConsumerRecord,
+	_ skafka.ConsumerRecord,
 	event cevent.EventEnvelope[json.RawMessage],
 ) error {
 	var command cyjsworker.CommandEnvelope[json.RawMessage]
 	if err := json.Unmarshal(event.Data, &command); err != nil {
-		return &platformkafka.ConsumerError{
-			Classification: platformkafka.ErrorClassification_SchemaIncompatible,
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
 			Origin:         fmt.Errorf("decode YjsWorker command: %w", err),
 		}
 	}
@@ -165,12 +163,12 @@ func (c *YjsCommandConsumer) execute(
 		}
 		updateSequence, err := c.blockPackYjsRepository.AppendUpdate(
 			command.BlockPackId,
-			inputs.AppendBlockPackYjsUpdateInput{
+			sinputs.AppendBlockPackYjsUpdateInput{
 				PersistenceBatchId: data.PersistenceBatchId,
 				OriginConnectionId: data.OriginConnectionId,
 				Payload:            data.Payload,
 			},
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &cyjsworker.Error{
@@ -182,7 +180,7 @@ func (c *YjsCommandConsumer) execute(
 		if err != nil {
 			return nil, nil, fmt.Errorf("append Yjs update: %w", err)
 		}
-		if err := repositories.NewOutboxEventRepository().EnqueueYjsMaintenanceHint(
+		if err := srepositories.NewOutboxEventRepository().EnqueueYjsMaintenanceHint(
 			tx,
 			command.CorrelationId,
 			command.BlockPackId,
@@ -232,13 +230,13 @@ func (c *YjsCommandConsumer) execute(
 		}
 		applied, err := c.blockPackYjsRepository.ApplyCompactedYjsDocument(
 			command.BlockPackId,
-			inputs.ApplyCompactedBlockPackYjsDocumentInput{
+			sinputs.ApplyCompactedBlockPackYjsDocumentInput{
 				BaseCompactedUntilSequence: result.BaseCompactedUntilSequence,
 				CutoffSequence:             result.CutoffSequence,
 				Snapshot:                   result.Snapshot,
 				StateVector:                result.StateVector,
 			},
-			options.WithTransactionDB(tx),
+			srepositories.WithTransactionDB(tx),
 		)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &cyjsworker.Error{
@@ -349,7 +347,7 @@ func (c *YjsCommandConsumer) enqueueReply(
 		Error:         exception,
 	}
 
-	return crepositories.EnqueueOutboxEvents(
+	return srepositories.EnqueueOutboxEvents(
 		tx,
 		cyjsworkerevents.CoreYjsWorkerReplyTopic,
 		[]cevent.EventEnvelope[cyjsworker.ReplyEnvelope[json.RawMessage]]{

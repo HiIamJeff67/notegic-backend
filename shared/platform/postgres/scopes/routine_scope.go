@@ -4,15 +4,15 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
 type RoutineScopeInterface interface {
-	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
-	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
 	FilterOnlyDeleted(onlyDeleted types.Ternary) func(db *gorm.DB) *gorm.DB
 	IncludePreloads(preloads []schemas.RoutineRelation, userId *uuid.UUID) func(db *gorm.DB) *gorm.DB
 }
@@ -23,7 +23,7 @@ func NewRoutineScope() RoutineScopeInterface {
 	return &RoutineScope{}
 }
 
-func (sc *RoutineScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (sc *RoutineScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where(`"RoutineTable".id = ?`, id)
@@ -38,7 +38,7 @@ func (sc *RoutineScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, perm
 	}
 }
 
-func (sc *RoutineScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (sc *RoutineScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where(`"RoutineTable".id IN ?`, ids)

@@ -10,23 +10,21 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-	times "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	stimes "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTaskRecordServiceInterface interface {
@@ -45,19 +43,19 @@ type RoutineTaskRecordServiceInterface interface {
 type RoutineTaskRecordService struct {
 	validator                   *validator.Validate
 	db                          *gorm.DB
-	routineTaskRecordRepository repositories.RoutineTaskRecordRepositoryInterface
+	routineTaskRecordRepository srepositories.RoutineTaskRecordRepositoryInterface
 }
 
 func NewRoutineTaskRecordService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	routineTaskRecordRepository repositories.RoutineTaskRecordRepositoryInterface,
+	routineTaskRecordRepository srepositories.RoutineTaskRecordRepositoryInterface,
 ) RoutineTaskRecordServiceInterface {
 	if db == nil {
 		db = data.DB
 	}
 	if routineTaskRecordRepository == nil {
-		routineTaskRecordRepository = repositories.NewRoutineTaskRecordRepository(corescopes.NewRoutineTaskRecordScope())
+		routineTaskRecordRepository = srepositories.NewRoutineTaskRecordRepository(db, sscopes.NewRoutineTaskRecordScope())
 	}
 
 	return &RoutineTaskRecordService{
@@ -72,7 +70,7 @@ func NewRoutineTaskRecordService(
 func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 	ctx context.Context,
 	userId uuid.UUID,
-	permission enums.AccessControlPermission,
+	permission cenums.AccessControlPermission,
 	routineTaskIds []uuid.UUID,
 	timeHourUnit int,
 	queryRangeStartedAt time.Time,
@@ -181,8 +179,8 @@ func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 		actorUserId,
 		requestDto.Param.Limit,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -227,16 +225,16 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
 	if exception != nil {
 		return nil, exception
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
 	if err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
 	var rows []struct {
-		Status                 enums.RoutineTaskRecordStatus `gorm:"column:status;"`
-		RoutineTaskRecordCount int64                         `gorm:"column:routine_task_record_count;"`
+		Status                 cenums.RoutineTaskRecordStatus `gorm:"column:status;"`
+		RoutineTaskRecordCount int64                          `gorm:"column:routine_task_record_count;"`
 	}
 
-	query := db.Model(&schemas.RoutineTaskRecord{}).
+	query := db.Model(&sschemas.RoutineTaskRecord{}).
 		Select(`"RoutineTaskRecordTable".status AS status, COUNT(*) AS routine_task_record_count`).
 		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = routine_task.routine_id AND routine.deleted_at IS NULL`).
@@ -251,13 +249,13 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordStatusCount(
 		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(result.Error)
 	}
 
-	counts := make(map[enums.RoutineTaskRecordStatus]int64, len(rows))
+	counts := make(map[cenums.RoutineTaskRecordStatus]int64, len(rows))
 	for _, row := range rows {
 		counts[row.Status] = row.RoutineTaskRecordCount
 	}
 
-	data := make([]capi.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskRecordStatuses))
-	for index, status := range enums.AllRoutineTaskRecordStatuses {
+	data := make([]capi.RoutineTaskRecordCountDatum, len(cenums.AllRoutineTaskRecordStatuses))
+	for index, status := range cenums.AllRoutineTaskRecordStatuses {
 		metadata := map[string]any{"status": status.String(), "routineTaskIds": requestDto.Param.RoutineTaskIds}
 		meta, err := json.Marshal(metadata)
 		if err != nil {
@@ -289,16 +287,16 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
 	if exception != nil {
 		return nil, exception
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
 	if err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
 	var rows []struct {
-		Purpose                enums.RoutineTaskPurpose `gorm:"column:purpose;"`
-		RoutineTaskRecordCount int64                    `gorm:"column:routine_task_record_count;"`
+		Purpose                cenums.RoutineTaskPurpose `gorm:"column:purpose;"`
+		RoutineTaskRecordCount int64                     `gorm:"column:routine_task_record_count;"`
 	}
 
-	query := db.Model(&schemas.RoutineTaskRecord{}).
+	query := db.Model(&sschemas.RoutineTaskRecord{}).
 		Select(`"RoutineTaskRecordTable".purpose AS purpose, COUNT(*) AS routine_task_record_count`).
 		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = routine_task.routine_id AND routine.deleted_at IS NULL`).
@@ -313,13 +311,13 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordPurposeCount(
 		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(result.Error)
 	}
 
-	counts := make(map[enums.RoutineTaskPurpose]int64, len(rows))
+	counts := make(map[cenums.RoutineTaskPurpose]int64, len(rows))
 	for _, row := range rows {
 		counts[row.Purpose] = row.RoutineTaskRecordCount
 	}
 
-	data := make([]capi.RoutineTaskRecordCountDatum, len(enums.AllRoutineTaskPurposes))
-	for index, purpose := range enums.AllRoutineTaskPurposes {
+	data := make([]capi.RoutineTaskRecordCountDatum, len(cenums.AllRoutineTaskPurposes))
+	for index, purpose := range cenums.AllRoutineTaskPurposes {
 		metadata := map[string]any{"purpose": purpose.String(), "routineTaskIds": requestDto.Param.RoutineTaskIds}
 		meta, err := json.Marshal(metadata)
 		if err != nil {
@@ -348,7 +346,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordScheduledAtCount(
 	if !requestDto.Param.QueryRangeStartedAt.Before(requestDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
@@ -356,7 +354,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordScheduledAtCount(
 	if exception != nil {
 		return nil, exception
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
 	if err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -389,7 +387,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualStartedAtCo
 	if !requestDto.Param.QueryRangeStartedAt.Before(requestDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
@@ -397,7 +395,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualStartedAtCo
 	if exception != nil {
 		return nil, exception
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
 	if err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -430,7 +428,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualEndedAtCoun
 	if !requestDto.Param.QueryRangeStartedAt.Before(requestDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(requestDto.Param.QueryRangeStartedAt, requestDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
@@ -438,7 +436,7 @@ func (s *RoutineTaskRecordService) VisualizeMyRoutineTaskRecordActualEndedAtCoun
 	if exception != nil {
 		return nil, exception
 	}
-	permission, err := enums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
+	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Param.Permission)
 	if err != nil {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
 	}
@@ -466,8 +464,8 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskRecordInput,
 ) (*cgqlmodels.SearchRoutineTaskRecordConnection, *cexceptions.Exception) {
 	type PrivateRoutineTaskRecord struct {
-		schemas.RoutineTaskRecord
-		Permission enums.AccessControlPermission `gorm:"column:permission"`
+		sschemas.RoutineTaskRecord
+		Permission cenums.AccessControlPermission `gorm:"column:permission"`
 	}
 
 	startTime := time.Now()
@@ -478,7 +476,7 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		return nil, exception
 	}
 
-	query := db.Model(&schemas.RoutineTaskRecord{}).
+	query := db.Model(&sschemas.RoutineTaskRecord{}).
 		Select(`"RoutineTaskRecordTable".*, uts.permission AS permission`).
 		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = routine_task.routine_id AND routine.deleted_at IS NULL`).
@@ -502,7 +500,7 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineTaskRecordCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineTaskRecordCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -548,11 +546,11 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
 	var routineTaskRecords []PrivateRoutineTaskRecord
@@ -564,7 +562,7 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 	searchEdges := make([]*cgqlmodels.SearchRoutineTaskRecordEdge, len(routineTaskRecords))
 
 	for index, routineTaskRecord := range routineTaskRecords {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineTaskRecordCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchRoutineTaskRecordCursorFields]{
 			Fields: cgqlmodels.SearchRoutineTaskRecordCursorFields{
 				ID: routineTaskRecord.Id,
 			},

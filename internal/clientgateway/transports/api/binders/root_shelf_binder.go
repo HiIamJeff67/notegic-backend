@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -52,7 +51,7 @@ func (b *RootShelfBinder) BindGetMyRootShelfById(controllerFunc controllers.Func
 		if isDeletedString != "" {
 			isDeleted, err := strconv.ParseBool(isDeletedString)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 				return
 			}
 			request.Param.IsDeleted = &isDeleted
@@ -60,7 +59,7 @@ func (b *RootShelfBinder) BindGetMyRootShelfById(controllerFunc controllers.Func
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.RootShelfId = rootShelfId
@@ -75,7 +74,7 @@ func (b *RootShelfBinder) BindCreateRootShelf(controllerFunc controllers.Func[*c
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -89,7 +88,7 @@ func (b *RootShelfBinder) BindCreateRootShelves(controllerFunc controllers.Func[
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -103,13 +102,13 @@ func (b *RootShelfBinder) BindUpdateMyRootShelfById(controllerFunc controllers.F
 		request.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&request.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		request.Param.RootShelfId = rootShelfId
@@ -126,7 +125,7 @@ func (b *RootShelfBinder) BindUpdateMyRootShelvesByIds(controllerFunc controller
 
 		if err := ctx.ShouldBindJSON(&reqDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -142,13 +141,13 @@ func (b *RootShelfBinder) BindRestoreMyRootShelfById(controllerFunc controllers.
 
 		if err := ctx.ShouldBindJSON(&reqDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		reqDto.Body.RootShelfId = rootShelfId
@@ -165,7 +164,7 @@ func (b *RootShelfBinder) BindRestoreMyRootShelvesByIds(controllerFunc controlle
 
 		if err := ctx.ShouldBindJSON(&reqDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -181,13 +180,13 @@ func (b *RootShelfBinder) BindDeleteMyRootShelfById(controllerFunc controllers.F
 
 		if err := ctx.ShouldBindJSON(&reqDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		reqDto.Body.RootShelfId = rootShelfId
@@ -204,7 +203,7 @@ func (b *RootShelfBinder) BindDeleteMyRootShelvesByIds(controllerFunc controller
 
 		if err := ctx.ShouldBindJSON(&reqDto.Body); err != nil {
 			exception := cexceptions.InvalidDto("Shelf").WithOrigin(err)
-			exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 			return
 		}
 
@@ -219,14 +218,14 @@ func (b *RootShelfBinder) BindGetMyRootShelfPermission(controllerFunc controller
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.UserPublicId = userPublicId
@@ -242,20 +241,20 @@ func (b *RootShelfBinder) BindCreateMyRootShelfPermission(controllerFunc control
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -270,20 +269,20 @@ func (b *RootShelfBinder) BindUpsertMyRootShelfPermission(controllerFunc control
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -298,13 +297,13 @@ func (b *RootShelfBinder) BindUpsertMyRootShelfPermissions(controllerFunc contro
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -319,20 +318,20 @@ func (b *RootShelfBinder) BindUpdateMyRootShelfPermission(controllerFunc control
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.UserPublicId = userPublicId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -347,13 +346,13 @@ func (b *RootShelfBinder) BindTransferMyRootShelfOwnership(controllerFunc contro
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -368,14 +367,14 @@ func (b *RootShelfBinder) BindDeleteMyRootShelfPermission(controllerFunc control
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		userPublicId, err := uuid.Parse(ctx.Param("user-public-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.UserPublicId = userPublicId
@@ -391,13 +390,13 @@ func (b *RootShelfBinder) BindDeleteMyRootShelfPermissions(controllerFunc contro
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 
@@ -412,7 +411,7 @@ func (b *RootShelfBinder) BindLeaveMyRootShelf(controllerFunc controllers.Func[*
 
 		rootShelfId, err := uuid.Parse(ctx.Param("root-shelf-id"))
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		requestDto.Param.RootShelfId = rootShelfId
@@ -427,7 +426,7 @@ func (b *RootShelfBinder) BindLeaveMyRootShelves(controllerFunc controllers.Func
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Shelf").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)

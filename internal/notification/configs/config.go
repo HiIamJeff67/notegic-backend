@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Config struct {
 	ListenAddress         string
-	Postgres              platformpostgres.Config
+	Postgres              spostgres.Config
 	Kafka                 KafkaConsumerConfig
 	OutboxPollInterval    time.Duration
 	OutboxClaimTimeout    time.Duration

@@ -14,27 +14,23 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
-	editableblock "github.com/HiIamJeff67/notegic-backend/shared/util/editableblock"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+	seditableblock "github.com/HiIamJeff67/notegic-backend/shared/util/editableblock"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type BlockServiceInterface interface {
@@ -52,21 +48,21 @@ type BlockServiceInterface interface {
 type BlockService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
-	blockScope          scopes.BlockScopeInterface
-	blockPackScope      scopes.BlockPackScopeInterface
-	subShelfScope       scopes.SubShelfScopeInterface
-	blockPackRepository repositories.BlockPackRepositoryInterface
-	blockRepository     repositories.BlockRepositoryInterface
+	blockScope          sscopes.BlockScopeInterface
+	blockPackScope      sscopes.BlockPackScopeInterface
+	subShelfScope       sscopes.SubShelfScopeInterface
+	blockPackRepository srepositories.BlockPackRepositoryInterface
+	blockRepository     srepositories.BlockRepositoryInterface
 }
 
 func NewBlockService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	blockScope scopes.BlockScopeInterface,
-	blockPackScope scopes.BlockPackScopeInterface,
-	subShelfScope scopes.SubShelfScopeInterface,
-	blockPackRepository repositories.BlockPackRepositoryInterface,
-	blockRepository repositories.BlockRepositoryInterface,
+	blockScope sscopes.BlockScopeInterface,
+	blockPackScope sscopes.BlockPackScopeInterface,
+	subShelfScope sscopes.SubShelfScopeInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	blockRepository srepositories.BlockRepositoryInterface,
 ) BlockServiceInterface {
 	return &BlockService{
 		validator:           validator,
@@ -81,7 +77,7 @@ func NewBlockService(
 
 /* ============================== Auxiliary Functions ============================== */
 
-func newBlockResponseDto(block schemas.Block) capi.BlockResponseDto {
+func newBlockResponseDto(block sschemas.Block) capi.BlockResponseDto {
 	return capi.BlockResponseDto{
 		Id:            block.Id,
 		BlockPackId:   block.BlockPackId,
@@ -119,9 +115,9 @@ func (s *BlockService) GetMyBlockById(
 		requestDto.Param.BlockId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return nil, exception
@@ -153,9 +149,9 @@ func (s *BlockService) GetMyBlocksByIds(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return nil, exception
@@ -190,15 +186,15 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 		requestDto.Param.BlockPackId,
 		actorUserId,
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	) {
 		return nil, apiexceptions.NewBlockException().NoPermission("get the block pack of blocks")
 	}
 
-	var blocks []schemas.Block
-	if err := db.Model(&schemas.Block{}).
+	var blocks []sschemas.Block
+	if err := db.Model(&sschemas.Block{}).
 		Where("block_pack_id = ?", requestDto.Param.BlockPackId).
 		Order("created_at ASC").
 		Order("id ASC").
@@ -254,45 +250,45 @@ func (s *BlockService) ApplyWithTransaction(
 		return nil, fmt.Errorf("block projection target update sequence must not be negative")
 	}
 
-	flattenedBlocks, _, err := editableblock.FlattenEditableBlocks(requestDto.Blocks)
+	flattenedBlocks, _, err := seditableblock.FlattenEditableBlocks(requestDto.Blocks)
 	if err != nil {
 		return nil, fmt.Errorf("failed to flatten block projection: %w", err)
 	}
 
 	blockIds := make([]uuid.UUID, len(flattenedBlocks))
-	projectedBlocks := make([]schemas.Block, len(flattenedBlocks))
+	projectedBlocks := make([]sschemas.Block, len(flattenedBlocks))
 	for index, flattenedBlock := range flattenedBlocks {
 		blockIds[index] = flattenedBlock.Id
-		projectedBlocks[index] = schemas.Block{
+		projectedBlocks[index] = sschemas.Block{
 			Id:            flattenedBlock.Id,
 			BlockPackId:   blockPackId,
 			ParentBlockId: flattenedBlock.ParentBlockId,
 			PrevBlockId:   flattenedBlock.PrevBlockId,
 			NextBlockId:   flattenedBlock.NextBlockId,
-			Type:          enums.BlockType(flattenedBlock.Type),
+			Type:          cenums.BlockType(flattenedBlock.Type),
 			Props:         datatypes.JSON(flattenedBlock.Props),
 			Content:       datatypes.JSON(flattenedBlock.Content),
 		}
 	}
 
 	lockingStrength := "UPDATE"
-	var blockPack schemas.BlockPack
-	if err := tx.Model(&schemas.BlockPack{}).
+	var blockPack sschemas.BlockPack
+	if err := tx.Model(&sschemas.BlockPack{}).
 		Select("id").
-		Scopes(scopes.Locking(&lockingStrength)).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("id = ? AND deleted_at IS NULL", blockPackId).
 		First(&blockPack).Error; err != nil {
 		return nil, fmt.Errorf("failed to lock block pack for projection: %w", err)
 	}
 
-	var document schemas.BlockPackYjsDocument
-	if err := tx.Model(&schemas.BlockPackYjsDocument{}).
-		Scopes(scopes.Locking(&lockingStrength)).
+	var document sschemas.BlockPackYjsDocument
+	if err := tx.Model(&sschemas.BlockPackYjsDocument{}).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("block_pack_id = ? AND deleted_at IS NULL", blockPackId).
 		First(&document).Error; err != nil {
 		return nil, fmt.Errorf("failed to lock yjs document for projection: %w", err)
 	}
-	metrics.NotegicMeter.Value(ctx, "yjs.projection.lag", document.LastUpdateSequence-document.ProjectedUntilSequence)
+	smetrics.NotegicMeter.Value(ctx, "yjs.projection.lag", document.LastUpdateSequence-document.ProjectedUntilSequence)
 
 	if requestDto.ProjectedSequence <= document.ProjectedUntilSequence {
 		return &capi.ApplyBlockProjectionResponseDto{
@@ -312,9 +308,9 @@ func (s *BlockService) ApplyWithTransaction(
 
 	existingBlocks := []existingBlock{}
 	if len(blockIds) > 0 {
-		if err := tx.Model(&schemas.Block{}).
+		if err := tx.Model(&sschemas.Block{}).
 			Select("id, block_pack_id").
-			Scopes(scopes.Locking(&lockingStrength)).
+			Scopes(sscopes.Locking(&lockingStrength)).
 			Where("id IN ?", blockIds).
 			Find(&existingBlocks).Error; err != nil {
 			return nil, fmt.Errorf("failed to lock projected blocks: %w", err)
@@ -342,7 +338,7 @@ func (s *BlockService) ApplyWithTransaction(
 				"content":         gorm.Expr("EXCLUDED.content"),
 				"updated_at":      now,
 			}),
-		}).CreateInBatches(&projectedBlocks, constants.MaxBatchCreateBlockSize).Error; err != nil {
+		}).CreateInBatches(&projectedBlocks, sconstants.MaxBatchCreateBlockSize).Error; err != nil {
 			return nil, fmt.Errorf("failed to bulk upsert block projection: %w", err)
 		}
 	}
@@ -351,11 +347,11 @@ func (s *BlockService) ApplyWithTransaction(
 	if len(blockIds) > 0 {
 		deleteQuery = deleteQuery.Where("id NOT IN ?", blockIds)
 	}
-	if err := deleteQuery.Delete(&schemas.Block{}).Error; err != nil {
+	if err := deleteQuery.Delete(&sschemas.Block{}).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete removed projected blocks: %w", err)
 	}
 
-	if err := tx.Model(&schemas.BlockPackYjsDocument{}).
+	if err := tx.Model(&sschemas.BlockPackYjsDocument{}).
 		Where("id = ?", document.Id).
 		Updates(map[string]any{
 			"projected_until_sequence": requestDto.ProjectedSequence,
@@ -381,7 +377,7 @@ func (s *BlockService) ApplyMany(
 	type preparedProjection struct {
 		blockPackId  uuid.UUID
 		projectedSeq int64
-		blocks       []schemas.Block
+		blocks       []sschemas.Block
 		blockIds     []uuid.UUID
 	}
 
@@ -404,12 +400,12 @@ func (s *BlockService) ApplyMany(
 		}
 		blockPackIdSet[requestDto.BlockPackId] = true
 
-		flattenedBlocks, _, err := editableblock.FlattenEditableBlocks(requestDto.Projection.Blocks)
+		flattenedBlocks, _, err := seditableblock.FlattenEditableBlocks(requestDto.Projection.Blocks)
 		if err != nil {
 			return nil, fmt.Errorf("failed to flatten block projection: %w", err)
 		}
 
-		blocks := make([]schemas.Block, len(flattenedBlocks))
+		blocks := make([]sschemas.Block, len(flattenedBlocks))
 		blockIds := make([]uuid.UUID, len(flattenedBlocks))
 		for index, flattenedBlock := range flattenedBlocks {
 			if blockIdSet[flattenedBlock.Id] {
@@ -417,13 +413,13 @@ func (s *BlockService) ApplyMany(
 			}
 			blockIdSet[flattenedBlock.Id] = true
 			blockIds[index] = flattenedBlock.Id
-			blocks[index] = schemas.Block{
+			blocks[index] = sschemas.Block{
 				Id:            flattenedBlock.Id,
 				BlockPackId:   requestDto.BlockPackId,
 				ParentBlockId: flattenedBlock.ParentBlockId,
 				PrevBlockId:   flattenedBlock.PrevBlockId,
 				NextBlockId:   flattenedBlock.NextBlockId,
-				Type:          enums.BlockType(flattenedBlock.Type),
+				Type:          cenums.BlockType(flattenedBlock.Type),
 				Props:         datatypes.JSON(flattenedBlock.Props),
 				Content:       datatypes.JSON(flattenedBlock.Content),
 			}
@@ -447,12 +443,12 @@ func (s *BlockService) ApplyMany(
 
 	tx := s.db.WithContext(ctx).Begin()
 
-	lockingStrength := options.LockingStrengthUpdate
-	var blockPacks []schemas.BlockPack
-	if err := tx.Model(&schemas.BlockPack{}).
+	lockingStrength := srepositories.LockingStrengthUpdate
+	var blockPacks []sschemas.BlockPack
+	if err := tx.Model(&sschemas.BlockPack{}).
 		Select("id").
 		Where("id IN ? AND deleted_at IS NULL", blockPackIds).
-		Scopes(scopes.Locking(&lockingStrength)).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Order("id ASC").
 		Find(&blockPacks).Error; err != nil {
 		tx.Rollback()
@@ -465,10 +461,10 @@ func (s *BlockService) ApplyMany(
 		activeBlockPackIdSet[blockPack.Id] = true
 	}
 
-	var documents []schemas.BlockPackYjsDocument
-	if err := tx.Model(&schemas.BlockPackYjsDocument{}).
+	var documents []sschemas.BlockPackYjsDocument
+	if err := tx.Model(&sschemas.BlockPackYjsDocument{}).
 		Where("block_pack_id IN ? AND deleted_at IS NULL", blockPackIds).
-		Scopes(scopes.Locking(&lockingStrength)).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Order("block_pack_id ASC").
 		Find(&documents).Error; err != nil {
 		tx.Rollback()
@@ -476,10 +472,10 @@ func (s *BlockService) ApplyMany(
 		return nil, fmt.Errorf("failed to lock yjs documents for projection: %w", err)
 	}
 
-	documentByBlockPackId := make(map[uuid.UUID]schemas.BlockPackYjsDocument, len(documents))
+	documentByBlockPackId := make(map[uuid.UUID]sschemas.BlockPackYjsDocument, len(documents))
 	for _, document := range documents {
 		documentByBlockPackId[document.BlockPackId] = document
-		metrics.NotegicMeter.Value(ctx, "yjs.projection.lag", document.LastUpdateSequence-document.ProjectedUntilSequence)
+		smetrics.NotegicMeter.Value(ctx, "yjs.projection.lag", document.LastUpdateSequence-document.ProjectedUntilSequence)
 	}
 
 	applicableProjections := make([]preparedProjection, 0, len(preparedProjections))
@@ -510,7 +506,7 @@ func (s *BlockService) ApplyMany(
 	}
 
 	projectedBlockIds := make([]uuid.UUID, 0)
-	allProjectedBlocks := make([]schemas.Block, 0)
+	allProjectedBlocks := make([]sschemas.Block, 0)
 	applicableBlockPackIds := make([]uuid.UUID, 0, len(applicableProjections))
 	for _, projection := range applicableProjections {
 		applicableBlockPackIds = append(applicableBlockPackIds, projection.blockPackId)
@@ -524,10 +520,10 @@ func (s *BlockService) ApplyMany(
 	}
 	var existingBlocks []existingBlock
 	if len(projectedBlockIds) > 0 {
-		if err := tx.Model(&schemas.Block{}).
+		if err := tx.Model(&sschemas.Block{}).
 			Select("id, block_pack_id").
 			Where("id IN ?", projectedBlockIds).
-			Scopes(scopes.Locking(&lockingStrength)).
+			Scopes(sscopes.Locking(&lockingStrength)).
 			Find(&existingBlocks).Error; err != nil {
 			tx.Rollback()
 
@@ -551,7 +547,7 @@ func (s *BlockService) ApplyMany(
 	if len(projectedBlockIds) > 0 {
 		deleteQuery = deleteQuery.Where("id NOT IN ?", projectedBlockIds)
 	}
-	result := deleteQuery.Delete(&schemas.Block{})
+	result := deleteQuery.Delete(&sschemas.Block{})
 	if err := result.Error; err != nil {
 		tx.Rollback()
 
@@ -572,7 +568,7 @@ func (s *BlockService) ApplyMany(
 				"content":         gorm.Expr("EXCLUDED.content"),
 				"updated_at":      now,
 			}),
-		}).CreateInBatches(&allProjectedBlocks, constants.MaxBatchCreateBlockSize).Error; err != nil {
+		}).CreateInBatches(&allProjectedBlocks, sconstants.MaxBatchCreateBlockSize).Error; err != nil {
 			tx.Rollback()
 
 			return nil, fmt.Errorf("failed to bulk upsert block projections: %w", err)
@@ -633,15 +629,15 @@ func (s *BlockService) SearchPrivateBlocks(
 		return nil, exception
 	}
 
-	query := db.Model(&schemas.Block{}).
+	query := db.Model(&sschemas.Block{}).
 		Select(`"BlockTable".*`).
 		Joins(`INNER JOIN "BlockPackTable" ON "BlockPackTable".id = "BlockTable".block_pack_id`).
 		Joins(`INNER JOIN "SubShelfTable" ON "SubShelfTable".id = "BlockPackTable".parent_sub_shelf_id`).
 		Joins(`INNER JOIN "UsersToShelvesTable" uts ON uts.root_shelf_id = "SubShelfTable".root_shelf_id`).
 		Where("uts.user_id = ? AND uts.permission IN ?", userId, allowedPermissions).
-		Scopes(s.blockPackScope.FilterOnlyDeleted(types.Ternary_Negative)).
-		Scopes(s.subShelfScope.FilterOnlyDeleted(types.Ternary_Negative)).
-		Scopes(s.blockScope.IncludePreloads([]schemas.BlockRelation{schemas.BlockRelation_Children}))
+		Scopes(s.blockPackScope.FilterOnlyDeleted(stypes.Ternary_Negative)).
+		Scopes(s.subShelfScope.FilterOnlyDeleted(stypes.Ternary_Negative)).
+		Scopes(s.blockScope.IncludePreloads([]sschemas.BlockRelation{sschemas.BlockRelation_Children}))
 
 	if len(strings.ReplaceAll(gqlInput.Query, " ", "")) > 0 {
 		pattern := "%" + gqlInput.Query + "%"
@@ -649,7 +645,7 @@ func (s *BlockService) SearchPrivateBlocks(
 	}
 
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchBlockCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchBlockCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -675,14 +671,14 @@ func (s *BlockService) SearchPrivateBlocks(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var blocks []schemas.Block
+	var blocks []sschemas.Block
 	if err := query.Find(&blocks).Error; err != nil {
 		return nil, apiexceptions.NewBlockException().NotFound().WithOrigin(err)
 	}
@@ -690,7 +686,7 @@ func (s *BlockService) SearchPrivateBlocks(
 	hasNextPage := len(blocks) > limit
 	searchEdges := make([]*cgqlmodels.SearchBlockEdge, len(blocks))
 	for index, block := range blocks {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchBlockCursorFields]{Fields: cgqlmodels.SearchBlockCursorFields{ID: block.Id}}
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchBlockCursorFields]{Fields: cgqlmodels.SearchBlockCursorFields{ID: block.Id}}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)

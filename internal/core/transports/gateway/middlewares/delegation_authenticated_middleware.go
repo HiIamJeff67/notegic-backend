@@ -9,12 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 )
 
@@ -67,9 +67,9 @@ func DelegationAuthenticatedMiddleware(expectedOperation string) gin.HandlerFunc
 			}
 		}
 
-		permissions := make([]enums.AccessControlPermission, 0, len(delegationClaims.AllowedPermissions))
+		permissions := make([]cenums.AccessControlPermission, 0, len(delegationClaims.AllowedPermissions))
 		for _, permissionString := range delegationClaims.AllowedPermissions {
-			permission, err := enums.ConvertStringToAccessControlPermission(permissionString)
+			permission, err := cenums.ConvertStringToAccessControlPermission(permissionString)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
 					Version: cgateway.Version,

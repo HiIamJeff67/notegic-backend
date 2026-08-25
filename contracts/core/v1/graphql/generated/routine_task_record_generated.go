@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -144,7 +145,7 @@ func (ec *executionContext) _PrivateRoutineTaskRecord_purpose(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.RoutineTaskPurpose)
+	res := resTmp.(cenums.RoutineTaskPurpose)
 	fc.Result = res
 	return ec.marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx, field.Selections, res)
 }
@@ -188,7 +189,7 @@ func (ec *executionContext) _PrivateRoutineTaskRecord_status(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.RoutineTaskRecordStatus)
+	res := resTmp.(cenums.RoutineTaskRecordStatus)
 	fc.Result = res
 	return ec.marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus(ctx, field.Selections, res)
 }
@@ -229,7 +230,7 @@ func (ec *executionContext) _PrivateRoutineTaskRecord_errorCode(ctx context.Cont
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*enums.RoutineTaskRecordErrorCode)
+	res := resTmp.(*cenums.RoutineTaskRecordErrorCode)
 	fc.Result = res
 	return ec.marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode(ctx, field.Selections, res)
 }

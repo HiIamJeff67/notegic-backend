@@ -10,14 +10,14 @@ import (
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
 type YjsMaintenanceCommandProducer struct {
-	producer *platformkafka.Producer
+	producer *skafka.Producer
 }
 
-func NewYjsMaintenanceCommandProducer(producer *platformkafka.Producer) *YjsMaintenanceCommandProducer {
+func NewYjsMaintenanceCommandProducer(producer *skafka.Producer) *YjsMaintenanceCommandProducer {
 	return &YjsMaintenanceCommandProducer{producer: producer}
 }
 

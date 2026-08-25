@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 
 	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type CreateBlockPackRoutineTaskTemplateBlock struct {
@@ -15,7 +15,7 @@ type CreateBlockPackRoutineTaskTemplateBlock struct {
 
 type CreateBlockPackRoutineTaskTemplate struct {
 	Name                string                                    `json:"name" validate:"required,min=1,max=128"`
-	Icon                *enums.SupportedIcon                      `json:"icon" validate:"omitnil,issupportedicon"`
+	Icon                *cenums.SupportedIcon                     `json:"icon" validate:"omitnil,issupportedicon"`
 	HeaderBackgroundURL *string                                   `json:"headerBackgroundURL" validate:"omitnil"`
 	Blocks              []CreateBlockPackRoutineTaskTemplateBlock `json:"blocks" validate:"required,min=1"`
 }

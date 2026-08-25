@@ -7,11 +7,11 @@ import (
 )
 
 type ItemException struct {
-	CoreException
+	Exception
 }
 
 func NewItemException() ItemException {
-	return ItemException{CoreException: NewCoreException("Item")}
+	return ItemException{Exception: NewException("Item")}
 }
 
 func (ItemException) NotFound() *cexceptions.Exception {

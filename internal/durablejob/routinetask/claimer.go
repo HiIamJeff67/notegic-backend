@@ -15,10 +15,12 @@ import (
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	platformschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	usersqls "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/sqls/user"
+
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+
+	usersql "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres/sqls/user"
 )
 
 type Claimer struct {
@@ -73,11 +75,11 @@ func (c *Claimer) ClaimRoutineTasks(
 	}
 
 	now := time.Now().UTC()
-	var claimableRoutineTasks []platformschemas.RoutineTask
+	var claimableRoutineTasks []sschemas.RoutineTask
 	result := tx.
-		Model(&platformschemas.RoutineTask{}).
+		Model(&sschemas.RoutineTask{}).
 		Select("id, routine_id, actor_user_id, title, purpose, payload, cost_unit, priority, status, attempts, max_attempts, period, next_scheduled_at, scheduled_at, actual_started_at").
-		Where("status = ?", enums.RoutineTaskStatus_Idle).
+		Where("status = ?", cenums.RoutineTaskStatus_Idle).
 		Where("scheduled_at <= ?", now).
 		Where("attempts < max_attempts").
 		Order("priority DESC, scheduled_at ASC, id ASC").
@@ -107,7 +109,7 @@ func (c *Claimer) ClaimRoutineTasks(
 		}
 
 		var existingQuotaUserIds []uuid.UUID
-		result = tx.Model(&platformschemas.UserQuota{}).
+		result = tx.Model(&sschemas.UserQuota{}).
 			Where("user_id IN ?", actorUserIds).
 			Pluck("user_id", &existingQuotaUserIds)
 		if result.Error != nil {
@@ -115,8 +117,8 @@ func (c *Claimer) ClaimRoutineTasks(
 			return nil, cexceptions.New("ClaimFailed", "UserQuota", "Claim", "Failed to find user quotas", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
 
-		var users []platformschemas.UserView
-		userQuery := tx.Model(&platformschemas.UserView{}).Select("id, created_at").Where("id IN ?", actorUserIds)
+		var users []sschemas.UserView
+		userQuery := tx.Model(&sschemas.UserView{}).Select("id, created_at").Where("id IN ?", actorUserIds)
 		if len(existingQuotaUserIds) > 0 {
 			userQuery = userQuery.Where("id NOT IN ?", existingQuotaUserIds)
 		}
@@ -125,9 +127,9 @@ func (c *Claimer) ClaimRoutineTasks(
 			return nil, cexceptions.New("ClaimFailed", "UserQuota", "Claim", "Failed to find users without quotas", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
 		if len(users) > 0 {
-			quotas := make([]platformschemas.UserQuota, len(users))
+			quotas := make([]sschemas.UserQuota, len(users))
 			for index, user := range users {
-				quotas[index] = platformschemas.UserQuota{
+				quotas[index] = sschemas.UserQuota{
 					UserId:         user.Id,
 					CostUnitUsed:   0,
 					CycleStartedAt: user.CreatedAt,
@@ -136,7 +138,7 @@ func (c *Claimer) ClaimRoutineTasks(
 					CreatedAt:      now,
 				}
 			}
-			if result = tx.Model(&platformschemas.UserQuota{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&quotas, request.BatchSize); result.Error != nil {
+			if result = tx.Model(&sschemas.UserQuota{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&quotas, request.BatchSize); result.Error != nil {
 				tx.Rollback()
 				return nil, cexceptions.New("ClaimFailed", "UserQuota", "Claim", "Failed to initialize user quotas", http.StatusInternalServerError, true).WithOrigin(result.Error)
 			}
@@ -149,8 +151,8 @@ func (c *Claimer) ClaimRoutineTasks(
 			valueArgs = append(valueArgs, task.Id, task.ActorUserId, task.CostUnit, task.Priority, task.ScheduledAt)
 		}
 		var consumedRoutineTaskIds []uuid.UUID
-		result = tx.Model(&platformschemas.UserQuota{}).Raw(
-			fmt.Sprintf(usersqls.ConsumeUserQuotaSQL, strings.Join(valuePlaceholders, ",")),
+		result = tx.Model(&sschemas.UserQuota{}).Raw(
+			fmt.Sprintf(usersql.ConsumeUserQuotaSQL, strings.Join(valuePlaceholders, ",")),
 			valueArgs...,
 		).Scan(&consumedRoutineTaskIds)
 		if result.Error != nil {
@@ -162,7 +164,7 @@ func (c *Claimer) ClaimRoutineTasks(
 		for _, id := range consumedRoutineTaskIds {
 			consumedIds[id] = struct{}{}
 		}
-		filteredTasks := make([]platformschemas.RoutineTask, 0, len(claimableRoutineTasks))
+		filteredTasks := make([]sschemas.RoutineTask, 0, len(claimableRoutineTasks))
 		for _, task := range claimableRoutineTasks {
 			if _, ok := consumedIds[task.Id]; ok {
 				filteredTasks = append(filteredTasks, task)
@@ -180,13 +182,13 @@ func (c *Claimer) ClaimRoutineTasks(
 			recordScheduledAtByTaskId[task.Id] = task.ScheduledAt
 		}
 
-		result = tx.Model(&platformschemas.RoutineTask{}).
+		result = tx.Model(&sschemas.RoutineTask{}).
 			Where("id IN ?", claimedIds).
 			Updates(map[string]any{
-				"status":            enums.RoutineTaskStatus_Running,
+				"status":            cenums.RoutineTaskStatus_Running,
 				"attempts":          gorm.Expr("attempts + 1"),
-				"scheduled_at":      gorm.Expr(`CASE period WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '1 day' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '7 days' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '30 days' ELSE GREATEST(scheduled_at, next_scheduled_at) END`, enums.RoutinePeriod_Daily, enums.RoutinePeriod_Weekly, enums.RoutinePeriod_Monthly),
-				"next_scheduled_at": gorm.Expr(`CASE period WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '1 day' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '7 days' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '30 days' ELSE GREATEST(scheduled_at, next_scheduled_at) END`, enums.RoutinePeriod_Daily, enums.RoutinePeriod_Weekly, enums.RoutinePeriod_Monthly),
+				"scheduled_at":      gorm.Expr(`CASE period WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '1 day' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '7 days' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '30 days' ELSE GREATEST(scheduled_at, next_scheduled_at) END`, cenums.RoutinePeriod_Daily, cenums.RoutinePeriod_Weekly, cenums.RoutinePeriod_Monthly),
+				"next_scheduled_at": gorm.Expr(`CASE period WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '1 day' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '7 days' WHEN ? THEN GREATEST(scheduled_at, next_scheduled_at) + INTERVAL '30 days' ELSE GREATEST(scheduled_at, next_scheduled_at) END`, cenums.RoutinePeriod_Daily, cenums.RoutinePeriod_Weekly, cenums.RoutinePeriod_Monthly),
 				"actual_started_at": now,
 				"actual_ended_at":   nil,
 				"updated_at":        now,
@@ -196,8 +198,8 @@ func (c *Claimer) ClaimRoutineTasks(
 			return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to update claimed routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
 
-		var claimedTasks []platformschemas.RoutineTask
-		if result = tx.Model(&platformschemas.RoutineTask{}).Where("id IN ?", claimedIds).Find(&claimedTasks); result.Error != nil {
+		var claimedTasks []sschemas.RoutineTask
+		if result = tx.Model(&sschemas.RoutineTask{}).Where("id IN ?", claimedIds).Find(&claimedTasks); result.Error != nil {
 			tx.Rollback()
 			return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to retrieve claimed routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
@@ -209,8 +211,8 @@ func (c *Claimer) ClaimRoutineTasks(
 				actorUserIds = append(actorUserIds, task.ActorUserId)
 			}
 		}
-		var actorUsers []platformschemas.UserView
-		if result = tx.Model(&platformschemas.UserView{}).Select("id, public_id").Where("id IN ?", actorUserIds).Find(&actorUsers); result.Error != nil {
+		var actorUsers []sschemas.UserView
+		if result = tx.Model(&sschemas.UserView{}).Select("id, public_id").Where("id IN ?", actorUserIds).Find(&actorUsers); result.Error != nil {
 			tx.Rollback()
 			return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to retrieve routine task users", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
@@ -218,10 +220,10 @@ func (c *Claimer) ClaimRoutineTasks(
 		for _, user := range actorUsers {
 			actorUserPublicIds[user.Id] = user.PublicId
 		}
-		records := make([]platformschemas.RoutineTaskRecord, len(claimedTasks))
+		records := make([]sschemas.RoutineTaskRecord, len(claimedTasks))
 		for index, task := range claimedTasks {
-			records[index] = platformschemas.RoutineTaskRecord{
-				Id: uuid.New(), RoutineTaskId: task.Id, Purpose: task.Purpose, Status: enums.RoutineTaskRecordStatus_Running,
+			records[index] = sschemas.RoutineTaskRecord{
+				Id: uuid.New(), RoutineTaskId: task.Id, Purpose: task.Purpose, Status: cenums.RoutineTaskRecordStatus_Running,
 				CostUnit: task.CostUnit, TotalAttempts: int64(task.Attempts), ScheduledAt: recordScheduledAtByTaskId[task.Id], ActualStartedAt: task.ActualStartedAt,
 			}
 		}

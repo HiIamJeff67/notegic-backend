@@ -1,0 +1,32 @@
+package inputs
+
+import (
+	"time"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+)
+
+type CreateUserInput struct {
+	Name         string `json:"name" gorm:"column:name;"`
+	DisplayName  string `json:"displayName" gorm:"column:display_name"`
+	Email        string `json:"email" gorm:"column:email;"`
+	Password     string `json:"password" gorm:"column:password;"`
+	RefreshToken string `json:"refreshToken" gorm:"column:refresh_token;"`
+	UserAgent    string `json:"userAgent" gorm:"column:user_agent;"`
+}
+
+type UpdateUserInput struct {
+	Name           *string            `json:"name" gorm:"column:name;"`
+	DisplayName    *string            `json:"displayName" gorm:"column:display_name;"`
+	Email          *string            `json:"email" gorm:"column:email;"`
+	Password       *string            `json:"password" gorm:"column:password;"`
+	RefreshToken   *string            `json:"refreshToken" gorm:"column:refresh_token;"`
+	LoginCount     *int32             `json:"loginCount" gorm:"column:login_count;"`
+	BlockLoginUtil *time.Time         `json:"blockLoginUntil" gorm:"column:block_login_until"`
+	UserAgent      *string            `json:"userAgent" gorm:"column:user_agent;"`
+	Role           *cenums.UserRole   `json:"role" gorm:"column:role;"`
+	Plan           *cenums.UserPlan   `json:"plan" gorm:"column:plan;"`
+	Status         *cenums.UserStatus `json:"status" gorm:"column:status;"`
+}
+
+type PartialUpdateUserInput = PartialUpdateInput[UpdateUserInput]

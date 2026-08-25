@@ -22,16 +22,18 @@ import (
 	cusers "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
-	"github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
 // SearchUsers is the resolver for the searchUsers field.
 func (r *queryResolver) SearchUsers(ctx context.Context, input cgqlmodels.SearchUserInput) (*cgqlmodels.SearchUserConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -45,7 +47,7 @@ func (r *queryResolver) SearchUsers(ctx context.Context, input cgqlmodels.Search
 		"/core/v1/users/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -55,7 +57,7 @@ func (r *queryResolver) SearchUsers(ctx context.Context, input cgqlmodels.Search
 func (r *queryResolver) SearchThemes(ctx context.Context, input cgqlmodels.SearchThemeInput) (*cgqlmodels.SearchThemeConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.Call[
@@ -69,7 +71,7 @@ func (r *queryResolver) SearchThemes(ctx context.Context, input cgqlmodels.Searc
 		"/core/v1/themes/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -79,7 +81,7 @@ func (r *queryResolver) SearchThemes(ctx context.Context, input cgqlmodels.Searc
 func (r *queryResolver) SearchRootShelves(ctx context.Context, input cgqlmodels.SearchRootShelfInput) (*cgqlmodels.SearchRootShelfConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -93,7 +95,7 @@ func (r *queryResolver) SearchRootShelves(ctx context.Context, input cgqlmodels.
 		"/core/v1/root-shelves/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -103,7 +105,7 @@ func (r *queryResolver) SearchRootShelves(ctx context.Context, input cgqlmodels.
 func (r *queryResolver) SearchSubShelves(ctx context.Context, input cgqlmodels.SearchSubShelfInput) (*cgqlmodels.SearchSubShelfConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -117,7 +119,7 @@ func (r *queryResolver) SearchSubShelves(ctx context.Context, input cgqlmodels.S
 		"/core/v1/sub-shelves/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -127,7 +129,7 @@ func (r *queryResolver) SearchSubShelves(ctx context.Context, input cgqlmodels.S
 func (r *queryResolver) SearchItems(ctx context.Context, input cgqlmodels.SearchItemInput) (*cgqlmodels.SearchItemConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -141,7 +143,7 @@ func (r *queryResolver) SearchItems(ctx context.Context, input cgqlmodels.Search
 		"/core/v1/items/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -151,7 +153,7 @@ func (r *queryResolver) SearchItems(ctx context.Context, input cgqlmodels.Search
 func (r *queryResolver) SearchMaterials(ctx context.Context, input cgqlmodels.SearchMaterialInput) (*cgqlmodels.SearchMaterialConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -165,7 +167,7 @@ func (r *queryResolver) SearchMaterials(ctx context.Context, input cgqlmodels.Se
 		"/core/v1/materials/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -175,7 +177,7 @@ func (r *queryResolver) SearchMaterials(ctx context.Context, input cgqlmodels.Se
 func (r *queryResolver) SearchBlockPacks(ctx context.Context, input cgqlmodels.SearchBlockPackInput) (*cgqlmodels.SearchBlockPackConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -189,7 +191,7 @@ func (r *queryResolver) SearchBlockPacks(ctx context.Context, input cgqlmodels.S
 		"/core/v1/block-packs/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -199,7 +201,7 @@ func (r *queryResolver) SearchBlockPacks(ctx context.Context, input cgqlmodels.S
 func (r *queryResolver) SearchBlocks(ctx context.Context, input cgqlmodels.SearchBlockInput) (*cgqlmodels.SearchBlockConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -213,7 +215,7 @@ func (r *queryResolver) SearchBlocks(ctx context.Context, input cgqlmodels.Searc
 		"/core/v1/blocks/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -223,7 +225,7 @@ func (r *queryResolver) SearchBlocks(ctx context.Context, input cgqlmodels.Searc
 func (r *queryResolver) SearchStations(ctx context.Context, input cgqlmodels.SearchStationInput) (*cgqlmodels.SearchStationConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -237,7 +239,7 @@ func (r *queryResolver) SearchStations(ctx context.Context, input cgqlmodels.Sea
 		"/core/v1/stations/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -247,7 +249,7 @@ func (r *queryResolver) SearchStations(ctx context.Context, input cgqlmodels.Sea
 func (r *queryResolver) SearchRoutines(ctx context.Context, input cgqlmodels.SearchRoutineInput) (*cgqlmodels.SearchRoutineConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -261,7 +263,7 @@ func (r *queryResolver) SearchRoutines(ctx context.Context, input cgqlmodels.Sea
 		"/core/v1/routines/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -271,7 +273,7 @@ func (r *queryResolver) SearchRoutines(ctx context.Context, input cgqlmodels.Sea
 func (r *queryResolver) SearchRoutineTags(ctx context.Context, input cgqlmodels.SearchRoutineTagInput) (*cgqlmodels.SearchRoutineTagConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -285,7 +287,7 @@ func (r *queryResolver) SearchRoutineTags(ctx context.Context, input cgqlmodels.
 		"/core/v1/routine-tags/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -295,7 +297,7 @@ func (r *queryResolver) SearchRoutineTags(ctx context.Context, input cgqlmodels.
 func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input cgqlmodels.SearchRoutineTaskInput) (*cgqlmodels.SearchRoutineTaskConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -309,7 +311,7 @@ func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input cgqlmodels
 		"/core/v1/routine-tasks/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil
@@ -319,7 +321,7 @@ func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input cgqlmodels
 func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input cgqlmodels.SearchRoutineTaskRecordInput) (*cgqlmodels.SearchRoutineTaskRecordConnection, error) {
 	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	response, exception := coreadapters.CallSecurly[
@@ -333,7 +335,7 @@ func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input cgql
 		"/core/v1/routine-task-records/graphql/search",
 	)
 	if exception != nil {
-		return nil, exceptionwriter.ToGraphQLError(exception, ctx)
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
 	}
 
 	return &response.Data, nil

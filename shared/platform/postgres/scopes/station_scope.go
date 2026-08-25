@@ -4,15 +4,15 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
 type StationScopeInterface interface {
-	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permission []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
-	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permission []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permission []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permission []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
 	FilterOnlyDeleted(onlyDeleted types.Ternary) func(db *gorm.DB) *gorm.DB
 	IncludePreloads(preloads []schemas.StationRelation) func(db *gorm.DB) *gorm.DB
 }
@@ -23,7 +23,7 @@ func NewStationScope() StationScopeInterface {
 	return &StationScope{}
 }
 
-func (ss *StationScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (ss *StationScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where("id = ?", id)
@@ -37,7 +37,7 @@ func (ss *StationScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, perm
 	}
 }
 
-func (ss *StationScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (ss *StationScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where(`"StationTable".id IN ?`, ids)

@@ -11,10 +11,10 @@ import (
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	handlers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/handlers"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/durablejob/validations"
@@ -30,7 +30,7 @@ type HandlerManager struct {
 	failedMutex      sync.Mutex
 	success          []preparedRoutineTask
 	successMutex     sync.Mutex
-	registries       map[enums.RoutineTaskPurpose]handlers.PurposeHandler
+	registries       map[cenums.RoutineTaskPurpose]handlers.PurposeHandler
 	resultPublisher  ResultPublisher
 	runningPublisher RoutineTaskRunningPublisher
 }
@@ -64,7 +64,7 @@ type preparedRoutineTask struct {
 type failedRoutineTask struct {
 	assignment  cdurablejobroutinetasktypes.RoutineTaskAssignment
 	failedAt    time.Time
-	errorCode   enums.RoutineTaskRecordErrorCode
+	errorCode   cenums.RoutineTaskRecordErrorCode
 	errorReason string
 }
 
@@ -84,22 +84,22 @@ func NewHandlerManager(
 	validator := validation.New()
 	prepareHandler := handlers.NewPurposeHandler(validator)
 
-	registries := make(map[enums.RoutineTaskPurpose]handlers.PurposeHandler, 14)
-	for _, purpose := range []enums.RoutineTaskPurpose{
-		enums.RoutineTaskPurpose_CreateRootShelf,
-		enums.RoutineTaskPurpose_UpdateRootShelf,
-		enums.RoutineTaskPurpose_ResetRootShelf,
-		enums.RoutineTaskPurpose_CreateSubShelf,
-		enums.RoutineTaskPurpose_UpdateSubShelf,
-		enums.RoutineTaskPurpose_ResetSubShelf,
-		enums.RoutineTaskPurpose_CreateBlockPack,
-		enums.RoutineTaskPurpose_UpdateBlockPack,
-		enums.RoutineTaskPurpose_ResetBlockPack,
-		enums.RoutineTaskPurpose_AppendBlock,
-		enums.RoutineTaskPurpose_UpdateBlock,
-		enums.RoutineTaskPurpose_ResetBlock,
-		enums.RoutineTaskPurpose_CreateRoutine,
-		enums.RoutineTaskPurpose_UpdateRoutine,
+	registries := make(map[cenums.RoutineTaskPurpose]handlers.PurposeHandler, 14)
+	for _, purpose := range []cenums.RoutineTaskPurpose{
+		cenums.RoutineTaskPurpose_CreateRootShelf,
+		cenums.RoutineTaskPurpose_UpdateRootShelf,
+		cenums.RoutineTaskPurpose_ResetRootShelf,
+		cenums.RoutineTaskPurpose_CreateSubShelf,
+		cenums.RoutineTaskPurpose_UpdateSubShelf,
+		cenums.RoutineTaskPurpose_ResetSubShelf,
+		cenums.RoutineTaskPurpose_CreateBlockPack,
+		cenums.RoutineTaskPurpose_UpdateBlockPack,
+		cenums.RoutineTaskPurpose_ResetBlockPack,
+		cenums.RoutineTaskPurpose_AppendBlock,
+		cenums.RoutineTaskPurpose_UpdateBlock,
+		cenums.RoutineTaskPurpose_ResetBlock,
+		cenums.RoutineTaskPurpose_CreateRoutine,
+		cenums.RoutineTaskPurpose_UpdateRoutine,
 	} {
 		registries[purpose] = prepareHandler
 	}
@@ -137,7 +137,7 @@ func (hm *HandlerManager) Manage(
 			hm.appendFailure(failedRoutineTask{
 				assignment:  assignment,
 				failedAt:    time.Now().UTC(),
-				errorCode:   enums.RoutineTaskRecordErrorCode_HandlerFailed,
+				errorCode:   cenums.RoutineTaskRecordErrorCode_HandlerFailed,
 				errorReason: "routine task purpose handler was not found",
 			})
 			continue
@@ -155,8 +155,8 @@ func (hm *HandlerManager) Manage(
 			}()
 
 			if hm.runningPublisher != nil {
-				if err := hm.runningPublisher(ctx, assignment); err != nil && logs.NotegicLogger != nil {
-					logs.NotegicLogger.Error(
+				if err := hm.runningPublisher(ctx, assignment); err != nil && slogs.NotegicLogger != nil {
+					slogs.NotegicLogger.Error(
 						ctx,
 						err,
 						"Failed to publish RoutineTask running lifecycle event",
@@ -166,30 +166,30 @@ func (hm *HandlerManager) Manage(
 
 			preparedTask, err := registry.HandlerFunc(ctx, assignment)
 			if err != nil || preparedTask == nil {
-				errorCode := enums.RoutineTaskRecordErrorCode_HandlerFailed
+				errorCode := cenums.RoutineTaskRecordErrorCode_HandlerFailed
 				errorReason := "routine task preparation failed"
 				if err != nil {
 					var durableJobError *cexceptions.Exception
 					if errors.As(err, &durableJobError) {
 						switch durableJobError.Reason {
 						case "Canceled":
-							errorCode = enums.RoutineTaskRecordErrorCode_Canceled
+							errorCode = cenums.RoutineTaskRecordErrorCode_Canceled
 						case "Timeout":
-							errorCode = enums.RoutineTaskRecordErrorCode_Timeout
+							errorCode = cenums.RoutineTaskRecordErrorCode_Timeout
 						case "InvalidRoutineTaskPayload":
-							errorCode = enums.RoutineTaskRecordErrorCode_PayloadInvalid
+							errorCode = cenums.RoutineTaskRecordErrorCode_PayloadInvalid
 						case "TargetNotFound":
-							errorCode = enums.RoutineTaskRecordErrorCode_TargetNotFound
+							errorCode = cenums.RoutineTaskRecordErrorCode_TargetNotFound
 						case "PermissionDenied":
-							errorCode = enums.RoutineTaskRecordErrorCode_PermissionDenied
+							errorCode = cenums.RoutineTaskRecordErrorCode_PermissionDenied
 						}
 						if durableJobError.Reason != "" {
 							errorReason = durableJobError.Reason
 						}
 					} else if errors.Is(err, context.Canceled) {
-						errorCode = enums.RoutineTaskRecordErrorCode_Canceled
+						errorCode = cenums.RoutineTaskRecordErrorCode_Canceled
 					} else if errors.Is(err, context.DeadlineExceeded) {
-						errorCode = enums.RoutineTaskRecordErrorCode_Timeout
+						errorCode = cenums.RoutineTaskRecordErrorCode_Timeout
 					} else {
 						errorReason = err.Error()
 					}

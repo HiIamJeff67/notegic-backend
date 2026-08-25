@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 )
 
 type InternalFrame struct {
@@ -23,7 +23,7 @@ func (f *InternalFrame) UnmarshalBytes(payload []byte) error {
 	*f = InternalFrame{}
 
 	// [version:1][type:1][channelType:1][connectionId:16][connectorChannelId:4][channelId:16][raw payload:n]
-	if len(payload) < constants.RealtimeInternalFrameHeaderSize {
+	if len(payload) < sconstants.RealtimeInternalFrameHeaderSize {
 		return errors.New("invalid realtime internal frame")
 	}
 
@@ -65,7 +65,7 @@ func (f InternalFrame) MarshalBytes() ([]byte, error) {
 		return nil, errors.New("invalid realtime internal frame")
 	}
 
-	payload := make([]byte, constants.RealtimeInternalFrameHeaderSize+len(f.Payload))
+	payload := make([]byte, sconstants.RealtimeInternalFrameHeaderSize+len(f.Payload))
 	payload[0] = f.Version
 	payload[1] = byte(f.Type)
 	payload[2] = byte(internalChannelType)

@@ -8,7 +8,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
@@ -43,34 +44,34 @@ func TestRootShelfPermissionPolicy(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		permissions []enums.AccessControlPermission
+		permissions []cenums.AccessControlPermission
 	}{
 		{
 			name:        "empty policy",
-			permissions: []enums.AccessControlPermission{},
+			permissions: []cenums.AccessControlPermission{},
 		},
 		{
 			name: "read policy",
-			permissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Read,
+			permissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Read,
 			},
 		},
 		{
 			name: "write policy",
-			permissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Write,
+			permissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Write,
 			},
 		},
 		{
 			name: "admin policy",
-			permissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Admin,
+			permissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Admin,
 			},
 		},
 		{
 			name: "owner policy",
-			permissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
+			permissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
 			},
 		},
 	}

@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/core/adapters"
 )
@@ -53,7 +53,7 @@ func (c *RoutineController) GetMyRoutineById(ctx *gin.Context, requestDto *capi.
 		"/core/v1/routines/get-by-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (c *RoutineController) GetMyRoutinesByStationId(ctx *gin.Context, requestDt
 		"/core/v1/routines/get-by-station-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (c *RoutineController) GetAllMyRoutinesByTimeRange(ctx *gin.Context, reques
 		"/core/v1/routines/get-all-by-time-range",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -101,7 +101,7 @@ func (c *RoutineController) CreateRoutineByStationId(ctx *gin.Context, requestDt
 		"/core/v1/routines/create-by-station-id",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (c *RoutineController) CreateRoutinesByStationIds(ctx *gin.Context, request
 		"/core/v1/routines/create-many-by-station-ids",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (c *RoutineController) UpdateMyRoutineById(ctx *gin.Context, requestDto *ca
 		"/core/v1/routines/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -149,7 +149,7 @@ func (c *RoutineController) UpdateMyRoutinesByIds(ctx *gin.Context, requestDto *
 		"/core/v1/routines/update-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -165,7 +165,7 @@ func (c *RoutineController) LinkRoutineTagById(ctx *gin.Context, requestDto *cap
 		"/core/v1/routines/link-tag",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -181,7 +181,7 @@ func (c *RoutineController) LinkRoutineTagsByIds(ctx *gin.Context, requestDto *c
 		"/core/v1/routines/link-tags",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (c *RoutineController) LinkRoutineItemById(ctx *gin.Context, requestDto *ca
 		"/core/v1/routines/link-item",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -213,7 +213,7 @@ func (c *RoutineController) LinkRoutineItemsByIds(ctx *gin.Context, requestDto *
 		"/core/v1/routines/link-items",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -229,7 +229,7 @@ func (c *RoutineController) RestoreMyRoutineById(ctx *gin.Context, requestDto *c
 		"/core/v1/routines/restore",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -245,7 +245,7 @@ func (c *RoutineController) RestoreMyRoutinesByIds(ctx *gin.Context, requestDto 
 		"/core/v1/routines/restore-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -261,7 +261,7 @@ func (c *RoutineController) DeleteMyRoutineById(ctx *gin.Context, requestDto *ca
 		"/core/v1/routines/delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -277,7 +277,7 @@ func (c *RoutineController) DeleteMyRoutinesByIds(ctx *gin.Context, requestDto *
 		"/core/v1/routines/delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -293,7 +293,7 @@ func (c *RoutineController) HardDeleteMyRoutineById(ctx *gin.Context, requestDto
 		"/core/v1/routines/hard-delete",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -309,7 +309,7 @@ func (c *RoutineController) HardDeleteMyRoutinesByIds(ctx *gin.Context, requestD
 		"/core/v1/routines/hard-delete-many",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -325,7 +325,7 @@ func (c *RoutineController) VisualizeMyRoutineStatusCount(ctx *gin.Context, requ
 		"/core/v1/routines/visualize-status-count",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -341,7 +341,7 @@ func (c *RoutineController) VisualizeMyRoutinePeriodCount(ctx *gin.Context, requ
 		"/core/v1/routines/visualize-period-count",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -357,7 +357,7 @@ func (c *RoutineController) VisualizeMyRoutineScheduledStartAtCount(ctx *gin.Con
 		"/core/v1/routines/visualize-scheduled-start-at-count",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 
@@ -373,7 +373,7 @@ func (c *RoutineController) VisualizeMyRoutineScheduledEndAtCount(ctx *gin.Conte
 		"/core/v1/routines/visualize-scheduled-end-at-count",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 

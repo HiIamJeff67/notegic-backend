@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
@@ -49,7 +49,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindGetMyStationById(stationController.GetMyStationById),
 			)...,
@@ -63,7 +63,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindGetAllMyStations(stationController.GetAllMyStations),
 			)...,
@@ -77,7 +77,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindCreateStation(stationController.CreateStation),
 			)...,
@@ -91,7 +91,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindCreateStations(stationController.CreateStations),
 			)...,
@@ -105,7 +105,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindUpdateMyStationById(stationController.UpdateMyStationById),
 			)...,
@@ -119,7 +119,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindUpdateMyStationsByIds(stationController.UpdateMyStationsByIds),
 			)...,
@@ -133,7 +133,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindRestoreMyStationById(stationController.RestoreMyStationById),
 			)...,
@@ -147,7 +147,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindRestoreMyStationsByIds(stationController.RestoreMyStationsByIds),
 			)...,
@@ -161,7 +161,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindDeleteMyStationById(stationController.DeleteMyStationById),
 			)...,
@@ -175,7 +175,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindDeleteMyStationsByIds(stationController.DeleteMyStationsByIds),
 			)...,
@@ -189,7 +189,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindHardDeleteMyStationById(stationController.HardDeleteMyStationById),
 			)...,
@@ -203,7 +203,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindHardDeleteMyStationsByIds(stationController.HardDeleteMyStationsByIds),
 			)...,
@@ -219,7 +219,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindGetMyStationPermission(stationController.GetMyStationPermission),
 			)...,
@@ -233,7 +233,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindCreateMyStationPermission(stationController.CreateMyStationPermission),
 			)...,
@@ -247,7 +247,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindUpsertMyStationPermission(stationController.UpsertMyStationPermission),
 			)...,
@@ -261,7 +261,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindUpsertMyStationPermissions(stationController.UpsertMyStationPermissions),
 			)...,
@@ -275,7 +275,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindUpdateMyStationPermission(stationController.UpdateMyStationPermission),
 			)...,
@@ -289,7 +289,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Owner),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Owner),
 				),
 				stationBinder.BindTransferMyStationOwnership(stationController.TransferMyStationOwnership),
 			)...,
@@ -303,7 +303,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindDeleteMyStationPermission(stationController.DeleteMyStationPermission),
 			)...,
@@ -317,7 +317,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
 				),
 				stationBinder.BindDeleteMyStationPermissions(stationController.DeleteMyStationPermissions),
 			)...,
@@ -331,7 +331,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindLeaveMyStation(stationController.LeaveMyStation),
 			)...,
@@ -345,7 +345,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindLeaveMyStations(stationController.LeaveMyStations),
 			)...,
@@ -372,7 +372,7 @@ func configureDevelopmentStationRoutes(
 				},
 				append(
 					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				stationBinder.BindVisualizeMyTotalCount(stationController.VisualizeMyTotalCount),
 			)...,

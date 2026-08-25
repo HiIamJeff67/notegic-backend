@@ -8,11 +8,11 @@ import (
 )
 
 type UserException struct {
-	CoreException
+	Exception
 }
 
 func NewUserException() UserException {
-	return UserException{CoreException: NewCoreException("User")}
+	return UserException{Exception: NewException("User")}
 }
 
 func (UserException) NotFound() *cexceptions.Exception {

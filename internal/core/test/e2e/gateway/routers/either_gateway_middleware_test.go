@@ -10,8 +10,10 @@ import (
 
 	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
 	cusers "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
-	corerouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/routers"
+
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+
+	corerouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/routers"
 )
 
 func TestEitherMiddlewareAllowsAPIOnlyForPublishedResourceDomains(t *testing.T) {

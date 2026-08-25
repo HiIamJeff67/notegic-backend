@@ -8,23 +8,20 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-
-	concurrency "github.com/HiIamJeff67/notegic-backend/shared/lib/concurrency"
-	jsonpayload "github.com/HiIamJeff67/notegic-backend/shared/lib/jsonpayload"
-
-	editableblock "github.com/HiIamJeff67/notegic-backend/shared/util/editableblock"
-
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sconcurrency "github.com/HiIamJeff67/notegic-backend/shared/lib/concurrency"
+	sjsonpayload "github.com/HiIamJeff67/notegic-backend/shared/lib/jsonpayload"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	seditableblock "github.com/HiIamJeff67/notegic-backend/shared/util/editableblock"
 )
 
 type RoutineTaskPayloadParserInterface interface {
 	ValidateRoutineTaskPayload(
-		purpose enums.RoutineTaskPurpose,
+		purpose cenums.RoutineTaskPurpose,
 		payload datatypes.JSON,
 	) *cexceptions.Exception
 }
@@ -40,9 +37,9 @@ func NewRoutineTaskPayloadParser(validatorInstance *validator.Validate) RoutineT
 	return &RoutineTaskPayloadParser{validator: validatorInstance}
 }
 
-func DecodePayload[T any](validatorInstance *validator.Validate, task schemas.RoutineTask) (*T, *cexceptions.Exception) {
+func DecodePayload[T any](validatorInstance *validator.Validate, task sschemas.RoutineTask) (*T, *cexceptions.Exception) {
 	var payload T
-	if err := jsonpayload.Decode(task.Payload, &payload); err != nil {
+	if err := sjsonpayload.Decode(task.Payload, &payload); err != nil {
 		return nil, cexceptions.New(
 			"InvalidRoutineTaskPayload",
 			"RoutineTask",
@@ -66,7 +63,7 @@ func DecodePayload[T any](validatorInstance *validator.Validate, task schemas.Ro
 func FlattenArborizedBlock(
 	blockPackId uuid.UUID,
 	arborizedEditableBlock *cblocknote.ArborizedEditableBlock,
-) ([]schemas.Block, []uuid.UUID, int64, *cexceptions.Exception) {
+) ([]sschemas.Block, []uuid.UUID, int64, *cexceptions.Exception) {
 	if blockPackId == uuid.Nil {
 		return nil, nil, 0, cexceptions.New(
 			"InvalidRoutineTaskPayload",
@@ -76,7 +73,7 @@ func FlattenArborizedBlock(
 			http.StatusBadRequest,
 		).WithOrigin(fmt.Errorf("blockPackId is required"))
 	}
-	rawFlattenedBlocks, totalSize, err := editableblock.FlattenEditableBlock(arborizedEditableBlock)
+	rawFlattenedBlocks, totalSize, err := seditableblock.FlattenEditableBlock(arborizedEditableBlock)
 	if err != nil {
 		return nil, nil, 0, cexceptions.New(
 			"InvalidRoutineTaskPayload",
@@ -96,10 +93,10 @@ func FlattenArborizedBlock(
 		).WithOrigin(fmt.Errorf("arborizedEditableBlock must contain at least one block"))
 	}
 
-	blocks := make([]schemas.Block, len(rawFlattenedBlocks))
+	blocks := make([]sschemas.Block, len(rawFlattenedBlocks))
 	blockIds := make([]uuid.UUID, len(rawFlattenedBlocks))
 	for index, rawFlattenedBlock := range rawFlattenedBlocks {
-		blockType := enums.BlockType(rawFlattenedBlock.Type)
+		blockType := cenums.BlockType(rawFlattenedBlock.Type)
 		if rawFlattenedBlock.Id == uuid.Nil || !blockType.IsValidEnum() {
 			return nil, nil, 0, cexceptions.New(
 				"InvalidRoutineTaskPayload",
@@ -111,13 +108,13 @@ func FlattenArborizedBlock(
 		}
 
 		blockIds[index] = rawFlattenedBlock.Id
-		blocks[index] = schemas.Block{
+		blocks[index] = sschemas.Block{
 			Id:            rawFlattenedBlock.Id,
 			BlockPackId:   blockPackId,
 			ParentBlockId: rawFlattenedBlock.ParentBlockId,
 			PrevBlockId:   rawFlattenedBlock.PrevBlockId,
 			NextBlockId:   rawFlattenedBlock.NextBlockId,
-			Type:          enums.BlockType(rawFlattenedBlock.Type),
+			Type:          cenums.BlockType(rawFlattenedBlock.Type),
 			Props:         datatypes.JSON(rawFlattenedBlock.Props),
 			Content:       datatypes.JSON(rawFlattenedBlock.Content),
 		}
@@ -126,13 +123,13 @@ func FlattenArborizedBlock(
 }
 
 func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
-	purpose enums.RoutineTaskPurpose,
+	purpose cenums.RoutineTaskPurpose,
 	payload datatypes.JSON,
 ) *cexceptions.Exception {
 	switch purpose {
-	case enums.RoutineTaskPurpose_CreateRootShelf:
+	case cenums.RoutineTaskPurpose_CreateRootShelf:
 		var parsedPayload croutinetasktypes.CreateRootShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -152,9 +149,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_UpdateRootShelf:
+	case cenums.RoutineTaskPurpose_UpdateRootShelf:
 		var parsedPayload croutinetasktypes.UpdateRootShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -174,9 +171,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_ResetRootShelf:
+	case cenums.RoutineTaskPurpose_ResetRootShelf:
 		var parsedPayload croutinetasktypes.ResetRootShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -196,9 +193,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_CreateSubShelf:
+	case cenums.RoutineTaskPurpose_CreateSubShelf:
 		var parsedPayload croutinetasktypes.CreateSubShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -218,9 +215,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_UpdateSubShelf:
+	case cenums.RoutineTaskPurpose_UpdateSubShelf:
 		var parsedPayload croutinetasktypes.UpdateSubShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -240,9 +237,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_ResetSubShelf:
+	case cenums.RoutineTaskPurpose_ResetSubShelf:
 		var parsedPayload croutinetasktypes.ResetSubShelfRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -262,9 +259,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_CreateBlockPack:
+	case cenums.RoutineTaskPurpose_CreateBlockPack:
 		var parsedPayload croutinetasktypes.CreateBlockPackRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -295,7 +292,7 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 			return true, nil
 		}
 
-		validateBlockResults := concurrency.Execute(
+		validateBlockResults := sconcurrency.Execute(
 			validateBlockDto,
 			min(10, max(len(validateBlockDto)/10, len(validateBlockDto)%10)),
 			validateBlockFunc,
@@ -319,9 +316,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_UpdateBlockPack:
+	case cenums.RoutineTaskPurpose_UpdateBlockPack:
 		var parsedPayload croutinetasktypes.UpdateBlockPackRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -371,9 +368,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_ResetBlockPack:
+	case cenums.RoutineTaskPurpose_ResetBlockPack:
 		var parsedPayload croutinetasktypes.ResetBlockPackRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -393,9 +390,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_CreateRoutine:
+	case cenums.RoutineTaskPurpose_CreateRoutine:
 		var parsedPayload croutinetasktypes.CreateRoutineRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -415,9 +412,9 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		}
 		return nil
 
-	case enums.RoutineTaskPurpose_UpdateRoutine:
+	case cenums.RoutineTaskPurpose_UpdateRoutine:
 		var parsedPayload croutinetasktypes.UpdateRoutineRoutineTaskPayload
-		if err := jsonpayload.Decode(payload, &parsedPayload); err != nil {
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",
@@ -462,7 +459,7 @@ func validateArborizedEditableBlock(
 		).WithOrigin(fmt.Errorf("arborizedEditableBlock is required"))
 	}
 
-	rawFlattenedBlocks, _, err := editableblock.FlattenEditableBlock(arborizedEditableBlock)
+	rawFlattenedBlocks, _, err := seditableblock.FlattenEditableBlock(arborizedEditableBlock)
 	if err != nil {
 		return cexceptions.New(
 			"InvalidRoutineTaskPayload",

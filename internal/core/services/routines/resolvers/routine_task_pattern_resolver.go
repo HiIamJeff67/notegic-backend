@@ -9,12 +9,11 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 const (
@@ -27,8 +26,8 @@ const (
 )
 
 type RoutineTaskPatternResolverInterface interface {
-	Resolve(ctx context.Context, db *gorm.DB, task schemas.RoutineTask, actorUserId uuid.UUID, pattern croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) (map[string]string, *cexceptions.Exception)
-	ResolveMany(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, actorUserIds []uuid.UUID, patterns []croutinetasktypes.RoutineTaskPattern, allowedPermissions []enums.AccessControlPermission) ([]map[string]string, []bool, *cexceptions.Exception)
+	Resolve(ctx context.Context, db *gorm.DB, task sschemas.RoutineTask, actorUserId uuid.UUID, pattern croutinetasktypes.RoutineTaskPattern, allowedPermissions []cenums.AccessControlPermission) (map[string]string, *cexceptions.Exception)
+	ResolveMany(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, actorUserIds []uuid.UUID, patterns []croutinetasktypes.RoutineTaskPattern, allowedPermissions []cenums.AccessControlPermission) ([]map[string]string, []bool, *cexceptions.Exception)
 }
 
 type RoutineTaskPatternResolver struct {
@@ -46,15 +45,15 @@ func NewRoutineTaskPatternResolver(db *gorm.DB) RoutineTaskPatternResolverInterf
 func (r RoutineTaskPatternResolver) Resolve(
 	ctx context.Context,
 	db *gorm.DB,
-	task schemas.RoutineTask,
+	task sschemas.RoutineTask,
 	actorUserId uuid.UUID,
 	pattern croutinetasktypes.RoutineTaskPattern,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) (map[string]string, *cexceptions.Exception) {
 	values, successes, exception := r.ResolveMany(
 		ctx,
 		db,
-		[]schemas.RoutineTask{task},
+		[]sschemas.RoutineTask{task},
 		[]uuid.UUID{actorUserId},
 		[]croutinetasktypes.RoutineTaskPattern{pattern},
 		allowedPermissions,
@@ -77,10 +76,10 @@ func (r RoutineTaskPatternResolver) Resolve(
 func (r RoutineTaskPatternResolver) ResolveMany(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	actorUserIds []uuid.UUID,
 	patterns []croutinetasktypes.RoutineTaskPattern,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]map[string]string, []bool, *cexceptions.Exception) {
 	values := make([]map[string]string, len(patterns))
 	successes := make([]bool, len(patterns))

@@ -9,12 +9,11 @@ import (
 
 	"github.com/google/uuid"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/internal/durablejob/configs"
 )
@@ -32,13 +31,13 @@ func NewEngine(
 	_ durablejobconfig.Config,
 	maxWorkers ...int,
 ) *Engine {
-	initialMaxWorkers := constants.RoutineTaskEngineMaxWorkers
+	initialMaxWorkers := sconstants.RoutineTaskEngineMaxWorkers
 	if len(maxWorkers) > 0 {
 		initialMaxWorkers = min(initialMaxWorkers, maxWorkers[0])
 	}
 
 	engine := &Engine{
-		ticker:    time.NewTicker(constants.RoutineTaskEngineTickerDuration),
+		ticker:    time.NewTicker(sconstants.RoutineTaskEngineTickerDuration),
 		workerId:  uuid.New(),
 		batchSize: initialMaxWorkers,
 	}
@@ -107,8 +106,8 @@ func (e *Engine) Start(
 		if shouldRequest {
 			if err := requestRoutineTasks(workerCtx, request); err != nil {
 				e.isHealthy.Store(false)
-				if logs.NotegicLogger != nil {
-					logs.NotegicLogger.Error(workerCtx, err, "Failed to publish routine task claim request")
+				if slogs.NotegicLogger != nil {
+					slogs.NotegicLogger.Error(workerCtx, err, "Failed to publish routine task claim request")
 				}
 			}
 		}
@@ -123,8 +122,8 @@ func (e *Engine) Start(
 				}
 				if err := requestRoutineTasks(workerCtx, request); err != nil {
 					e.isHealthy.Store(false)
-					if logs.NotegicLogger != nil {
-						logs.NotegicLogger.Error(workerCtx, err, "Failed to publish routine task claim request")
+					if slogs.NotegicLogger != nil {
+						slogs.NotegicLogger.Error(workerCtx, err, "Failed to publish routine task claim request")
 					}
 					continue
 				}

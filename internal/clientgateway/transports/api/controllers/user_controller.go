@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
+
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
 )
@@ -30,7 +30,7 @@ func (c *UserController) GetUserData(ctx *gin.Context, requestDto *capi.GetUserD
 		ctx, c.coreAdapter, requestDto, capi.GetUserDataOperation, "/core/v1/users/data",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeClientResponse(ctx, response.Data)
@@ -41,7 +41,7 @@ func (c *UserController) GetMe(ctx *gin.Context, requestDto *capi.GetMeRequestDt
 		ctx, c.coreAdapter, requestDto, capi.GetMeOperation, "/core/v1/users/me",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeClientResponse(ctx, response.Data)
@@ -52,7 +52,7 @@ func (c *UserController) UpdateMe(ctx *gin.Context, requestDto *capi.UpdateMeReq
 		ctx, c.coreAdapter, requestDto, capi.UpdateMeOperation, "/core/v1/users/me/update",
 	)
 	if exception != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
 	writeClientResponse(ctx, response.Data)

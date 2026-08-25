@@ -11,18 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
 func MultipartMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		form, err := ctx.MultipartForm()
 		if err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"InvalidMultipartForm",
 				"Multipart",
 				"Bind",
@@ -51,8 +50,8 @@ func MultipartMiddleware() gin.HandlerFunc {
 
 		for _, fileHeadersSlice := range form.File {
 			for _, fileHeader := range fileHeadersSlice {
-				if fileHeader.Size > constants.MaxNonVideoFileSize.ToInt64() {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+				if fileHeader.Size > sconstants.MaxNonVideoFileSize.ToInt64() {
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FileTooLarge",
 						"Multipart",
 						"Bind",

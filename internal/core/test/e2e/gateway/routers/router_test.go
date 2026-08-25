@@ -9,11 +9,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
 	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
 	cstations "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	corerouters "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/routers"
 )

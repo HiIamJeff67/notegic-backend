@@ -2,28 +2,26 @@ package user
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserInfoServiceInterface interface {
@@ -38,14 +36,14 @@ type UserInfoServiceInterface interface {
 type UserInfoService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
-	userInfoRepository  repositories.UserInfoRepositoryInterface
+	userInfoRepository  srepositories.UserInfoRepositoryInterface
 	userDataCacheClient *userdata.UserDataCacheClient
 }
 
 func NewUserInfoService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	userInfoRepository repositories.UserInfoRepositoryInterface,
+	userInfoRepository srepositories.UserInfoRepositoryInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
 ) UserInfoServiceInterface {
 	if db == nil {
@@ -81,7 +79,7 @@ func (s *UserInfoService) GetMyInfo(
 
 	userInfo, exception := s.userInfoRepository.GetOneByUserId(
 		actorUserId,
-		options.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithDB(s.db.WithContext(ctx)),
 	)
 	if exception != nil {
 		return nil, exception
@@ -121,17 +119,17 @@ func (s *UserInfoService) UpdateMyInfo(
 	if exception != nil {
 		return nil, exception
 	}
-	var gender *enums.UserGender
+	var gender *cenums.UserGender
 	if requestDto.Body.Values.Gender != nil {
-		parsedGender, err := enums.ConvertStringToUserGender(*requestDto.Body.Values.Gender)
+		parsedGender, err := cenums.ConvertStringToUserGender(*requestDto.Body.Values.Gender)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("UserInfo").WithOrigin(err)
 		}
 		gender = parsedGender
 	}
-	var country *enums.Country
+	var country *cenums.Country
 	if requestDto.Body.Values.Country != nil {
-		parsedCountry, err := enums.ConvertStringToCountry(*requestDto.Body.Values.Country)
+		parsedCountry, err := cenums.ConvertStringToCountry(*requestDto.Body.Values.Country)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("UserInfo").WithOrigin(err)
 		}
@@ -140,8 +138,8 @@ func (s *UserInfoService) UpdateMyInfo(
 
 	updatedUserInfo, exception := s.userInfoRepository.UpdateOneByUserId(
 		actorUserId,
-		inputs.PartialUpdateUserInfoInput{
-			Values: inputs.UpdateUserInfoInput{
+		sinputs.PartialUpdateUserInfoInput{
+			Values: sinputs.UpdateUserInfoInput{
 				CoverBackgroundURL: requestDto.Body.Values.CoverBackgroundURL,
 				AvatarURL:          requestDto.Body.Values.AvatarURL,
 				Header:             requestDto.Body.Values.Header,
@@ -152,13 +150,13 @@ func (s *UserInfoService) UpdateMyInfo(
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(s.db.WithContext(ctx)),
+		srepositories.WithDB(s.db.WithContext(ctx)),
 	)
 	if exception != nil {
 		return nil, exception
 	}
 
-	var user schemas.User
+	var user sschemas.User
 	if result := s.db.WithContext(ctx).
 		Select("name").
 		Where("id = ?", actorUserId).
@@ -175,8 +173,8 @@ func (s *UserInfoService) UpdateMyInfo(
 	exception = s.userDataCacheClient.Update(user.Name, cacheinputs.UpdateUserDataCacheInput{
 		AvatarURL: requestDto.Body.Values.AvatarURL,
 	})
-	if exception != nil && logs.NotegicLogger != nil {
-		logs.NotegicLogger.Error(
+	if exception != nil && slogs.NotegicLogger != nil {
+		slogs.NotegicLogger.Error(
 			ctx,
 			exception.Origin(),
 			exception.String(),
@@ -197,8 +195,8 @@ func (s *UserInfoService) GetPublicUserInfoByUserPublicId(
 ) (*cgqlmodels.PublicUserInfo, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
-	userInfo := schemas.UserInfo{}
-	result := db.Model(&schemas.UserInfo{}).
+	userInfo := sschemas.UserInfo{}
+	result := db.Model(&sschemas.UserInfo{}).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = "UserInfoTable".user_id`).
 		Where("u.public_id = ?", publicId).
 		First(&userInfo)
@@ -237,10 +235,10 @@ func (s *UserInfoService) GetPublicUserInfosByUserPublicIds(
 	}
 
 	var userInfosWithPublicUserIds []*struct {
-		schemas.UserInfo
+		sschemas.UserInfo
 		UserPublicId uuid.UUID `gorm:"column:user_public_id"`
 	}
-	result := db.Model(&schemas.UserInfo{}).
+	result := db.Model(&sschemas.UserInfo{}).
 		Select(`"UserInfoTable".*, u.public_id AS user_public_id`).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = "UserInfoTable".user_id`).
 		Where("u.public_id IN ?", uniquePublicIds).

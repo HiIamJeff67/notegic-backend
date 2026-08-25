@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type BlockPackYjsDocument struct {
@@ -26,10 +26,10 @@ type BlockPackYjsDocument struct {
 }
 
 func (BlockPackYjsDocument) TableName() string {
-	return platformpostgres.TableName_BlockPackYjsDocumentTable.String()
+	return postgres.TableName_BlockPackYjsDocumentTable.String()
 }
 
-type BlockPackYjsDocumentRelation platformpostgres.RelationName
+type BlockPackYjsDocumentRelation postgres.RelationName
 
 const (
 	BlockPackYjsDocumentRelation_BlockPack BlockPackYjsDocumentRelation = "BlockPack"

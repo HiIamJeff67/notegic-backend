@@ -14,9 +14,10 @@ import (
 	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres/repositories"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+
 	notificationexceptions "github.com/HiIamJeff67/notegic-backend/internal/notification/exceptions"
 )
 
@@ -46,12 +47,12 @@ type NotificationServiceInterface interface {
 }
 
 type NotificationService struct {
-	repository repositories.NotificationRepository
+	repository srepositories.NotificationRepository
 	validator  *validator.Validate
 }
 
 func NewNotificationService(
-	repository repositories.NotificationRepository,
+	repository srepositories.NotificationRepository,
 	notificationValidator *validator.Validate,
 ) NotificationServiceInterface {
 	return &NotificationService{
@@ -148,9 +149,9 @@ func (s *NotificationService) SearchPrivateNotifications(
 		limit = 50
 	}
 
-	var cursor *searchcursor.SearchCursor[cnotifications.SearchNotificationCursorFields]
+	var cursor *ssearchcursor.SearchCursor[cnotifications.SearchNotificationCursorFields]
 	if request.After != nil && strings.TrimSpace(*request.After) != "" {
-		decodedCursor, err := searchcursor.Decode[cnotifications.SearchNotificationCursorFields](*request.After)
+		decodedCursor, err := ssearchcursor.Decode[cnotifications.SearchNotificationCursorFields](*request.After)
 		if err != nil {
 			return nil, notificationexceptions.NewRequestException("Notification").InvalidSearchRequest(err)
 		}
@@ -212,7 +213,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 			DeletedAt:             notification.DeletedAt,
 			ExpiresAt:             notification.ExpiresAt,
 		}
-		encodedCursor, err := searchcursor.EncodeFromData(cnotifications.SearchNotificationCursorFields{
+		encodedCursor, err := ssearchcursor.EncodeFromData(cnotifications.SearchNotificationCursorFields{
 			CreatedAt: notification.CreatedAt,
 			Id:        notification.Id,
 		})

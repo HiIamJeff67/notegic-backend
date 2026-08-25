@@ -6,10 +6,9 @@ import (
 	"github.com/google/uuid"
 
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type RootShelf struct {
@@ -31,11 +30,11 @@ type RootShelf struct {
 
 // Shelf Table Name
 func (RootShelf) TableName() string {
-	return platformpostgres.TableName_RootShelfTable.String()
+	return postgres.TableName_RootShelfTable.String()
 }
 
 // Shelf Table Relations
-type RootShelfRelation platformpostgres.RelationName
+type RootShelfRelation postgres.RelationName
 
 const (
 	RootShelfRelation_SubShelves          RootShelfRelation = "SubShelves"
@@ -46,7 +45,7 @@ const (
 
 /* ============================== Relative Type Conversion ============================== */
 
-func (rs *RootShelf) ToPrivateRootShelf(permission enums.AccessControlPermission) *cgqlmodels.PrivateRootShelf {
+func (rs *RootShelf) ToPrivateRootShelf(permission cenums.AccessControlPermission) *cgqlmodels.PrivateRootShelf {
 	itemIds := make([]uuid.UUID, len(rs.Items))
 	for index, item := range rs.Items {
 		itemIds[index] = item.Id

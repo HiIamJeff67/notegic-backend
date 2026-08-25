@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	types "github.com/HiIamJeff67/notegic-backend/contracts/types"
 	"gorm.io/gorm"
+
+	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 )
@@ -117,7 +118,7 @@ func MigrateTablesToDatabase(db *gorm.DB, migratingTables []any) error {
 
 // Migrate applies only the manifest for the requested runtime. Database
 // permissions remain a separate deployment concern.
-func Migrate(db *gorm.DB, runtime types.Runtime, manifest MigrationManifest) error {
+func Migrate(db *gorm.DB, runtime ctypes.Runtime, manifest MigrationManifest) error {
 	if !manifest.IsFor(runtime) {
 		return fmt.Errorf("runtime %q cannot migrate manifest for runtime %q", runtime, manifest.Runtime)
 	}

@@ -8,12 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -43,7 +42,7 @@ func NewRoutineTaskBinder() RoutineTaskBinderInterface { return &RoutineTaskBind
 
 func bindRoutineTaskJSON[T any](ctx *gin.Context, requestDto *T, body any, controllerFunc controllers.Func[*T]) {
 	if err := ctx.ShouldBindJSON(body); err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTask").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("RoutineTask").WithOrigin(err), ctx)
 		return
 	}
 	controllerFunc(ctx, requestDto)
@@ -52,7 +51,7 @@ func bindRoutineTaskJSON[T any](ctx *gin.Context, requestDto *T, body any, contr
 func parseRoutineTaskUUID(ctx *gin.Context, name string) (uuid.UUID, bool) {
 	value, err := uuid.Parse(ctx.Param(name))
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 		return uuid.Nil, false
 	}
 	return value, true
@@ -64,28 +63,28 @@ func parseRoutineTaskBool(ctx *gin.Context, name string) (*bool, bool) {
 	}
 	value, err := strconv.ParseBool(valueString)
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 		return nil, false
 	}
 	return &value, true
 }
-func parseRoutineTaskPermission(ctx *gin.Context) (enums.AccessControlPermission, bool) {
-	permission := enums.AccessControlPermission(ctx.Query("permission"))
+func parseRoutineTaskPermission(ctx *gin.Context) (cenums.AccessControlPermission, bool) {
+	permission := cenums.AccessControlPermission(ctx.Query("permission"))
 	switch permission {
-	case enums.AccessControlPermission_Read,
-		enums.AccessControlPermission_Write,
-		enums.AccessControlPermission_Admin,
-		enums.AccessControlPermission_Owner:
+	case cenums.AccessControlPermission_Read,
+		cenums.AccessControlPermission_Write,
+		cenums.AccessControlPermission_Admin,
+		cenums.AccessControlPermission_Owner:
 		return permission, true
 	default:
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask"), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask"), ctx)
 		return "", false
 	}
 }
 func parseRoutineTaskTime(ctx *gin.Context, name string) (time.Time, bool) {
 	value, err := time.Parse(time.RFC3339, ctx.Query(name))
 	if err != nil {
-		exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 		return time.Time{}, false
 	}
 	return value, true
@@ -130,7 +129,7 @@ func (b *RoutineTaskBinder) BindGetAllMyRoutineTasksByRoutineIds(controllerFunc 
 		for index, value := range routineIdValues {
 			parsed, err := uuid.Parse(value)
 			if err != nil {
-				exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
+				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
 				return
 			}
 			requestDto.Param.RoutineIds[index] = parsed

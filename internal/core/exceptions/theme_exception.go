@@ -7,11 +7,11 @@ import (
 )
 
 type ThemeException struct {
-	CoreException
+	Exception
 }
 
 func NewThemeException() ThemeException {
-	return ThemeException{CoreException: NewCoreException("Theme")}
+	return ThemeException{Exception: NewException("Theme")}
 }
 
 func (ThemeException) NotFound() *cexceptions.Exception {

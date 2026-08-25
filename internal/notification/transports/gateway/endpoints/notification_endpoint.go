@@ -11,6 +11,7 @@ import (
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"

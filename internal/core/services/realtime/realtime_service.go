@@ -10,20 +10,19 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
 	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RealtimeServiceInterface interface {
@@ -34,13 +33,13 @@ type RealtimeServiceInterface interface {
 type RealtimeService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
-	blockPackRepository repositories.BlockPackRepositoryInterface
+	blockPackRepository srepositories.BlockPackRepositoryInterface
 }
 
 func NewRealtimeService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	blockPackRepository repositories.BlockPackRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) RealtimeServiceInterface {
 	return &RealtimeService{
 		validator:           validator,
@@ -56,9 +55,9 @@ func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, 
 	if exception != nil {
 		return uuid.Nil, exception
 	}
-	var user schemas.User
+	var user sschemas.User
 	result := s.db.WithContext(ctx).
-		Model(&schemas.User{}).
+		Model(&sschemas.User{}).
 		Select("public_id").
 		Where("id = ?", actorUserId).
 		First(&user)
@@ -98,7 +97,7 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 	userAgentHash := sha256.Sum256([]byte(requestDto.Header.UserAgent))
 	connectionClaims := sharedtokens.RealtimeConnectionTicketClaims{
 		UserAgentHash:           fmt.Sprintf("%x", userAgentHash),
-		RealtimeProtocolVersion: constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion: sconstants.RealtimeProtocolVersion,
 	}
 	connectionClaims.Subject = userPublicId.String()
 	connectionTicket, expiresAt, err := sharedtokens.GenerateRealtimeConnectionTicket(connectionClaims)
@@ -115,7 +114,7 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 
 	return &capi.CreateMyRealtimeConnectionTicketResponseDto{
 		RealtimeEndpoint:        "/" + crealtimegateway.RealtimeDevelopmentBaseURL,
-		RealtimeProtocolVersion: constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion: sconstants.RealtimeProtocolVersion,
 		ConnectionTicket:        *connectionTicket,
 		ExpiresAt:               expiresAt,
 	}, nil
@@ -137,7 +136,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 
 	db := s.db.WithContext(ctx)
 
-	permission := enums.ChannelPermission(requestDto.Body.Permission)
+	permission := cenums.ChannelPermission(requestDto.Body.Permission)
 	sharedAllowedPermissions := permission.AllowedAccessControlPermissions()
 	if len(sharedAllowedPermissions) == 0 {
 		return nil, cexceptions.New(
@@ -148,9 +147,9 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 			http.StatusBadRequest,
 		)
 	}
-	allowedPermissions := make([]enums.AccessControlPermission, len(sharedAllowedPermissions))
+	allowedPermissions := make([]cenums.AccessControlPermission, len(sharedAllowedPermissions))
 	for index, sharedAllowedPermission := range sharedAllowedPermissions {
-		allowedPermissions[index] = enums.AccessControlPermission(sharedAllowedPermission)
+		allowedPermissions[index] = cenums.AccessControlPermission(sharedAllowedPermission)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -166,15 +165,15 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return nil, exception
 	}
 
-	var yjsDocument schemas.BlockPackYjsDocument
+	var yjsDocument sschemas.BlockPackYjsDocument
 	result := db.
 		Where("block_pack_id = ?", blockPack.Id).
 		Where("deleted_at IS NULL").
@@ -194,7 +193,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		MaximumBlockCount  int32
 	}
 	result = db.
-		Model(&schemas.BlockPack{}).
+		Model(&sschemas.BlockPack{}).
 		Select(`
 			"PlanLimitationTable".max_realtime_room_subscriber_count AS maximum_subscribers,
 			"PlanLimitationTable".max_block_count_per_block_pack AS maximum_block_count
@@ -233,7 +232,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		ChannelType:                      "BlockPack",
 		ChannelId:                        blockPack.Id.String(),
 		Permission:                       string(permission),
-		RealtimeProtocolVersion:          constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion:          sconstants.RealtimeProtocolVersion,
 		SchemaVersion:                    cyjsworker.YjsBlockPackSchemaVersion,
 		RoomAdmissionPolicyVersion:       crealtimegateway.BlockPackRoomAdmissionPolicyVersion,
 		RoomAdmissionEnforcementStrategy: string(crealtimegateway.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
@@ -264,7 +263,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 		FragmentName:               cyjsworker.YjsBlockPackFragmentName,
 		SchemaId:                   cyjsworker.YjsBlockPackSchemaId,
 		SchemaVersion:              cyjsworker.YjsBlockPackSchemaVersion,
-		RealtimeProtocolVersion:    constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion:    sconstants.RealtimeProtocolVersion,
 		DocumentQuotaPolicyVersion: cyjsworker.BlockPackDocumentQuotaPolicyVersion,
 		MaximumBlockCount:          roomPolicy.MaximumBlockCount,
 		LastUpdateSequence:         yjsDocument.LastUpdateSequence,

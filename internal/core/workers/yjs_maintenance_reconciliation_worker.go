@@ -9,11 +9,10 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type YjsMaintenanceReconciliationWorkerInterface interface {
@@ -23,12 +22,12 @@ type YjsMaintenanceReconciliationWorkerInterface interface {
 
 type YjsMaintenanceReconciliationWorker struct {
 	db                    *gorm.DB
-	outboxEventRepository repositories.OutboxEventRepositoryInterface
+	outboxEventRepository srepositories.OutboxEventRepositoryInterface
 }
 
 func NewYjsMaintenanceReconciliationWorker(
 	db *gorm.DB,
-	outboxEventRepository repositories.OutboxEventRepositoryInterface,
+	outboxEventRepository srepositories.OutboxEventRepositoryInterface,
 ) YjsMaintenanceReconciliationWorkerInterface {
 	return &YjsMaintenanceReconciliationWorker{
 		db:                    db,
@@ -51,8 +50,8 @@ func (w *YjsMaintenanceReconciliationWorker) Start(ctx context.Context) func() {
 
 	go func() {
 		defer close(done)
-		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
+		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
 		}
 
 		ticker := time.NewTicker(yjsMaintenanceReconciliationInterval)
@@ -62,8 +61,8 @@ func (w *YjsMaintenanceReconciliationWorker) Start(ctx context.Context) func() {
 			case <-workerCtx.Done():
 				return
 			case <-ticker.C:
-				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-					logs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
+				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+					slogs.NotegicLogger.Error(workerCtx, err, "Yjs maintenance reconciliation failed")
 				}
 			}
 		}
@@ -80,7 +79,7 @@ func (w *YjsMaintenanceReconciliationWorker) Reconcile(ctx context.Context) erro
 		return errors.New("Yjs maintenance reconciliation dependencies are required")
 	}
 
-	var documents []schemas.BlockPackYjsDocument
+	var documents []sschemas.BlockPackYjsDocument
 	result := w.db.WithContext(ctx).
 		Select("id, block_pack_id, last_update_sequence, compacted_until_sequence, projected_until_sequence, last_compacted_at, snapshot, state_vector").
 		Where("deleted_at IS NULL").
@@ -93,13 +92,13 @@ func (w *YjsMaintenanceReconciliationWorker) Reconcile(ctx context.Context) erro
 		return fmt.Errorf("load stale Yjs documents: %w", result.Error)
 	}
 	if len(documents) == 0 {
-		if metrics.NotegicMeter != nil {
-			metrics.NotegicMeter.Value(ctx, "yjs.maintenance.reconciliation.stale_documents", 0)
+		if smetrics.NotegicMeter != nil {
+			smetrics.NotegicMeter.Value(ctx, "yjs.maintenance.reconciliation.stale_documents", 0)
 		}
 		return nil
 	}
-	if metrics.NotegicMeter != nil {
-		metrics.NotegicMeter.Value(ctx, "yjs.maintenance.reconciliation.stale_documents", int64(len(documents)))
+	if smetrics.NotegicMeter != nil {
+		smetrics.NotegicMeter.Value(ctx, "yjs.maintenance.reconciliation.stale_documents", int64(len(documents)))
 	}
 
 	tx := w.db.WithContext(ctx).Begin()
@@ -122,8 +121,8 @@ func (w *YjsMaintenanceReconciliationWorker) Reconcile(ctx context.Context) erro
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("commit Yjs maintenance reconciliation transaction: %w", err)
 	}
-	if metrics.NotegicMeter != nil {
-		metrics.NotegicMeter.Count(ctx, "yjs.maintenance.reconciliation.hints_enqueued", int64(len(documents)))
+	if smetrics.NotegicMeter != nil {
+		smetrics.NotegicMeter.Count(ctx, "yjs.maintenance.reconciliation.hints_enqueued", int64(len(documents)))
 	}
 
 	return nil

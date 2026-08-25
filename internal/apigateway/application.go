@@ -11,8 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	gatewayconfig "github.com/HiIamJeff67/notegic-backend/internal/apigateway/configs"
 	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/apigateway/data/redis/ratelimitrecord"
@@ -33,11 +33,11 @@ type ApplicationInterface interface {
 	IsHealthy() bool
 	IsReady() bool
 	loadConfig() gatewayconfig.Config
-	loadRedisConfig() platformredis.Config
+	loadRedisConfig() sredis.Config
 	initializeObservability() func()
-	initializeRateLimiter(gatewayconfig.Config, *platformredis.ClientSet, func()) *ratelimit.HybridRateLimiter
-	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *platformredis.ClientSet, func()) *gin.Engine
-	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *platformredis.ClientSet, func()) func()
+	initializeRateLimiter(gatewayconfig.Config, *sredis.ClientSet, func()) *ratelimit.HybridRateLimiter
+	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) *gin.Engine
+	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) func()
 }
 
 func NewApplication() *Application {
@@ -60,8 +60,8 @@ func (a *Application) loadConfig() gatewayconfig.Config {
 	return config
 }
 
-func (a *Application) loadRedisConfig() platformredis.Config {
-	redisConfig, err := platformredis.LoadConfig()
+func (a *Application) loadRedisConfig() sredis.Config {
+	redisConfig, err := sredis.LoadConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -69,16 +69,16 @@ func (a *Application) loadRedisConfig() platformredis.Config {
 }
 
 func (a *Application) initializeObservability() func() {
-	return observability.Initialize(
+	return sobservability.Initialize(
 		context.Background(),
-		observability.LoadConfig("notegic-api-gateway"),
+		sobservability.LoadConfig("notegic-api-gateway"),
 	)
 
 }
 
 func (a *Application) initializeRateLimiter(
 	config gatewayconfig.Config,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) *ratelimit.HybridRateLimiter {
 	rateLimitRecordCacheStore := ratelimitrecord.Register(context.Background(), redisClientSet)
@@ -96,7 +96,7 @@ func (a *Application) initializeRateLimiter(
 func (a *Application) buildRouter(
 	config gatewayconfig.Config,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) *gin.Engine {
 	router := developmentroutes.NewRouter(developmentroutes.APIRouteDependencies{
@@ -119,7 +119,7 @@ func (a *Application) startHTTP(
 	config gatewayconfig.Config,
 	router *gin.Engine,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) func() {
 	listener, err := net.Listen("tcp", config.ListenAddress)
@@ -162,7 +162,7 @@ func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
 	config := a.loadConfig()
 	redisConfig := a.loadRedisConfig()
-	redisClientSet, err := platformredis.NewClientSet(redisConfig)
+	redisClientSet, err := sredis.NewClientSet(redisConfig)
 	if err != nil {
 		shutdownObservability()
 		panic(err)

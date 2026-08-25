@@ -1,11 +1,11 @@
 package exceptions
 
 type MaterialException struct {
-	CoreException
+	Exception
 }
 
 func NewMaterialException() MaterialException {
 	return MaterialException{
-		CoreException: NewCoreException("Material"),
+		Exception: NewException("Material"),
 	}
 }

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
-func LoadPostgresConfig() (platformpostgres.Config, error) {
+func LoadPostgresConfig() (spostgres.Config, error) {
 	return loadPostgresConfig()
 }
 
-func loadPostgresConfig() (platformpostgres.Config, error) {
-	config, err := platformpostgres.LoadConfig(
+func loadPostgresConfig() (spostgres.Config, error) {
+	config, err := spostgres.LoadConfig(
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
@@ -20,7 +20,7 @@ func loadPostgresConfig() (platformpostgres.Config, error) {
 		os.Getenv("DOCKER_DB_PORT"),
 	)
 	if err != nil {
-		return platformpostgres.Config{}, fmt.Errorf("Core PostgreSQL config requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT: %w", err)
+		return spostgres.Config{}, fmt.Errorf("Core PostgreSQL config requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT: %w", err)
 	}
 	return config, nil
 }

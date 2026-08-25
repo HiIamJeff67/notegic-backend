@@ -9,9 +9,9 @@ import (
 
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
 	validation "github.com/HiIamJeff67/notegic-backend/internal/durablejob/validations"
 )
 
@@ -29,7 +29,7 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             enums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
 		Payload:             payload,
 		Attempt:             1,
 		ScheduledAt:         time.Now().UTC(),
@@ -61,7 +61,7 @@ func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             enums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
 		Payload:             []byte("{"),
 	}
 
@@ -86,7 +86,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 					ClientId: uuid.NewString(),
 					ArborizedEditableBlock: cblocknote.ArborizedEditableBlock{
 						Id:   uuid.New(),
-						Type: enums.BlockType_Paragraph,
+						Type: cenums.BlockType_Paragraph,
 						Props: &cblocknote.BaseProps{
 							Template: true,
 						},
@@ -108,7 +108,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             enums.RoutineTaskPurpose_CreateBlockPack,
+		Purpose:             cenums.RoutineTaskPurpose_CreateBlockPack,
 		Payload:             payload,
 		PatternValues:       map[string]string{"date1": "2026-08-13"},
 	})

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -14,25 +13,24 @@ import (
 	pg "github.com/lib/pq"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
+	blockpacksql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/block_pack"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
-	blockpacksql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/sqls/block_pack"
 )
 
 type BlockPackServiceInterface interface {
@@ -58,17 +56,17 @@ type BlockPackServiceInterface interface {
 type BlockPackService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
-	blockPackScope      scopes.BlockPackScopeInterface
-	subShelfRepository  repositories.SubShelfRepositoryInterface
-	blockPackRepository repositories.BlockPackRepositoryInterface
+	blockPackScope      sscopes.BlockPackScopeInterface
+	subShelfRepository  srepositories.SubShelfRepositoryInterface
+	blockPackRepository srepositories.BlockPackRepositoryInterface
 }
 
 func NewBlockPackService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	blockPackScope scopes.BlockPackScopeInterface,
-	subShelfRepository repositories.SubShelfRepositoryInterface,
-	blockPackRepository repositories.BlockPackRepositoryInterface,
+	blockPackScope sscopes.BlockPackScopeInterface,
+	subShelfRepository srepositories.SubShelfRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) BlockPackServiceInterface {
 	return &BlockPackService{
 		validator:           validator,
@@ -99,23 +97,23 @@ func (s *BlockPackService) GetMyBlockPackById(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	blockPack, exception := s.blockPackRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.BlockPackId,
 		actorUserId,
-		[]schemas.BlockPackRelation{schemas.BlockPackRelation_YjsDocument},
+		[]sschemas.BlockPackRelation{sschemas.BlockPackRelation_YjsDocument},
 		allowedPermissions,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithOnlyDeleted(onlyDeleted),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithOnlyDeleted(onlyDeleted),
 	)
 	if exception != nil {
 		return nil, exception
@@ -160,17 +158,17 @@ func (s *BlockPackService) GetMyBlockPackAndItsParentById(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.IsDeleted != nil {
 		if *requestDto.Param.IsDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	resDto := capi.GetMyBlockPackAndItsParentByIdResponseDto{}
-	var parentSubShelfPath types.UUIDArray
+	var parentSubShelfPath stypes.UUIDArray
 	err := db.Raw(blockpacksql.GetMyBlockPackAndItsParentByIdSQL,
 		requestDto.Param.BlockPackId, actorUserId, pg.Array(allowedPermissions), onlyDeleted,
 	).Row().
@@ -200,8 +198,8 @@ func (s *BlockPackService) GetMyBlockPackAndItsParentById(
 			return nil, apiexceptions.NewBlockPackException().NotFound().WithOrigin(err)
 		}
 
-		if logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(ctx, err, "Failed to scan BlockPack and its parent response")
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to scan BlockPack and its parent response")
 		}
 
 		return nil, cexceptions.New(
@@ -236,17 +234,17 @@ func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	resDto := capi.GetMyBlockPacksByParentSubShelfIdResponseDto{}
-	result := db.Model(&schemas.BlockPack{}).
+	result := db.Model(&sschemas.BlockPack{}).
 		Select(`
 			"BlockPackTable".*,
 			COALESCE(ydoc.last_update_sequence, 0) AS last_update_sequence,
@@ -261,7 +259,7 @@ func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
 			requestDto.Param.ParentSubShelfId,
 			actorUserId,
 			allowedPermissions,
-		).Scopes(scopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
 		Order("name ASC").
 		Limit(int(data.MaxBlockPackOfSubShelf)).
 		Scan(&resDto)
@@ -290,17 +288,17 @@ func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Neutral
+	onlyDeleted := stypes.Ternary_Neutral
 	if requestDto.Param.AreDeleted != nil {
 		if *requestDto.Param.AreDeleted {
-			onlyDeleted = types.Ternary_Positive
+			onlyDeleted = stypes.Ternary_Positive
 		} else {
-			onlyDeleted = types.Ternary_Negative
+			onlyDeleted = stypes.Ternary_Negative
 		}
 	}
 
 	resDto := capi.GetAllMyBlockPacksByRootShelfIdResponseDto{}
-	result := db.Model(&schemas.BlockPack{}).
+	result := db.Model(&sschemas.BlockPack{}).
 		Select(`
 			"BlockPackTable".*,
 			COALESCE(ydoc.last_update_sequence, 0) AS last_update_sequence,
@@ -313,7 +311,7 @@ func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
 		Joins(`LEFT JOIN "UsersToShelvesTable" uts ON ss.root_shelf_id = uts.root_shelf_id`).
 		Where("ss.root_shelf_id = ? AND uts.user_id = ? AND uts.permission IN ?",
 			requestDto.Param.RootShelfId, actorUserId, allowedPermissions,
-		).Scopes(scopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
+		).Scopes(sscopes.NewBlockPackScope().FilterOnlyDeleted(onlyDeleted)).
 		Limit(int(data.MaxBlockPackOfRootShelf)).
 		Order("name ASC").
 		Scan(&resDto)
@@ -345,27 +343,27 @@ func (s *BlockPackService) CreateBlockPack(
 	newBlockPackId, exception := s.blockPackRepository.CreateOneBySubShelfId(
 		requestDto.Body.ParentSubShelfId,
 		actorUserId,
-		inputs.CreateBlockPackInput{
+		sinputs.CreateBlockPackInput{
 			Id:                  requestDto.Body.Id,
 			Name:                requestDto.Body.Name,
 			Icon:                requestDto.Body.Icon,
 			HeaderBackgroundURL: requestDto.Body.HeaderBackgroundURL,
 		},
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	document := schemas.BlockPackYjsDocument{BlockPackId: *newBlockPackId}
+	document := sschemas.BlockPackYjsDocument{BlockPackId: *newBlockPackId}
 	if err := tx.Create(&document).Error; err != nil {
 		tx.Rollback()
 		return nil, apiexceptions.NewBlockPackException().FailedToCreate().WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueYjsMaintenanceHint(
+	if err := srepositories.NewOutboxEventRepository().EnqueueYjsMaintenanceHint(
 		tx,
 		uuid.NewString(),
 		*newBlockPackId,
@@ -404,9 +402,9 @@ func (s *BlockPackService) CreateBlockPacks(
 
 	tx := s.db.WithContext(ctx).Begin()
 
-	input := make([]inputs.CreateBlockPackBySubShelfIdInput, len(requestDto.Body.CreatedBlockPacks))
+	input := make([]sinputs.CreateBlockPackBySubShelfIdInput, len(requestDto.Body.CreatedBlockPacks))
 	for index, createdBlockPack := range requestDto.Body.CreatedBlockPacks {
-		input[index] = inputs.CreateBlockPackBySubShelfIdInput{
+		input[index] = sinputs.CreateBlockPackBySubShelfIdInput{
 			Id:                  createdBlockPack.Id,
 			ParentSubShelfId:    createdBlockPack.ParentSubShelfId,
 			Name:                createdBlockPack.Name,
@@ -417,25 +415,25 @@ func (s *BlockPackService) CreateBlockPacks(
 	newBlockPackIds, exception := s.blockPackRepository.CreateManyBySubShelfIds(
 		actorUserId,
 		input,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
 
-	documents := make([]schemas.BlockPackYjsDocument, len(newBlockPackIds))
+	documents := make([]sschemas.BlockPackYjsDocument, len(newBlockPackIds))
 	for index, newBlockPackId := range newBlockPackIds {
-		documents[index] = schemas.BlockPackYjsDocument{BlockPackId: newBlockPackId}
+		documents[index] = sschemas.BlockPackYjsDocument{BlockPackId: newBlockPackId}
 	}
-	if err := tx.CreateInBatches(&documents, constants.MaxBatchCreateBlockSize).Error; err != nil {
+	if err := tx.CreateInBatches(&documents, sconstants.MaxBatchCreateBlockSize).Error; err != nil {
 		tx.Rollback()
 
 		return nil, apiexceptions.NewBlockPackException().FailedToCreate().WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueManyYjsMaintenanceHints(
+	if err := srepositories.NewOutboxEventRepository().EnqueueManyYjsMaintenanceHints(
 		tx,
 		uuid.NewString(),
 		newBlockPackIds,
@@ -483,22 +481,22 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 	blockPack, exception := s.blockPackRepository.UpdateOneById(
 		requestDto.Param.BlockPackId,
 		actorUserId,
-		inputs.PartialUpdateBlockPackInput{
-			Values: inputs.UpdateBlockPackInput{
+		sinputs.PartialUpdateBlockPackInput{
+			Values: sinputs.UpdateBlockPackInput{
 				Name:                requestDto.Body.Values.Name,
 				Icon:                requestDto.Body.Values.Icon,
 				HeaderBackgroundURL: requestDto.Body.Values.HeaderBackgroundURL,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
 		tx,
 		requestDto.Param.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Param.BlockPackId},
@@ -538,12 +536,12 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateBlockPackByIdInput, len(requestDto.Body.UpdatedBlockPacks))
+	input := make([]sinputs.UpdateBlockPackByIdInput, len(requestDto.Body.UpdatedBlockPacks))
 	for index, updatedBlockPack := range requestDto.Body.UpdatedBlockPacks {
-		input[index] = inputs.UpdateBlockPackByIdInput{
+		input[index] = sinputs.UpdateBlockPackByIdInput{
 			Id: updatedBlockPack.BlockPackId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateBlockPackInput]{
-				Values: inputs.UpdateBlockPackInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateBlockPackInput]{
+				Values: sinputs.UpdateBlockPackInput{
 					Name:                updatedBlockPack.Values.Name,
 					Icon:                updatedBlockPack.Values.Icon,
 					HeaderBackgroundURL: updatedBlockPack.Values.HeaderBackgroundURL,
@@ -554,8 +552,8 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 	exception = s.blockPackRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -565,7 +563,7 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 	for index, updatedBlockPack := range requestDto.Body.UpdatedBlockPacks {
 		blockPackIds[index] = updatedBlockPack.BlockPackId
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
 		tx,
 		"block-pack-bulk-update",
 		blockPackIds,
@@ -613,20 +611,20 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 	_, exception = s.blockPackRepository.UpdateOneById(
 		requestDto.Body.BlockPackId,
 		actorUserId,
-		inputs.PartialUpdateBlockPackInput{
-			Values: inputs.UpdateBlockPackInput{
+		sinputs.PartialUpdateBlockPackInput{
+			Values: sinputs.UpdateBlockPackInput{
 				ParentSubShelfId: &requestDto.Body.DestinationParentSubShelfId,
 			},
 			SetNull: nil,
 		},
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Body.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Body.BlockPackId},
@@ -643,7 +641,7 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
 		tx,
 		requestDto.Body.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Body.BlockPackId},
@@ -691,12 +689,12 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateBlockPackByIdInput, len(requestDto.Body.BlockPackIds))
+	input := make([]sinputs.UpdateBlockPackByIdInput, len(requestDto.Body.BlockPackIds))
 	for index, blockPackId := range requestDto.Body.BlockPackIds {
-		input[index] = inputs.UpdateBlockPackByIdInput{
+		input[index] = sinputs.UpdateBlockPackByIdInput{
 			Id: blockPackId,
-			PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateBlockPackInput]{
-				Values: inputs.UpdateBlockPackInput{
+			PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateBlockPackInput]{
+				Values: sinputs.UpdateBlockPackInput{
 					ParentSubShelfId: &requestDto.Body.DestinationParentSubShelfId,
 				},
 			},
@@ -716,14 +714,14 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 	exception = s.blockPackRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"block-pack-bulk-move",
 		requestDto.Body.BlockPackIds,
@@ -740,7 +738,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackChanged(
 		tx,
 		"block-pack-bulk-move",
 		requestDto.Body.BlockPackIds,
@@ -788,13 +786,13 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 		return nil, exception
 	}
 
-	input := make([]inputs.UpdateBlockPackByIdInput, 0)
+	input := make([]sinputs.UpdateBlockPackByIdInput, 0)
 	for _, movedBlockPack := range requestDto.Body.MovedBlockPacks {
 		for _, blockPackId := range movedBlockPack.BlockPackIds {
-			input = append(input, inputs.UpdateBlockPackByIdInput{
+			input = append(input, sinputs.UpdateBlockPackByIdInput{
 				Id: blockPackId,
-				PartialUpdateInput: inputs.PartialUpdateInput[inputs.UpdateBlockPackInput]{
-					Values: inputs.UpdateBlockPackInput{
+				PartialUpdateInput: sinputs.PartialUpdateInput[sinputs.UpdateBlockPackInput]{
+					Values: sinputs.UpdateBlockPackInput{
 						ParentSubShelfId: &movedBlockPack.DestinationParentSubShelfId,
 					},
 				},
@@ -816,8 +814,8 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 	if exception = s.blockPackRepository.UpdateManyByIds(
 		actorUserId,
 		input,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -826,7 +824,7 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 	for index, movedBlockPack := range input {
 		blockPackIds[index] = movedBlockPack.Id
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"block-pack-multi-parent-move",
 		blockPackIds,
@@ -880,8 +878,8 @@ func (s *BlockPackService) RestoreMyBlockPackById(
 	restoredBlockPack, exception := s.blockPackRepository.RestoreSoftDeletedOneById(
 		requestDto.Param.BlockPackId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -920,8 +918,8 @@ func (s *BlockPackService) RestoreMyBlockPacksByIds(
 	restoredBlockPacks, exception := s.blockPackRepository.RestoreSoftDeletedManyByIds(
 		requestDto.Body.BlockPackIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -975,13 +973,13 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 	if exception = s.blockPackRepository.SoftDeleteOneById(
 		requestDto.Param.BlockPackId,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Param.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Param.BlockPackId},
@@ -998,7 +996,7 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackDeleted(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackDeleted(
 		tx,
 		requestDto.Param.BlockPackId.String(),
 		[]uuid.UUID{requestDto.Param.BlockPackId},
@@ -1060,13 +1058,13 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 	if exception = s.blockPackRepository.SoftDeleteManyByIds(
 		requestDto.Body.BlockPackIds,
 		actorUserId,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
 		tx,
 		"block-pack-bulk-delete",
 		requestDto.Body.BlockPackIds,
@@ -1083,7 +1081,7 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 			true,
 		).WithOrigin(err)
 	}
-	if err := repositories.NewOutboxEventRepository().EnqueueBlockPackDeleted(
+	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackDeleted(
 		tx,
 		"block-pack-bulk-delete",
 		requestDto.Body.BlockPackIds,
@@ -1128,12 +1126,12 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 		return nil, exception
 	}
 
-	onlyDeleted := types.Ternary_Negative
+	onlyDeleted := stypes.Ternary_Negative
 	if gqlInput.IsDeletedAt != nil && *gqlInput.IsDeletedAt {
-		onlyDeleted = types.Ternary_Positive
+		onlyDeleted = stypes.Ternary_Positive
 	}
 
-	query := db.Model(&schemas.BlockPack{}).
+	query := db.Model(&sschemas.BlockPack{}).
 		Select(`"BlockPackTable".*`).
 		Joins(`INNER JOIN "SubShelfTable" ss ON ss.id = "BlockPackTable".parent_sub_shelf_id`).
 		Joins(`INNER JOIN "UsersToShelvesTable" uts ON uts.root_shelf_id = ss.root_shelf_id`).
@@ -1155,7 +1153,7 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchBlockPackCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchBlockPackCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1194,17 +1192,17 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var blockPacks []schemas.BlockPack
+	var blockPacks []sschemas.BlockPack
 	if err := query.Scopes(s.blockPackScope.IncludePreloads(
-		[]schemas.BlockPackRelation{
-			schemas.BlockPackRelation_Blocks,
+		[]sschemas.BlockPackRelation{
+			sschemas.BlockPackRelation_Blocks,
 		},
 	)).Find(&blockPacks).Error; err != nil {
 		return nil, apiexceptions.NewBlockPackException().NotFound().WithOrigin(err)
@@ -1214,7 +1212,7 @@ func (s *BlockPackService) SearchPrivateBlockPacks(
 	searchEdges := make([]*cgqlmodels.SearchBlockPackEdge, len(blockPacks))
 
 	for index, blockPack := range blockPacks {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchBlockPackCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchBlockPackCursorFields]{
 			Fields: cgqlmodels.SearchBlockPackCursorFields{
 				ID: blockPack.Id,
 			},

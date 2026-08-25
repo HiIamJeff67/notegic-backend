@@ -7,11 +7,11 @@ import (
 )
 
 type BadgeException struct {
-	CoreException
+	Exception
 }
 
 func NewBadgeException() BadgeException {
-	return BadgeException{CoreException: NewCoreException("Badge")}
+	return BadgeException{Exception: NewException("Badge")}
 }
 
 func (BadgeException) NotFound() *cexceptions.Exception {

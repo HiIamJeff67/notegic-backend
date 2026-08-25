@@ -32,7 +32,7 @@ contracts/types/exceptions.Exception
 - Gateway／RealtimeGateway 的 transport boundary 才負責 `ToPublic()`、HTTP status 與 response body。
 - Kafka consumer／producer 以穩定的 schema error、transient error、retryable 欄位傳遞失敗，不將 Go error 或 HTTP status 序列化進 event。
 - Runtime-local helper methods 使用 `WithOrigin(err)` 保留原始 cause，讓 owner runtime 的 logger 與測試可以取得診斷資訊。
-- Runtime-local exception package 遵循 Core 的 domain factory pattern：一個 owned domain 一個檔案，使用 `New<Runtime>Exception(domain)` 建立可注入的 helper instance，再呼叫 named methods；每個 named method 回傳 shared `*exceptions.Exception`。不建立 package-level domain instance，也不建立通用的 `New(reason, ...)` 或 `errors.go`。
+- Runtime-local exception package 遵循 domain factory pattern：一個 owned domain 一個檔案，使用 `New<Domain>Exception()` 建立 domain helper；`exception.go` 內的 runtime-local 基底使用 `NewException(domain)` 建立，再呼叫 named methods。每個 named method 回傳 shared `*exceptions.Exception`。不建立 package-level domain instance，也不建立通用的 `New(reason, ...)` 或 `errors.go`。Repository exception 僅屬於 `shared/platform/postgres/repositories/exceptions/`，runtime exception 不得依賴它。
 - 當同一 runtime domain 同時涵蓋 renderer、delivery、payload、request 等不同責任時，`exception.go` 只保留 helper 基底，其餘 named methods 應依責任拆到對應檔案。
 
 ## 測試

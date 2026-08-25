@@ -8,11 +8,10 @@ import (
 
 	"gorm.io/gorm"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 type QuotaCycleWorkerInterface interface {
@@ -23,13 +22,13 @@ type QuotaCycleWorkerInterface interface {
 type QuotaCycleWorker struct {
 	db                  *gorm.DB
 	config              coreconfig.QuotaCycleWorkerConfig
-	userQuotaRepository repositories.UserQuotaRepositoryInterface
+	userQuotaRepository srepositories.UserQuotaRepositoryInterface
 }
 
 func NewQuotaCycleWorker(
 	db *gorm.DB,
 	config coreconfig.QuotaCycleWorkerConfig,
-	userQuotaRepository repositories.UserQuotaRepositoryInterface,
+	userQuotaRepository srepositories.UserQuotaRepositoryInterface,
 ) QuotaCycleWorkerInterface {
 	return &QuotaCycleWorker{
 		db:                  db,
@@ -44,8 +43,8 @@ func (w *QuotaCycleWorker) Start(ctx context.Context) func() {
 
 	go func() {
 		defer close(done)
-		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
+		if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
 		}
 
 		ticker := time.NewTicker(w.config.Interval)
@@ -55,8 +54,8 @@ func (w *QuotaCycleWorker) Start(ctx context.Context) func() {
 			case <-workerCtx.Done():
 				return
 			case <-ticker.C:
-				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && logs.NotegicLogger != nil {
-					logs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
+				if err := w.Reconcile(workerCtx); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+					slogs.NotegicLogger.Error(workerCtx, err, "User quota cycle reconciliation failed")
 				}
 			}
 		}
@@ -82,7 +81,7 @@ func (w *QuotaCycleWorker) Reconcile(ctx context.Context) error {
 	if exception := w.userQuotaRepository.InitializeMissing(
 		ctx,
 		now,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return fmt.Errorf("initialize missing user quotas: %w", exception)
@@ -91,7 +90,7 @@ func (w *QuotaCycleWorker) Reconcile(ctx context.Context) error {
 	if _, exception := w.userQuotaRepository.ResetDue(
 		ctx,
 		now,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	); exception != nil {
 		tx.Rollback()
 		return fmt.Errorf("reset due user quotas: %w", exception)

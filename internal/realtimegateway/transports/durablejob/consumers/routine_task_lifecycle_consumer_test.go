@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 
 	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	realtimelease "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 )
@@ -34,10 +34,10 @@ func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *te
 
 	leaseStore := realtimelease.NewRealtimeLeaseCacheClient(
 		realtimelease.NewRealtimeLeaseCacheStore(
-			platformredis.NewClientSetFromClients(redisClient),
+			sredis.NewClientSetFromClients(redisClient),
 		),
 	)
-	consumer := NewRoutineTaskLifecycleConsumer(leaseStore, platformkafka.ConsumerConfig{})
+	consumer := NewRoutineTaskLifecycleConsumer(leaseStore, skafka.ConsumerConfig{})
 	received := make(chan realtimelease.RoutineTaskLifecycleEvent, 1)
 	shutdown, err := leaseStore.SubscribeRoutineTaskLifecycleEvents(func(event realtimelease.RoutineTaskLifecycleEvent) {
 		received <- event
@@ -52,7 +52,7 @@ func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *te
 		RoutineTaskRecordId: uuid.New(),
 		RoutineId:           uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             enums.RoutineTaskPurpose_CreateBlockPack,
+		Purpose:             cenums.RoutineTaskPurpose_CreateBlockPack,
 		Attempt:             1,
 		StartedAt:           time.Now().UTC(),
 	}
@@ -63,7 +63,7 @@ func TestRoutineTaskLifecycleConsumerPublishesRunningTaskToRealtimeGateway(t *te
 
 	if err := consumer.consume(
 		context.Background(),
-		platformkafka.ConsumerRecord{},
+		skafka.ConsumerRecord{},
 		cevent.EventEnvelope[json.RawMessage]{
 			EventId:       uuid.New(),
 			EventType:     cdurablejobevents.EventType_RoutineTaskRunning,

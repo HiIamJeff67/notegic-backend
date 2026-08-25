@@ -5,16 +5,16 @@ import (
 
 	"github.com/google/uuid"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type RoutinesToItems struct {
-	RoutineId uuid.UUID      `json:"routineId" gorm:"column:routine_id; type:uuid; primaryKey;"`
-	ItemId    uuid.UUID      `json:"itemId" gorm:"column:item_id; type:uuid; primaryKey;"`
-	ItemType  enums.ItemType `json:"itemType" gorm:"column:type; type:\"ItemType\"; primaryKey;"`
-	CreatedAt time.Time      `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
+	RoutineId uuid.UUID       `json:"routineId" gorm:"column:routine_id; type:uuid; primaryKey;"`
+	ItemId    uuid.UUID       `json:"itemId" gorm:"column:item_id; type:uuid; primaryKey;"`
+	ItemType  cenums.ItemType `json:"itemType" gorm:"column:type; type:\"ItemType\"; primaryKey;"`
+	CreatedAt time.Time       `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
 	// relations
 	Routine Routine `json:"routine" gorm:"foreignKey:RoutineId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
@@ -23,11 +23,11 @@ type RoutinesToItems struct {
 
 // RoutinesToItems Table Name
 func (RoutinesToItems) TableName() string {
-	return platformpostgres.TableName_RoutinesToItemsTable.String()
+	return postgres.TableName_RoutinesToItemsTable.String()
 }
 
 // RoutinesToItems Table Relations
-type RoutinesToItemsRelation platformpostgres.RelationName
+type RoutinesToItemsRelation postgres.RelationName
 
 const (
 	RoutinesToItemsRelation_Routine RoutinesToItemsRelation = "Routine"

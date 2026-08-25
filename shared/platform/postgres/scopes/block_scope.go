@@ -4,13 +4,14 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type BlockScopeInterface interface {
-	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
-	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
+	PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB
 	IncludePreloads(preloads []schemas.BlockRelation) func(db *gorm.DB) *gorm.DB
 }
 
@@ -20,7 +21,7 @@ func NewBlockScope() BlockScopeInterface {
 	return &BlockScope{}
 }
 
-func (sc *BlockScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (sc *BlockScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where(`"BlockTable".id = ?`, id)
@@ -39,7 +40,7 @@ func (sc *BlockScope) PassPermissionCheck(id uuid.UUID, userId uuid.UUID, permis
 	}
 }
 
-func (sc *BlockScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []enums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
+func (sc *BlockScope) PassPermissionChecks(ids []uuid.UUID, userId uuid.UUID, permissions []cenums.AccessControlPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if permissions == nil {
 			return db.Where(`"BlockTable".id IN ?`, ids)

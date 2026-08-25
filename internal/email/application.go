@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 
 	emailconfig "github.com/HiIamJeff67/notegic-backend/internal/email/configs"
 	renderers "github.com/HiIamJeff67/notegic-backend/internal/email/renderers"
@@ -55,9 +55,9 @@ func (a *Application) loadConfig() emailconfig.Config {
 }
 
 func (a *Application) initializeObservability() func() {
-	return observability.Initialize(
+	return sobservability.Initialize(
 		context.Background(),
-		observability.LoadConfig("notegic-email"),
+		sobservability.LoadConfig("notegic-email"),
 	)
 }
 
@@ -130,7 +130,7 @@ func (a *Application) startHTTP(
 	}()
 
 	return func() {
-		// Drain email work after HTTP traffic has stopped, then release observability.
+		// Drain email work after HTTP traffic has stopped, then release sobservability.
 		a.ready.Store(false)
 		a.healthy.Store(false)
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

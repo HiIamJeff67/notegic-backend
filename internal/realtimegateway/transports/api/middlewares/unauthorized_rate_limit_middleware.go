@@ -10,9 +10,8 @@ import (
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/ratelimit"
 )
@@ -20,7 +19,7 @@ import (
 func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if rateLimiter == nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"RateLimiterRequired",
 				"RealtimeGateway",
 				"RateLimit",
@@ -35,8 +34,8 @@ func UnauthorizedRateLimitMiddleware(rateLimiter *ratelimit.HybridRateLimiter) g
 		allowed, remaining := rateLimiter.AllowByFingerprint(fingerprint)
 		if !allowed {
 			setRateLimitHeaders(ctx, remaining, rateLimiter)
-			logs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for fingerprint: %s", fingerprint))
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+			slogs.NotegicLogger.Debug(ctx.Request.Context(), fmt.Sprintf("Rate limit exceeded for fingerprint: %s", fingerprint))
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 				"PermissionDeniedDueToTooManyRequests",
 				"RealtimeGateway",
 				"Authorize",

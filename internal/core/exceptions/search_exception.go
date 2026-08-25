@@ -7,11 +7,11 @@ import (
 )
 
 type SearchException struct {
-	CoreException
+	Exception
 }
 
 func NewSearchException() SearchException {
-	return SearchException{CoreException: NewCoreException("Search")}
+	return SearchException{Exception: NewException("Search")}
 }
 
 func (SearchException) FailedToDecode() *cexceptions.Exception {

@@ -9,12 +9,12 @@ import (
 )
 
 type RoutineException struct {
-	CoreException
+	Exception
 }
 
 func NewRoutineException() RoutineException {
 	return RoutineException{
-		CoreException: NewCoreException("Routine"),
+		Exception: NewException("Routine"),
 	}
 }
 

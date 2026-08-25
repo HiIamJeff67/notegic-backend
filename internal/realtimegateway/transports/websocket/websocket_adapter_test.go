@@ -21,14 +21,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	realtimeleasecache "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease"
 	realtimetypes "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/types"
@@ -61,7 +60,7 @@ func generateRealtimeConnectionTicket(userPublicId uuid.UUID, userAgent string) 
 	userAgentHash := sha256.Sum256([]byte(userAgent))
 	claims := sharedtokens.RealtimeConnectionTicketClaims{
 		UserAgentHash:           fmt.Sprintf("%x", userAgentHash),
-		RealtimeProtocolVersion: constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion: sconstants.RealtimeProtocolVersion,
 	}
 	claims.Subject = userPublicId.String()
 
@@ -98,7 +97,7 @@ func generateRealtimeBlockPackTicketWithMaximumSubscribers(
 		ChannelType:                      string(realtimetypes.ChannelType_BlockPack),
 		ChannelId:                        blockPackId.String(),
 		Permission:                       string(permission),
-		RealtimeProtocolVersion:          constants.RealtimeProtocolVersion,
+		RealtimeProtocolVersion:          sconstants.RealtimeProtocolVersion,
 		SchemaVersion:                    cyjsworker.YjsBlockPackSchemaVersion,
 		RoomAdmissionPolicyVersion:       crealtimegateway.BlockPackRoomAdmissionPolicyVersion,
 		RoomAdmissionEnforcementStrategy: string(crealtimegateway.RoomAdmissionEnforcementStrategy_RejectNewSubscriber),
@@ -152,7 +151,7 @@ func newTestRealtimeLeaseStore(t *testing.T) *realtimeleasecache.RealtimeLeaseCa
 		_ = redisClient.Close()
 	})
 
-	clientSet := platformredis.NewClientSetFromClients(redisClient)
+	clientSet := sredis.NewClientSetFromClients(redisClient)
 	cacheStore := realtimeleasecache.NewRealtimeLeaseCacheStore(clientSet)
 	return realtimeleasecache.NewRealtimeLeaseCacheClient(cacheStore)
 }
@@ -237,14 +236,14 @@ func TestGatewaySendsReadyAndPong(t *testing.T) {
 	if err := connection.ReadJSON(&ready); err != nil {
 		t.Fatalf("failed to read ready frame: %v", err)
 	}
-	if ready.Version != constants.RealtimeProtocolVersion ||
+	if ready.Version != sconstants.RealtimeProtocolVersion ||
 		ready.Type != realtimetypes.FrameType_Ready ||
 		ready.ConnectionId == "" {
 		t.Fatalf("unexpected ready frame: %#v", ready)
 	}
 
 	if err := connection.WriteJSON(realtimetypes.ControlFrame{
-		Version:   constants.RealtimeProtocolVersion,
+		Version:   sconstants.RealtimeProtocolVersion,
 		Type:      realtimetypes.FrameType_Ping,
 		RequestId: "request-1",
 	}); err != nil {
@@ -255,7 +254,7 @@ func TestGatewaySendsReadyAndPong(t *testing.T) {
 	if err := connection.ReadJSON(&pong); err != nil {
 		t.Fatalf("failed to read pong frame: %v", err)
 	}
-	if pong.Version != constants.RealtimeProtocolVersion ||
+	if pong.Version != sconstants.RealtimeProtocolVersion ||
 		pong.Type != realtimetypes.FrameType_Pong ||
 		pong.RequestId != "request-1" {
 		t.Fatalf("unexpected pong frame: %#v", pong)
@@ -494,7 +493,7 @@ func TestGatewayRejectsBlockPackSubscriptionWhenRoomCapacityIsReached(t *testing
 	}
 
 	if err := firstConnection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:       constants.RealtimeProtocolVersion,
+		Version:       sconstants.RealtimeProtocolVersion,
 		Type:          realtimetypes.FrameType_Subscribe,
 		RequestId:     "subscribe-first",
 		ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -515,7 +514,7 @@ func TestGatewayRejectsBlockPackSubscriptionWhenRoomCapacityIsReached(t *testing
 	}
 
 	if err := secondConnection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:       constants.RealtimeProtocolVersion,
+		Version:       sconstants.RealtimeProtocolVersion,
 		Type:          realtimetypes.FrameType_Subscribe,
 		RequestId:     "subscribe-second",
 		ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -544,7 +543,7 @@ func TestGatewayRejectsBlockPackSubscriptionWhenRoomCapacityIsReached(t *testing
 	}
 
 	if err := firstConnection.WriteJSON(realtimetypes.UnsubscribeFrame{
-		Version:            constants.RealtimeProtocolVersion,
+		Version:            sconstants.RealtimeProtocolVersion,
 		Type:               realtimetypes.FrameType_Unsubscribe,
 		RequestId:          "unsubscribe-first",
 		ConnectorChannelId: subscribed.ConnectorChannelId,
@@ -558,7 +557,7 @@ func TestGatewayRejectsBlockPackSubscriptionWhenRoomCapacityIsReached(t *testing
 	}
 
 	if err := secondConnection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:       constants.RealtimeProtocolVersion,
+		Version:       sconstants.RealtimeProtocolVersion,
 		Type:          realtimetypes.FrameType_Subscribe,
 		RequestId:     "subscribe-second-after-release",
 		ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -616,7 +615,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 
 	unsupportedChannelId := uuid.New()
 	if err := connection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:     constants.RealtimeProtocolVersion,
+		Version:     sconstants.RealtimeProtocolVersion,
 		Type:        realtimetypes.FrameType_Subscribe,
 		RequestId:   "subscribe-unsupported",
 		ChannelType: realtimetypes.ChannelType("Unsupported"),
@@ -654,7 +653,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 
 	for _, subscribe := range []realtimetypes.SubscribeFrame{
 		{
-			Version:       constants.RealtimeProtocolVersion,
+			Version:       sconstants.RealtimeProtocolVersion,
 			Type:          realtimetypes.FrameType_Subscribe,
 			RequestId:     "subscribe-first",
 			ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -662,7 +661,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 			ChannelTicket: channelTickets[firstBlockPackId],
 		},
 		{
-			Version:       constants.RealtimeProtocolVersion,
+			Version:       sconstants.RealtimeProtocolVersion,
 			Type:          realtimetypes.FrameType_Subscribe,
 			RequestId:     "subscribe-second",
 			ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -711,7 +710,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 	}
 
 	if err := connection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:       constants.RealtimeProtocolVersion,
+		Version:       sconstants.RealtimeProtocolVersion,
 		Type:          realtimetypes.FrameType_Subscribe,
 		RequestId:     "subscribe-first-again",
 		ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -730,7 +729,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 	}
 
 	binaryPayload, err := realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               realtimetypes.BinaryFrameType_YjsDocument,
 		ConnectorChannelId: firstSubscribed.ConnectorChannelId,
 		Payload:            []byte{1, 2, 3},
@@ -762,7 +761,7 @@ func TestGatewayMultiplexesAndRelaysBlockPackChannels(t *testing.T) {
 	}
 
 	if err := connection.WriteJSON(realtimetypes.UnsubscribeFrame{
-		Version:            constants.RealtimeProtocolVersion,
+		Version:            sconstants.RealtimeProtocolVersion,
 		Type:               realtimetypes.FrameType_Unsubscribe,
 		RequestId:          "unsubscribe-second",
 		ConnectorChannelId: secondSubscribed.ConnectorChannelId,
@@ -831,7 +830,7 @@ func TestGatewayRejectsYjsDocumentUpdatesOnReadOnlyChannels(t *testing.T) {
 	}
 
 	if err := connection.WriteJSON(realtimetypes.SubscribeFrame{
-		Version:       constants.RealtimeProtocolVersion,
+		Version:       sconstants.RealtimeProtocolVersion,
 		Type:          realtimetypes.FrameType_Subscribe,
 		RequestId:     "subscribe-read",
 		ChannelType:   realtimetypes.ChannelType_BlockPack,
@@ -847,7 +846,7 @@ func TestGatewayRejectsYjsDocumentUpdatesOnReadOnlyChannels(t *testing.T) {
 	}
 
 	binaryPayload, err := realtimetypes.BinaryFrame{
-		Version:            byte(constants.RealtimeProtocolVersion),
+		Version:            byte(sconstants.RealtimeProtocolVersion),
 		Type:               realtimetypes.BinaryFrameType_YjsDocument,
 		ConnectorChannelId: subscribed.ConnectorChannelId,
 		Payload:            []byte{1, 2, 3},

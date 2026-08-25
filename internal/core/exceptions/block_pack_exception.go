@@ -10,12 +10,12 @@ import (
 )
 
 type BlockPackException struct {
-	CoreException
+	Exception
 }
 
 func NewBlockPackException() BlockPackException {
 	return BlockPackException{
-		CoreException: NewCoreException("BlockPack"),
+		Exception: NewException("BlockPack"),
 	}
 }
 

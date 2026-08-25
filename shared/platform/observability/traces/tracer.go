@@ -3,10 +3,11 @@ package traces
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"strings"
 )
 
 type TracerInterface interface {

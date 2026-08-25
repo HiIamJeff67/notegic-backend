@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 )
 
 /* ============================== Interface & Constructor ============================== */
@@ -66,19 +66,19 @@ func (s *inMemoryStorage) GenerateETag(data []byte) string {
 }
 
 func (s *inMemoryStorage) NewObject(key string, reader io.Reader, size int64) (*Object, error) {
-	if size > constants.MaxInMemoryStorageFileSize.ToInt64() {
-		return nil, fmt.Errorf("object size %d exceeds limit %d", size, constants.MaxInMemoryStorageFileSize.ToInt64())
+	if size > sconstants.MaxInMemoryStorageFileSize.ToInt64() {
+		return nil, fmt.Errorf("object size %d exceeds limit %d", size, sconstants.MaxInMemoryStorageFileSize.ToInt64())
 	}
 
-	limitReader := io.LimitReader(reader, constants.MaxInMemoryStorageFileSize.ToInt64()+1)
+	limitReader := io.LimitReader(reader, sconstants.MaxInMemoryStorageFileSize.ToInt64()+1)
 	b, err := io.ReadAll(limitReader)
 	if err != nil {
 		return nil, fmt.Errorf("read object bytes: %w", err)
 	}
 
 	actualSize := int64(len(b))
-	if actualSize > constants.MaxInMemoryStorageFileSize.ToInt64() {
-		return nil, fmt.Errorf("object size %d exceeds limit %d", actualSize, constants.MaxInMemoryStorageFileSize.ToInt64())
+	if actualSize > sconstants.MaxInMemoryStorageFileSize.ToInt64() {
+		return nil, fmt.Errorf("object size %d exceeds limit %d", actualSize, sconstants.MaxInMemoryStorageFileSize.ToInt64())
 	}
 
 	contentTypes := strings.Split(http.DetectContentType(b), "; ")

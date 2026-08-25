@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
 	stdlog "log"
 	"log/slog"
 	"os"
 	"strings"
 
 	colog "github.com/comail/colog"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type CommandLineInterfaceLogger struct {

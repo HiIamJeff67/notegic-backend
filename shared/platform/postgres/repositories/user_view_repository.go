@@ -1,12 +1,12 @@
 package repositories
 
 import (
-	"net/http"
-
 	"gorm.io/gorm"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	inputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
+
+	exceptions "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/exceptions"
+	inputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
@@ -15,10 +15,17 @@ type UserViewRepositoryInterface interface {
 	GetOneByPublicId(input inputs.GetUserViewByPublicIdInput, opts RepositoryOptionFields) (*schemas.UserView, *cexceptions.Exception)
 }
 
-type UserViewRepository struct{}
+type UserViewRepository struct {
+	exceptions exceptions.UserViewException
+}
 
-func NewUserViewRepository() UserViewRepositoryInterface {
-	return &UserViewRepository{}
+func NewUserViewRepository(repositoryExceptions ...exceptions.UserViewException) UserViewRepositoryInterface {
+	repositoryException := exceptions.NewUserViewException()
+	if len(repositoryExceptions) > 0 {
+		repositoryException = repositoryExceptions[0]
+	}
+
+	return &UserViewRepository{exceptions: repositoryException}
 }
 
 func (r *UserViewRepository) GetOneByPublicId(
@@ -26,14 +33,7 @@ func (r *UserViewRepository) GetOneByPublicId(
 	parsedOptions RepositoryOptionFields,
 ) (*schemas.UserView, *cexceptions.Exception) {
 	if parsedOptions.DB == nil {
-		return nil, cexceptions.New(
-			"DatabaseUnavailable",
-			"UserView",
-			"GetOneByPublicId",
-			"A database connection is required",
-			http.StatusInternalServerError,
-			true,
-		)
+		return nil, r.exceptions.DatabaseUnavailable()
 	}
 
 	userView := schemas.UserView{}
@@ -42,16 +42,9 @@ func (r *UserViewRepository) GetOneByPublicId(
 		First(&userView)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nil, cexceptions.New("NotFound", "UserView", "GetOneByPublicId", "User view not found", http.StatusNotFound)
+			return nil, r.exceptions.NotFoundByPublicId()
 		}
-		return nil, cexceptions.New(
-			"FailedToGet",
-			"UserView",
-			"GetOneByPublicId",
-			"Failed to get user view",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(result.Error)
+		return nil, r.exceptions.FailedToGetByPublicId().WithOrigin(result.Error)
 	}
 
 	return &userView, nil

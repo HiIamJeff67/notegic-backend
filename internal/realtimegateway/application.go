@@ -11,16 +11,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	platform "github.com/HiIamJeff67/notegic-backend/shared/platform"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	crealtimegateway "github.com/HiIamJeff67/notegic-backend/contracts/realtime-gateway/v1"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
-	observability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	splatform "github.com/HiIamJeff67/notegic-backend/shared/platform"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	realtimeconfig "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/configs"
 	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord"
@@ -45,13 +44,13 @@ type ApplicationInterface interface {
 	IsHealthy() bool
 	IsReady() bool
 	loadConfig() realtimeconfig.Config
-	loadRedisConfig() platformredis.Config
-	loadKafkaConnectionConfig() platformkafka.ConnectionConfig
+	loadRedisConfig() sredis.Config
+	loadKafkaConnectionConfig() skafka.ConnectionConfig
 	initializeObservability() func()
-	initializeCaches(platformredis.Config, func()) (*platformredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter)
-	buildRouter(realtimeconfig.Config, *platformredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, func()) (*gin.Engine, *websockettransport.WebSocketAdapter)
-	initializeConsumers(realtimeconfig.Config, platformkafka.ConnectionConfig, *realtimelease.RealtimeLeaseCacheClient) func()
-	startHTTP(realtimeconfig.Config, *platformredis.ClientSet, *gin.Engine, *websockettransport.WebSocketAdapter, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, func(), func()) func()
+	initializeCaches(sredis.Config, func()) (*sredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter)
+	buildRouter(realtimeconfig.Config, *sredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, func()) (*gin.Engine, *websockettransport.WebSocketAdapter)
+	initializeConsumers(realtimeconfig.Config, skafka.ConnectionConfig, *realtimelease.RealtimeLeaseCacheClient) func()
+	startHTTP(realtimeconfig.Config, *sredis.ClientSet, *gin.Engine, *websockettransport.WebSocketAdapter, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, func(), func()) func()
 }
 
 func NewApplication() *Application {
@@ -74,16 +73,16 @@ func (a *Application) loadConfig() realtimeconfig.Config {
 	return config
 }
 
-func (a *Application) loadRedisConfig() platformredis.Config {
-	redisConfig, err := platformredis.LoadConfig()
+func (a *Application) loadRedisConfig() sredis.Config {
+	redisConfig, err := sredis.LoadConfig()
 	if err != nil {
 		panic(err)
 	}
 	return redisConfig
 }
 
-func (a *Application) loadKafkaConnectionConfig() platformkafka.ConnectionConfig {
-	kafkaConnectionConfig, err := platformkafka.LoadConnectionConfig()
+func (a *Application) loadKafkaConnectionConfig() skafka.ConnectionConfig {
+	kafkaConnectionConfig, err := skafka.LoadConnectionConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -91,17 +90,17 @@ func (a *Application) loadKafkaConnectionConfig() platformkafka.ConnectionConfig
 }
 
 func (a *Application) initializeObservability() func() {
-	return observability.Initialize(
+	return sobservability.Initialize(
 		context.Background(),
-		observability.LoadConfig("notegic-realtime-gateway"),
+		sobservability.LoadConfig("notegic-realtime-gateway"),
 	)
 }
 
 func (a *Application) initializeCaches(
-	redisConfig platformredis.Config,
+	redisConfig sredis.Config,
 	shutdownObservability func(),
-) (*platformredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter) {
-	redisClientSet, err := platformredis.NewClientSet(redisConfig)
+) (*sredis.ClientSet, *realtimelease.RealtimeLeaseCacheClient, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter) {
+	redisClientSet, err := sredis.NewClientSet(redisConfig)
 	if err != nil {
 		shutdownObservability()
 		panic(err)
@@ -129,13 +128,13 @@ func (a *Application) initializeCaches(
 
 func (a *Application) buildRouter(
 	config realtimeconfig.Config,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	realtimeLeaseClient *realtimelease.RealtimeLeaseCacheClient,
 	unauthorizedLimiter *ratelimit.HybridRateLimiter,
 	authorizedLimiter *ratelimit.HybridRateLimiter,
 	shutdownObservability func(),
 ) (*gin.Engine, *websockettransport.WebSocketAdapter) {
-	router := logs.WithGinLogger(gin.New())
+	router := slogs.WithGinLogger(gin.New())
 	if err := router.SetTrustedProxies(config.TrustedProxies); err != nil {
 		unauthorizedLimiter.Stop()
 		authorizedLimiter.Stop()
@@ -153,19 +152,19 @@ func (a *Application) buildRouter(
 		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedLimiter),
 	)
 	routes.OPTIONS("/*path", func(ctx *gin.Context) { ctx.Status(http.StatusNoContent) })
-	accessTokenCookieHandler := cookies.New(cookies.Config{
-		Name:     cookies.ValidCookieName_AccessToken,
+	accessTokenCookieHandler := scookies.New(scookies.Config{
+		Name:     scookies.ValidCookieName_AccessToken,
 		Path:     "/",
 		Duration: 30 * time.Minute,
-		Secure:   platform.CurrentEnvironment == types.Environment_Production,
+		Secure:   splatform.CurrentEnvironment == stypes.Environment_Production,
 		HTTPOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	refreshTokenCookieHandler := cookies.New(cookies.Config{
-		Name:     cookies.ValidCookieName_RefreshToken,
+	refreshTokenCookieHandler := scookies.New(scookies.Config{
+		Name:     scookies.ValidCookieName_RefreshToken,
 		Path:     "/",
 		Duration: 14 * 24 * time.Hour,
-		Secure:   platform.CurrentEnvironment == types.Environment_Production,
+		Secure:   splatform.CurrentEnvironment == stypes.Environment_Production,
 		HTTPOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -177,13 +176,13 @@ func (a *Application) buildRouter(
 
 func (a *Application) initializeConsumers(
 	config realtimeconfig.Config,
-	kafkaConnection platformkafka.ConnectionConfig,
+	kafkaConnection skafka.ConnectionConfig,
 	realtimeLeaseClient *realtimelease.RealtimeLeaseCacheClient,
 ) func() {
 	lifecycleConsumer := coreconsumers.NewLifecycleConsumer(
 		realtimeLeaseClient,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
+		skafka.ConsumerConfig{
+			ClientConfig: skafka.ClientConfig{
 				ConnectionConfig: kafkaConnection,
 				ClientId:         "notegic-realtime-gateway-lifecycle",
 			},
@@ -196,8 +195,8 @@ func (a *Application) initializeConsumers(
 	)
 	routineTaskLifecycleConsumer := durablejobconsumers.NewRoutineTaskLifecycleConsumer(
 		realtimeLeaseClient,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
+		skafka.ConsumerConfig{
+			ClientConfig: skafka.ClientConfig{
 				ConnectionConfig: kafkaConnection,
 				ClientId:         "notegic-realtime-gateway-durable-job-routine-task-lifecycle",
 			},
@@ -210,8 +209,8 @@ func (a *Application) initializeConsumers(
 	)
 	notificationConsumer := notificationconsumers.NewNotificationConsumer(
 		realtimeLeaseClient,
-		platformkafka.ConsumerConfig{
-			ClientConfig: platformkafka.ClientConfig{
+		skafka.ConsumerConfig{
+			ClientConfig: skafka.ClientConfig{
 				ConnectionConfig: kafkaConnection,
 				ClientId:         "notegic-realtime-gateway-notification",
 			},
@@ -234,7 +233,7 @@ func (a *Application) initializeConsumers(
 
 func (a *Application) startHTTP(
 	config realtimeconfig.Config,
-	redisClientSet *platformredis.ClientSet,
+	redisClientSet *sredis.ClientSet,
 	router *gin.Engine,
 	websocketAdapter *websockettransport.WebSocketAdapter,
 	unauthorizedLimiter *ratelimit.HybridRateLimiter,

@@ -9,9 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
-	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	coremiddlewares "github.com/HiIamJeff67/notegic-backend/internal/core/transports/gateway/middlewares"
 )
 

@@ -7,12 +7,11 @@ import (
 
 	"github.com/google/uuid"
 
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func WithGatewaySource(ctx context.Context, source string) context.Context {
@@ -90,7 +89,7 @@ func GetAPIKeyId(ctx context.Context) (string, *cexceptions.Exception) {
 
 func WithAllowedPermissions(
 	ctx context.Context,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) context.Context {
 	return sharedcontexts.WithValue(
 		ctx,
@@ -125,8 +124,8 @@ func WithActorUserPublicId(ctx context.Context, actorUserPublicId uuid.UUID) con
 
 func GetAllowedPermissions(
 	ctx context.Context,
-) ([]enums.AccessControlPermission, *cexceptions.Exception) {
-	allowedPermissions, err := sharedcontexts.GetValue[[]enums.AccessControlPermission](
+) ([]cenums.AccessControlPermission, *cexceptions.Exception) {
+	allowedPermissions, err := sharedcontexts.GetValue[[]cenums.AccessControlPermission](
 		ctx,
 		sharedcontexts.ContextFieldName_Allowed_Permissions,
 	)

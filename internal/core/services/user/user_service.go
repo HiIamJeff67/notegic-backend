@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -11,24 +10,22 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type UserServiceInterface interface {
@@ -45,14 +42,14 @@ type UserServiceInterface interface {
 type UserService struct {
 	validator           *validator.Validate
 	db                  *gorm.DB
-	userRepository      repositories.UserRepositoryInterface
+	userRepository      srepositories.UserRepositoryInterface
 	userDataCacheClient *userdata.UserDataCacheClient
 }
 
 func NewUserService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	userRepository repositories.UserRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
 ) UserServiceInterface {
 	if db == nil {
@@ -84,7 +81,7 @@ func (s *UserService) GetUserData(
 	if exception != nil {
 		return nil, exception
 	}
-	var user schemas.User
+	var user sschemas.User
 	if result := s.db.WithContext(ctx).Select("name").Where("id = ?", actorUserId).First(&user); result.Error != nil {
 		return nil, cexceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
 	}
@@ -127,7 +124,7 @@ func (s *UserService) GetMe(
 
 	db := s.db.WithContext(ctx)
 
-	user, exception := s.userRepository.GetOneById(actorUserId, nil, options.WithDB(db))
+	user, exception := s.userRepository.GetOneById(actorUserId, nil, srepositories.WithDB(db))
 	if exception != nil {
 		return nil, exception
 	}
@@ -161,15 +158,15 @@ func (s *UserService) UpdateMe(
 	if exception != nil {
 		return nil, exception
 	}
-	var status *enums.UserStatus
+	var status *cenums.UserStatus
 	if requestDto.Body.Values.Status != nil {
-		parsedStatus, err := enums.ConvertStringToUserStatus(*requestDto.Body.Values.Status)
+		parsedStatus, err := cenums.ConvertStringToUserStatus(*requestDto.Body.Values.Status)
 		if err != nil {
 			return nil, cexceptions.InvalidInput("User").WithOrigin(err)
 		}
 		status = parsedStatus
 	}
-	var user schemas.User
+	var user sschemas.User
 	if result := s.db.WithContext(ctx).Select("name").Where("id = ?", actorUserId).First(&user); result.Error != nil {
 		return nil, cexceptions.New("NotFound", "User", "ResolveUser", "User was not found", http.StatusNotFound).WithOrigin(result.Error)
 	}
@@ -178,14 +175,14 @@ func (s *UserService) UpdateMe(
 
 	updatedUser, exception := s.userRepository.UpdateOneById(
 		actorUserId,
-		inputs.PartialUpdateUserInput{
-			Values: inputs.UpdateUserInput{
+		sinputs.PartialUpdateUserInput{
+			Values: sinputs.UpdateUserInput{
 				DisplayName: requestDto.Body.Values.DisplayName,
 				Status:      status,
 			},
 			SetNull: requestDto.Body.SetNull,
 		},
-		options.WithDB(db),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		return nil, exception
@@ -195,8 +192,8 @@ func (s *UserService) UpdateMe(
 		exception = s.userDataCacheClient.Update(user.Name, cacheinputs.UpdateUserDataCacheInput{
 			DisplayName: requestDto.Body.Values.DisplayName,
 		})
-		if exception != nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(
+		if exception != nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(
 				ctx,
 				exception.Origin(),
 				exception.String(),
@@ -207,8 +204,8 @@ func (s *UserService) UpdateMe(
 		exception = s.userDataCacheClient.Update(user.Name, cacheinputs.UpdateUserDataCacheInput{
 			Status: status,
 		})
-		if exception != nil && logs.NotegicLogger != nil {
-			logs.NotegicLogger.Error(
+		if exception != nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(
 				ctx,
 				exception.Origin(),
 				exception.String(),
@@ -226,8 +223,8 @@ func (s *UserService) GetPublicUserByPublicId(
 ) (*cgqlmodels.PublicUser, *cexceptions.Exception) {
 	db := s.db.WithContext(ctx)
 
-	user := schemas.User{}
-	result := db.Table(schemas.User{}.TableName()).
+	user := sschemas.User{}
+	result := db.Table(sschemas.User{}.TableName()).
 		Where("public_id = ?", publicId).
 		First(&user)
 	if err := result.Error; err != nil {
@@ -265,10 +262,10 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 	}
 
 	var authorsWithPublicThemeIds []*struct {
-		schemas.User
+		sschemas.User
 		ThemePublicId uuid.UUID `gorm:"theme_public_id"`
 	}
-	result := db.Table(schemas.User{}.TableName()+" u").
+	result := db.Table(sschemas.User{}.TableName()+" u").
 		Select("u.*, t.public_id as theme_public_id").
 		Joins(`LEFT JOIN "ThemeTable" t ON t.author_id = u.id`).
 		Where("t.public_id IN ?", uniquePublicIds).
@@ -306,7 +303,7 @@ func (s *UserService) SearchPublicUsers(
 
 	db := s.db.WithContext(ctx)
 
-	query := db.Model(&schemas.User{})
+	query := db.Model(&sschemas.User{})
 
 	if len(strings.ReplaceAll(gqlInput.Query, " ", "")) > 0 {
 		query = query.Where(
@@ -316,7 +313,7 @@ func (s *UserService) SearchPublicUsers(
 	}
 	if len(gqlInput.RootShelfIds) > 0 {
 		accessibleRootShelfIds := db.Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.UsersToShelves{}).
+			Model(&sschemas.UsersToShelves{}).
 			Select(`"UsersToShelvesTable".root_shelf_id`).
 			Joins(`INNER JOIN "RootShelfTable" ON "RootShelfTable".id = "UsersToShelvesTable".root_shelf_id`).
 			Where(`"UsersToShelvesTable".user_id = ?`, userId).
@@ -324,7 +321,7 @@ func (s *UserService) SearchPublicUsers(
 			Where(`"RootShelfTable".deleted_at IS NULL`)
 
 		usersWithAccessibleRootShelf := db.Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.UsersToShelves{}).
+			Model(&sschemas.UsersToShelves{}).
 			Select("1").
 			Where(`"UsersToShelvesTable".user_id = "UserTable".id`).
 			Where(`"UsersToShelvesTable".root_shelf_id IN (?)`, accessibleRootShelfIds)
@@ -333,7 +330,7 @@ func (s *UserService) SearchPublicUsers(
 	}
 	if len(gqlInput.StationIds) > 0 {
 		accessibleStationIds := db.Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.UsersToStations{}).
+			Model(&sschemas.UsersToStations{}).
 			Select(`"UsersToStationsTable".station_id`).
 			Joins(`INNER JOIN "StationTable" ON "StationTable".id = "UsersToStationsTable".station_id`).
 			Where(`"UsersToStationsTable".user_id = ?`, userId).
@@ -341,7 +338,7 @@ func (s *UserService) SearchPublicUsers(
 			Where(`"StationTable".deleted_at IS NULL`)
 
 		usersWithAccessibleStation := db.Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.UsersToStations{}).
+			Model(&sschemas.UsersToStations{}).
 			Select("1").
 			Where(`"UsersToStationsTable".user_id = "UserTable".id`).
 			Where(`"UsersToStationsTable".station_id IN (?)`, accessibleStationIds)
@@ -350,7 +347,7 @@ func (s *UserService) SearchPublicUsers(
 	}
 	if len(gqlInput.BadgePublicIds) > 0 {
 		usersWithBadge := db.Session(&gorm.Session{NewDB: true}).
-			Model(&schemas.UsersToBadges{}).
+			Model(&sschemas.UsersToBadges{}).
 			Select("1").
 			Joins(`INNER JOIN "BadgeTable" ON "BadgeTable".id = "UsersToBadgesTable".badge_id`).
 			Where(`"UsersToBadgesTable".user_id = "UserTable".id`).
@@ -359,7 +356,7 @@ func (s *UserService) SearchPublicUsers(
 		query = query.Where("EXISTS (?)", usersWithBadge)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchUserCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchUserCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, cexceptions.New(
 				"CursorDecodeFailed",
@@ -400,14 +397,14 @@ func (s *UserService) SearchPublicUsers(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
-	var users []schemas.User
+	var users []sschemas.User
 	if err := query.Find(&users).Error; err != nil {
 		return nil, cexceptions.New(
 			"QueryFailed",
@@ -423,7 +420,7 @@ func (s *UserService) SearchPublicUsers(
 	searchEdges := make([]*cgqlmodels.SearchUserEdge, len(users))
 
 	for index, user := range users {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchUserCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchUserCursorFields]{
 			Fields: cgqlmodels.SearchUserCursorFields{
 				PublicID: user.PublicId,
 			},

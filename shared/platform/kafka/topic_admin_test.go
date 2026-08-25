@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/twmb/franz-go/pkg/kmsg"
+
 	"github.com/HiIamJeff67/notegic-backend/shared/lib/pointers"
 	kafkatopics "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka/topics"
-	"github.com/twmb/franz-go/pkg/kmsg"
 )
 
 func TestValidateTopicSpecRequiresExplicitCreationSettings(t *testing.T) {

@@ -4,17 +4,17 @@ import (
 	"context"
 	"strings"
 
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	redislibraries "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/libraries"
 )
 
 type UserDataCacheStore struct {
-	clientSet *platformredis.ClientSet
+	clientSet *sredis.ClientSet
 }
 
 func NewUserDataCacheStore(
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) *UserDataCacheStore {
 	return &UserDataCacheStore{
 		clientSet: clientSet,
@@ -23,7 +23,7 @@ func NewUserDataCacheStore(
 
 func Register(
 	ctx context.Context,
-	clientSet *platformredis.ClientSet,
+	clientSet *sredis.ClientSet,
 ) (*UserDataCacheStore, error) {
 	store := NewUserDataCacheStore(clientSet)
 	if err := store.Initialize(ctx); err != nil {
@@ -57,6 +57,6 @@ func (s *UserDataCacheStore) Initialize(_ context.Context) error {
 	return nil
 }
 
-func (s *UserDataCacheStore) ClientSet() *platformredis.ClientSet {
+func (s *UserDataCacheStore) ClientSet() *sredis.ClientSet {
 	return s.clientSet
 }

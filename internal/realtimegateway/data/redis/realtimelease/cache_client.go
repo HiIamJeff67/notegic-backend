@@ -11,9 +11,9 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 
 	redisscripts "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/realtimelease/scripts"
 )
@@ -132,9 +132,9 @@ func (s *RealtimeLeaseCacheClient) acquire(identifier string, key string, member
 		redisClient,
 		[]string{key},
 		now.UnixMilli(),
-		now.Add(constants.RealtimeLeaseTTL).UnixMilli(),
+		now.Add(sconstants.RealtimeLeaseTTL).UnixMilli(),
 		maximumMembers,
-		constants.RealtimeLeaseTTL.Milliseconds(),
+		sconstants.RealtimeLeaseTTL.Milliseconds(),
 		member,
 	).Result()
 	if err != nil {
@@ -169,8 +169,8 @@ func (s *RealtimeLeaseCacheClient) refresh(identifier string, key string, member
 		redisClient,
 		[]string{key},
 		now.UnixMilli(),
-		now.Add(constants.RealtimeLeaseTTL).UnixMilli(),
-		constants.RealtimeLeaseTTL.Milliseconds(),
+		now.Add(sconstants.RealtimeLeaseTTL).UnixMilli(),
+		sconstants.RealtimeLeaseTTL.Milliseconds(),
 		member,
 	).Result()
 	if err != nil {
@@ -591,7 +591,7 @@ func (s *RealtimeLeaseCacheClient) RefreshBlockPackSubscriber(
 	}
 
 	pipeline := redisClient.TxPipeline()
-	pipeline.PExpire(s.blockPackParticipantKey(blockPackId), constants.RealtimeLeaseTTL)
+	pipeline.PExpire(s.blockPackParticipantKey(blockPackId), sconstants.RealtimeLeaseTTL)
 	if _, err := pipeline.Exec(); err != nil {
 		return false, err
 	}
@@ -863,7 +863,7 @@ func (s *RealtimeLeaseCacheClient) SetBlockPackParticipant(
 
 	pipeline := redisClient.TxPipeline()
 	pipeline.HSet(s.blockPackParticipantKey(blockPackId), member, payload)
-	pipeline.PExpire(s.blockPackParticipantKey(blockPackId), constants.RealtimeLeaseTTL)
+	pipeline.PExpire(s.blockPackParticipantKey(blockPackId), sconstants.RealtimeLeaseTTL)
 
 	_, err = pipeline.Exec()
 

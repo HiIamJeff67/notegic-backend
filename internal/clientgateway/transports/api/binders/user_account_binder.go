@@ -3,11 +3,10 @@ package binders
 import (
 	"github.com/gin-gonic/gin"
 
+	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
-	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-accounts"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -39,7 +38,7 @@ func (b *UserAccountBinder) BindUpdateMyAccount(controllerFunc controllers.Func[
 		requestDto := &capi.UpdateMyAccountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
 			return
 		}
 
@@ -52,7 +51,7 @@ func (b *UserAccountBinder) BindBindGoogleAccount(controllerFunc controllers.Fun
 		requestDto := &capi.BindGoogleAccountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
 			return
 		}
 
@@ -65,7 +64,7 @@ func (b *UserAccountBinder) BindUnbindGoogleAccount(controllerFunc controllers.F
 		requestDto := &capi.UnbindGoogleAccountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		if err := ctx.ShouldBindJSON(&requestDto.Body); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("UserAccount").WithOrigin(err), ctx)
 			return
 		}
 

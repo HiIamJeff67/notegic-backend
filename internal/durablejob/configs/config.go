@@ -5,12 +5,12 @@ import (
 	"os"
 	"strings"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Config struct {
 	ListenAddress             string
-	Postgres                  platformpostgres.Config
+	Postgres                  spostgres.Config
 	KafkaConsumer             KafkaConsumerConfig
 	YjsDocumentInitialization YjsDocumentInitializationConfig
 }

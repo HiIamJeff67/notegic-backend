@@ -2,32 +2,31 @@ package handlers
 
 import (
 	"context"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres/repositories/inputs"
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres/repositories"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+
 	matchers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution/matchers"
 	parsers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution/parsers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution/resolvers"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type SubShelfHandlerInterface interface {
-	HandleCreateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
-	HandleUpdateSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
-	HandleResetSubShelf(ctx context.Context, db *gorm.DB, tasks []schemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []enums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleCreateSubShelf(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleUpdateSubShelf(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleResetSubShelf(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 }
 
 type SubShelfHandler struct {
@@ -35,9 +34,9 @@ type SubShelfHandler struct {
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface
-	subShelfRepository   repositories.SubShelfRepositoryInterface
-	blockPackRepository  repositories.BlockPackRepositoryInterface
-	materialRepository   repositories.MaterialRepositoryInterface
+	subShelfRepository   srepositories.SubShelfRepositoryInterface
+	blockPackRepository  srepositories.BlockPackRepositoryInterface
+	materialRepository   srepositories.MaterialRepositoryInterface
 }
 
 func NewSubShelfHandler(
@@ -60,22 +59,22 @@ func NewSubShelfHandler(
 		validator:            validatorInstance,
 		patternResolver:      patternResolver,
 		templateBlockMatcher: templateBlockMatcher,
-		subShelfRepository:   repositories.NewSubShelfRepository(scopes.NewSubShelfScope()),
-		blockPackRepository:  repositories.NewBlockPackRepository(scopes.NewBlockPackScope()),
-		materialRepository:   repositories.NewMaterialRepository(scopes.NewMaterialScope()),
+		subShelfRepository:   srepositories.NewSubShelfRepository(db, sscopes.NewSubShelfScope()),
+		blockPackRepository:  srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
+		materialRepository:   srepositories.NewMaterialRepository(db, sscopes.NewMaterialScope()),
 	}
 }
 
 func (s *SubShelfHandler) HandleCreateSubShelf(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
-	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
+	candidateTasks := make([]sschemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
 	candidatePayloads := make([]croutinetasktypes.CreateSubShelfRoutineTaskPayload, 0, len(tasks))
 	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
@@ -112,7 +111,7 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 		return successes, exception
 	}
 
-	bulkInputs := make([]inputs.BulkCreateSubShelfInput, 0, len(candidateTasks))
+	bulkInputs := make([]sinputs.BulkCreateSubShelfInput, 0, len(candidateTasks))
 	taskIndexes := make([]int, 0, len(candidateTasks))
 	for candidateIndex, payload := range candidatePayloads {
 		if !patternSuccesses[candidateIndex] {
@@ -120,7 +119,7 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 		}
 		patternValues := patternValuesByCandidate[candidateIndex]
 		name := s.templateBlockMatcher.MatchString(payload.Name, patternValues)
-		bulkInputs = append(bulkInputs, inputs.BulkCreateSubShelfInput{
+		bulkInputs = append(bulkInputs, sinputs.BulkCreateSubShelfInput{
 			UserId:         candidateActorUserIds[candidateIndex],
 			Id:             payload.Id,
 			RootShelfId:    payload.RootShelfId,
@@ -135,10 +134,10 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 
 	bulkSuccesses, exception := s.subShelfRepository.BulkCreateMany(
 		bulkInputs,
-		options.WithTransactionDB(db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return successes, exception
@@ -154,13 +153,13 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 func (s *SubShelfHandler) HandleUpdateSubShelf(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	candidateTaskIndexes := make([]int, 0, len(tasks))
-	candidateTasks := make([]schemas.RoutineTask, 0, len(tasks))
+	candidateTasks := make([]sschemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
 	candidatePayloads := make([]croutinetasktypes.UpdateSubShelfRoutineTaskPayload, 0, len(tasks))
 	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
@@ -200,7 +199,7 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 		return successes, exception
 	}
 
-	bulkInputs := make([]inputs.BulkUpdateSubShelfInput, 0, len(candidateTasks))
+	bulkInputs := make([]sinputs.BulkUpdateSubShelfInput, 0, len(candidateTasks))
 	taskIndexes := make([]int, 0, len(candidateTasks))
 	for candidateIndex, payload := range candidatePayloads {
 		if !patternSuccesses[candidateIndex] || payload.Name == nil {
@@ -208,11 +207,11 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 		}
 		patternValues := patternValuesByCandidate[candidateIndex]
 		name := s.templateBlockMatcher.MatchString(*payload.Name, patternValues)
-		bulkInputs = append(bulkInputs, inputs.BulkUpdateSubShelfInput{
+		bulkInputs = append(bulkInputs, sinputs.BulkUpdateSubShelfInput{
 			UserId: candidateActorUserIds[candidateIndex],
 			Id:     payload.SubShelfId,
-			PartialUpdateInput: inputs.PartialUpdateSubShelfInput{
-				Values: inputs.UpdateSubShelfInput{
+			PartialUpdateInput: sinputs.PartialUpdateSubShelfInput{
+				Values: sinputs.UpdateSubShelfInput{
 					Name: &name,
 				},
 			},
@@ -225,10 +224,10 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 	}
 	bulkSuccesses, exception := s.subShelfRepository.BulkUpdateMany(
 		bulkInputs,
-		options.WithTransactionDB(db.WithContext(ctx)),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-		options.WithOnlyDeleted(types.Ternary_Negative),
+		srepositories.WithTransactionDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
 		return successes, exception
@@ -244,9 +243,9 @@ func (s *SubShelfHandler) HandleUpdateSubShelf(
 func (s *SubShelfHandler) HandleResetSubShelf(
 	ctx context.Context,
 	db *gorm.DB,
-	tasks []schemas.RoutineTask,
+	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
-	allowedPermissions []enums.AccessControlPermission,
+	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
 	subShelfIds := make([]uuid.UUID, 0, len(tasks))
@@ -278,7 +277,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Id             uuid.UUID `gorm:"column:id"`
 		PrevSubShelfId uuid.UUID `gorm:"column:prev_sub_shelf_id"`
 	}
-	if err := tx.Model(&schemas.SubShelf{}).
+	if err := tx.Model(&sschemas.SubShelf{}).
 		Select("id, prev_sub_shelf_id").
 		Where("prev_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&childSubShelves).Error; err != nil {
@@ -296,7 +295,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Id               uuid.UUID `gorm:"column:id"`
 		ParentSubShelfId uuid.UUID `gorm:"column:parent_sub_shelf_id"`
 	}
-	if err := tx.Model(&schemas.BlockPack{}).
+	if err := tx.Model(&sschemas.BlockPack{}).
 		Select("id, parent_sub_shelf_id").
 		Where("parent_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&blockPacks).Error; err != nil {
@@ -314,7 +313,7 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		Id               uuid.UUID `gorm:"column:id"`
 		ParentSubShelfId uuid.UUID `gorm:"column:parent_sub_shelf_id"`
 	}
-	if err := tx.Model(&schemas.Material{}).
+	if err := tx.Model(&sschemas.Material{}).
 		Select("id, parent_sub_shelf_id").
 		Where("parent_sub_shelf_id IN ? AND deleted_at IS NULL", subShelfIds).
 		Find(&materials).Error; err != nil {
@@ -335,10 +334,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 	}
 
 	if len(childSubShelves) > 0 {
-		bulkInputs := make([]inputs.BulkDeleteSubShelfInput, 0, len(childSubShelves))
+		bulkInputs := make([]sinputs.BulkDeleteSubShelfInput, 0, len(childSubShelves))
 		taskIndexes := make([][]int, 0, len(childSubShelves))
 		for _, childSubShelf := range childSubShelves {
-			bulkInputs = append(bulkInputs, inputs.BulkDeleteSubShelfInput{
+			bulkInputs = append(bulkInputs, sinputs.BulkDeleteSubShelfInput{
 				UserId: actorUserIdBySubShelfId[childSubShelf.PrevSubShelfId],
 				Id:     childSubShelf.Id,
 			})
@@ -346,10 +345,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		}
 		bulkSuccesses, exception := s.subShelfRepository.BulkDeleteMany(
 			bulkInputs,
-			options.WithTransactionDB(tx),
-			options.WithAllowedPermissions(allowedPermissions),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-			options.WithOnlyDeleted(types.Ternary_Negative),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithAllowedPermissions(allowedPermissions),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception != nil {
 			return successes, exception
@@ -364,10 +363,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 	}
 
 	if len(blockPacks) > 0 {
-		bulkInputs := make([]inputs.BulkDeleteBlockPackInput, 0, len(blockPacks))
+		bulkInputs := make([]sinputs.BulkDeleteBlockPackInput, 0, len(blockPacks))
 		taskIndexes := make([][]int, 0, len(blockPacks))
 		for _, blockPack := range blockPacks {
-			bulkInputs = append(bulkInputs, inputs.BulkDeleteBlockPackInput{
+			bulkInputs = append(bulkInputs, sinputs.BulkDeleteBlockPackInput{
 				UserId: actorUserIdBySubShelfId[blockPack.ParentSubShelfId],
 				Id:     blockPack.Id,
 			})
@@ -375,10 +374,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		}
 		bulkSuccesses, exception := s.blockPackRepository.BulkDeleteMany(
 			bulkInputs,
-			options.WithTransactionDB(tx),
-			options.WithAllowedPermissions(allowedPermissions),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-			options.WithOnlyDeleted(types.Ternary_Negative),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithAllowedPermissions(allowedPermissions),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception != nil {
 			return successes, exception
@@ -393,10 +392,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 	}
 
 	if len(materials) > 0 {
-		bulkInputs := make([]inputs.BulkDeleteMaterialInput, 0, len(materials))
+		bulkInputs := make([]sinputs.BulkDeleteMaterialInput, 0, len(materials))
 		taskIndexes := make([][]int, 0, len(materials))
 		for _, material := range materials {
-			bulkInputs = append(bulkInputs, inputs.BulkDeleteMaterialInput{
+			bulkInputs = append(bulkInputs, sinputs.BulkDeleteMaterialInput{
 				UserId: actorUserIdBySubShelfId[material.ParentSubShelfId],
 				Id:     material.Id,
 			})
@@ -404,10 +403,10 @@ func (s *SubShelfHandler) HandleResetSubShelf(
 		}
 		bulkSuccesses, exception := s.materialRepository.BulkDeleteMany(
 			bulkInputs,
-			options.WithTransactionDB(tx),
-			options.WithAllowedPermissions(allowedPermissions),
-			options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
-			options.WithOnlyDeleted(types.Ternary_Negative),
+			srepositories.WithTransactionDB(tx),
+			srepositories.WithAllowedPermissions(allowedPermissions),
+			srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception != nil {
 			return successes, exception

@@ -12,31 +12,32 @@ import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 	redislibraries "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/libraries"
 )
 
 type UserDataCache struct {
-	Id                uuid.UUID        `json:"id"`
-	PublicId          uuid.UUID        `json:"publicId"`
-	Name              string           `json:"name"`
-	DisplayName       string           `json:"displayName"`
-	Email             string           `json:"email"`
-	AccessToken       string           `json:"accessToken"`
-	CSRFToken         string           `json:"csrfToken"`
-	PreviousCSRFToken string           `json:"previousCSRFToken,omitempty"`
-	Role              enums.UserRole   `json:"role"`
-	Plan              enums.UserPlan   `json:"plan"`
-	Status            enums.UserStatus `json:"status"`
-	AvatarURL         string           `json:"avatarURL"`
-	CreatedAt         time.Time        `json:"createdAt"`
-	UpdatedAt         time.Time        `json:"updatedAt"`
+	Id                uuid.UUID         `json:"id"`
+	PublicId          uuid.UUID         `json:"publicId"`
+	Name              string            `json:"name"`
+	DisplayName       string            `json:"displayName"`
+	Email             string            `json:"email"`
+	AccessToken       string            `json:"accessToken"`
+	CSRFToken         string            `json:"csrfToken"`
+	PreviousCSRFToken string            `json:"previousCSRFToken,omitempty"`
+	Role              cenums.UserRole   `json:"role"`
+	Plan              cenums.UserPlan   `json:"plan"`
+	Status            cenums.UserStatus `json:"status"`
+	AvatarURL         string            `json:"avatarURL"`
+	CreatedAt         time.Time         `json:"createdAt"`
+	UpdatedAt         time.Time         `json:"updatedAt"`
 }
 
 type UserDataCacheClient struct {
@@ -89,7 +90,7 @@ func (s *UserDataCacheClient) getRedisClient(identifier string) (*redis.Client, 
 }
 
 func (s *UserDataCacheClient) formatUserDataKey(identifier string) string {
-	return fmt.Sprintf("%s:%s", platformredis.CachePurpose_UserData.String(), identifier)
+	return fmt.Sprintf("%s:%s", sredis.CachePurpose_UserData.String(), identifier)
 }
 
 /* ============================== Extend Methods ============================== */
@@ -292,7 +293,7 @@ func (s *UserDataCacheClient) Get(identifier string) (*UserDataCache, *cexceptio
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached user data from server %d", serverNumber))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully got cached user data from server %d", serverNumber))
 	return &userDataCache, nil
 }
 
@@ -343,7 +344,7 @@ func (s *UserDataCacheClient) Set(identifier string, userDataCache UserDataCache
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached user data in server %d", serverNumber))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully set cached user data in server %d", serverNumber))
 	return nil
 }
 
@@ -393,7 +394,7 @@ func (s *UserDataCacheClient) Update(identifier string, input cacheinputs.Update
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully updated cached user data in server %d", serverNumber))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully updated cached user data in server %d", serverNumber))
 	return nil
 }
 
@@ -502,6 +503,6 @@ func (s *UserDataCacheClient) Delete(identifier string) *cexceptions.Exception {
 		).WithOrigin(err)
 	}
 
-	logs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached user data from server %d", serverNumber))
+	slogs.NotegicLogger.Debug(context.Background(), fmt.Sprintf("Successfully deleted cached user data from server %d", serverNumber))
 	return nil
 }

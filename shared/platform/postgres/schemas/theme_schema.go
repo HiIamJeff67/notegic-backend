@@ -8,7 +8,7 @@ import (
 
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Theme struct {
@@ -30,11 +30,11 @@ type Theme struct {
 
 // Theme Table Name
 func (Theme) TableName() string {
-	return platformpostgres.TableName_ThemeTable.String()
+	return postgres.TableName_ThemeTable.String()
 }
 
 // Theme Table Relations
-type ThemeRelation platformpostgres.RelationName
+type ThemeRelation postgres.RelationName
 
 const (
 	ThemeRelation_Author ThemeRelation = "Themes"

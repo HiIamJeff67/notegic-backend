@@ -6,20 +6,19 @@ import (
 	"github.com/google/uuid"
 
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type Item struct {
-	Id               uuid.UUID      `json:"id" gorm:"column:id; type:uuid; primaryKey;"`
-	ParentSubShelfId uuid.UUID      `json:"parentSubShelfId" gorm:"column:parent_sub_shelf_id; type:uuid; not null;"`
-	RootShelfId      uuid.UUID      `json:"rootShelfId" gorm:"column:root_shelf_id; type:uuid; not null;"`
-	Type             enums.ItemType `json:"itemType" gorm:"column:type; type:\"ItemType\"; primaryKey;"`
-	DeletedAt        *time.Time     `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
-	UpdatedAt        time.Time      `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
-	CreatedAt        time.Time      `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
+	Id               uuid.UUID       `json:"id" gorm:"column:id; type:uuid; primaryKey;"`
+	ParentSubShelfId uuid.UUID       `json:"parentSubShelfId" gorm:"column:parent_sub_shelf_id; type:uuid; not null;"`
+	RootShelfId      uuid.UUID       `json:"rootShelfId" gorm:"column:root_shelf_id; type:uuid; not null;"`
+	Type             cenums.ItemType `json:"itemType" gorm:"column:type; type:\"ItemType\"; primaryKey;"`
+	DeletedAt        *time.Time      `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
+	UpdatedAt        time.Time       `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
+	CreatedAt        time.Time       `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
 	// relations
 	ParentSubShelf  SubShelf          `json:"parentSubShelf" gorm:"foreignKey:ParentSubShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
@@ -29,11 +28,11 @@ type Item struct {
 
 // Item Table Name
 func (Item) TableName() string {
-	return platformpostgres.TableName_ItemTable.String()
+	return postgres.TableName_ItemTable.String()
 }
 
 // Item Table Relations
-type ItemRelation platformpostgres.RelationName
+type ItemRelation postgres.RelationName
 
 const (
 	ItemRelation_ParentSubShelf  ItemRelation = "ParentSubShelf"

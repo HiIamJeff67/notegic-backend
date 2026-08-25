@@ -7,16 +7,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
-func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
+func UserPlanMiddleware(atLeastUserPlan cenums.UserPlan) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		currentUserPlanValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Plan.String())
 		if !exists {
@@ -39,7 +37,7 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 			return
 		}
 
-		currentUserPlan, ok := currentUserPlanValue.(enums.UserPlan)
+		currentUserPlan, ok := currentUserPlanValue.(cenums.UserPlan)
 		if !ok {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
 				Version: cgateway.Version,
@@ -64,7 +62,7 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		for _, userPlan := range enums.AllUserPlans {
+		for _, userPlan := range cenums.AllUserPlans {
 			if userPlan == currentUserPlan {
 				ctx.Next()
 				return
@@ -108,10 +106,10 @@ func UserPlanMiddleware(atLeastUserPlan enums.UserPlan) gin.HandlerFunc {
 	}
 }
 
-func AllowedUserPlanMiddleware(allowedPlans []enums.UserPlan) gin.HandlerFunc {
+func AllowedUserPlanMiddleware(allowedPlans []cenums.UserPlan) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		currentUserPlanValue, exists := ctx.Get(sharedcontexts.ContextFieldName_User_Plan.String())
-		currentUserPlan, ok := currentUserPlanValue.(enums.UserPlan)
+		currentUserPlan, ok := currentUserPlanValue.(cenums.UserPlan)
 		if !exists || !ok {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, cgateway.Response[struct{}]{
 				Version: cgateway.Version,

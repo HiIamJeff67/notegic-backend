@@ -5,7 +5,7 @@ import (
 
 	rate "golang.org/x/time/rate"
 
-	platformredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
+	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	ratelimitrecord "github.com/HiIamJeff67/notegic-backend/internal/realtimegateway/data/redis/ratelimitrecord"
 )
@@ -15,7 +15,7 @@ type RateLimitConfig struct {
 	Burst             int
 	UserLimit         int32
 	WindowDuration    time.Duration
-	BackendServerName platformredis.BackendServerName
+	BackendServerName sredis.BackendServerName
 	CacheClient       *ratelimitrecord.RateLimitRecordCacheClient
 
 	RequestFrequencyExtraCapacity        int
@@ -30,7 +30,7 @@ func DefaultUpgradeRateLimitConfig() RateLimitConfig {
 		Burst:                                10,
 		UserLimit:                            60,
 		WindowDuration:                       time.Minute,
-		BackendServerName:                    platformredis.BackendServerName_EastAsia,
+		BackendServerName:                    sredis.BackendServerName_EastAsia,
 		RequestFrequencyExtraCapacity:        2,
 		MinIntervalTimeOfLastRequest:         time.Microsecond,
 		SynchronizationToWindowDurationRatio: 10,

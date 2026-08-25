@@ -210,8 +210,12 @@ append/update/reset mutation methods in Core.
   YjsWorker and receives Core lifecycle facts through Kafka.
 - A runtime may import contracts, shared, and its own data. A runtime
   must not import another service source package.
-- Shared PostgreSQL schemas, table names, reusable scopes, and reusable SQL are
-  importable platform code. Their location does not grant database access:
+- Shared PostgreSQL schemas, table names, scopes, migration DDL, repository
+  implementations, and shared repository inputs are importable platform code.
+  Runtime-owned repository inputs remain private to that runtime. Runtime
+  packages may compose these implementations in thin local wrappers to add
+  runtime-specific methods; wrappers embed the shared concrete repository when
+  no signature adaptation is needed. Their location does not grant database access:
   migration ownership remains in the owning runtime's manifest, and future
   PostgreSQL roles/grants must separately define which runtime can read or
   write each object.
@@ -233,6 +237,12 @@ append/update/reset mutation methods in Core.
   utilities belong under `shared/util/` (`editableblock`, `exceptionwriter`,
   and `responsewriter`). `shared/util` may use application-support packages,
   while `shared/lib` remains the stricter dependency-free library layer.
+- PostgreSQL repository exceptions belong under
+  `shared/platform/postgres/repositories/exceptions/` and are split into one file per domain;
+  they are persistence-layer exceptions, not runtime service exception packages.
+- Runtime-owned exception builders belong under each runtime's
+  `internal/<runtime>/exceptions/`; PostgreSQL repository exception builders
+  belong under `shared/platform/postgres/repositories/exceptions/`.
 - The generic Kafka envelope is maintained in `contracts/types/events/`.
   Runtime event domains remain under their owning `contracts/<runtime>/v1/events/`
   package; email request payloads therefore live in
@@ -245,11 +255,18 @@ append/update/reset mutation methods in Core.
 ## PostgreSQL schema importability and migration ownership
 
 All PostgreSQL GORM models that represent shared physical tables live under
-`shared/platform/postgres/schemas/`, including their table names, relations, and
-shared DDL SQL packages. Runtimes import these models directly; they do not keep
-duplicate local schema definitions. Runtime-specific repositories, scopes, and
-business write rules may remain under the owning runtime and can compose the
-shared repository implementation.
+`shared/platform/postgres/schemas/`, including their table names and relations.
+Migration DDL is colocated with its operation under
+`shared/platform/postgres/schemas/views/`, `schemas/triggers/`, and
+`schemas/constraints/`. Runtimes import these models directly; they do not keep
+duplicate local schema definitions. All repository implementations, inputs, and
+repository exceptions live under `shared/platform/postgres/repositories/`,
+organized by domain. Constructors receive the owning runtime's `*gorm.DB` pool;
+the shared package must not keep a default database or import a runtime. Runtime
+specific business workflows stay in services/workers instead of duplicating
+repository implementations. All reusable scopes live under
+`shared/platform/postgres/scopes/`. Runtime-only raw query helpers belong under
+`internal/<service>/data/postgres/sqls/`; they are not shared platform assets.
 
 Each database-owning runtime keeps one migration manifest under its own
 `data/postgres/` package. The manifest declares its owner and the tables, enums,

@@ -8,22 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
-
-	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
+	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 )
 
 func AuthMiddleware(
-	userRepository repositories.UserRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -113,7 +111,7 @@ func AuthMiddleware(
 		user, exception := userRepository.GetOneByPublicId(
 			userPublicId,
 			nil,
-			options.WithDB(data.DB),
+			srepositories.WithDB(data.DB),
 		)
 		if exception != nil || user.RefreshToken != refreshToken || user.UserAgent != userAgent {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
@@ -219,7 +217,7 @@ func AuthMiddleware(
 
 func setActorUserId(
 	ctx *gin.Context,
-	userRepository repositories.UserRepositoryInterface,
+	userRepository srepositories.UserRepositoryInterface,
 	userPublicId uuid.UUID,
 ) bool {
 	if userRepository == nil {
@@ -229,7 +227,7 @@ func setActorUserId(
 	user, exception := userRepository.GetOneByPublicId(
 		userPublicId,
 		nil,
-		options.WithDB(data.DB),
+		srepositories.WithDB(data.DB),
 	)
 	if exception != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{

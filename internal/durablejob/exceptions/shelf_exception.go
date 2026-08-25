@@ -8,12 +8,12 @@ import (
 )
 
 type ShelfException struct {
-	CoreException
+	Exception
 }
 
 func NewShelfException() ShelfException {
 	return ShelfException{
-		CoreException: NewCoreException("Shelf"),
+		Exception: NewException("Shelf"),
 	}
 }
 

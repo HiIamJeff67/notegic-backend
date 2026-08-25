@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10" // make sure we use the version 10
 
 	cblocknote "github.com/HiIamJeff67/notegic-backend/contracts/types/blocknote"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 func RegisterShelfBlockValidation(validate *validator.Validate) {
@@ -46,7 +46,7 @@ func RegisterShelfBlockValidation(validate *validator.Validate) {
 		if len(programmingLanguageStr) > cblocknote.MaxProgrammingLanguageLength {
 			return false
 		}
-		for _, l := range enums.AllSupportedProgrammingLanguageStrings {
+		for _, l := range cenums.AllSupportedProgrammingLanguageStrings {
 			if programmingLanguageStr == l {
 				return true
 			}

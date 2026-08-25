@@ -9,12 +9,12 @@ import (
 )
 
 type AuthException struct {
-	CoreException
+	Exception
 }
 
 func NewAuthException() AuthException {
 	return AuthException{
-		CoreException: NewCoreException("Auth"),
+		Exception: NewException("Auth"),
 	}
 }
 

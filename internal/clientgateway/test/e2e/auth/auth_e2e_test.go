@@ -8,18 +8,19 @@ import (
 	"testing"
 	"time"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	"github.com/gin-gonic/gin"
+
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 
 	testroutes "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/routes/testroutes"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
-	"github.com/gin-gonic/gin"
 )
 
 const testAuthRouteNamespace = "/testRoute/auth"
 
 func TestAuthE2E(t *testing.T) {
-	databaseConfig := platformpostgres.Config{
+	databaseConfig := spostgres.Config{
 		Host:     strings.TrimSpace(os.Getenv("DB_HOST")),
 		User:     strings.TrimSpace(os.Getenv("DB_USER")),
 		Password: os.Getenv("DB_PASSWORD"),
@@ -29,12 +30,12 @@ func TestAuthE2E(t *testing.T) {
 	if databaseConfig.Host == "" || databaseConfig.User == "" || databaseConfig.Password == "" || databaseConfig.Name == "" || databaseConfig.Port == "" {
 		t.Skipf("auth E2E test requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT")
 	}
-	db, err := platformpostgres.Connect(databaseConfig)
+	db, err := spostgres.Connect(databaseConfig)
 	if err != nil {
 		t.Skipf("auth E2E test requires an available database: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = platformpostgres.Disconnect(db)
+		_ = spostgres.Disconnect(db)
 	})
 
 	gin.SetMode(gin.TestMode)
@@ -43,15 +44,15 @@ func TestAuthE2E(t *testing.T) {
 		router.Group(testAuthRouteNamespace),
 		testroutes.AuthRouteDependencies{
 			CoreAdapter: coreadapters.NewCoreAdapter("http://127.0.0.1:7778", 10*time.Second),
-			AccessTokenCookieHandler: cookies.New(cookies.Config{
-				Name:     cookies.ValidCookieName_AccessToken,
+			AccessTokenCookieHandler: scookies.New(scookies.Config{
+				Name:     scookies.ValidCookieName_AccessToken,
 				Path:     "/",
 				Duration: 30 * time.Minute,
 				HTTPOnly: true,
 				SameSite: http.SameSiteLaxMode,
 			}),
-			RefreshTokenCookieHandler: cookies.New(cookies.Config{
-				Name:     cookies.ValidCookieName_RefreshToken,
+			RefreshTokenCookieHandler: scookies.New(scookies.Config{
+				Name:     scookies.ValidCookieName_RefreshToken,
 				Path:     "/",
 				Duration: 14 * 24 * time.Hour,
 				HTTPOnly: true,

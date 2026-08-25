@@ -5,11 +5,10 @@ import (
 
 	"github.com/google/uuid"
 
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
-
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 
-	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
 type SubShelf struct {
@@ -36,11 +35,11 @@ type SubShelf struct {
 // 3. The maximum length of SubShelf.Path should be less than or equal to 100.
 
 func (SubShelf) TableName() string {
-	return platformpostgres.TableName_SubShelfTable.String()
+	return postgres.TableName_SubShelfTable.String()
 }
 
 // SubShelf Table Relations
-type SubShelfRelation platformpostgres.RelationName
+type SubShelfRelation postgres.RelationName
 
 const (
 	SubShelfRelation_RootShelf      SubShelfRelation = "RootShelf"

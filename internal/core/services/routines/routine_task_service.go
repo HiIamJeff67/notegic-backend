@@ -3,7 +3,6 @@ package routines
 import (
 	"context"
 	"encoding/json"
-	inputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories/inputs"
 	"net/http"
 	"strings"
 	"time"
@@ -12,26 +11,23 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	constants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-
-	searchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
-	times "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
-
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
-	cinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/inputs"
-	crepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
+	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
+	stimes "github.com/HiIamJeff67/notegic-backend/shared/lib/times"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	repositories "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/repositories"
-	corescopes "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/scopes"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
-	options "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
-	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
 type RoutineTaskServiceInterface interface {
@@ -59,35 +55,36 @@ type RoutineTaskServiceInterface interface {
 type RoutineTaskService struct {
 	validator                   *validator.Validate
 	db                          *gorm.DB
-	routineTaskScope            corescopes.RoutineTaskScopeInterface
-	routineTaskRepository       repositories.RoutineTaskRepositoryInterface
-	routineTaskRecordRepository repositories.RoutineTaskRecordRepositoryInterface
-	userQuotaRepository         repositories.UserQuotaRepositoryInterface
+	routineTaskScope            sscopes.RoutineTaskScopeInterface
+	routineTaskRepository       srepositories.RoutineTaskRepositoryInterface
+	routineTaskRecordRepository srepositories.RoutineTaskRecordRepositoryInterface
+	userQuotaRepository         srepositories.UserQuotaRepositoryInterface
 	routineTaskExecutionService RoutineTaskExecutionServiceInterface
 }
 
 func NewRoutineTaskService(
 	validator *validator.Validate,
 	db *gorm.DB,
-	routineTaskScope corescopes.RoutineTaskScopeInterface,
-	routineTaskRepository repositories.RoutineTaskRepositoryInterface,
-	routineTaskRecordRepository repositories.RoutineTaskRecordRepositoryInterface,
-	userQuotaRepository repositories.UserQuotaRepositoryInterface,
+	routineTaskScope sscopes.RoutineTaskScopeInterface,
+	routineTaskRepository srepositories.RoutineTaskRepositoryInterface,
+	routineTaskRecordRepository srepositories.RoutineTaskRecordRepositoryInterface,
+	userQuotaRepository srepositories.UserQuotaRepositoryInterface,
 	routineTaskExecutionServices ...RoutineTaskExecutionServiceInterface,
 ) RoutineTaskServiceInterface {
 	if db == nil {
 		db = data.DB
 	}
 	if routineTaskScope == nil {
-		routineTaskScope = corescopes.NewRoutineTaskScope()
+		routineTaskScope = sscopes.NewRoutineTaskScope()
 	}
 	if routineTaskRecordRepository == nil {
-		routineTaskRecordRepository = repositories.NewRoutineTaskRecordRepository(
-			corescopes.NewRoutineTaskRecordScope(),
+		routineTaskRecordRepository = srepositories.NewRoutineTaskRecordRepository(
+			db,
+			sscopes.NewRoutineTaskRecordScope(),
 		)
 	}
 	if userQuotaRepository == nil {
-		userQuotaRepository = repositories.NewUserQuotaRepository()
+		userQuotaRepository = srepositories.NewUserQuotaRepository(db)
 	}
 	var routineTaskExecutionService RoutineTaskExecutionServiceInterface
 	if len(routineTaskExecutionServices) > 0 {
@@ -113,7 +110,7 @@ func NewRoutineTaskService(
 func (s *RoutineTaskService) visualizeMyRoutineTaskTimeCount(
 	ctx context.Context,
 	userId uuid.UUID,
-	permission enums.AccessControlPermission,
+	permission cenums.AccessControlPermission,
 	timeHourUnit int,
 	queryRangeStartedAt time.Time,
 	queryRangeEndedAt time.Time,
@@ -226,8 +223,8 @@ func (s *RoutineTaskService) GetMyRoutineTaskById(
 		reqDto.Param.RoutineTaskId,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -279,8 +276,8 @@ func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
 		reqDto.Param.RoutineIds,
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -335,8 +332,8 @@ func (s *RoutineTaskService) GetAllMyRoutineTasks(
 	routineTasks, exception := s.routineTaskRepository.GetAllByUserId(
 		actorUserId,
 		nil,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -394,7 +391,7 @@ func (s *RoutineTaskService) CreateRoutineTaskByRoutineId(
 	newRoutineTaskId, exception := s.routineTaskRepository.CreateOneByRoutineId(
 		reqDto.Body.RoutineId,
 		actorUserId,
-		inputs.CreateRoutineTaskInput{
+		sinputs.CreateRoutineTaskInput{
 			ActorUserId:     actorUserId,
 			Title:           reqDto.Body.Title,
 			Purpose:         reqDto.Body.Purpose,
@@ -404,8 +401,8 @@ func (s *RoutineTaskService) CreateRoutineTaskByRoutineId(
 			Period:          reqDto.Body.Period,
 			NextScheduledAt: reqDto.Body.NextScheduledAt,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -434,15 +431,15 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 		return nil, exception
 	}
 	if reqDto.Body.Values.Purpose != nil || reqDto.Body.Values.Payload != nil {
-		var finalPurpose enums.RoutineTaskPurpose
+		var finalPurpose cenums.RoutineTaskPurpose
 		finalPayload := reqDto.Body.Values.Payload
 		if reqDto.Body.Values.Purpose == nil || finalPayload == nil {
 			existingRoutineTask, exception := s.routineTaskRepository.GetOneById(
 				reqDto.Body.RoutineTaskId,
 				actorUserId,
 				nil,
-				options.WithDB(db),
-				options.WithAllowedPermissions(allowedPermissions),
+				srepositories.WithDB(db),
+				srepositories.WithAllowedPermissions(allowedPermissions),
 			)
 			if exception != nil {
 				return nil, exception
@@ -450,7 +447,7 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 			if reqDto.Body.Values.Purpose == nil {
 				finalPurpose = existingRoutineTask.Purpose
 			} else {
-				finalPurpose = enums.RoutineTaskPurpose(*reqDto.Body.Values.Purpose)
+				finalPurpose = cenums.RoutineTaskPurpose(*reqDto.Body.Values.Purpose)
 			}
 			if finalPayload == nil {
 				finalPayload = &existingRoutineTask.Payload
@@ -466,8 +463,8 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 	updatedRoutineTask, exception := s.routineTaskRepository.UpdateOneById(
 		reqDto.Body.RoutineTaskId,
 		actorUserId,
-		inputs.PartialUpdateRoutineTaskInput{
-			Values: inputs.UpdateRoutineTaskInput{
+		sinputs.PartialUpdateRoutineTaskInput{
+			Values: sinputs.UpdateRoutineTaskInput{
 				RoutineId:       reqDto.Body.Values.RoutineId,
 				Title:           reqDto.Body.Values.Title,
 				Purpose:         reqDto.Body.Values.Purpose,
@@ -479,8 +476,8 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 			},
 			SetNull: reqDto.Body.SetNull,
 		},
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -513,24 +510,24 @@ func (s *RoutineTaskService) PauseMyRoutineTaskById(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if routineTask.Status != enums.RoutineTaskStatus_Idle {
+	if routineTask.Status != cenums.RoutineTaskStatus_Idle {
 		tx.Rollback()
 		return nil, apiexceptions.NewRoutineTaskException().InvalidInput("only idle routine tasks can be paused")
 	}
 
 	now := time.Now()
-	result := tx.Model(&schemas.RoutineTask{}).
-		Where("id = ? AND status = ?", reqDto.Body.RoutineTaskId, enums.RoutineTaskStatus_Idle).
+	result := tx.Model(&sschemas.RoutineTask{}).
+		Where("id = ? AND status = ?", reqDto.Body.RoutineTaskId, cenums.RoutineTaskStatus_Idle).
 		Updates(map[string]any{
-			"status":     enums.RoutineTaskStatus_Pause,
+			"status":     cenums.RoutineTaskStatus_Pause,
 			"updated_at": now,
 		})
 	if result.Error != nil {
@@ -571,24 +568,24 @@ func (s *RoutineTaskService) ResumeMyRoutineTaskById(
 		actorUserId,
 		nil,
 		allowedPermissions,
-		options.WithTransactionDB(tx),
-		options.WithAllowedPermissions(allowedPermissions),
-		options.WithLockingStrength(options.LockingStrengthNoKeyUpdate),
+		srepositories.WithTransactionDB(tx),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if routineTask.Status != enums.RoutineTaskStatus_Pause {
+	if routineTask.Status != cenums.RoutineTaskStatus_Pause {
 		tx.Rollback()
 		return nil, apiexceptions.NewRoutineTaskException().InvalidInput("only paused routine tasks can be resumed")
 	}
 
 	now := time.Now()
-	result := tx.Model(&schemas.RoutineTask{}).
-		Where("id = ? AND status = ?", reqDto.Body.RoutineTaskId, enums.RoutineTaskStatus_Pause).
+	result := tx.Model(&sschemas.RoutineTask{}).
+		Where("id = ? AND status = ?", reqDto.Body.RoutineTaskId, cenums.RoutineTaskStatus_Pause).
 		Updates(map[string]any{
-			"status":     enums.RoutineTaskStatus_Idle,
+			"status":     cenums.RoutineTaskStatus_Idle,
 			"updated_at": now,
 		})
 	if result.Error != nil {
@@ -627,8 +624,8 @@ func (s *RoutineTaskService) HardDeleteMyRoutineTaskById(
 	exception = s.routineTaskRepository.HardDeleteOneById(
 		reqDto.Body.RoutineTaskId,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -659,8 +656,8 @@ func (s *RoutineTaskService) HardDeleteMyRoutineTasksByIds(
 	exception = s.routineTaskRepository.HardDeleteManyByIds(
 		reqDto.Body.RoutineTaskIds,
 		actorUserId,
-		options.WithDB(db),
-		options.WithAllowedPermissions(allowedPermissions),
+		srepositories.WithDB(db),
+		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
 	if exception != nil {
 		return nil, exception
@@ -687,10 +684,10 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskStatusCount(
 	db := s.db.WithContext(ctx)
 
 	var rows []struct {
-		Status           enums.RoutineTaskStatus `gorm:"column:status;"`
-		RoutineTaskCount int64                   `gorm:"column:routine_task_count;"`
+		Status           cenums.RoutineTaskStatus `gorm:"column:status;"`
+		RoutineTaskCount int64                    `gorm:"column:routine_task_count;"`
 	}
-	result := db.Model(&schemas.RoutineTask{}).
+	result := db.Model(&sschemas.RoutineTask{}).
 		Select(`"RoutineTaskTable".status AS status, COUNT(*) AS routine_task_count`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = "RoutineTaskTable".routine_id AND routine.deleted_at IS NULL`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
@@ -701,13 +698,13 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskStatusCount(
 		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(err)
 	}
 
-	counts := make(map[enums.RoutineTaskStatus]int64, len(rows))
+	counts := make(map[cenums.RoutineTaskStatus]int64, len(rows))
 	for _, row := range rows {
 		counts[row.Status] = row.RoutineTaskCount
 	}
 
-	data := make([]capi.RoutineTaskCountDatum, len(enums.AllRoutineTaskStatuses))
-	for index, status := range enums.AllRoutineTaskStatuses {
+	data := make([]capi.RoutineTaskCountDatum, len(cenums.AllRoutineTaskStatuses))
+	for index, status := range cenums.AllRoutineTaskStatuses {
 		metadata := map[string]string{"status": status.String()}
 		meta, err := json.Marshal(metadata)
 		if err != nil {
@@ -741,10 +738,10 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 	db := s.db.WithContext(ctx)
 
 	var rows []struct {
-		Purpose          enums.RoutineTaskPurpose `gorm:"column:purpose;"`
-		RoutineTaskCount int64                    `gorm:"column:routine_task_count;"`
+		Purpose          cenums.RoutineTaskPurpose `gorm:"column:purpose;"`
+		RoutineTaskCount int64                     `gorm:"column:routine_task_count;"`
 	}
-	result := db.Model(&schemas.RoutineTask{}).
+	result := db.Model(&sschemas.RoutineTask{}).
 		Select(`"RoutineTaskTable".purpose AS purpose, COUNT(*) AS routine_task_count`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = "RoutineTaskTable".routine_id AND routine.deleted_at IS NULL`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
@@ -755,13 +752,13 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(err)
 	}
 
-	counts := make(map[enums.RoutineTaskPurpose]int64, len(rows))
+	counts := make(map[cenums.RoutineTaskPurpose]int64, len(rows))
 	for _, row := range rows {
 		counts[row.Purpose] = row.RoutineTaskCount
 	}
 
-	data := make([]capi.RoutineTaskCountDatum, len(enums.AllRoutineTaskPurposes))
-	for index, purpose := range enums.AllRoutineTaskPurposes {
+	data := make([]capi.RoutineTaskCountDatum, len(cenums.AllRoutineTaskPurposes))
+	for index, purpose := range cenums.AllRoutineTaskPurposes {
 		metadata := map[string]string{"purpose": purpose.String()}
 		meta, err := json.Marshal(metadata)
 		if err != nil {
@@ -794,14 +791,14 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskScheduledAtCount(
 	if !reqDto.Param.QueryRangeStartedAt.Before(reqDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
 	data, exception := s.visualizeMyRoutineTaskTimeCount(
 		ctx,
 		actorUserId,
-		enums.AccessControlPermission(reqDto.Param.Permission),
+		cenums.AccessControlPermission(reqDto.Param.Permission),
 		reqDto.Param.TimeHourUnit,
 		reqDto.Param.QueryRangeStartedAt,
 		reqDto.Param.QueryRangeEndedAt,
@@ -830,14 +827,14 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskActualStartedAtCount(
 	if !reqDto.Param.QueryRangeStartedAt.Before(reqDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
 	data, exception := s.visualizeMyRoutineTaskTimeCount(
 		ctx,
 		actorUserId,
-		enums.AccessControlPermission(reqDto.Param.Permission),
+		cenums.AccessControlPermission(reqDto.Param.Permission),
 		reqDto.Param.TimeHourUnit,
 		reqDto.Param.QueryRangeStartedAt,
 		reqDto.Param.QueryRangeEndedAt,
@@ -866,14 +863,14 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskActualEndedAtCount(
 	if !reqDto.Param.QueryRangeStartedAt.Before(reqDto.Param.QueryRangeEndedAt) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt should be earlier then queryRangeEndedAt")
 	}
-	if !times.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
+	if !stimes.IsTimeWithin(reqDto.Param.QueryRangeStartedAt, reqDto.Param.QueryRangeEndedAt, 360*24*time.Hour) {
 		return nil, apiexceptions.NewRoutineTaskException().InvalidDto("queryRangeStartedAt and queryRangeEndedAt should be within 360 days")
 	}
 
 	data, exception := s.visualizeMyRoutineTaskTimeCount(
 		ctx,
 		actorUserId,
-		enums.AccessControlPermission(reqDto.Param.Permission),
+		cenums.AccessControlPermission(reqDto.Param.Permission),
 		reqDto.Param.TimeHourUnit,
 		reqDto.Param.QueryRangeStartedAt,
 		reqDto.Param.QueryRangeEndedAt,
@@ -895,8 +892,8 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskInput,
 ) (*cgqlmodels.SearchRoutineTaskConnection, *cexceptions.Exception) {
 	type PrivateRoutineTask struct {
-		schemas.RoutineTask
-		Permission enums.AccessControlPermission `gorm:"column:permission"`
+		sschemas.RoutineTask
+		Permission cenums.AccessControlPermission `gorm:"column:permission"`
 	}
 
 	startTime := time.Now()
@@ -907,7 +904,7 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 		return nil, exception
 	}
 
-	query := db.Model(&schemas.RoutineTask{}).
+	query := db.Model(&sschemas.RoutineTask{}).
 		Select(`"RoutineTaskTable".*, uts.permission AS permission`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = "RoutineTaskTable".routine_id AND routine.deleted_at IS NULL`).
 		Joins(`LEFT JOIN "UsersToStationsTable" uts ON routine.station_id = uts.station_id`).
@@ -929,7 +926,7 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 		)
 	}
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
-		searchCursor, err := searchcursor.Decode[cgqlmodels.SearchRoutineTaskCursorFields](*gqlInput.After)
+		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineTaskCursorFields](*gqlInput.After)
 		if err != nil {
 			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
 		}
@@ -1014,11 +1011,11 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 		}
 	}
 
-	limit := constants.DefaultSearchLimit
+	limit := sconstants.DefaultSearchLimit
 	if gqlInput.First != nil && *gqlInput.First > 0 {
 		limit = int(*gqlInput.First)
 	}
-	limit = min(limit, constants.MaxSearchLimit)
+	limit = min(limit, sconstants.MaxSearchLimit)
 	query = query.Limit(limit + 1)
 
 	var routineTasks []PrivateRoutineTask
@@ -1032,7 +1029,7 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 	searchEdges := make([]*cgqlmodels.SearchRoutineTaskEdge, len(routineTasks))
 
 	for index, routineTask := range routineTasks {
-		searchCursor := searchcursor.SearchCursor[cgqlmodels.SearchRoutineTaskCursorFields]{
+		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchRoutineTaskCursorFields]{
 			Fields: cgqlmodels.SearchRoutineTaskCursorFields{
 				ID: routineTask.Id,
 			},
@@ -1104,9 +1101,9 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 	if err := tx.Error; err != nil {
 		return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 	}
-	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
-		cinputs.CreateInboxEventInput{EventId: eventId},
-		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	isNewInboxEvent, inboxException := srepositories.NewInboxEventRepository().CreateOne(
+		sinputs.CreateInboxEventInput{EventId: eventId},
+		srepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
 	)
 	if inboxException != nil {
 		tx.Rollback()
@@ -1126,18 +1123,18 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 		taskIds[index] = task.RoutineTaskId
 		recordIds[index] = task.RoutineTaskRecordId
 	}
-	result := tx.Model(&schemas.RoutineTask{}).
-		Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Running).
+	result := tx.Model(&sschemas.RoutineTask{}).
+		Where("id IN ? AND status = ?", taskIds, cenums.RoutineTaskStatus_Running).
 		Updates(map[string]any{
-			"status":          enums.RoutineTaskStatus_Idle,
+			"status":          cenums.RoutineTaskStatus_Idle,
 			"attempts":        0,
 			"actual_ended_at": now,
 			"updated_at":      now,
 		})
 	if result.Error != nil || result.RowsAffected != int64(len(taskIds)) {
 		var finalizedRecordCount int64
-		finalizedResult := tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Success).
+		finalizedResult := tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Success).
 			Count(&finalizedRecordCount)
 		if result.Error == nil && finalizedResult.Error == nil && finalizedRecordCount == int64(len(recordIds)) {
 			if err := tx.Commit().Error; err != nil {
@@ -1151,10 +1148,10 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 		}
 		return cexceptions.New("ResultStateMismatch", "RoutineTask", "MarkCompletedRoutineTasks", "Routine task completion count does not match the claimed batch", http.StatusConflict, true)
 	}
-	result = tx.Model(&schemas.RoutineTaskRecord{}).
-		Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Running).
+	result = tx.Model(&sschemas.RoutineTaskRecord{}).
+		Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Running).
 		Updates(map[string]any{
-			"status":          enums.RoutineTaskRecordStatus_Success,
+			"status":          cenums.RoutineTaskRecordStatus_Success,
 			"actual_ended_at": now,
 			"error_code":      nil,
 			"error_reason":    nil,
@@ -1162,8 +1159,8 @@ func (s *RoutineTaskService) MarkCompletedRoutineTasks(
 		})
 	if result.Error != nil || result.RowsAffected != int64(len(recordIds)) {
 		var finalizedRecordCount int64
-		finalizedResult := tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Success).
+		finalizedResult := tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Success).
 			Count(&finalizedRecordCount)
 		if result.Error == nil && finalizedResult.Error == nil && finalizedRecordCount == int64(len(recordIds)) {
 			if err := tx.Commit().Error; err != nil {
@@ -1199,9 +1196,9 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 	if err := tx.Error; err != nil {
 		return apiexceptions.NewRoutineTaskException().FailedToCommitTransaction().WithOrigin(err)
 	}
-	isNewInboxEvent, inboxException := crepositories.NewInboxEventRepository().CreateOne(
-		cinputs.CreateInboxEventInput{EventId: eventId},
-		crepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
+	isNewInboxEvent, inboxException := srepositories.NewInboxEventRepository().CreateOne(
+		sinputs.CreateInboxEventInput{EventId: eventId},
+		srepositories.RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
 	)
 	if inboxException != nil {
 		tx.Rollback()
@@ -1217,27 +1214,27 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 	now := time.Now().UTC()
 	taskIds := make([]uuid.UUID, 0, len(request.Tasks))
 	recordIds := make([]uuid.UUID, 0, len(request.Tasks))
-	failureInputs := make([]inputs.UpdateRoutineTaskRecordFailureInput, 0, len(request.Tasks))
+	failureInputs := make([]sinputs.UpdateRoutineTaskRecordFailureInput, 0, len(request.Tasks))
 	for _, task := range request.Tasks {
 		taskIds = append(taskIds, task.RoutineTaskId)
 		recordIds = append(recordIds, task.RoutineTaskRecordId)
-		failureInputs = append(failureInputs, inputs.UpdateRoutineTaskRecordFailureInput{
+		failureInputs = append(failureInputs, sinputs.UpdateRoutineTaskRecordFailureInput{
 			Id:          task.RoutineTaskRecordId,
-			ErrorCode:   enums.RoutineTaskRecordErrorCode(task.ErrorCode),
+			ErrorCode:   cenums.RoutineTaskRecordErrorCode(task.ErrorCode),
 			ErrorReason: task.ErrorReason,
 		})
 	}
-	result := tx.Model(&schemas.RoutineTask{}).
-		Where("id IN ? AND status = ?", taskIds, enums.RoutineTaskStatus_Running).
+	result := tx.Model(&sschemas.RoutineTask{}).
+		Where("id IN ? AND status = ?", taskIds, cenums.RoutineTaskStatus_Running).
 		Updates(map[string]any{
-			"status":          enums.RoutineTaskStatus_Idle,
+			"status":          cenums.RoutineTaskStatus_Idle,
 			"actual_ended_at": now,
 			"updated_at":      now,
 		})
 	if result.Error != nil || result.RowsAffected != int64(len(taskIds)) {
 		var finalizedRecordCount int64
-		finalizedResult := tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Failed).
+		finalizedResult := tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Failed).
 			Count(&finalizedRecordCount)
 		if result.Error == nil && finalizedResult.Error == nil && finalizedRecordCount == int64(len(request.Tasks)) {
 			if err := tx.Commit().Error; err != nil {
@@ -1254,7 +1251,7 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 	updatedRecordCount, exception := s.routineTaskRecordRepository.UpdateManyAsFailed(
 		failureInputs,
 		now,
-		options.WithTransactionDB(tx),
+		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
@@ -1262,8 +1259,8 @@ func (s *RoutineTaskService) MarkFailedRoutineTasks(
 	}
 	if updatedRecordCount != int64(len(request.Tasks)) {
 		var finalizedRecordCount int64
-		finalizedResult := tx.Model(&schemas.RoutineTaskRecord{}).
-			Where("id IN ? AND status = ?", recordIds, enums.RoutineTaskRecordStatus_Failed).
+		finalizedResult := tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("id IN ? AND status = ?", recordIds, cenums.RoutineTaskRecordStatus_Failed).
 			Count(&finalizedRecordCount)
 		if finalizedResult.Error == nil && finalizedRecordCount == int64(len(request.Tasks)) {
 			if err := tx.Commit().Error; err != nil {

@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	platformkafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
-type KafkaConnectionConfig = platformkafka.ConnectionConfig
-type KafkaConsumerConfig = platformkafka.ConsumerConfig
+type KafkaConnectionConfig = skafka.ConnectionConfig
+type KafkaConsumerConfig = skafka.ConsumerConfig
 
 func loadKafkaConfig() (KafkaConnectionConfig, KafkaConsumerConfig, error) {
-	kafka, err := platformkafka.LoadConnectionConfig()
+	kafka, err := skafka.LoadConnectionConfig()
 	if err != nil {
 		return KafkaConnectionConfig{}, KafkaConsumerConfig{}, err
 	}
@@ -35,8 +35,8 @@ func loadKafkaConfig() (KafkaConnectionConfig, KafkaConsumerConfig, error) {
 		return KafkaConnectionConfig{}, KafkaConsumerConfig{}, err
 	}
 
-	return kafka, platformkafka.ConsumerConfig{
-		ClientConfig: platformkafka.ClientConfig{
+	return kafka, skafka.ConsumerConfig{
+		ClientConfig: skafka.ClientConfig{
 			ConnectionConfig: kafka,
 			ClientId:         "notegic-email",
 		},

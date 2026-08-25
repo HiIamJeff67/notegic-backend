@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
+
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -232,7 +233,7 @@ func (ec *executionContext) _PrivateRoutine_status(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.RoutineStatus)
+	res := resTmp.(cenums.RoutineStatus)
 	fc.Result = res
 	return ec.marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx, field.Selections, res)
 }
@@ -405,7 +406,7 @@ func (ec *executionContext) _PrivateRoutine_period(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*enums.RoutinePeriod)
+	res := resTmp.(*cenums.RoutinePeriod)
 	fc.Result = res
 	return ec.marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx, field.Selections, res)
 }
@@ -886,7 +887,7 @@ func (ec *executionContext) _PrivateSearchableRoutine_status(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(enums.RoutineStatus)
+	res := resTmp.(cenums.RoutineStatus)
 	fc.Result = res
 	return ec.marshalNRoutineStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineStatus(ctx, field.Selections, res)
 }
@@ -1059,7 +1060,7 @@ func (ec *executionContext) _PrivateSearchableRoutine_period(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*enums.RoutinePeriod)
+	res := resTmp.(*cenums.RoutinePeriod)
 	fc.Result = res
 	return ec.marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx, field.Selections, res)
 }

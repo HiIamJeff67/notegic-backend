@@ -10,10 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
-	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
+	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+	sresponsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/apigateway/ratelimit"
 )
@@ -32,7 +32,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 			timeoutReusableBufferPool.Put(currentBufferPool)
 		}()
 
-		writer := responsewriter.NewResponseWriter(originalWriter, currentBufferPool)
+		writer := sresponsewriter.NewResponseWriter(originalWriter, currentBufferPool)
 		ctx.Writer = writer
 
 		ctxCopy := ctx.Copy()
@@ -47,12 +47,12 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 		// ctxCopy uses writer (passing to the next handlers to make them write response in the buffer)
 
 		done := make(chan struct{}, 1)
-		panicChannel := make(chan types.PanicInfo, 1)
+		panicChannel := make(chan stypes.PanicInfo, 1)
 
 		go func() {
 			defer func() {
 				if p := recover(); p != nil {
-					panicChannel <- types.PanicInfo{
+					panicChannel <- stypes.PanicInfo{
 						Value: p,
 						Stack: debug.Stack(),
 					}
@@ -78,7 +78,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 				ctx.Writer.Write(panicInfo.Stack)
 			}
 
-			exceptionwriter.SafelyAbortAndResponseWithJSON(
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(
 				cexceptions.New(
 					"FatalPanic",
 					"General",
@@ -107,7 +107,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 
 			if currentBufferPool.Len() > 0 {
 				if _, err := writer.ResponseWriter.Write(currentBufferPool.Bytes()); err != nil {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FatalPanic",
 						"General",
 						"Respond",
@@ -136,9 +136,9 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 					http.StatusRequestTimeout,
 				)
 				writer.ResponseWriter.WriteHeader(exception.HTTPStatusCode())
-				timeoutResponseBody, err := exceptionwriter.GetResponseJSONBytes(exception)
+				timeoutResponseBody, err := sexceptionwriter.GetResponseJSONBytes(exception)
 				if err != nil {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FatalPanic",
 						"General",
 						"Respond",
@@ -148,7 +148,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 					).WithOrigin(err), ctx)
 				}
 				if _, err := writer.ResponseWriter.Write(timeoutResponseBody); err != nil {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FatalPanic",
 						"General",
 						"Respond",
@@ -177,9 +177,9 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 					http.StatusRequestTimeout,
 				)
 				writer.ResponseWriter.WriteHeader(exception.HTTPStatusCode())
-				timeoutResponseBody, err := exceptionwriter.GetResponseJSONBytes(exception)
+				timeoutResponseBody, err := sexceptionwriter.GetResponseJSONBytes(exception)
 				if err != nil {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FatalPanic",
 						"General",
 						"Respond",
@@ -189,7 +189,7 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 					).WithOrigin(err), ctx)
 				}
 				if _, err := writer.ResponseWriter.Write(timeoutResponseBody); err != nil {
-					exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
+					sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.New(
 						"FatalPanic",
 						"General",
 						"Respond",

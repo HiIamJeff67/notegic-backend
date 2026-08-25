@@ -6,7 +6,7 @@ import (
 	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/controllers"
 )
@@ -30,7 +30,7 @@ func (b *NotificationBinder) BindSearch(
 	return func(ctx *gin.Context) {
 		requestDto := &cnotifications.SearchPrivateNotificationsRequestDto{}
 		if err := ctx.ShouldBindQuery(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)
@@ -51,7 +51,7 @@ func (b *NotificationBinder) BindMarkRead(
 	return func(ctx *gin.Context) {
 		requestDto := &cnotifications.MarkNotificationsReadRequestDto{}
 		if err := ctx.ShouldBindJSON(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)
@@ -64,7 +64,7 @@ func (b *NotificationBinder) BindDelete(
 	return func(ctx *gin.Context) {
 		requestDto := &cnotifications.DeleteNotificationsRequestDto{}
 		if err := ctx.ShouldBindJSON(requestDto); err != nil {
-			exceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
+			sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidDto("Notification").WithOrigin(err), ctx)
 			return
 		}
 		controllerFunc(ctx, requestDto)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	binders "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/internal/apigateway/transports/api/controllers"
@@ -49,7 +49,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				materialBinder.BindGetMyMaterialById(materialController.GetMyMaterialById),
 			)...,
@@ -63,7 +63,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				materialBinder.BindGetMyMaterialAndItsParentById(materialController.GetMyMaterialAndItsParentById),
 			)...,
@@ -77,7 +77,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				materialBinder.BindGetMyMaterialsByParentSubShelfId(materialController.GetMyMaterialsByParentSubShelfId),
 			)...,
@@ -91,7 +91,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Read),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				materialBinder.BindGetAllMyMaterialsByRootShelfId(materialController.GetAllMyMaterialsByRootShelfId),
 			)...,
@@ -105,7 +105,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindCreateMyMaterial(materialController.CreateMyMaterial),
 			)...,
@@ -119,7 +119,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindUpdateMyMaterialById(materialController.UpdateMyMaterialById),
 			)...,
@@ -134,7 +134,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindSaveMyMaterialById(materialController.SaveMyMaterialById),
 			)...,
@@ -148,7 +148,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindMoveMyMaterialById(materialController.MoveMyMaterialById),
 			)...,
@@ -162,7 +162,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindMoveMyMaterialsByIds(materialController.MoveMyMaterialsByIds),
 			)...,
@@ -176,7 +176,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindRestoreMyMaterialById(materialController.RestoreMyMaterialById),
 			)...,
@@ -190,7 +190,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindRestoreMyMaterialsByIds(materialController.RestoreMyMaterialsByIds),
 			)...,
@@ -204,7 +204,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindDeleteMyMaterialById(materialController.DeleteMyMaterialById),
 			)...,
@@ -218,7 +218,7 @@ func configureDevelopmentMaterialRoutes(
 				},
 				append(
 					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(enums.AccessControlPermission_Write),
+					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
 				),
 				materialBinder.BindDeleteMyMaterialsByIds(materialController.DeleteMyMaterialsByIds),
 			)...,

@@ -3,7 +3,7 @@ package testroutes
 import (
 	"github.com/gin-gonic/gin"
 
-	cookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
+	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
 	ratelimit "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/api/binders"
@@ -14,8 +14,8 @@ import (
 
 type AuthRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
-	AccessTokenCookieHandler  *cookies.CookieHandler
-	RefreshTokenCookieHandler *cookies.CookieHandler
+	AccessTokenCookieHandler  *scookies.CookieHandler
+	RefreshTokenCookieHandler *scookies.CookieHandler
 	AuthorizedRateLimiter     *ratelimit.HybridRateLimiter
 }
 

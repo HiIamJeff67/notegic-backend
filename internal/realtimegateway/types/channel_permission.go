@@ -1,10 +1,10 @@
 package realtimetypes
 
-import enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+import cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
-type ChannelPermission = enums.ChannelPermission
+type ChannelPermission = cenums.ChannelPermission
 
 const (
-	ChannelPermission_Read  = enums.ChannelPermission_Read
-	ChannelPermission_Write = enums.ChannelPermission_Write
+	ChannelPermission_Read  = cenums.ChannelPermission_Read
+	ChannelPermission_Write = cenums.ChannelPermission_Write
 )

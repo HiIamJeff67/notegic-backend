@@ -1,9 +1,10 @@
 package views
 
-import (
-	usersql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/sqls/user"
-)
+import _ "embed"
+
+//go:embed user_view.sql
+var userViewSQL string
 
 var MigratingViewSQLs = []string{
-	usersql.UserViewSQL,
+	userViewSQL,
 }

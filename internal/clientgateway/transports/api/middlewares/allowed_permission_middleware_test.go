@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 )
@@ -18,33 +18,33 @@ func TestAllowedPermissionsMiddleware(t *testing.T) {
 	testCases := []struct {
 		name                string
 		middleware          gin.HandlerFunc
-		expectedPermissions []enums.AccessControlPermission
+		expectedPermissions []cenums.AccessControlPermission
 	}{
 		{
 			name:       "above includes the requested permission",
-			middleware: AllowedPermissionsAbove(enums.AccessControlPermission_Admin),
-			expectedPermissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Admin,
-				enums.AccessControlPermission_Owner,
+			middleware: AllowedPermissionsAbove(cenums.AccessControlPermission_Admin),
+			expectedPermissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Admin,
+				cenums.AccessControlPermission_Owner,
 			},
 		},
 		{
 			name:       "below includes the requested permission",
-			middleware: AllowedPermissionsBelow(enums.AccessControlPermission_Write),
-			expectedPermissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Read,
-				enums.AccessControlPermission_Write,
+			middleware: AllowedPermissionsBelow(cenums.AccessControlPermission_Write),
+			expectedPermissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Read,
+				cenums.AccessControlPermission_Write,
 			},
 		},
 		{
 			name: "within preserves the explicit permission set",
 			middleware: AllowedPermissionsWithin(
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Write,
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Write,
 			),
-			expectedPermissions: []enums.AccessControlPermission{
-				enums.AccessControlPermission_Owner,
-				enums.AccessControlPermission_Write,
+			expectedPermissions: []cenums.AccessControlPermission{
+				cenums.AccessControlPermission_Owner,
+				cenums.AccessControlPermission_Write,
 			},
 		},
 	}

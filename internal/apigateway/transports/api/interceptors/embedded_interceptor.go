@@ -10,8 +10,7 @@ import (
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
-
-	responsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
+	sresponsewriter "github.com/HiIamJeff67/notegic-backend/shared/util/responsewriter"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/apigateway/contexts"
 )
@@ -20,7 +19,7 @@ import (
 // ex. the frontend require a publicId to indicate the user in their local database across APIs
 func EmbeddedInterceptor(responseWriterKey string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var writer *responsewriter.ResponseWriter
+		var writer *sresponsewriter.ResponseWriter
 		existingWriter, exist := ctx.Get(responseWriterKey)
 		if !exist || existingWriter == nil {
 			cexceptions.New(
@@ -34,7 +33,7 @@ func EmbeddedInterceptor(responseWriterKey string) gin.HandlerFunc {
 			)
 			return
 		}
-		writer = existingWriter.(*responsewriter.ResponseWriter)
+		writer = existingWriter.(*sresponsewriter.ResponseWriter)
 
 		ctx.Next()
 

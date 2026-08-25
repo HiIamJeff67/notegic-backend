@@ -10,9 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	enums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
+
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 type SearchConnection interface {
@@ -28,175 +29,175 @@ type SearchEdge interface {
 }
 
 type PrivateBlock struct {
-	ID            uuid.UUID       `json:"id"`
-	BlockPackID   uuid.UUID       `json:"blockPackId"`
-	ParentBlockID *uuid.UUID      `json:"parentBlockId,omitempty"`
-	PrevBlockID   *uuid.UUID      `json:"prevBlockId,omitempty"`
-	NextBlockID   *uuid.UUID      `json:"nextBlockId,omitempty"`
-	Type          enums.BlockType `json:"type"`
-	Props         datatypes.JSON  `json:"props"`
-	Content       datatypes.JSON  `json:"content"`
-	UpdatedAt     time.Time       `json:"updatedAt"`
-	CreatedAt     time.Time       `json:"createdAt"`
-	ChildrenIds   []uuid.UUID     `json:"childrenIds"`
+	ID            uuid.UUID        `json:"id"`
+	BlockPackID   uuid.UUID        `json:"blockPackId"`
+	ParentBlockID *uuid.UUID       `json:"parentBlockId,omitempty"`
+	PrevBlockID   *uuid.UUID       `json:"prevBlockId,omitempty"`
+	NextBlockID   *uuid.UUID       `json:"nextBlockId,omitempty"`
+	Type          cenums.BlockType `json:"type"`
+	Props         datatypes.JSON   `json:"props"`
+	Content       datatypes.JSON   `json:"content"`
+	UpdatedAt     time.Time        `json:"updatedAt"`
+	CreatedAt     time.Time        `json:"createdAt"`
+	ChildrenIds   []uuid.UUID      `json:"childrenIds"`
 }
 
 type PrivateBlockPack struct {
-	ID                  uuid.UUID            `json:"id"`
-	ParentSubShelfID    uuid.UUID            `json:"parentSubShelfId"`
-	Name                string               `json:"name"`
-	Icon                *enums.SupportedIcon `json:"icon,omitempty"`
-	HeaderBackgroundURL *string              `json:"headerBackgroundURL,omitempty"`
-	BlockCount          int64                `json:"blockCount"`
-	DeletedAt           *time.Time           `json:"deletedAt,omitempty"`
-	UpdatedAt           time.Time            `json:"updatedAt"`
-	CreatedAt           time.Time            `json:"createdAt"`
-	BlockIds            []uuid.UUID          `json:"blockIds"`
+	ID                  uuid.UUID             `json:"id"`
+	ParentSubShelfID    uuid.UUID             `json:"parentSubShelfId"`
+	Name                string                `json:"name"`
+	Icon                *cenums.SupportedIcon `json:"icon,omitempty"`
+	HeaderBackgroundURL *string               `json:"headerBackgroundURL,omitempty"`
+	BlockCount          int64                 `json:"blockCount"`
+	DeletedAt           *time.Time            `json:"deletedAt,omitempty"`
+	UpdatedAt           time.Time             `json:"updatedAt"`
+	CreatedAt           time.Time             `json:"createdAt"`
+	BlockIds            []uuid.UUID           `json:"blockIds"`
 }
 
 type PrivateItem struct {
-	ID               uuid.UUID      `json:"id"`
-	ParentSubShelfID uuid.UUID      `json:"parentSubShelfId"`
-	RootShelfID      uuid.UUID      `json:"rootShelfId"`
-	Type             enums.ItemType `json:"type"`
-	DeletedAt        *time.Time     `json:"deletedAt,omitempty"`
-	UpdatedAt        time.Time      `json:"updatedAt"`
-	CreatedAt        time.Time      `json:"createdAt"`
-	RoutineIds       []uuid.UUID    `json:"routineIds"`
+	ID               uuid.UUID       `json:"id"`
+	ParentSubShelfID uuid.UUID       `json:"parentSubShelfId"`
+	RootShelfID      uuid.UUID       `json:"rootShelfId"`
+	Type             cenums.ItemType `json:"type"`
+	DeletedAt        *time.Time      `json:"deletedAt,omitempty"`
+	UpdatedAt        time.Time       `json:"updatedAt"`
+	CreatedAt        time.Time       `json:"createdAt"`
+	RoutineIds       []uuid.UUID     `json:"routineIds"`
 }
 
 type PrivateMaterial struct {
-	ID               uuid.UUID                 `json:"id"`
-	ParentSubShelfID uuid.UUID                 `json:"parentSubShelfId"`
-	Name             string                    `json:"name"`
-	Size             int64                     `json:"size"`
-	ContentType      enums.MaterialContentType `json:"contentType"`
-	ParseMediaType   string                    `json:"parseMediaType"`
-	DeletedAt        *time.Time                `json:"deletedAt,omitempty"`
-	UpdatedAt        time.Time                 `json:"updatedAt"`
-	CreatedAt        time.Time                 `json:"createdAt"`
+	ID               uuid.UUID                  `json:"id"`
+	ParentSubShelfID uuid.UUID                  `json:"parentSubShelfId"`
+	Name             string                     `json:"name"`
+	Size             int64                      `json:"size"`
+	ContentType      cenums.MaterialContentType `json:"contentType"`
+	ParseMediaType   string                     `json:"parseMediaType"`
+	DeletedAt        *time.Time                 `json:"deletedAt,omitempty"`
+	UpdatedAt        time.Time                  `json:"updatedAt"`
+	CreatedAt        time.Time                  `json:"createdAt"`
 }
 
 type PrivateRootShelf struct {
-	ID             uuid.UUID                     `json:"id"`
-	Name           string                        `json:"name"`
-	Permission     enums.AccessControlPermission `json:"permission"`
-	SubShelfCount  int64                         `json:"subShelfCount"`
-	ItemCount      int64                         `json:"itemCount"`
-	LastAnalyzedAt time.Time                     `json:"lastAnalyzedAt"`
-	DeletedAt      *time.Time                    `json:"deletedAt,omitempty"`
-	UpdatedAt      time.Time                     `json:"updatedAt"`
-	CreatedAt      time.Time                     `json:"createdAt"`
-	Owner          *PublicUser                   `json:"owner"`
-	Sharers        []*PublicUser                 `json:"sharers"`
-	ItemIds        []uuid.UUID                   `json:"itemIds"`
+	ID             uuid.UUID                      `json:"id"`
+	Name           string                         `json:"name"`
+	Permission     cenums.AccessControlPermission `json:"permission"`
+	SubShelfCount  int64                          `json:"subShelfCount"`
+	ItemCount      int64                          `json:"itemCount"`
+	LastAnalyzedAt time.Time                      `json:"lastAnalyzedAt"`
+	DeletedAt      *time.Time                     `json:"deletedAt,omitempty"`
+	UpdatedAt      time.Time                      `json:"updatedAt"`
+	CreatedAt      time.Time                      `json:"createdAt"`
+	Owner          *PublicUser                    `json:"owner"`
+	Sharers        []*PublicUser                  `json:"sharers"`
+	ItemIds        []uuid.UUID                    `json:"itemIds"`
 }
 
 type PrivateRoutine struct {
-	ID               uuid.UUID            `json:"id"`
-	StationID        uuid.UUID            `json:"stationId"`
-	Title            string               `json:"title"`
-	Description      string               `json:"description"`
-	Status           enums.RoutineStatus  `json:"status"`
-	IsPinned         bool                 `json:"isPinned"`
-	ScheduledStartAt time.Time            `json:"scheduledStartAt"`
-	ScheduledEndAt   time.Time            `json:"scheduledEndAt"`
-	Period           *enums.RoutinePeriod `json:"period,omitempty"`
-	Timezone         string               `json:"timezone"`
-	DeletedAt        *time.Time           `json:"deletedAt,omitempty"`
-	UpdatedAt        time.Time            `json:"updatedAt"`
-	CreatedAt        time.Time            `json:"createdAt"`
-	TagIds           []uuid.UUID          `json:"tagIds"`
-	TaskIds          []uuid.UUID          `json:"taskIds"`
-	ItemIds          []uuid.UUID          `json:"itemIds"`
+	ID               uuid.UUID             `json:"id"`
+	StationID        uuid.UUID             `json:"stationId"`
+	Title            string                `json:"title"`
+	Description      string                `json:"description"`
+	Status           cenums.RoutineStatus  `json:"status"`
+	IsPinned         bool                  `json:"isPinned"`
+	ScheduledStartAt time.Time             `json:"scheduledStartAt"`
+	ScheduledEndAt   time.Time             `json:"scheduledEndAt"`
+	Period           *cenums.RoutinePeriod `json:"period,omitempty"`
+	Timezone         string                `json:"timezone"`
+	DeletedAt        *time.Time            `json:"deletedAt,omitempty"`
+	UpdatedAt        time.Time             `json:"updatedAt"`
+	CreatedAt        time.Time             `json:"createdAt"`
+	TagIds           []uuid.UUID           `json:"tagIds"`
+	TaskIds          []uuid.UUID           `json:"taskIds"`
+	ItemIds          []uuid.UUID           `json:"itemIds"`
 }
 
 type PrivateRoutineTag struct {
-	ID        uuid.UUID            `json:"id"`
-	Name      string               `json:"name"`
-	Color     string               `json:"color"`
-	Icon      *enums.SupportedIcon `json:"icon,omitempty"`
-	UpdatedAt time.Time            `json:"updatedAt"`
-	CreatedAt time.Time            `json:"createdAt"`
+	ID        uuid.UUID             `json:"id"`
+	Name      string                `json:"name"`
+	Color     string                `json:"color"`
+	Icon      *cenums.SupportedIcon `json:"icon,omitempty"`
+	UpdatedAt time.Time             `json:"updatedAt"`
+	CreatedAt time.Time             `json:"createdAt"`
 }
 
 type PrivateRoutineTask struct {
-	ID              uuid.UUID                `json:"id"`
-	RoutineID       uuid.UUID                `json:"routineId"`
-	Title           string                   `json:"title"`
-	Purpose         enums.RoutineTaskPurpose `json:"purpose"`
-	Payload         json.RawMessage          `json:"payload"`
-	CostUnit        int64                    `json:"costUnit"`
-	Priority        int32                    `json:"priority"`
-	Status          enums.RoutineTaskStatus  `json:"status"`
-	Attempts        int32                    `json:"attempts"`
-	MaxAttempts     int32                    `json:"maxAttempts"`
-	Period          *enums.RoutinePeriod     `json:"period,omitempty"`
-	NextScheduledAt time.Time                `json:"nextScheduledAt"`
-	ScheduledAt     time.Time                `json:"scheduledAt"`
-	ActualStartedAt *time.Time               `json:"actualStartedAt,omitempty"`
-	ActualEndedAt   *time.Time               `json:"actualEndedAt,omitempty"`
-	UpdatedAt       time.Time                `json:"updatedAt"`
-	CreatedAt       time.Time                `json:"createdAt"`
+	ID              uuid.UUID                 `json:"id"`
+	RoutineID       uuid.UUID                 `json:"routineId"`
+	Title           string                    `json:"title"`
+	Purpose         cenums.RoutineTaskPurpose `json:"purpose"`
+	Payload         json.RawMessage           `json:"payload"`
+	CostUnit        int64                     `json:"costUnit"`
+	Priority        int32                     `json:"priority"`
+	Status          cenums.RoutineTaskStatus  `json:"status"`
+	Attempts        int32                     `json:"attempts"`
+	MaxAttempts     int32                     `json:"maxAttempts"`
+	Period          *cenums.RoutinePeriod     `json:"period,omitempty"`
+	NextScheduledAt time.Time                 `json:"nextScheduledAt"`
+	ScheduledAt     time.Time                 `json:"scheduledAt"`
+	ActualStartedAt *time.Time                `json:"actualStartedAt,omitempty"`
+	ActualEndedAt   *time.Time                `json:"actualEndedAt,omitempty"`
+	UpdatedAt       time.Time                 `json:"updatedAt"`
+	CreatedAt       time.Time                 `json:"createdAt"`
 }
 
 type PrivateRoutineTaskRecord struct {
-	ID              uuid.UUID                         `json:"id"`
-	RoutineTaskID   uuid.UUID                         `json:"routineTaskId"`
-	Purpose         enums.RoutineTaskPurpose          `json:"purpose"`
-	Status          enums.RoutineTaskRecordStatus     `json:"status"`
-	ErrorCode       *enums.RoutineTaskRecordErrorCode `json:"errorCode,omitempty"`
-	ErrorReason     *string                           `json:"errorReason,omitempty"`
-	CostUnit        int64                             `json:"costUnit"`
-	TotalAttempts   int64                             `json:"totalAttempts"`
-	ScheduledAt     time.Time                         `json:"scheduledAt"`
-	ActualStartedAt *time.Time                        `json:"actualStartedAt,omitempty"`
-	ActualEndedAt   *time.Time                        `json:"actualEndedAt,omitempty"`
-	UpdatedAt       time.Time                         `json:"updatedAt"`
-	CreatedAt       time.Time                         `json:"createdAt"`
+	ID              uuid.UUID                          `json:"id"`
+	RoutineTaskID   uuid.UUID                          `json:"routineTaskId"`
+	Purpose         cenums.RoutineTaskPurpose          `json:"purpose"`
+	Status          cenums.RoutineTaskRecordStatus     `json:"status"`
+	ErrorCode       *cenums.RoutineTaskRecordErrorCode `json:"errorCode,omitempty"`
+	ErrorReason     *string                            `json:"errorReason,omitempty"`
+	CostUnit        int64                              `json:"costUnit"`
+	TotalAttempts   int64                              `json:"totalAttempts"`
+	ScheduledAt     time.Time                          `json:"scheduledAt"`
+	ActualStartedAt *time.Time                         `json:"actualStartedAt,omitempty"`
+	ActualEndedAt   *time.Time                         `json:"actualEndedAt,omitempty"`
+	UpdatedAt       time.Time                          `json:"updatedAt"`
+	CreatedAt       time.Time                          `json:"createdAt"`
 }
 
 type PrivateSearchableRoutine struct {
-	ID               uuid.UUID            `json:"id"`
-	StationID        uuid.UUID            `json:"stationId"`
-	Title            string               `json:"title"`
-	Status           enums.RoutineStatus  `json:"status"`
-	IsPinned         bool                 `json:"isPinned"`
-	ScheduledStartAt time.Time            `json:"scheduledStartAt"`
-	ScheduledEndAt   time.Time            `json:"scheduledEndAt"`
-	Period           *enums.RoutinePeriod `json:"period,omitempty"`
-	Timezone         string               `json:"timezone"`
-	DeletedAt        *time.Time           `json:"deletedAt,omitempty"`
-	UpdatedAt        time.Time            `json:"updatedAt"`
-	CreatedAt        time.Time            `json:"createdAt"`
-	TagIds           []uuid.UUID          `json:"tagIds"`
-	TaskIds          []uuid.UUID          `json:"taskIds"`
-	ItemIds          []uuid.UUID          `json:"itemIds"`
+	ID               uuid.UUID             `json:"id"`
+	StationID        uuid.UUID             `json:"stationId"`
+	Title            string                `json:"title"`
+	Status           cenums.RoutineStatus  `json:"status"`
+	IsPinned         bool                  `json:"isPinned"`
+	ScheduledStartAt time.Time             `json:"scheduledStartAt"`
+	ScheduledEndAt   time.Time             `json:"scheduledEndAt"`
+	Period           *cenums.RoutinePeriod `json:"period,omitempty"`
+	Timezone         string                `json:"timezone"`
+	DeletedAt        *time.Time            `json:"deletedAt,omitempty"`
+	UpdatedAt        time.Time             `json:"updatedAt"`
+	CreatedAt        time.Time             `json:"createdAt"`
+	TagIds           []uuid.UUID           `json:"tagIds"`
+	TaskIds          []uuid.UUID           `json:"taskIds"`
+	ItemIds          []uuid.UUID           `json:"itemIds"`
 }
 
 type PrivateSearchableStation struct {
-	ID                  uuid.UUID                     `json:"id"`
-	Permission          enums.AccessControlPermission `json:"permission"`
-	Name                string                        `json:"name"`
-	Icon                *enums.SupportedIcon          `json:"icon,omitempty"`
-	HeaderBackgroundURL *string                       `json:"headerBackgroundURL,omitempty"`
-	RoutineCount        int64                         `json:"routineCount"`
-	DeletedAt           *time.Time                    `json:"deletedAt,omitempty"`
-	CreatedAt           time.Time                     `json:"createdAt"`
-	UpdatedAt           time.Time                     `json:"updatedAt"`
+	ID                  uuid.UUID                      `json:"id"`
+	Permission          cenums.AccessControlPermission `json:"permission"`
+	Name                string                         `json:"name"`
+	Icon                *cenums.SupportedIcon          `json:"icon,omitempty"`
+	HeaderBackgroundURL *string                        `json:"headerBackgroundURL,omitempty"`
+	RoutineCount        int64                          `json:"routineCount"`
+	DeletedAt           *time.Time                     `json:"deletedAt,omitempty"`
+	CreatedAt           time.Time                      `json:"createdAt"`
+	UpdatedAt           time.Time                      `json:"updatedAt"`
 }
 
 type PrivateStation struct {
-	ID                  uuid.UUID                     `json:"id"`
-	Permission          enums.AccessControlPermission `json:"permission"`
-	Name                string                        `json:"name"`
-	Description         string                        `json:"description"`
-	Icon                *enums.SupportedIcon          `json:"icon,omitempty"`
-	HeaderBackgroundURL *string                       `json:"headerBackgroundURL,omitempty"`
-	RoutineCount        int64                         `json:"routineCount"`
-	DeletedAt           *time.Time                    `json:"deletedAt,omitempty"`
-	CreatedAt           time.Time                     `json:"createdAt"`
-	UpdatedAt           time.Time                     `json:"updatedAt"`
+	ID                  uuid.UUID                      `json:"id"`
+	Permission          cenums.AccessControlPermission `json:"permission"`
+	Name                string                         `json:"name"`
+	Description         string                         `json:"description"`
+	Icon                *cenums.SupportedIcon          `json:"icon,omitempty"`
+	HeaderBackgroundURL *string                        `json:"headerBackgroundURL,omitempty"`
+	RoutineCount        int64                          `json:"routineCount"`
+	DeletedAt           *time.Time                     `json:"deletedAt,omitempty"`
+	CreatedAt           time.Time                      `json:"createdAt"`
+	UpdatedAt           time.Time                      `json:"updatedAt"`
 }
 
 type PrivateSubShelf struct {
@@ -213,12 +214,12 @@ type PrivateSubShelf struct {
 }
 
 type PublicBadge struct {
-	PublicID    uuid.UUID       `json:"publicId"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	Type        enums.BadgeType `json:"type"`
-	ImageURL    *string         `json:"imageURL,omitempty"`
-	CreatedAt   time.Time       `json:"createdAt"`
+	PublicID    uuid.UUID        `json:"publicId"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Type        cenums.BadgeType `json:"type"`
+	ImageURL    *string          `json:"imageURL,omitempty"`
+	CreatedAt   time.Time        `json:"createdAt"`
 }
 
 type PublicTheme struct {
@@ -235,24 +236,24 @@ type PublicTheme struct {
 }
 
 type PublicUser struct {
-	PublicID    uuid.UUID        `json:"publicId"`
-	Name        string           `json:"name"`
-	DisplayName string           `json:"displayName"`
-	Role        enums.UserRole   `json:"role"`
-	Plan        enums.UserPlan   `json:"plan"`
-	Status      enums.UserStatus `json:"status"`
-	CreatedAt   time.Time        `json:"createdAt"`
-	Info        *PublicUserInfo  `json:"info,omitempty"`
+	PublicID    uuid.UUID         `json:"publicId"`
+	Name        string            `json:"name"`
+	DisplayName string            `json:"displayName"`
+	Role        cenums.UserRole   `json:"role"`
+	Plan        cenums.UserPlan   `json:"plan"`
+	Status      cenums.UserStatus `json:"status"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	Info        *PublicUserInfo   `json:"info,omitempty"`
 }
 
 type PublicUserInfo struct {
-	AvatarURL          *string          `json:"avatarURL,omitempty"`
-	CoverBackgroundURL *string          `json:"coverBackgroundURL,omitempty"`
-	Header             *string          `json:"header,omitempty"`
-	Introduction       *string          `json:"introduction,omitempty"`
-	Gender             enums.UserGender `json:"gender"`
-	Country            *enums.Country   `json:"country,omitempty"`
-	BirthDate          time.Time        `json:"birthDate"`
+	AvatarURL          *string           `json:"avatarURL,omitempty"`
+	CoverBackgroundURL *string           `json:"coverBackgroundURL,omitempty"`
+	Header             *string           `json:"header,omitempty"`
+	Introduction       *string           `json:"introduction,omitempty"`
+	Gender             cenums.UserGender `json:"gender"`
+	Country            *cenums.Country   `json:"country,omitempty"`
+	BirthDate          time.Time         `json:"birthDate"`
 }
 
 type Query struct {
@@ -283,7 +284,7 @@ func (SearchBadgeEdge) IsSearchEdge()                       {}
 func (this SearchBadgeEdge) GetEncodedSearchCursor() string { return this.EncodedSearchCursor }
 
 type SearchBadgeFilters struct {
-	Type *enums.BadgeType `json:"type,omitempty"`
+	Type *cenums.BadgeType `json:"type,omitempty"`
 }
 
 type SearchBadgeInput struct {
@@ -744,12 +745,12 @@ func (SearchUserEdge) IsSearchEdge()                       {}
 func (this SearchUserEdge) GetEncodedSearchCursor() string { return this.EncodedSearchCursor }
 
 type SearchUserFilters struct {
-	Role      *enums.UserRole   `json:"role,omitempty"`
-	Plan      *enums.UserPlan   `json:"plan,omitempty"`
-	Status    *enums.UserStatus `json:"status,omitempty"`
-	HasAvatar *bool             `json:"hasAvatar,omitempty"`
-	Country   *enums.Country    `json:"country,omitempty"`
-	IsOnline  *bool             `json:"isOnline,omitempty"`
+	Role      *cenums.UserRole   `json:"role,omitempty"`
+	Plan      *cenums.UserPlan   `json:"plan,omitempty"`
+	Status    *cenums.UserStatus `json:"status,omitempty"`
+	HasAvatar *bool              `json:"hasAvatar,omitempty"`
+	Country   *cenums.Country    `json:"country,omitempty"`
+	IsOnline  *bool              `json:"isOnline,omitempty"`
 }
 
 type SearchUserInput struct {
