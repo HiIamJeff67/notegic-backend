@@ -9,9 +9,10 @@ clients, workers, transports, and services.
 
 | Owner | Config file | Examples |
 | --- | --- | --- |
-| Core PostgreSQL connection | `internal/core/configs/postgres.go` | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DOCKER_DB_PORT` |
-| DurableJob PostgreSQL connection | `internal/durablejob/configs/postgres.go` | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DOCKER_DB_PORT` |
-| Notification PostgreSQL connection | `internal/notification/configs/postgres.go` | `NOTIFICATION_DB_HOST`, `NOTIFICATION_DB_USER`, `NOTIFICATION_DB_PASSWORD`, `NOTIFICATION_DB_NAME`, `NOTIFICATION_DB_PORT` |
+| Core PostgreSQL connection | `internal/core/configs/postgres.go` | `CORE_DB_HOST`, `CORE_DB_USER=notegic_core`, `CORE_DB_PASSWORD`, `CORE_DB_NAME`, `CORE_DB_PORT` |
+| DurableJob PostgreSQL connection | `internal/durablejob/configs/postgres.go` | `DURABLEJOB_DB_HOST`, `DURABLEJOB_DB_USER=notegic_durablejob`, `DURABLEJOB_DB_PASSWORD`, `DURABLEJOB_DB_NAME`, `DURABLEJOB_DB_PORT` |
+| Notification PostgreSQL connection | `internal/notification/configs/postgres.go` | `NOTIFICATION_DB_*` |
+| PostgreSQL deployment/admin connection | runtime `commands/database_command.go` | `DB_ADMIN_*` for the main database and `NOTIFICATION_DB_ADMIN_*` for Notification |
 | Redis connection | `shared/platform/redis/config.go` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_INIT_DB` |
 | Kafka connection and TLS | `shared/platform/kafka/config.go` | `KAFKA_BROKERS`, `KAFKA_DIAL_TIMEOUT`, `KAFKA_TLS_*`, `KAFKA_SASL_*` |
 | OpenTelemetry SDK | `shared/platform/observability/config.go` | `OTEL_SERVICE_*`, `OTEL_EXPORTER_OTLP_GRPC_ENDPOINT` |
@@ -33,6 +34,13 @@ shared loader validates values only; it does not derive environment-variable
 names from a prefix. This allows a runtime such as Notification to add another
 independent PostgreSQL connection with its own complete host, user, password,
 name, and port fields.
+
+Each runtime connection uses a fixed role derived from
+`contracts/types.Runtime.RoleName()`: `notegic_core`, `notegic_durablejob`, or
+`notegic_notification`. Runtime startup opens only that runtime connection.
+Role bootstrap, migration, and permission reconciliation run through explicit
+deployment/admin commands before the runtime begins serving traffic. The admin
+connection is never part of the application pool.
 
 PostgreSQL database names and roles use lowercase `snake_case`, for example
 `notegic_db` and `notegic_notification`. Docker Compose service names,

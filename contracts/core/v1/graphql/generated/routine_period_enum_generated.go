@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,7 +40,7 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx context.Context, v any) (*cenums.RoutinePeriod, error) {
+func (ec *executionContext) unmarshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx context.Context, v any) (*enums.RoutinePeriod, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50,7 +49,7 @@ func (ec *executionContext) unmarshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff6
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx context.Context, sel ast.SelectionSet, v *cenums.RoutinePeriod) graphql.Marshaler {
+func (ec *executionContext) marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx context.Context, sel ast.SelectionSet, v *enums.RoutinePeriod) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -61,15 +60,15 @@ func (ec *executionContext) marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67�
 }
 
 var (
-	unmarshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod = map[string]cenums.RoutinePeriod{
-		"RoutinePeriod_Daily":   cenums.RoutinePeriod_Daily,
-		"RoutinePeriod_Weekly":  cenums.RoutinePeriod_Weekly,
-		"RoutinePeriod_Monthly": cenums.RoutinePeriod_Monthly,
+	unmarshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod = map[string]enums.RoutinePeriod{
+		"RoutinePeriod_Daily":   enums.RoutinePeriod_Daily,
+		"RoutinePeriod_Weekly":  enums.RoutinePeriod_Weekly,
+		"RoutinePeriod_Monthly": enums.RoutinePeriod_Monthly,
 	}
-	marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod = map[cenums.RoutinePeriod]string{
-		cenums.RoutinePeriod_Daily:   "RoutinePeriod_Daily",
-		cenums.RoutinePeriod_Weekly:  "RoutinePeriod_Weekly",
-		cenums.RoutinePeriod_Monthly: "RoutinePeriod_Monthly",
+	marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod = map[enums.RoutinePeriod]string{
+		enums.RoutinePeriod_Daily:   "RoutinePeriod_Daily",
+		enums.RoutinePeriod_Weekly:  "RoutinePeriod_Weekly",
+		enums.RoutinePeriod_Monthly: "RoutinePeriod_Monthly",
 	}
 )
 

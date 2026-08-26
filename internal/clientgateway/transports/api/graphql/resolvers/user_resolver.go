@@ -16,7 +16,7 @@ func (r *publicUserResolver) Info(ctx context.Context, obj *cgqlmodels.PublicUse
 	return r.dataloader.UserInfoDataLoader.LoadByUserPublicId(ctx, obj.PublicID)
 }
 
-// PublicUser returns generated.PublicUserResolver implementation.
+// PublicUser returns cgenerated.PublicUserResolver implementation.
 func (r *Resolver) PublicUser() cgenerated.PublicUserResolver { return &publicUserResolver{r} }
 
 type publicUserResolver struct{ *Resolver }

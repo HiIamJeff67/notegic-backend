@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -31,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateSearchableStation_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -75,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_id(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_permission(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_permission(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_permission(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -101,7 +100,7 @@ func (ec *executionContext) _PrivateSearchableStation_permission(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.AccessControlPermission)
+	res := resTmp.(enums.AccessControlPermission)
 	fc.Result = res
 	return ec.marshalNAccessControlPermission2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐAccessControlPermission(ctx, field.Selections, res)
 }
@@ -119,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_permission(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -163,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_name(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_icon(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_icon(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_icon(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -186,7 +185,7 @@ func (ec *executionContext) _PrivateSearchableStation_icon(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cenums.SupportedIcon)
+	res := resTmp.(*enums.SupportedIcon)
 	fc.Result = res
 	return ec.marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx, field.Selections, res)
 }
@@ -204,7 +203,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_icon(_ context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_headerBackgroundURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -245,7 +244,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_headerBackgrou
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_routineCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_routineCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_routineCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -289,7 +288,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_routineCount(_
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -330,7 +329,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_deletedAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -374,7 +373,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_createdAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSearchableStation_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSearchableStation_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableStation_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -418,7 +417,7 @@ func (ec *executionContext) fieldContext_PrivateSearchableStation_updatedAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -462,7 +461,7 @@ func (ec *executionContext) fieldContext_PrivateStation_id(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_permission(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_permission(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_permission(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -488,7 +487,7 @@ func (ec *executionContext) _PrivateStation_permission(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.AccessControlPermission)
+	res := resTmp.(enums.AccessControlPermission)
 	fc.Result = res
 	return ec.marshalNAccessControlPermission2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐAccessControlPermission(ctx, field.Selections, res)
 }
@@ -506,7 +505,7 @@ func (ec *executionContext) fieldContext_PrivateStation_permission(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -550,7 +549,7 @@ func (ec *executionContext) fieldContext_PrivateStation_name(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_description(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_description(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_description(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -594,7 +593,7 @@ func (ec *executionContext) fieldContext_PrivateStation_description(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_icon(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_icon(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_icon(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -617,7 +616,7 @@ func (ec *executionContext) _PrivateStation_icon(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cenums.SupportedIcon)
+	res := resTmp.(*enums.SupportedIcon)
 	fc.Result = res
 	return ec.marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx, field.Selections, res)
 }
@@ -635,7 +634,7 @@ func (ec *executionContext) fieldContext_PrivateStation_icon(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_headerBackgroundURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -676,7 +675,7 @@ func (ec *executionContext) fieldContext_PrivateStation_headerBackgroundURL(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_routineCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_routineCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_routineCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -720,7 +719,7 @@ func (ec *executionContext) fieldContext_PrivateStation_routineCount(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -761,7 +760,7 @@ func (ec *executionContext) fieldContext_PrivateStation_deletedAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -805,7 +804,7 @@ func (ec *executionContext) fieldContext_PrivateStation_createdAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateStation_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateStation) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateStation_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateStation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateStation_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -863,7 +862,7 @@ func (ec *executionContext) fieldContext_PrivateStation_updatedAt(_ context.Cont
 
 var privateSearchableStationImplementors = []string{"PrivateSearchableStation"}
 
-func (ec *executionContext) _PrivateSearchableStation(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateSearchableStation) graphql.Marshaler {
+func (ec *executionContext) _PrivateSearchableStation(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateSearchableStation) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateSearchableStationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -933,7 +932,7 @@ func (ec *executionContext) _PrivateSearchableStation(ctx context.Context, sel a
 
 var privateStationImplementors = []string{"PrivateStation"}
 
-func (ec *executionContext) _PrivateStation(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateStation) graphql.Marshaler {
+func (ec *executionContext) _PrivateStation(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateStation) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateStationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1010,7 +1009,7 @@ func (ec *executionContext) _PrivateStation(ctx context.Context, sel ast.Selecti
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateSearchableStation2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSearchableStation(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateSearchableStation) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateSearchableStation2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSearchableStation(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateSearchableStation) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

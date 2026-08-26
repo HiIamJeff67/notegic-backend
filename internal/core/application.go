@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
+	"gorm.io/gorm"
 
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
@@ -25,8 +27,6 @@ import (
 	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/seeds"
 	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	storage "github.com/HiIamJeff67/notegic-backend/internal/core/data/storage"
@@ -58,18 +58,15 @@ type Application struct {
 }
 
 type ApplicationInterface interface {
-	loadConfig() coreconfig.Config
-	loadRedisConfig() sredis.Config
-	loadKafkaConnectionConfig() skafka.ConnectionConfig
 	initializeObservability() func()
-	initializeDatabase(spostgres.Config, func())
-	initializeRedis(sredis.Config, func()) *sredis.ClientSet
-	initializeCacheClients(coreconfig.Config, *sredis.ClientSet, func()) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient)
+	initializeDatabase(spostgres.Config) (*gorm.DB, error)
+	initializeRedis(sredis.Config) (*sredis.ClientSet, error)
+	initializeCacheClients(coreconfig.Config, *sredis.ClientSet) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient, error)
 	initializeYjsClient(coreconfig.Config) *yjsworkertransport.DocumentInitializationClient
 	initializeKafka(skafka.ConnectionConfig) (*skafka.Producer, bool)
-	initializeWorkers(coreconfig.Config, skafka.ConnectionConfig, *skafka.Producer) func()
-	buildRouter(coreconfig.Config, *skafka.Producer, *userdata.UserDataCacheClient, *yjsworkertransport.DocumentInitializationClient, *apikeycache.APIKeyCacheClient) *gin.Engine
-	startHTTP(coreconfig.Config, *sredis.ClientSet, *skafka.Producer, bool, func(), *gin.Engine, func()) func()
+	initializeWorkers(coreconfig.Config, *gorm.DB, skafka.ConnectionConfig, *skafka.Producer) func()
+	buildRouter(coreconfig.Config, *gorm.DB, *skafka.Producer, *userdata.UserDataCacheClient, *yjsworkertransport.DocumentInitializationClient, *apikeycache.APIKeyCacheClient) *gin.Engine
+	startHTTP(coreconfig.Config, *gin.Engine, bool) (func(), error)
 	Start() func()
 	IsHealthy() bool
 	IsReady() bool
@@ -89,6 +86,7 @@ func (a *Application) IsReady() bool {
 
 func (a *Application) buildRouter(
 	config coreconfig.Config,
+	db *gorm.DB,
 	kafkaProducer *skafka.Producer,
 	userDataCacheClient *userdata.UserDataCacheClient,
 	yjsDocumentInitializationClient *yjsworkertransport.DocumentInitializationClient,
@@ -108,34 +106,34 @@ func (a *Application) buildRouter(
 	routineTaskRecordScope := sscopes.NewRoutineTaskRecordScope()
 	itemScope := sscopes.NewItemScope()
 
-	userRepository := srepositories.NewUserRepository(data.DB)
-	userInfoRepository := srepositories.NewUserInfoRepository(data.DB)
-	userAccountRepository := srepositories.NewUserAccountRepository(data.DB)
-	userSettingRepository := srepositories.NewUserSettingRepository(data.DB)
-	rootShelfRepository := srepositories.NewRootShelfRepository(data.DB, rootShelfScope)
-	stationRepository := srepositories.NewStationRepository(data.DB, stationScope)
-	usersToShelvesRepository := srepositories.NewUsersToShelvesRepository(data.DB)
-	usersToStationsRepository := srepositories.NewUsersToStationsRepository(data.DB)
-	blockRepository := srepositories.NewBlockRepository(data.DB, blockScope)
-	blockPackRepository := srepositories.NewBlockPackRepository(data.DB, blockPackScope)
-	subShelfRepository := srepositories.NewSubShelfRepository(data.DB, subShelfScope)
-	materialRepository := srepositories.NewMaterialRepository(data.DB, materialScope)
-	routineRepository := srepositories.NewRoutineRepository(data.DB, routineScope)
-	routineTagRepository := srepositories.NewRoutineTagRepository(data.DB, routineTagScope)
-	routineTaskRepository := srepositories.NewRoutineTaskRepository(data.DB, routineTaskScope)
-	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(data.DB, routineTaskRecordScope)
-	itemRepository := srepositories.NewItemRepository(data.DB, itemScope)
-	outboxEventRepository := srepositories.NewOutboxEventRepository(data.DB)
+	userRepository := srepositories.NewUserRepository(db)
+	userInfoRepository := srepositories.NewUserInfoRepository(db)
+	userAccountRepository := srepositories.NewUserAccountRepository(db)
+	userSettingRepository := srepositories.NewUserSettingRepository(db)
+	rootShelfRepository := srepositories.NewRootShelfRepository(db, rootShelfScope)
+	stationRepository := srepositories.NewStationRepository(db, stationScope)
+	usersToShelvesRepository := srepositories.NewUsersToShelvesRepository(db)
+	usersToStationsRepository := srepositories.NewUsersToStationsRepository(db)
+	blockRepository := srepositories.NewBlockRepository(db, blockScope)
+	blockPackRepository := srepositories.NewBlockPackRepository(db, blockPackScope)
+	subShelfRepository := srepositories.NewSubShelfRepository(db, subShelfScope)
+	materialRepository := srepositories.NewMaterialRepository(db, materialScope)
+	routineRepository := srepositories.NewRoutineRepository(db, routineScope)
+	routineTagRepository := srepositories.NewRoutineTagRepository(db, routineTagScope)
+	routineTaskRepository := srepositories.NewRoutineTaskRepository(db, routineTaskScope)
+	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(db, routineTaskRecordScope)
+	itemRepository := srepositories.NewItemRepository(db, itemScope)
+	outboxEventRepository := srepositories.NewOutboxEventRepository(db)
 	inMemoryStorage := storage.NewInMemoryStorage()
 
 	oauthService := authservices.NewOAuthService(config.OAuthGoogle.OAuthConfig())
 	emailClient := emailtransport.NewClient(
-		data.DB,
+		db,
 	)
 
 	authService := authservices.NewAuthService(
 		validator,
-		data.DB,
+		db,
 		userRepository,
 		userInfoRepository,
 		userAccountRepository,
@@ -149,7 +147,7 @@ func (a *Application) buildRouter(
 	)
 	rootShelfService := shelfservices.NewRootShelfService(
 		validator,
-		data.DB,
+		db,
 		rootShelfScope,
 		rootShelfRepository,
 		usersToShelvesRepository,
@@ -157,39 +155,39 @@ func (a *Application) buildRouter(
 	)
 	stationService := routineservices.NewStationService(
 		validator,
-		data.DB,
+		db,
 		stationScope,
 		stationRepository,
 		usersToStationsRepository,
 	)
 	userSettingService := userservices.NewUserSettingService(
 		validator,
-		data.DB,
+		db,
 		userSettingRepository,
 	)
 	userInfoService := userservices.NewUserInfoService(
 		validator,
-		data.DB,
+		db,
 		userInfoRepository,
 		userDataCacheClient,
 	)
 	userAccountService := userservices.NewUserAccountService(
 		validator,
-		data.DB,
+		db,
 		userRepository,
 		userAccountRepository,
-		srepositories.NewUserQuotaRepository(data.DB),
+		srepositories.NewUserQuotaRepository(db),
 		oauthService,
 	)
 	userService := userservices.NewUserService(
 		validator,
-		data.DB,
+		db,
 		userRepository,
 		userDataCacheClient,
 	)
 	blockService := blockservices.NewBlockService(
 		validator,
-		data.DB,
+		db,
 		blockScope,
 		blockPackScope,
 		subShelfScope,
@@ -198,22 +196,22 @@ func (a *Application) buildRouter(
 	)
 	realtimeService := realtimeservices.NewRealtimeService(
 		validator,
-		data.DB,
+		db,
 		blockPackRepository,
 	)
 	routineTagService := routineservices.NewRoutineTagService(
 		validator,
-		data.DB,
+		db,
 		routineTagRepository,
 	)
 	routineTaskRecordService := routineservices.NewRoutineTaskRecordService(
 		validator,
-		data.DB,
+		db,
 		routineTaskRecordRepository,
 	)
 	subShelfService := shelfservices.NewSubShelfService(
 		validator,
-		data.DB,
+		db,
 		inMemoryStorage,
 		subShelfScope,
 		subShelfRepository,
@@ -223,14 +221,14 @@ func (a *Application) buildRouter(
 	)
 	blockPackService := blockservices.NewBlockPackService(
 		validator,
-		data.DB,
+		db,
 		blockPackScope,
 		subShelfRepository,
 		blockPackRepository,
 	)
 	materialService := materialservices.NewMaterialService(
 		validator,
-		data.DB,
+		db,
 		inMemoryStorage,
 		materialScope,
 		subShelfRepository,
@@ -239,7 +237,7 @@ func (a *Application) buildRouter(
 	)
 	routineService := routineservices.NewRoutineService(
 		validator,
-		data.DB,
+		db,
 		routineScope,
 		stationRepository,
 		routineRepository,
@@ -249,24 +247,24 @@ func (a *Application) buildRouter(
 	)
 	routineTaskExecutionService := routineservices.NewRoutineTaskExecutionService(
 		validator,
-		data.DB,
+		db,
 		yjsDocumentInitializationClient,
 	)
 	routineTaskService := routineservices.NewRoutineTaskService(
 		validator,
-		data.DB,
+		db,
 		routineTaskScope,
 		routineTaskRepository,
 		routineTaskRecordRepository,
-		srepositories.NewUserQuotaRepository(data.DB),
+		srepositories.NewUserQuotaRepository(db),
 		routineTaskExecutionService,
 	)
-	themeService := otherservices.NewThemeService(data.DB)
-	itemService := shelfservices.NewItemService(data.DB, itemScope)
-	badgeService := otherservices.NewBadgeService(data.DB)
-	apiKeyRepository := srepositories.NewAPIKeyRepository(data.DB)
-	apiKeyService := apikeyservices.NewAPIKeyService(validator, data.DB, apiKeyRepository, apiKeyCacheClient)
-	authMiddleware := coremiddlewares.AuthMiddleware(userRepository, userDataCacheClient)
+	themeService := otherservices.NewThemeService(db)
+	itemService := shelfservices.NewItemService(db, itemScope)
+	badgeService := otherservices.NewBadgeService(db)
+	apiKeyRepository := srepositories.NewAPIKeyRepository(db)
+	apiKeyService := apikeyservices.NewAPIKeyService(validator, db, apiKeyRepository, apiKeyCacheClient)
+	authMiddleware := coremiddlewares.AuthMiddleware(userRepository, userDataCacheClient, db)
 	apiKeyMiddleware := coremiddlewares.APIKeyMiddleware(
 		apiKeyRepository,
 		userRepository,
@@ -324,30 +322,6 @@ func (a *Application) buildRouter(
 	return router
 }
 
-func (a *Application) loadConfig() coreconfig.Config {
-	config, err := coreconfig.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
-	return config
-}
-
-func (a *Application) loadRedisConfig() sredis.Config {
-	config, err := sredis.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
-	return config
-}
-
-func (a *Application) loadKafkaConnectionConfig() skafka.ConnectionConfig {
-	config, err := skafka.LoadConnectionConfig()
-	if err != nil {
-		panic(err)
-	}
-	return config
-}
-
 func (a *Application) initializeObservability() func() {
 	return sobservability.Initialize(
 		context.Background(),
@@ -357,48 +331,29 @@ func (a *Application) initializeObservability() func() {
 
 func (a *Application) initializeDatabase(
 	config spostgres.Config,
-	shutdownObservability func(),
-) {
-	if _, err := data.Connect(config); err != nil {
-		shutdownObservability()
-		panic(fmt.Errorf("failed to connect Core database: %w", err))
+) (*gorm.DB, error) {
+	if config.User != ctypes.Runtime_Core.RoleName() {
+		return nil, fmt.Errorf("Core PostgreSQL user must be %q", ctypes.Runtime_Core.RoleName())
 	}
-	data.SetDefaultDB(data.DB)
-	for _, migrate := range []func() error{
-		func() error {
-			return spostgres.Migrate(
-				data.DB,
-				ctypes.Runtime_Core,
-				data.DatabaseMigrationManifest,
-			)
-		},
-		func() error { return spostgres.SeedDefaultDataToDatabase(data.DB, seeds.SeedingDefaultDataSQLs) },
-	} {
-		if err := migrate(); err != nil {
-			_ = data.Disconnect(data.DB)
-			shutdownObservability()
-			panic(fmt.Errorf("failed to initialize Core database schema: %w", err))
-		}
+	db, err := spostgres.Connect(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect Core database: %w", err)
 	}
+	return db, nil
 }
 
-func (a *Application) initializeRedis(
-	config sredis.Config,
-	shutdownObservability func(),
-) *sredis.ClientSet {
+func (a *Application) initializeRedis(config sredis.Config) (*sredis.ClientSet, error) {
 	redisClientSet, err := sredis.NewClientSet(config)
 	if err != nil {
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
-	return redisClientSet
+	return redisClientSet, nil
 }
 
 func (a *Application) initializeCacheClients(
 	config coreconfig.Config,
 	redisClientSet *sredis.ClientSet,
-	shutdownObservability func(),
-) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient) {
+) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient, error) {
 	userDataCacheStore, err := userdata.Register(context.Background(), redisClientSet)
 	if err != nil {
 		exception := cexceptions.New(
@@ -409,13 +364,7 @@ func (a *Application) initializeCacheClients(
 			http.StatusInternalServerError,
 			true,
 		).WithOrigin(err)
-		if slogs.NotegicLogger != nil {
-			slogs.NotegicLogger.Error(context.Background(), exception.Origin(), exception.String())
-		}
-		_ = redisClientSet.Close()
-		_ = data.Disconnect(data.DB)
-		shutdownObservability()
-		panic(exception)
+		return nil, nil, exception
 	}
 	apiKeyCacheStore := apikeycache.Register(context.Background(), redisClientSet)
 	if err := apiKeyCacheStore.Initialize(context.Background()); err != nil {
@@ -427,12 +376,9 @@ func (a *Application) initializeCacheClients(
 			http.StatusInternalServerError,
 			true,
 		).WithOrigin(err)
-		_ = redisClientSet.Close()
-		_ = data.Disconnect(data.DB)
-		shutdownObservability()
-		panic(exception)
+		return nil, nil, exception
 	}
-	return userdata.NewUserDataCacheClient(config.UserDataCache, userDataCacheStore), apikeycache.NewAPIKeyCacheClient(apiKeyCacheStore)
+	return userdata.NewUserDataCacheClient(config.UserDataCache, userDataCacheStore), apikeycache.NewAPIKeyCacheClient(apiKeyCacheStore), nil
 }
 
 func (a *Application) initializeYjsClient(config coreconfig.Config) *yjsworkertransport.DocumentInitializationClient {
@@ -458,21 +404,22 @@ func (a *Application) initializeKafka(
 
 func (a *Application) initializeWorkers(
 	config coreconfig.Config,
+	db *gorm.DB,
 	kafkaConnection skafka.ConnectionConfig,
 	kafkaProducer *skafka.Producer,
 ) func() {
 	outboxRelay := coretransports.NewOutboxRelay(
-		data.DB,
-		srepositories.NewOutboxEventRepository(data.DB),
+		db,
+		srepositories.NewOutboxEventRepository(db),
 		kafkaProducer,
 		config.OutboxRelay,
 	)
 	yjsMaintenanceReconciliationWorker := coreworkers.NewYjsMaintenanceReconciliationWorker(
-		data.DB,
-		srepositories.NewOutboxEventRepository(data.DB),
+		db,
+		srepositories.NewOutboxEventRepository(db),
 	)
 	yjsMaintenanceWorker := coreworkers.NewYjsMaintenanceWorker(
-		data.DB,
+		db,
 		yjsworkerproducers.NewYjsMaintenanceCommandProducer(kafkaProducer),
 		config.YjsMaintenanceStrategy,
 		skafka.ConsumerConfig{
@@ -488,21 +435,21 @@ func (a *Application) initializeWorkers(
 		},
 	)
 	quotaCycleWorker := coreworkers.NewQuotaCycleWorker(
-		data.DB,
+		db,
 		config.QuotaCycleWorker,
-		srepositories.NewUserQuotaRepository(data.DB),
+		srepositories.NewUserQuotaRepository(db),
 	)
 	yjsCommandConsumer := yjsworkerconsumers.NewYjsCommandConsumer(
-		data.DB,
-		blockservices.NewYjsPersistenceService(data.DB),
+		db,
+		blockservices.NewYjsPersistenceService(db),
 		blockservices.NewBlockService(
 			validation.New(),
-			data.DB,
+			db,
 			sscopes.NewBlockScope(),
 			sscopes.NewBlockPackScope(),
 			sscopes.NewSubShelfScope(),
-			srepositories.NewBlockPackRepository(data.DB, sscopes.NewBlockPackScope()),
-			srepositories.NewBlockRepository(data.DB, sscopes.NewBlockScope()),
+			srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
+			srepositories.NewBlockRepository(db, sscopes.NewBlockScope()),
 		),
 		skafka.ConsumerConfig{
 			ClientConfig: skafka.ClientConfig{
@@ -532,23 +479,12 @@ func (a *Application) initializeWorkers(
 
 func (a *Application) startHTTP(
 	config coreconfig.Config,
-	redisClientSet *sredis.ClientSet,
-	kafkaProducer *skafka.Producer,
-	kafkaReady bool,
-	shutdownWorkers func(),
 	router *gin.Engine,
-	shutdownObservability func(),
-) func() {
+	kafkaReady bool,
+) (func(), error) {
 	listener, err := net.Listen("tcp", config.ListenAddress)
 	if err != nil {
-		shutdownWorkers()
-		if kafkaProducer != nil {
-			kafkaProducer.Close()
-		}
-		_ = redisClientSet.Close()
-		_ = data.Disconnect(data.DB)
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
 	a.healthy.Store(true)
 	a.ready.Store(kafkaReady)
@@ -568,31 +504,77 @@ func (a *Application) startHTTP(
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			fmt.Println("Failed to shutdown Core service transport: ", err)
 		}
-		shutdownWorkers()
-		if kafkaProducer != nil {
-			kafkaProducer.Close()
-		}
-		if err := redisClientSet.Close(); err != nil {
-			fmt.Println("Failed to disconnect Core cache servers: ", err)
-		}
-		_ = data.Disconnect(data.DB)
-		shutdownObservability()
-	}
+	}, nil
 }
 
 func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
-	config := a.loadConfig()
-	redisConfig := a.loadRedisConfig()
-	kafkaConnectionConfig := a.loadKafkaConnectionConfig()
-	a.initializeDatabase(config.Postgres, shutdownObservability)
-	redisClientSet := a.initializeRedis(redisConfig, shutdownObservability)
-	userDataCacheClient, apiKeyCacheClient := a.initializeCacheClients(config, redisClientSet, shutdownObservability)
+	var (
+		db              *gorm.DB
+		redisClientSet  *sredis.ClientSet
+		kafkaProducer   *skafka.Producer
+		shutdownHTTP    func()
+		shutdownWorkers func()
+	)
+	var shutdownOnce sync.Once
+	shutdown := func() {
+		shutdownOnce.Do(func() {
+			if shutdownHTTP != nil {
+				shutdownHTTP()
+			}
+			if shutdownWorkers != nil {
+				shutdownWorkers()
+			}
+			if kafkaProducer != nil {
+				kafkaProducer.Close()
+			}
+			if redisClientSet != nil {
+				if err := redisClientSet.Close(); err != nil {
+					fmt.Println("Failed to disconnect Core cache servers: ", err)
+				}
+			}
+			_ = spostgres.Disconnect(db)
+			shutdownObservability()
+		})
+	}
+	fail := func(err error) {
+		shutdown()
+		panic(err)
+	}
+
+	config, err := coreconfig.LoadConfig()
+	if err != nil {
+		fail(err)
+	}
+	redisConfig, err := sredis.LoadConfig()
+	if err != nil {
+		fail(err)
+	}
+	kafkaConnectionConfig, err := skafka.LoadConnectionConfig()
+	if err != nil {
+		fail(err)
+	}
+	db, err = a.initializeDatabase(config.Postgres)
+	if err != nil {
+		fail(err)
+	}
+	redisClientSet, err = a.initializeRedis(redisConfig)
+	if err != nil {
+		fail(err)
+	}
+	userDataCacheClient, apiKeyCacheClient, err := a.initializeCacheClients(config, redisClientSet)
+	if err != nil {
+		fail(err)
+	}
 	yjsDocumentInitializationClient := a.initializeYjsClient(config)
 	kafkaProducer, kafkaReady := a.initializeKafka(kafkaConnectionConfig)
-	shutdownWorkers := a.initializeWorkers(config, kafkaConnectionConfig, kafkaProducer)
-	router := a.buildRouter(config, kafkaProducer, userDataCacheClient, yjsDocumentInitializationClient, apiKeyCacheClient)
-	return a.startHTTP(config, redisClientSet, kafkaProducer, kafkaReady, shutdownWorkers, router, shutdownObservability)
+	shutdownWorkers = a.initializeWorkers(config, db, kafkaConnectionConfig, kafkaProducer)
+	router := a.buildRouter(config, db, kafkaProducer, userDataCacheClient, yjsDocumentInitializationClient, apiKeyCacheClient)
+	shutdownHTTP, err = a.startHTTP(config, router, kafkaReady)
+	if err != nil {
+		fail(err)
+	}
+	return shutdown
 }
 
 // make sure Application struct followed the ApplicationInterface implementations

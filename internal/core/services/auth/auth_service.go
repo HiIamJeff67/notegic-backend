@@ -34,7 +34,6 @@ import (
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	authsql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/auth"
 	badgesql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/badge"
 	usersql "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/sqls/user"
@@ -87,9 +86,6 @@ func NewAuthService(
 	userDataCacheClient *userdata.UserDataCacheClient,
 	authCodeGenerator *sauthcode.AuthCodeGenerator,
 ) AuthServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	if authCodeGenerator == nil {
 		authCodeGenerator = sauthcode.New()
 	}
@@ -419,7 +415,7 @@ func (s *AuthService) generateCSRFToken() (*string, *cexceptions.Exception) {
 
 func (s *AuthService) enqueueWelcomeNotification(
 	tx *gorm.DB,
-	userPublicId uuid.UUID,
+	user *sschemas.User,
 ) *cexceptions.Exception {
 	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
 		Title:   "Welcome to Notegic",
@@ -441,13 +437,18 @@ func (s *AuthService) enqueueWelcomeNotification(
 		tx,
 		uuid.NewString(),
 		coreevents.NotificationRequestedData{
-			RecipientUserPublicId: userPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           cnotificationtypes.TemplateKey_News,
-			TemplateVersion:       1,
-			Payload:               payload,
-			DedupeKey:             "welcome:" + userPublicId.String(),
+			RecipientUserPublicId: user.PublicId,
+			UserProjection: coreevents.UserProjection{
+				PublicId: user.PublicId,
+				Plan:     user.Plan,
+				Status:   user.Status,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "welcome:" + user.PublicId.String(),
 		},
 	); err != nil {
 		return cexceptions.New(
@@ -586,7 +587,7 @@ func (s *AuthService) Register(
 		tx.Rollback()
 		return nil, exception
 	}
-	if exception = s.enqueueWelcomeNotification(tx, newUser.PublicId); exception != nil {
+	if exception = s.enqueueWelcomeNotification(tx, newUser); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
@@ -854,7 +855,7 @@ func (s *AuthService) RegisterViaGoogle(
 		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	if exception = s.enqueueWelcomeNotification(tx, newUser.PublicId); exception != nil {
+	if exception = s.enqueueWelcomeNotification(tx, newUser); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}

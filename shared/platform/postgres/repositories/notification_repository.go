@@ -40,11 +40,15 @@ type NotificationRepository interface {
 }
 
 type NotificationRepositoryImpl struct {
-	db *gorm.DB
+	db                       *gorm.DB
+	userProjectionRepository UserProjectionRepositoryInterface
 }
 
 func NewNotificationRepository(db *gorm.DB) NotificationRepository {
-	return &NotificationRepositoryImpl{db: db}
+	return &NotificationRepositoryImpl{
+		db:                       db,
+		userProjectionRepository: NewUserProjectionRepository(db),
+	}
 }
 
 func (r *NotificationRepositoryImpl) CreateFromRequest(
@@ -70,15 +74,18 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 			return nil
 		}
 
-		_, userViewException := NewUserViewRepository().GetOneByPublicId(
-			inputs.GetUserViewByPublicIdInput{PublicId: event.Data.RecipientUserPublicId},
-			RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
-		)
-		if userViewException != nil {
-			if userViewException.Reason == "NotFound" {
-				return nil
-			}
-			return userViewException
+		if event.Data.UserProjection.PublicId != event.Data.RecipientUserPublicId {
+			return errors.New("notification user projection does not match recipient")
+		}
+		if userProjectionException := r.userProjectionRepository.CreateIfNotExists(
+			inputs.CreateUserProjectionInput{
+				PublicId: event.Data.UserProjection.PublicId,
+				Plan:     event.Data.UserProjection.Plan,
+				Status:   event.Data.UserProjection.Status,
+			},
+			WithTransactionDB(tx),
+		); userProjectionException != nil {
+			return userProjectionException
 		}
 
 		notification := schemas.Notification{

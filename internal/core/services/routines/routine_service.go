@@ -26,7 +26,6 @@ import (
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -78,9 +77,6 @@ func NewRoutineService(
 	routineTaskRepository srepositories.RoutineTaskRepositoryInterface,
 	itemRepository srepositories.ItemRepositoryInterface,
 ) RoutineServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &RoutineService{
 		validator:             validator,
 		db:                    db,

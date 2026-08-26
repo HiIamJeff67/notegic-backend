@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -15,9 +16,9 @@ import (
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	"gorm.io/gorm"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/internal/durablejob/configs"
-	data "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres"
 	routinetask "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask"
 	routineexecution "github.com/HiIamJeff67/notegic-backend/internal/durablejob/routinetask/execution"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/internal/durablejob/transports/realtimegateway/producers"
@@ -32,13 +33,12 @@ type Application struct {
 }
 
 type ApplicationInterface interface {
-	loadConfig() durablejobconfig.Config
-	loadKafkaConnectionConfig() skafka.ConnectionConfig
 	initializeObservability() func()
-	initializeKafka(skafka.ConnectionConfig, func()) *skafka.Producer
-	initializeWorkers(durablejobconfig.Config, skafka.ConnectionConfig, *skafka.Producer) func()
+	initializeDatabase(durablejobconfig.Config) (*gorm.DB, error)
+	initializeKafka(skafka.ConnectionConfig) (*skafka.Producer, error)
+	initializeWorkers(durablejobconfig.Config, *gorm.DB, skafka.ConnectionConfig, *skafka.Producer) func()
 	buildRouter() *http.ServeMux
-	startHTTP(durablejobconfig.Config, *http.ServeMux, func(), *skafka.Producer, func()) func()
+	startHTTP(durablejobconfig.Config, *http.ServeMux) (func(), error)
 	Start() func()
 	IsHealthy() bool
 	IsReady() bool
@@ -56,22 +56,6 @@ func (a *Application) IsReady() bool {
 	return a.ready.Load() && a.routineTaskEngine != nil && a.routineTaskEngine.IsReady()
 }
 
-func (a *Application) loadConfig() durablejobconfig.Config {
-	config, err := durablejobconfig.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
-	return config
-}
-
-func (a *Application) loadKafkaConnectionConfig() skafka.ConnectionConfig {
-	kafkaConnectionConfig, err := skafka.LoadConnectionConfig()
-	if err != nil {
-		panic(err)
-	}
-	return kafkaConnectionConfig
-}
-
 func (a *Application) initializeObservability() func() {
 	return sobservability.Initialize(
 		context.Background(),
@@ -81,42 +65,38 @@ func (a *Application) initializeObservability() func() {
 
 func (a *Application) initializeKafka(
 	config skafka.ConnectionConfig,
-	shutdownObservability func(),
-) *skafka.Producer {
+) (*skafka.Producer, error) {
 	kafkaProducer, err := skafka.NewProducer(skafka.ClientConfig{
 		ConnectionConfig: config,
 		ClientId:         "notegic-durable-job",
 	})
 	if err != nil {
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
 	if err := kafkaProducer.Ping(context.Background()); err != nil {
 		kafkaProducer.Close()
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
-	return kafkaProducer
+	return kafkaProducer, nil
+}
+
+func (a *Application) initializeDatabase(config durablejobconfig.Config) (*gorm.DB, error) {
+	if config.Postgres.User != ctypes.Runtime_DurableJob.RoleName() {
+		return nil, fmt.Errorf("DurableJob PostgreSQL user must be %q", ctypes.Runtime_DurableJob.RoleName())
+	}
+	db, err := spostgres.Connect(config.Postgres)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect DurableJob database: %w", err)
+	}
+	return db, nil
 }
 
 func (a *Application) initializeWorkers(
 	config durablejobconfig.Config,
+	db *gorm.DB,
 	kafkaConnection skafka.ConnectionConfig,
 	kafkaProducer *skafka.Producer,
 ) func() {
-	db, err := data.Connect(config.Postgres)
-	if err != nil {
-		panic(err)
-	}
-	if err := spostgres.Migrate(
-		db,
-		ctypes.Runtime_DurableJob,
-		data.DatabaseMigrationManifest,
-	); err != nil {
-		_ = data.Disconnect(db)
-		panic(fmt.Errorf("failed to initialize DurableJob database schema: %w", err))
-	}
-	data.SetDefaultDB(db)
 
 	// Construct and start the durable-job workers that claim and execute tasks.
 	routineTaskEngine := routinetask.NewEngine(config)
@@ -146,7 +126,6 @@ func (a *Application) initializeWorkers(
 
 	return func() {
 		shutdownRoutineTaskEngine()
-		_ = data.Disconnect(db)
 	}
 }
 
@@ -160,16 +139,10 @@ func (a *Application) buildRouter() *http.ServeMux {
 func (a *Application) startHTTP(
 	config durablejobconfig.Config,
 	mux *http.ServeMux,
-	shutdownWorkers func(),
-	kafkaProducer *skafka.Producer,
-	shutdownObservability func(),
-) func() {
+) (func(), error) {
 	listener, err := net.Listen("tcp", config.ListenAddress)
 	if err != nil {
-		shutdownWorkers()
-		kafkaProducer.Close()
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
 	a.healthy.Store(true)
 	a.ready.Store(a.routineTaskEngine.IsReady())
@@ -181,7 +154,6 @@ func (a *Application) startHTTP(
 	}()
 
 	return func() {
-		// Stop HTTP traffic before stopping workers and Kafka.
 		a.ready.Store(false)
 		a.healthy.Store(false)
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -189,20 +161,63 @@ func (a *Application) startHTTP(
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			fmt.Println("Failed to shutdown DurableJob server: ", err)
 		}
-		shutdownWorkers()
-		kafkaProducer.Close()
-		shutdownObservability()
-	}
+	}, nil
 }
 
 func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
-	config := a.loadConfig()
-	kafkaConnection := a.loadKafkaConnectionConfig()
-	kafkaProducer := a.initializeKafka(kafkaConnection, shutdownObservability)
-	shutdownWorkers := a.initializeWorkers(config, kafkaConnection, kafkaProducer)
+	var (
+		db              *gorm.DB
+		kafkaProducer   *skafka.Producer
+		shutdownHTTP    func()
+		shutdownWorkers func()
+	)
+	var shutdownOnce sync.Once
+	shutdown := func() {
+		shutdownOnce.Do(func() {
+			if shutdownHTTP != nil {
+				shutdownHTTP()
+			}
+			if shutdownWorkers != nil {
+				shutdownWorkers()
+			}
+			if kafkaProducer != nil {
+				kafkaProducer.Close()
+			}
+			if db != nil {
+				_ = spostgres.Disconnect(db)
+			}
+			shutdownObservability()
+		})
+	}
+	fail := func(err error) {
+		shutdown()
+		panic(err)
+	}
+
+	config, err := durablejobconfig.LoadConfig()
+	if err != nil {
+		fail(err)
+	}
+	kafkaConnection, err := skafka.LoadConnectionConfig()
+	if err != nil {
+		fail(err)
+	}
+	db, err = a.initializeDatabase(config)
+	if err != nil {
+		fail(err)
+	}
+	kafkaProducer, err = a.initializeKafka(kafkaConnection)
+	if err != nil {
+		fail(err)
+	}
+	shutdownWorkers = a.initializeWorkers(config, db, kafkaConnection, kafkaProducer)
 	router := a.buildRouter()
-	return a.startHTTP(config, router, shutdownWorkers, kafkaProducer, shutdownObservability)
+	shutdownHTTP, err = a.startHTTP(config, router)
+	if err != nil {
+		fail(err)
+	}
+	return shutdown
 }
 
 // make sure Application struct followed the ApplicationInterface implementations

@@ -109,12 +109,15 @@ func TestCoreNotificationKafkaContract(t *testing.T) {
 
 	notificationPayload, err := json.Marshal(coreevents.NotificationRequestedData{
 		RecipientUserPublicId: userPublicId,
-		Type:                  coreevents.NotificationType_News,
-		Priority:              coreevents.NotificationPriority_Normal,
-		TemplateKey:           cnotificationtypes.TemplateKey_News,
-		TemplateVersion:       1,
-		Payload:               json.RawMessage(`{"title":"Release update","summary":"A new release is available.","body":"Read the release notes."}`),
-		DedupeKey:             "integration:" + userPublicId.String(),
+		UserProjection: coreevents.UserProjection{
+			PublicId: userPublicId,
+		},
+		Type:            coreevents.NotificationType_News,
+		Priority:        coreevents.NotificationPriority_Normal,
+		TemplateKey:     cnotificationtypes.TemplateKey_News,
+		TemplateVersion: 1,
+		Payload:         json.RawMessage(`{"title":"Release update","summary":"A new release is available.","body":"Read the release notes."}`),
+		DedupeKey:       "integration:" + userPublicId.String(),
 	})
 	if err != nil {
 		t.Fatalf("marshal notification contract: %v", err)

@@ -15,7 +15,6 @@ import (
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 )
 
 type UserSettingServiceInterface interface {
@@ -34,9 +33,6 @@ func NewUserSettingService(
 	db *gorm.DB,
 	userSettingRepository srepositories.UserSettingRepositoryInterface,
 ) UserSettingServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &UserSettingService{
 		validator:             validator,
 		db:                    db,

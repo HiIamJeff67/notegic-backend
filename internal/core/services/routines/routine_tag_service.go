@@ -21,7 +21,6 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -49,9 +48,6 @@ func NewRoutineTagService(
 	db *gorm.DB,
 	routineTagRepository srepositories.RoutineTagRepositoryInterface,
 ) RoutineTagServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &RoutineTagService{
 		validator:            validator,
 		db:                   db,

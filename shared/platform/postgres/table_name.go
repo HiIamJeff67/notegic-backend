@@ -13,6 +13,7 @@ const (
 	TableName_UserInfoTable             TableName = "UserInfoTable"
 	TableName_UserSettingTable          TableName = "UserSettingTable"
 	TableName_UserView                  TableName = "UserView"
+	TableName_UserProjection            TableName = "UserProjection"
 	TableName_InboxEventTable           TableName = "InboxEventTable"
 	TableName_OutboxEventTable          TableName = "OutboxEventTable"
 	TableName_NotificationTable         TableName = "NotificationTable"

@@ -407,7 +407,8 @@ func (r *OutboxEventRepository) EnqueueNotificationRequested(
 	correlationId string,
 	data coreevents.NotificationRequestedData,
 ) error {
-	if tx == nil || data.RecipientUserPublicId == uuid.Nil || data.Type == "" ||
+	if tx == nil || data.RecipientUserPublicId == uuid.Nil ||
+		data.UserProjection.PublicId != data.RecipientUserPublicId || data.Type == "" ||
 		data.TemplateKey == "" || data.TemplateVersion <= 0 || data.DedupeKey == "" {
 		return errors.New("notification request is incomplete")
 	}

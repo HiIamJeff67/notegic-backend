@@ -21,14 +21,14 @@ const testAuthRouteNamespace = "/testRoute/auth"
 
 func TestAuthE2E(t *testing.T) {
 	databaseConfig := spostgres.Config{
-		Host:     strings.TrimSpace(os.Getenv("DB_HOST")),
-		User:     strings.TrimSpace(os.Getenv("DB_USER")),
-		Password: os.Getenv("DB_PASSWORD"),
-		Name:     strings.TrimSpace(os.Getenv("DB_NAME")),
-		Port:     strings.TrimSpace(os.Getenv("DOCKER_DB_PORT")),
+		Host:     strings.TrimSpace(os.Getenv("CORE_DB_HOST")),
+		User:     strings.TrimSpace(os.Getenv("CORE_DB_USER")),
+		Password: os.Getenv("CORE_DB_PASSWORD"),
+		Name:     strings.TrimSpace(os.Getenv("CORE_DB_NAME")),
+		Port:     strings.TrimSpace(os.Getenv("CORE_DB_PORT")),
 	}
 	if databaseConfig.Host == "" || databaseConfig.User == "" || databaseConfig.Password == "" || databaseConfig.Name == "" || databaseConfig.Port == "" {
-		t.Skipf("auth E2E test requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT")
+		t.Skipf("auth E2E test requires CORE_DB_HOST, CORE_DB_USER, CORE_DB_PASSWORD, CORE_DB_NAME, and CORE_DB_PORT")
 	}
 	db, err := spostgres.Connect(databaseConfig)
 	if err != nil {

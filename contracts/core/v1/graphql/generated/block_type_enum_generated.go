@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,13 +40,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType(ctx context.Context, v any) (cenums.BlockType, error) {
+func (ec *executionContext) unmarshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType(ctx context.Context, v any) (enums.BlockType, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType(ctx context.Context, sel ast.SelectionSet, v cenums.BlockType) graphql.Marshaler {
+func (ec *executionContext) marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType(ctx context.Context, sel ast.SelectionSet, v enums.BlockType) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType[v])
 	if res == graphql.Null {
@@ -59,41 +58,41 @@ func (ec *executionContext) marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnoteg
 }
 
 var (
-	unmarshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType = map[string]cenums.BlockType{
-		"BlockType_Paragraph":        cenums.BlockType_Paragraph,
-		"BlockType_Heading":          cenums.BlockType_Heading,
-		"BlockType_Quote":            cenums.BlockType_Quote,
-		"BlockType_BulletListItem":   cenums.BlockType_BulletListItem,
-		"BlockType_NumberedListItem": cenums.BlockType_NumberedListItem,
-		"BlockType_CheckListItem":    cenums.BlockType_CheckListItem,
-		"BlockType_ToggleListItem":   cenums.BlockType_ToggleListItem,
-		"BlockType_Image":            cenums.BlockType_Image,
-		"BlockType_Video":            cenums.BlockType_Video,
-		"BlockType_Audio":            cenums.BlockType_Audio,
-		"BlockType_File":             cenums.BlockType_File,
-		"BlockType_Table":            cenums.BlockType_Table,
-		"BlockType_CodeBlock":        cenums.BlockType_CodeBlock,
-		"BlockType_MathBlock":        cenums.BlockType_MathBlock,
-		"BlockType_Diagram":          cenums.BlockType_Diagram,
-		"BlockType_Calendar":         cenums.BlockType_Calendar,
+	unmarshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType = map[string]enums.BlockType{
+		"BlockType_Paragraph":        enums.BlockType_Paragraph,
+		"BlockType_Heading":          enums.BlockType_Heading,
+		"BlockType_Quote":            enums.BlockType_Quote,
+		"BlockType_BulletListItem":   enums.BlockType_BulletListItem,
+		"BlockType_NumberedListItem": enums.BlockType_NumberedListItem,
+		"BlockType_CheckListItem":    enums.BlockType_CheckListItem,
+		"BlockType_ToggleListItem":   enums.BlockType_ToggleListItem,
+		"BlockType_Image":            enums.BlockType_Image,
+		"BlockType_Video":            enums.BlockType_Video,
+		"BlockType_Audio":            enums.BlockType_Audio,
+		"BlockType_File":             enums.BlockType_File,
+		"BlockType_Table":            enums.BlockType_Table,
+		"BlockType_CodeBlock":        enums.BlockType_CodeBlock,
+		"BlockType_MathBlock":        enums.BlockType_MathBlock,
+		"BlockType_Diagram":          enums.BlockType_Diagram,
+		"BlockType_Calendar":         enums.BlockType_Calendar,
 	}
-	marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType = map[cenums.BlockType]string{
-		cenums.BlockType_Paragraph:        "BlockType_Paragraph",
-		cenums.BlockType_Heading:          "BlockType_Heading",
-		cenums.BlockType_Quote:            "BlockType_Quote",
-		cenums.BlockType_BulletListItem:   "BlockType_BulletListItem",
-		cenums.BlockType_NumberedListItem: "BlockType_NumberedListItem",
-		cenums.BlockType_CheckListItem:    "BlockType_CheckListItem",
-		cenums.BlockType_ToggleListItem:   "BlockType_ToggleListItem",
-		cenums.BlockType_Image:            "BlockType_Image",
-		cenums.BlockType_Video:            "BlockType_Video",
-		cenums.BlockType_Audio:            "BlockType_Audio",
-		cenums.BlockType_File:             "BlockType_File",
-		cenums.BlockType_Table:            "BlockType_Table",
-		cenums.BlockType_CodeBlock:        "BlockType_CodeBlock",
-		cenums.BlockType_MathBlock:        "BlockType_MathBlock",
-		cenums.BlockType_Diagram:          "BlockType_Diagram",
-		cenums.BlockType_Calendar:         "BlockType_Calendar",
+	marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType = map[enums.BlockType]string{
+		enums.BlockType_Paragraph:        "BlockType_Paragraph",
+		enums.BlockType_Heading:          "BlockType_Heading",
+		enums.BlockType_Quote:            "BlockType_Quote",
+		enums.BlockType_BulletListItem:   "BlockType_BulletListItem",
+		enums.BlockType_NumberedListItem: "BlockType_NumberedListItem",
+		enums.BlockType_CheckListItem:    "BlockType_CheckListItem",
+		enums.BlockType_ToggleListItem:   "BlockType_ToggleListItem",
+		enums.BlockType_Image:            "BlockType_Image",
+		enums.BlockType_Video:            "BlockType_Video",
+		enums.BlockType_Audio:            "BlockType_Audio",
+		enums.BlockType_File:             "BlockType_File",
+		enums.BlockType_Table:            "BlockType_Table",
+		enums.BlockType_CodeBlock:        "BlockType_CodeBlock",
+		enums.BlockType_MathBlock:        "BlockType_MathBlock",
+		enums.BlockType_Diagram:          "BlockType_Diagram",
+		enums.BlockType_Calendar:         "BlockType_Calendar",
 	}
 )
 

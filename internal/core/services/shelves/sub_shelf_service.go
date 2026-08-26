@@ -73,9 +73,6 @@ func NewSubShelfService(
 	materialRepository srepositories.MaterialRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) SubShelfServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &SubShelfService{
 		validator:           validator,
 		db:                  db,

@@ -17,7 +17,6 @@ import (
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	apikeycache "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/apikey"
 )
 
@@ -40,9 +39,6 @@ func NewAPIKeyService(
 	repository srepositories.APIKeyRepositoryInterface,
 	cache ...*apikeycache.APIKeyCacheClient,
 ) APIKeyServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	var cacheClient *apikeycache.APIKeyCacheClient
 	if len(cache) > 0 {
 		cacheClient = cache[0]

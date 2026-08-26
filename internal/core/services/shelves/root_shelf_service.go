@@ -28,7 +28,6 @@ import (
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -74,9 +73,6 @@ func NewRootShelfService(
 	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
 ) RootShelfServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &RootShelfService{
 		validator:                validator,
 		db:                       db,

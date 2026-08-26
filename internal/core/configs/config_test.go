@@ -6,11 +6,11 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	t.Setenv("CORE_LISTEN_ADDRESS", "127.0.0.1:7778")
-	t.Setenv("DB_HOST", "database")
-	t.Setenv("DB_USER", "notegic")
-	t.Setenv("DB_PASSWORD", "secret")
-	t.Setenv("DB_NAME", "notegic")
-	t.Setenv("DOCKER_DB_PORT", "5432")
+	t.Setenv("CORE_DB_HOST", "database")
+	t.Setenv("CORE_DB_USER", "notegic_core")
+	t.Setenv("CORE_DB_PASSWORD", "secret")
+	t.Setenv("CORE_DB_NAME", "notegic")
+	t.Setenv("CORE_DB_PORT", "5432")
 	t.Setenv("OAUTH_GOOGLE_CLIENT_ID", "client-id")
 	t.Setenv("OAUTH_GOOGLE_CLIENT_SECRET", "client-secret")
 	t.Setenv("OAUTH_GOOGLE_REDIRECT_URL", "http://gateway/auth/google/callback")

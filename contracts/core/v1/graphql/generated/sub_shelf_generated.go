@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -30,7 +29,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateSubShelf_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -74,7 +73,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_id(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -118,7 +117,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_name(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_rootShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_rootShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_rootShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -162,7 +161,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_rootShelfId(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_prevSubShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_prevSubShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_prevSubShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -203,7 +202,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_prevSubShelfId(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_path(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_path(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_path(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -247,7 +246,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_path(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -288,7 +287,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_deletedAt(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -332,7 +331,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_updatedAt(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -376,7 +375,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_createdAt(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_nextSubShelfIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_nextSubShelfIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_nextSubShelfIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -420,7 +419,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_nextSubShelfIds(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateSubShelf_itemIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateSubShelf_itemIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSubShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSubShelf_itemIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -478,7 +477,7 @@ func (ec *executionContext) fieldContext_PrivateSubShelf_itemIds(_ context.Conte
 
 var privateSubShelfImplementors = []string{"PrivateSubShelf"}
 
-func (ec *executionContext) _PrivateSubShelf(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateSubShelf) graphql.Marshaler {
+func (ec *executionContext) _PrivateSubShelf(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateSubShelf) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateSubShelfImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -558,7 +557,7 @@ func (ec *executionContext) _PrivateSubShelf(ctx context.Context, sel ast.Select
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateSubShelf2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSubShelf(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateSubShelf) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateSubShelf2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSubShelf(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateSubShelf) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

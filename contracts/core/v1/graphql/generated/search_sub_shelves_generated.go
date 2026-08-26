@@ -11,9 +11,8 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -30,7 +29,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _SearchSubShelfConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfConnection_searchEdges(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfConnection_searchEdges(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -56,7 +55,7 @@ func (ec *executionContext) _SearchSubShelfConnection_searchEdges(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*cgqlmodels.SearchSubShelfEdge)
+	res := resTmp.([]*gqlmodels.SearchSubShelfEdge)
 	fc.Result = res
 	return ec.marshalNSearchSubShelfEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfEdgeᚄ(ctx, field.Selections, res)
 }
@@ -80,7 +79,7 @@ func (ec *executionContext) fieldContext_SearchSubShelfConnection_searchEdges(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchSubShelfConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfConnection_searchPageInfo(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfConnection_searchPageInfo(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -106,7 +105,7 @@ func (ec *executionContext) _SearchSubShelfConnection_searchPageInfo(ctx context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchPageInfo)
+	res := resTmp.(*gqlmodels.SearchPageInfo)
 	fc.Result = res
 	return ec.marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx, field.Selections, res)
 }
@@ -134,7 +133,7 @@ func (ec *executionContext) fieldContext_SearchSubShelfConnection_searchPageInfo
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchSubShelfConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfConnection_totalCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -178,7 +177,7 @@ func (ec *executionContext) fieldContext_SearchSubShelfConnection_totalCount(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchSubShelfConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfConnection_searchTime(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfConnection_searchTime(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -222,7 +221,7 @@ func (ec *executionContext) fieldContext_SearchSubShelfConnection_searchTime(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchSubShelfEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfEdge_encodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfEdge_encodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -266,7 +265,7 @@ func (ec *executionContext) fieldContext_SearchSubShelfEdge_encodedSearchCursor(
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchSubShelfEdge_node(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchSubShelfEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchSubShelfEdge_node(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchSubShelfEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchSubShelfEdge_node(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -292,7 +291,7 @@ func (ec *executionContext) _SearchSubShelfEdge_node(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.PrivateSubShelf)
+	res := resTmp.(*gqlmodels.PrivateSubShelf)
 	fc.Result = res
 	return ec.marshalNPrivateSubShelf2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateSubShelf(ctx, field.Selections, res)
 }
@@ -336,8 +335,8 @@ func (ec *executionContext) fieldContext_SearchSubShelfEdge_node(_ context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputSearchSubShelfCursorFields(ctx context.Context, obj any) (cgqlmodels.SearchSubShelfCursorFields, error) {
-	var it cgqlmodels.SearchSubShelfCursorFields
+func (ec *executionContext) unmarshalInputSearchSubShelfCursorFields(ctx context.Context, obj any) (gqlmodels.SearchSubShelfCursorFields, error) {
+	var it gqlmodels.SearchSubShelfCursorFields
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -363,8 +362,8 @@ func (ec *executionContext) unmarshalInputSearchSubShelfCursorFields(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchSubShelfInput(ctx context.Context, obj any) (cgqlmodels.SearchSubShelfInput, error) {
-	var it cgqlmodels.SearchSubShelfInput
+func (ec *executionContext) unmarshalInputSearchSubShelfInput(ctx context.Context, obj any) (gqlmodels.SearchSubShelfInput, error) {
+	var it gqlmodels.SearchSubShelfInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -459,7 +458,7 @@ func (ec *executionContext) unmarshalInputSearchSubShelfInput(ctx context.Contex
 
 var searchSubShelfConnectionImplementors = []string{"SearchSubShelfConnection", "SearchConnection"}
 
-func (ec *executionContext) _SearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchSubShelfConnection) graphql.Marshaler {
+func (ec *executionContext) _SearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchSubShelfConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchSubShelfConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -513,7 +512,7 @@ func (ec *executionContext) _SearchSubShelfConnection(ctx context.Context, sel a
 
 var searchSubShelfEdgeImplementors = []string{"SearchSubShelfEdge", "SearchEdge"}
 
-func (ec *executionContext) _SearchSubShelfEdge(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchSubShelfEdge) graphql.Marshaler {
+func (ec *executionContext) _SearchSubShelfEdge(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchSubShelfEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchSubShelfEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -559,11 +558,11 @@ func (ec *executionContext) _SearchSubShelfEdge(ctx context.Context, sel ast.Sel
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNSearchSubShelfConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, v cgqlmodels.SearchSubShelfConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchSubShelfConnection2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, v gqlmodels.SearchSubShelfConnection) graphql.Marshaler {
 	return ec._SearchSubShelfConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSearchSubShelfConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchSubShelfConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchSubShelfConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfConnection(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchSubShelfConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -573,7 +572,7 @@ func (ec *executionContext) marshalNSearchSubShelfConnection2ᚖgithubᚗcomᚋH
 	return ec._SearchSubShelfConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSearchSubShelfEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*cgqlmodels.SearchSubShelfEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchSubShelfEdge2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*gqlmodels.SearchSubShelfEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -617,7 +616,7 @@ func (ec *executionContext) marshalNSearchSubShelfEdge2ᚕᚖgithubᚗcomᚋHiIa
 	return ret
 }
 
-func (ec *executionContext) marshalNSearchSubShelfEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfEdge(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchSubShelfEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchSubShelfEdge2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfEdge(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchSubShelfEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -627,21 +626,21 @@ func (ec *executionContext) marshalNSearchSubShelfEdge2ᚖgithubᚗcomᚋHiIamJe
 	return ec._SearchSubShelfEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSearchSubShelfInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfInput(ctx context.Context, v any) (cgqlmodels.SearchSubShelfInput, error) {
+func (ec *executionContext) unmarshalNSearchSubShelfInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfInput(ctx context.Context, v any) (gqlmodels.SearchSubShelfInput, error) {
 	res, err := ec.unmarshalInputSearchSubShelfInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOSearchSubShelfSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfSortBy(ctx context.Context, v any) (*cgqlmodels.SearchSubShelfSortBy, error) {
+func (ec *executionContext) unmarshalOSearchSubShelfSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfSortBy(ctx context.Context, v any) (*gqlmodels.SearchSubShelfSortBy, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(cgqlmodels.SearchSubShelfSortBy)
+	var res = new(gqlmodels.SearchSubShelfSortBy)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSearchSubShelfSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfSortBy(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchSubShelfSortBy) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchSubShelfSortBy2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfSortBy(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchSubShelfSortBy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

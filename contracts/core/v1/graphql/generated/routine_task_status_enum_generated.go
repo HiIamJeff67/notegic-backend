@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,13 +40,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus(ctx context.Context, v any) (cenums.RoutineTaskStatus, error) {
+func (ec *executionContext) unmarshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus(ctx context.Context, v any) (enums.RoutineTaskStatus, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus(ctx context.Context, sel ast.SelectionSet, v cenums.RoutineTaskStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus(ctx context.Context, sel ast.SelectionSet, v enums.RoutineTaskStatus) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus[v])
 	if res == graphql.Null {
@@ -59,17 +58,17 @@ func (ec *executionContext) marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67
 }
 
 var (
-	unmarshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus = map[string]cenums.RoutineTaskStatus{
-		"RoutineTaskStatus_Idle":    cenums.RoutineTaskStatus_Idle,
-		"RoutineTaskStatus_Waiting": cenums.RoutineTaskStatus_Waiting,
-		"RoutineTaskStatus_Running": cenums.RoutineTaskStatus_Running,
-		"RoutineTaskStatus_Pause":   cenums.RoutineTaskStatus_Pause,
+	unmarshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus = map[string]enums.RoutineTaskStatus{
+		"RoutineTaskStatus_Idle":    enums.RoutineTaskStatus_Idle,
+		"RoutineTaskStatus_Waiting": enums.RoutineTaskStatus_Waiting,
+		"RoutineTaskStatus_Running": enums.RoutineTaskStatus_Running,
+		"RoutineTaskStatus_Pause":   enums.RoutineTaskStatus_Pause,
 	}
-	marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus = map[cenums.RoutineTaskStatus]string{
-		cenums.RoutineTaskStatus_Idle:    "RoutineTaskStatus_Idle",
-		cenums.RoutineTaskStatus_Waiting: "RoutineTaskStatus_Waiting",
-		cenums.RoutineTaskStatus_Running: "RoutineTaskStatus_Running",
-		cenums.RoutineTaskStatus_Pause:   "RoutineTaskStatus_Pause",
+	marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus = map[enums.RoutineTaskStatus]string{
+		enums.RoutineTaskStatus_Idle:    "RoutineTaskStatus_Idle",
+		enums.RoutineTaskStatus_Waiting: "RoutineTaskStatus_Waiting",
+		enums.RoutineTaskStatus_Running: "RoutineTaskStatus_Running",
+		enums.RoutineTaskStatus_Pause:   "RoutineTaskStatus_Pause",
 	}
 )
 

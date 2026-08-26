@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
@@ -16,13 +17,13 @@ import (
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 )
 
 func AuthMiddleware(
 	userRepository srepositories.UserRepositoryInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
+	db *gorm.DB,
 ) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userPublicId, exception := contexts.GetActorUserPublicId(ctx.Request.Context())
@@ -57,7 +58,7 @@ func AuthMiddleware(
 		if accessTokenExists {
 			claims, err := sharedtokens.ParseAccessToken(accessToken)
 			if err == nil && claims.Subject == userPublicId.String() && claims.UserAgent == userAgent {
-				if setActorUserId(ctx, userRepository, userPublicId) {
+				if setActorUserId(ctx, userRepository, userPublicId, db) {
 					ctx.Next()
 				}
 				return
@@ -111,7 +112,7 @@ func AuthMiddleware(
 		user, exception := userRepository.GetOneByPublicId(
 			userPublicId,
 			nil,
-			srepositories.WithDB(data.DB),
+			srepositories.WithDB(db),
 		)
 		if exception != nil || user.RefreshToken != refreshToken || user.UserAgent != userAgent {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
@@ -208,7 +209,7 @@ func AuthMiddleware(
 		ctx.Set(sharedcontexts.ContextFieldName_IsNewTokens.String(), true)
 		ctx.Set(sharedcontexts.ContextFieldName_AccessToken.String(), *newAccessToken)
 		ctx.Set(sharedcontexts.ContextFieldName_CSRFToken.String(), *newCSRFToken)
-		if !setActorUserId(ctx, userRepository, userPublicId) {
+		if !setActorUserId(ctx, userRepository, userPublicId, db) {
 			return
 		}
 		ctx.Next()
@@ -219,6 +220,7 @@ func setActorUserId(
 	ctx *gin.Context,
 	userRepository srepositories.UserRepositoryInterface,
 	userPublicId uuid.UUID,
+	db *gorm.DB,
 ) bool {
 	if userRepository == nil {
 		return true
@@ -227,7 +229,7 @@ func setActorUserId(
 	user, exception := userRepository.GetOneByPublicId(
 		userPublicId,
 		nil,
-		srepositories.WithDB(data.DB),
+		srepositories.WithDB(db),
 	)
 	if exception != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{

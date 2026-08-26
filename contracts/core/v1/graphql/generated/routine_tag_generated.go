@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -31,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateRoutineTag_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -75,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_id(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTag_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -119,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_name(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTag_color(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_color(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_color(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -163,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_color(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTag_icon(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_icon(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_icon(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -186,7 +185,7 @@ func (ec *executionContext) _PrivateRoutineTag_icon(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cenums.SupportedIcon)
+	res := resTmp.(*enums.SupportedIcon)
 	fc.Result = res
 	return ec.marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx, field.Selections, res)
 }
@@ -204,7 +203,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_icon(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTag_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -248,7 +247,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_updatedAt(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTag_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTag_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTag) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTag_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -306,7 +305,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTag_createdAt(_ context.C
 
 var privateRoutineTagImplementors = []string{"PrivateRoutineTag"}
 
-func (ec *executionContext) _PrivateRoutineTag(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateRoutineTag) graphql.Marshaler {
+func (ec *executionContext) _PrivateRoutineTag(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateRoutineTag) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateRoutineTagImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -369,7 +368,7 @@ func (ec *executionContext) _PrivateRoutineTag(ctx context.Context, sel ast.Sele
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateRoutineTag2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRoutineTag(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateRoutineTag) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateRoutineTag2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRoutineTag(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateRoutineTag) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

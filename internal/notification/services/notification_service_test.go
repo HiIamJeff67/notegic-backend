@@ -113,12 +113,15 @@ func TestConsumeRequestedValidatesPayloadBeforePersisting(t *testing.T) {
 		CorrelationId: "request-id",
 		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           cnotificationtypes.TemplateKey_News,
-			TemplateVersion:       1,
-			Payload:               payload,
-			DedupeKey:             "welcome:" + recipientUserPublicId.String(),
+			UserProjection: coreevents.UserProjection{
+				PublicId: recipientUserPublicId,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "welcome:" + recipientUserPublicId.String(),
 		},
 	}
 
@@ -148,12 +151,15 @@ func TestConsumeRequestedRejectsInvalidPayloadBeforePersisting(t *testing.T) {
 		OccurredAt:    time.Now().UTC(),
 		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           cnotificationtypes.TemplateKey_News,
-			TemplateVersion:       1,
-			Payload:               payload,
-			DedupeKey:             "invalid:" + recipientUserPublicId.String(),
+			UserProjection: coreevents.UserProjection{
+				PublicId: recipientUserPublicId,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "invalid:" + recipientUserPublicId.String(),
 		},
 	}
 

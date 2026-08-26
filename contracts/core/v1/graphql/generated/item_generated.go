@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -31,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateItem_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -75,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateItem_id(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_parentSubShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -119,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateItem_parentSubShelfId(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_rootShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_rootShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_rootShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -163,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateItem_rootShelfId(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_type(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_type(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -189,7 +188,7 @@ func (ec *executionContext) _PrivateItem_type(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.ItemType)
+	res := resTmp.(enums.ItemType)
 	fc.Result = res
 	return ec.marshalNItemType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐItemType(ctx, field.Selections, res)
 }
@@ -207,7 +206,7 @@ func (ec *executionContext) fieldContext_PrivateItem_type(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -248,7 +247,7 @@ func (ec *executionContext) fieldContext_PrivateItem_deletedAt(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -292,7 +291,7 @@ func (ec *executionContext) fieldContext_PrivateItem_updatedAt(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -336,7 +335,7 @@ func (ec *executionContext) fieldContext_PrivateItem_createdAt(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateItem_routineIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateItem) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateItem_routineIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateItem_routineIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -394,7 +393,7 @@ func (ec *executionContext) fieldContext_PrivateItem_routineIds(_ context.Contex
 
 var privateItemImplementors = []string{"PrivateItem"}
 
-func (ec *executionContext) _PrivateItem(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateItem) graphql.Marshaler {
+func (ec *executionContext) _PrivateItem(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateItem) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateItemImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -467,7 +466,7 @@ func (ec *executionContext) _PrivateItem(ctx context.Context, sel ast.SelectionS
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateItem2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateItem(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateItem) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateItem2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateItem(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateItem) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

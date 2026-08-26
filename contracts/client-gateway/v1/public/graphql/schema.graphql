@@ -1135,7 +1135,7 @@ type PublicTheme {
 }
 
 # Source: user.graphql
-# the complete user structure: internal/core/data/postgres/schemas/user_schema.go
+# the complete user structure: shared/platform/postgres/schemas/user_schema.go
 # this schema file is only use for go graphql to improve better user experience
 
 type PublicUser {

@@ -10,27 +10,26 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 // region    ************************** generated!.gotpl **************************
 
 type QueryResolver interface {
-	SearchUsers(ctx context.Context, input cgqlmodels.SearchUserInput) (*cgqlmodels.SearchUserConnection, error)
-	SearchThemes(ctx context.Context, input cgqlmodels.SearchThemeInput) (*cgqlmodels.SearchThemeConnection, error)
-	SearchRootShelves(ctx context.Context, input cgqlmodels.SearchRootShelfInput) (*cgqlmodels.SearchRootShelfConnection, error)
-	SearchSubShelves(ctx context.Context, input cgqlmodels.SearchSubShelfInput) (*cgqlmodels.SearchSubShelfConnection, error)
-	SearchItems(ctx context.Context, input cgqlmodels.SearchItemInput) (*cgqlmodels.SearchItemConnection, error)
-	SearchMaterials(ctx context.Context, input cgqlmodels.SearchMaterialInput) (*cgqlmodels.SearchMaterialConnection, error)
-	SearchBlockPacks(ctx context.Context, input cgqlmodels.SearchBlockPackInput) (*cgqlmodels.SearchBlockPackConnection, error)
-	SearchBlocks(ctx context.Context, input cgqlmodels.SearchBlockInput) (*cgqlmodels.SearchBlockConnection, error)
-	SearchStations(ctx context.Context, input cgqlmodels.SearchStationInput) (*cgqlmodels.SearchStationConnection, error)
-	SearchRoutines(ctx context.Context, input cgqlmodels.SearchRoutineInput) (*cgqlmodels.SearchRoutineConnection, error)
-	SearchRoutineTags(ctx context.Context, input cgqlmodels.SearchRoutineTagInput) (*cgqlmodels.SearchRoutineTagConnection, error)
-	SearchRoutineTasks(ctx context.Context, input cgqlmodels.SearchRoutineTaskInput) (*cgqlmodels.SearchRoutineTaskConnection, error)
-	SearchRoutineTaskRecords(ctx context.Context, input cgqlmodels.SearchRoutineTaskRecordInput) (*cgqlmodels.SearchRoutineTaskRecordConnection, error)
+	SearchUsers(ctx context.Context, input gqlmodels.SearchUserInput) (*gqlmodels.SearchUserConnection, error)
+	SearchThemes(ctx context.Context, input gqlmodels.SearchThemeInput) (*gqlmodels.SearchThemeConnection, error)
+	SearchRootShelves(ctx context.Context, input gqlmodels.SearchRootShelfInput) (*gqlmodels.SearchRootShelfConnection, error)
+	SearchSubShelves(ctx context.Context, input gqlmodels.SearchSubShelfInput) (*gqlmodels.SearchSubShelfConnection, error)
+	SearchItems(ctx context.Context, input gqlmodels.SearchItemInput) (*gqlmodels.SearchItemConnection, error)
+	SearchMaterials(ctx context.Context, input gqlmodels.SearchMaterialInput) (*gqlmodels.SearchMaterialConnection, error)
+	SearchBlockPacks(ctx context.Context, input gqlmodels.SearchBlockPackInput) (*gqlmodels.SearchBlockPackConnection, error)
+	SearchBlocks(ctx context.Context, input gqlmodels.SearchBlockInput) (*gqlmodels.SearchBlockConnection, error)
+	SearchStations(ctx context.Context, input gqlmodels.SearchStationInput) (*gqlmodels.SearchStationConnection, error)
+	SearchRoutines(ctx context.Context, input gqlmodels.SearchRoutineInput) (*gqlmodels.SearchRoutineConnection, error)
+	SearchRoutineTags(ctx context.Context, input gqlmodels.SearchRoutineTagInput) (*gqlmodels.SearchRoutineTagConnection, error)
+	SearchRoutineTasks(ctx context.Context, input gqlmodels.SearchRoutineTaskInput) (*gqlmodels.SearchRoutineTaskConnection, error)
+	SearchRoutineTaskRecords(ctx context.Context, input gqlmodels.SearchRoutineTaskRecordInput) (*gqlmodels.SearchRoutineTaskRecordConnection, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -73,13 +72,13 @@ func (ec *executionContext) field_Query_searchBlockPacks_args(ctx context.Contex
 func (ec *executionContext) field_Query_searchBlockPacks_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchBlockPackInput, error) {
+) (gqlmodels.SearchBlockPackInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchBlockPackInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchBlockPackInput
+	var zeroVal gqlmodels.SearchBlockPackInput
 	return zeroVal, nil
 }
 
@@ -96,13 +95,13 @@ func (ec *executionContext) field_Query_searchBlocks_args(ctx context.Context, r
 func (ec *executionContext) field_Query_searchBlocks_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchBlockInput, error) {
+) (gqlmodels.SearchBlockInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchBlockInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchBlockInput
+	var zeroVal gqlmodels.SearchBlockInput
 	return zeroVal, nil
 }
 
@@ -119,13 +118,13 @@ func (ec *executionContext) field_Query_searchItems_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_searchItems_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchItemInput, error) {
+) (gqlmodels.SearchItemInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchItemInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchItemInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchItemInput
+	var zeroVal gqlmodels.SearchItemInput
 	return zeroVal, nil
 }
 
@@ -142,13 +141,13 @@ func (ec *executionContext) field_Query_searchMaterials_args(ctx context.Context
 func (ec *executionContext) field_Query_searchMaterials_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchMaterialInput, error) {
+) (gqlmodels.SearchMaterialInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchMaterialInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchMaterialInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchMaterialInput
+	var zeroVal gqlmodels.SearchMaterialInput
 	return zeroVal, nil
 }
 
@@ -165,13 +164,13 @@ func (ec *executionContext) field_Query_searchRootShelves_args(ctx context.Conte
 func (ec *executionContext) field_Query_searchRootShelves_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchRootShelfInput, error) {
+) (gqlmodels.SearchRootShelfInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchRootShelfInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRootShelfInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchRootShelfInput
+	var zeroVal gqlmodels.SearchRootShelfInput
 	return zeroVal, nil
 }
 
@@ -188,13 +187,13 @@ func (ec *executionContext) field_Query_searchRoutineTags_args(ctx context.Conte
 func (ec *executionContext) field_Query_searchRoutineTags_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchRoutineTagInput, error) {
+) (gqlmodels.SearchRoutineTagInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchRoutineTagInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchRoutineTagInput
+	var zeroVal gqlmodels.SearchRoutineTagInput
 	return zeroVal, nil
 }
 
@@ -211,13 +210,13 @@ func (ec *executionContext) field_Query_searchRoutineTaskRecords_args(ctx contex
 func (ec *executionContext) field_Query_searchRoutineTaskRecords_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchRoutineTaskRecordInput, error) {
+) (gqlmodels.SearchRoutineTaskRecordInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchRoutineTaskRecordInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTaskRecordInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchRoutineTaskRecordInput
+	var zeroVal gqlmodels.SearchRoutineTaskRecordInput
 	return zeroVal, nil
 }
 
@@ -234,13 +233,13 @@ func (ec *executionContext) field_Query_searchRoutineTasks_args(ctx context.Cont
 func (ec *executionContext) field_Query_searchRoutineTasks_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchRoutineTaskInput, error) {
+) (gqlmodels.SearchRoutineTaskInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchRoutineTaskInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTaskInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchRoutineTaskInput
+	var zeroVal gqlmodels.SearchRoutineTaskInput
 	return zeroVal, nil
 }
 
@@ -257,13 +256,13 @@ func (ec *executionContext) field_Query_searchRoutines_args(ctx context.Context,
 func (ec *executionContext) field_Query_searchRoutines_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchRoutineInput, error) {
+) (gqlmodels.SearchRoutineInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchRoutineInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchRoutineInput
+	var zeroVal gqlmodels.SearchRoutineInput
 	return zeroVal, nil
 }
 
@@ -280,13 +279,13 @@ func (ec *executionContext) field_Query_searchStations_args(ctx context.Context,
 func (ec *executionContext) field_Query_searchStations_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchStationInput, error) {
+) (gqlmodels.SearchStationInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchStationInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchStationInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchStationInput
+	var zeroVal gqlmodels.SearchStationInput
 	return zeroVal, nil
 }
 
@@ -303,13 +302,13 @@ func (ec *executionContext) field_Query_searchSubShelves_args(ctx context.Contex
 func (ec *executionContext) field_Query_searchSubShelves_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchSubShelfInput, error) {
+) (gqlmodels.SearchSubShelfInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchSubShelfInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchSubShelfInput
+	var zeroVal gqlmodels.SearchSubShelfInput
 	return zeroVal, nil
 }
 
@@ -326,13 +325,13 @@ func (ec *executionContext) field_Query_searchThemes_args(ctx context.Context, r
 func (ec *executionContext) field_Query_searchThemes_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchThemeInput, error) {
+) (gqlmodels.SearchThemeInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchThemeInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchThemeInput
+	var zeroVal gqlmodels.SearchThemeInput
 	return zeroVal, nil
 }
 
@@ -349,13 +348,13 @@ func (ec *executionContext) field_Query_searchUsers_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_searchUsers_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (cgqlmodels.SearchUserInput, error) {
+) (gqlmodels.SearchUserInput, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
 		return ec.unmarshalNSearchUserInput2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchUserInput(ctx, tmp)
 	}
 
-	var zeroVal cgqlmodels.SearchUserInput
+	var zeroVal gqlmodels.SearchUserInput
 	return zeroVal, nil
 }
 
@@ -381,7 +380,7 @@ func (ec *executionContext) _Query_searchUsers(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchUsers(rctx, fc.Args["input"].(cgqlmodels.SearchUserInput))
+		return ec.resolvers.Query().SearchUsers(rctx, fc.Args["input"].(gqlmodels.SearchUserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -393,7 +392,7 @@ func (ec *executionContext) _Query_searchUsers(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchUserConnection)
+	res := resTmp.(*gqlmodels.SearchUserConnection)
 	fc.Result = res
 	return ec.marshalNSearchUserConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchUserConnection(ctx, field.Selections, res)
 }
@@ -446,7 +445,7 @@ func (ec *executionContext) _Query_searchThemes(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchThemes(rctx, fc.Args["input"].(cgqlmodels.SearchThemeInput))
+		return ec.resolvers.Query().SearchThemes(rctx, fc.Args["input"].(gqlmodels.SearchThemeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -458,7 +457,7 @@ func (ec *executionContext) _Query_searchThemes(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchThemeConnection)
+	res := resTmp.(*gqlmodels.SearchThemeConnection)
 	fc.Result = res
 	return ec.marshalNSearchThemeConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchThemeConnection(ctx, field.Selections, res)
 }
@@ -511,7 +510,7 @@ func (ec *executionContext) _Query_searchRootShelves(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchRootShelves(rctx, fc.Args["input"].(cgqlmodels.SearchRootShelfInput))
+		return ec.resolvers.Query().SearchRootShelves(rctx, fc.Args["input"].(gqlmodels.SearchRootShelfInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -523,7 +522,7 @@ func (ec *executionContext) _Query_searchRootShelves(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchRootShelfConnection)
+	res := resTmp.(*gqlmodels.SearchRootShelfConnection)
 	fc.Result = res
 	return ec.marshalNSearchRootShelfConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRootShelfConnection(ctx, field.Selections, res)
 }
@@ -576,7 +575,7 @@ func (ec *executionContext) _Query_searchSubShelves(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchSubShelves(rctx, fc.Args["input"].(cgqlmodels.SearchSubShelfInput))
+		return ec.resolvers.Query().SearchSubShelves(rctx, fc.Args["input"].(gqlmodels.SearchSubShelfInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -588,7 +587,7 @@ func (ec *executionContext) _Query_searchSubShelves(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchSubShelfConnection)
+	res := resTmp.(*gqlmodels.SearchSubShelfConnection)
 	fc.Result = res
 	return ec.marshalNSearchSubShelfConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSubShelfConnection(ctx, field.Selections, res)
 }
@@ -641,7 +640,7 @@ func (ec *executionContext) _Query_searchItems(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchItems(rctx, fc.Args["input"].(cgqlmodels.SearchItemInput))
+		return ec.resolvers.Query().SearchItems(rctx, fc.Args["input"].(gqlmodels.SearchItemInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -653,7 +652,7 @@ func (ec *executionContext) _Query_searchItems(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchItemConnection)
+	res := resTmp.(*gqlmodels.SearchItemConnection)
 	fc.Result = res
 	return ec.marshalNSearchItemConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchItemConnection(ctx, field.Selections, res)
 }
@@ -706,7 +705,7 @@ func (ec *executionContext) _Query_searchMaterials(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchMaterials(rctx, fc.Args["input"].(cgqlmodels.SearchMaterialInput))
+		return ec.resolvers.Query().SearchMaterials(rctx, fc.Args["input"].(gqlmodels.SearchMaterialInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -718,7 +717,7 @@ func (ec *executionContext) _Query_searchMaterials(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchMaterialConnection)
+	res := resTmp.(*gqlmodels.SearchMaterialConnection)
 	fc.Result = res
 	return ec.marshalNSearchMaterialConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchMaterialConnection(ctx, field.Selections, res)
 }
@@ -771,7 +770,7 @@ func (ec *executionContext) _Query_searchBlockPacks(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchBlockPacks(rctx, fc.Args["input"].(cgqlmodels.SearchBlockPackInput))
+		return ec.resolvers.Query().SearchBlockPacks(rctx, fc.Args["input"].(gqlmodels.SearchBlockPackInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -783,7 +782,7 @@ func (ec *executionContext) _Query_searchBlockPacks(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchBlockPackConnection)
+	res := resTmp.(*gqlmodels.SearchBlockPackConnection)
 	fc.Result = res
 	return ec.marshalNSearchBlockPackConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockPackConnection(ctx, field.Selections, res)
 }
@@ -836,7 +835,7 @@ func (ec *executionContext) _Query_searchBlocks(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchBlocks(rctx, fc.Args["input"].(cgqlmodels.SearchBlockInput))
+		return ec.resolvers.Query().SearchBlocks(rctx, fc.Args["input"].(gqlmodels.SearchBlockInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -848,7 +847,7 @@ func (ec *executionContext) _Query_searchBlocks(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchBlockConnection)
+	res := resTmp.(*gqlmodels.SearchBlockConnection)
 	fc.Result = res
 	return ec.marshalNSearchBlockConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchBlockConnection(ctx, field.Selections, res)
 }
@@ -901,7 +900,7 @@ func (ec *executionContext) _Query_searchStations(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchStations(rctx, fc.Args["input"].(cgqlmodels.SearchStationInput))
+		return ec.resolvers.Query().SearchStations(rctx, fc.Args["input"].(gqlmodels.SearchStationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -913,7 +912,7 @@ func (ec *executionContext) _Query_searchStations(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchStationConnection)
+	res := resTmp.(*gqlmodels.SearchStationConnection)
 	fc.Result = res
 	return ec.marshalNSearchStationConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchStationConnection(ctx, field.Selections, res)
 }
@@ -966,7 +965,7 @@ func (ec *executionContext) _Query_searchRoutines(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchRoutines(rctx, fc.Args["input"].(cgqlmodels.SearchRoutineInput))
+		return ec.resolvers.Query().SearchRoutines(rctx, fc.Args["input"].(gqlmodels.SearchRoutineInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -978,7 +977,7 @@ func (ec *executionContext) _Query_searchRoutines(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchRoutineConnection)
+	res := resTmp.(*gqlmodels.SearchRoutineConnection)
 	fc.Result = res
 	return ec.marshalNSearchRoutineConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineConnection(ctx, field.Selections, res)
 }
@@ -1031,7 +1030,7 @@ func (ec *executionContext) _Query_searchRoutineTags(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchRoutineTags(rctx, fc.Args["input"].(cgqlmodels.SearchRoutineTagInput))
+		return ec.resolvers.Query().SearchRoutineTags(rctx, fc.Args["input"].(gqlmodels.SearchRoutineTagInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1043,7 +1042,7 @@ func (ec *executionContext) _Query_searchRoutineTags(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchRoutineTagConnection)
+	res := resTmp.(*gqlmodels.SearchRoutineTagConnection)
 	fc.Result = res
 	return ec.marshalNSearchRoutineTagConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTagConnection(ctx, field.Selections, res)
 }
@@ -1096,7 +1095,7 @@ func (ec *executionContext) _Query_searchRoutineTasks(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchRoutineTasks(rctx, fc.Args["input"].(cgqlmodels.SearchRoutineTaskInput))
+		return ec.resolvers.Query().SearchRoutineTasks(rctx, fc.Args["input"].(gqlmodels.SearchRoutineTaskInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1108,7 +1107,7 @@ func (ec *executionContext) _Query_searchRoutineTasks(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchRoutineTaskConnection)
+	res := resTmp.(*gqlmodels.SearchRoutineTaskConnection)
 	fc.Result = res
 	return ec.marshalNSearchRoutineTaskConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTaskConnection(ctx, field.Selections, res)
 }
@@ -1161,7 +1160,7 @@ func (ec *executionContext) _Query_searchRoutineTaskRecords(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchRoutineTaskRecords(rctx, fc.Args["input"].(cgqlmodels.SearchRoutineTaskRecordInput))
+		return ec.resolvers.Query().SearchRoutineTaskRecords(rctx, fc.Args["input"].(gqlmodels.SearchRoutineTaskRecordInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1173,7 +1172,7 @@ func (ec *executionContext) _Query_searchRoutineTaskRecords(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.SearchRoutineTaskRecordConnection)
+	res := resTmp.(*gqlmodels.SearchRoutineTaskRecordConnection)
 	fc.Result = res
 	return ec.marshalNSearchRoutineTaskRecordConnection2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchRoutineTaskRecordConnection(ctx, field.Selections, res)
 }

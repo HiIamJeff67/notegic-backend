@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,16 +40,16 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalOCountry2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐCountry(ctx context.Context, v any) (*cenums.Country, error) {
+func (ec *executionContext) unmarshalOCountry2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐCountry(ctx context.Context, v any) (*enums.Country, error) {
 	if v == nil {
 		return nil, nil
 	}
 	tmp, err := graphql.UnmarshalString(v)
-	res := cenums.Country(tmp)
+	res := enums.Country(tmp)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOCountry2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐCountry(ctx context.Context, sel ast.SelectionSet, v *cenums.Country) graphql.Marshaler {
+func (ec *executionContext) marshalOCountry2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐCountry(ctx context.Context, sel ast.SelectionSet, v *enums.Country) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

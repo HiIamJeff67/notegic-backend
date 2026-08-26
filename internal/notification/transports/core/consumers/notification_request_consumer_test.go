@@ -47,12 +47,15 @@ func TestNotificationRequestConsumerConsumesNotificationRequestedEvent(t *testin
 		OccurredAt:    time.Now().UTC(),
 		Data: mustMarshalNotificationRequest(t, coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           "news",
-			TemplateVersion:       1,
-			Payload:               json.RawMessage(`{"title":"Release"}`),
-			DedupeKey:             "release:" + recipientUserPublicId.String(),
+			UserProjection: coreevents.UserProjection{
+				PublicId: recipientUserPublicId,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     "news",
+			TemplateVersion: 1,
+			Payload:         json.RawMessage(`{"title":"Release"}`),
+			DedupeKey:       "release:" + recipientUserPublicId.String(),
 		}),
 	}
 
@@ -80,12 +83,15 @@ func TestNotificationRequestConsumerClassifiesServiceFailureAsTransient(t *testi
 		KafkaKey:      recipientUserPublicId.String(),
 		Data: mustMarshalNotificationRequest(t, coreevents.NotificationRequestedData{
 			RecipientUserPublicId: recipientUserPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           "news",
-			TemplateVersion:       1,
-			Payload:               json.RawMessage(`{"title":"Release"}`),
-			DedupeKey:             "release:" + recipientUserPublicId.String(),
+			UserProjection: coreevents.UserProjection{
+				PublicId: recipientUserPublicId,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     "news",
+			TemplateVersion: 1,
+			Payload:         json.RawMessage(`{"title":"Release"}`),
+			DedupeKey:       "release:" + recipientUserPublicId.String(),
 		}),
 	}
 

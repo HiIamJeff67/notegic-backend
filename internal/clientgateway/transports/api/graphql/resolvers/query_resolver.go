@@ -22,11 +22,9 @@ import (
 	cusers "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/users"
 	cgenerated "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/generated"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-
-	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
-
 	gatewaycontexts "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/contexts"
 	coreadapters "github.com/HiIamJeff67/notegic-backend/internal/clientgateway/transports/core/adapters"
+	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 )
 
 // SearchUsers is the resolver for the searchUsers field.
@@ -341,7 +339,7 @@ func (r *queryResolver) SearchRoutineTaskRecords(ctx context.Context, input cgql
 	return &response.Data, nil
 }
 
-// Query returns generated.QueryResolver implementation.
+// Query returns cgenerated.QueryResolver implementation.
 func (r *Resolver) Query() cgenerated.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }

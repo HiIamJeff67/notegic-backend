@@ -7,20 +7,16 @@ import (
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
-func LoadPostgresConfig() (spostgres.Config, error) {
-	return loadPostgresConfig()
-}
-
 func loadPostgresConfig() (spostgres.Config, error) {
 	config, err := spostgres.LoadConfig(
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DOCKER_DB_PORT"),
+		os.Getenv("CORE_DB_HOST"),
+		os.Getenv("CORE_DB_USER"),
+		os.Getenv("CORE_DB_PASSWORD"),
+		os.Getenv("CORE_DB_NAME"),
+		os.Getenv("CORE_DB_PORT"),
 	)
 	if err != nil {
-		return spostgres.Config{}, fmt.Errorf("Core PostgreSQL config requires DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, and DOCKER_DB_PORT: %w", err)
+		return spostgres.Config{}, fmt.Errorf("Core PostgreSQL config requires CORE_DB_HOST, CORE_DB_USER, CORE_DB_PASSWORD, CORE_DB_NAME, and CORE_DB_PORT: %w", err)
 	}
 	return config, nil
 }

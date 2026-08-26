@@ -30,9 +30,6 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 
 	repository := NewNotificationRepository(db)
 	userPublicId := uuid.New()
-	if err := db.Create(&schemas.UserView{PublicId: userPublicId, Status: cenums.UserStatus_Online}).Error; err != nil {
-		t.Fatalf("create user view: %v", err)
-	}
 	firstEvent := newNotificationRequestEvent(t, userPublicId, "first")
 	if err := repository.CreateFromRequest(context.Background(), firstEvent); err != nil {
 		t.Fatalf("persist first notification: %v", err)
@@ -45,8 +42,8 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 	if deletedCount != 1 {
 		t.Fatalf("deleted notification count = %d, want 1", deletedCount)
 	}
-	if err := db.Delete(&schemas.UserView{}, "public_id = ?", userPublicId).Error; err != nil {
-		t.Fatalf("delete user view: %v", err)
+	if err := db.Delete(&schemas.UserProjection{}, "public_id = ?", userPublicId).Error; err != nil {
+		t.Fatalf("delete user projection: %v", err)
 	}
 
 	if err := repository.CreateFromRequest(context.Background(), newNotificationRequestEvent(t, userPublicId, "delayed")); err != nil {
@@ -57,8 +54,8 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list notifications after deletion: %v", err)
 	}
-	if len(notifications) != 0 {
-		t.Fatalf("notifications after user deletion = %d, want 0", len(notifications))
+	if len(notifications) != 1 {
+		t.Fatalf("notifications after projection recreation = %d, want 1", len(notifications))
 	}
 }
 
@@ -124,7 +121,7 @@ func createNotificationRepositoryTestTables(db *gorm.DB) error {
 		`CREATE UNIQUE INDEX notification_dedupe_key_index ON NotificationTable (dedupe_key)`,
 		`CREATE TABLE InboxEventTable (event_id BLOB PRIMARY KEY, consumed_at DATETIME NOT NULL)`,
 		`CREATE TABLE OutboxEventTable (id BLOB PRIMARY KEY, aggregate_type TEXT NOT NULL, aggregate_id BLOB NOT NULL, event_type TEXT NOT NULL, topic TEXT NOT NULL, kafka_key TEXT NOT NULL, payload BLOB NOT NULL, metadata BLOB NOT NULL, available_at DATETIME NOT NULL, published_at DATETIME, publish_count INTEGER NOT NULL DEFAULT 0, last_error TEXT, claimed_by TEXT, claimed_at DATETIME, created_at DATETIME NOT NULL)`,
-		`CREATE TABLE UserView (id BLOB PRIMARY KEY, public_id BLOB NOT NULL UNIQUE, plan TEXT NOT NULL, status TEXT NOT NULL, created_at DATETIME NOT NULL)`,
+		`CREATE TABLE UserProjection (id BLOB PRIMARY KEY, public_id BLOB NOT NULL UNIQUE, plan TEXT NOT NULL, status TEXT NOT NULL)`,
 	} {
 		if err := db.Exec(statement).Error; err != nil {
 			return err
@@ -161,12 +158,17 @@ func newNotificationRequestEvent(
 		CorrelationId: "notification-repository-test",
 		Data: coreevents.NotificationRequestedData{
 			RecipientUserPublicId: userPublicId,
-			Type:                  coreevents.NotificationType_News,
-			Priority:              coreevents.NotificationPriority_Normal,
-			TemplateKey:           cnotificationtypes.TemplateKey_News,
-			TemplateVersion:       1,
-			Payload:               payload,
-			DedupeKey:             "repository-test:" + dedupeSuffix,
+			UserProjection: coreevents.UserProjection{
+				PublicId: userPublicId,
+				Plan:     cenums.UserPlan_Free,
+				Status:   cenums.UserStatus_Online,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "repository-test:" + dedupeSuffix,
 		},
 	}
 }

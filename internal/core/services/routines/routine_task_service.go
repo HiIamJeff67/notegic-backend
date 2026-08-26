@@ -26,7 +26,6 @@ import (
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/internal/core/exceptions"
 )
 
@@ -71,9 +70,6 @@ func NewRoutineTaskService(
 	userQuotaRepository srepositories.UserQuotaRepositoryInterface,
 	routineTaskExecutionServices ...RoutineTaskExecutionServiceInterface,
 ) RoutineTaskServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	if routineTaskScope == nil {
 		routineTaskScope = sscopes.NewRoutineTaskScope()
 	}

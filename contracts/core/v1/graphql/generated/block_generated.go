@@ -10,12 +10,11 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/datatypes"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -32,7 +31,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateBlock_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -76,7 +75,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_id(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_blockPackId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_blockPackId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_blockPackId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -120,7 +119,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_blockPackId(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_parentBlockId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_parentBlockId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_parentBlockId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -161,7 +160,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_parentBlockId(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_prevBlockId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_prevBlockId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_prevBlockId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -202,7 +201,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_prevBlockId(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_nextBlockId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_nextBlockId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_nextBlockId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -243,7 +242,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_nextBlockId(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_type(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_type(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_type(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -269,7 +268,7 @@ func (ec *executionContext) _PrivateBlock_type(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.BlockType)
+	res := resTmp.(enums.BlockType)
 	fc.Result = res
 	return ec.marshalNBlockType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐBlockType(ctx, field.Selections, res)
 }
@@ -287,7 +286,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_type(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_props(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_props(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_props(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -331,7 +330,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_props(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_content(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_content(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_content(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -375,7 +374,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_content(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -419,7 +418,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_updatedAt(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -463,7 +462,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_createdAt(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlock_childrenIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlock) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlock_childrenIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlock) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlock_childrenIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -521,7 +520,7 @@ func (ec *executionContext) fieldContext_PrivateBlock_childrenIds(_ context.Cont
 
 var privateBlockImplementors = []string{"PrivateBlock"}
 
-func (ec *executionContext) _PrivateBlock(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateBlock) graphql.Marshaler {
+func (ec *executionContext) _PrivateBlock(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateBlock) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateBlockImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -603,7 +602,7 @@ func (ec *executionContext) _PrivateBlock(ctx context.Context, sel ast.Selection
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateBlock2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateBlock(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateBlock) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateBlock2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateBlock(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateBlock) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

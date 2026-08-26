@@ -26,7 +26,6 @@ import (
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 )
 
 type StationServiceInterface interface {
@@ -74,9 +73,6 @@ func NewStationService(
 	stationRepository srepositories.StationRepositoryInterface,
 	usersToStationsRepository srepositories.UsersToStationsRepositoryInterface,
 ) StationServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &StationService{
 		validator:                 validator,
 		db:                        db,

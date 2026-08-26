@@ -73,6 +73,9 @@ func (s *NotificationService) ConsumeNotificationRequested(
 	if event.AggregateId != event.Data.RecipientUserPublicId {
 		return notificationexceptions.NewEventException("Notification").AggregateRecipientMismatch()
 	}
+	if event.Data.UserProjection.PublicId != event.Data.RecipientUserPublicId {
+		return notificationexceptions.NewEventException("Notification").AggregateRecipientMismatch()
+	}
 	if err := s.validator.Struct(cnotificationtypes.NotificationMetadata{
 		Type:            string(event.Data.Type),
 		Priority:        string(event.Data.Priority),

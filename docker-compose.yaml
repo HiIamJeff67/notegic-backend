@@ -28,23 +28,23 @@ services:
       retries: 6
 
   notegic-db:
-    # should be the same as DB_HOST(hosting service)
+    # should be the same as CORE_DB_HOST(hosting service)
     container_name: ${DOCKER_DB_SERVICE_NAME}
     # restart: always
     image: postgres:16
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_ADMIN_NAME}
+      POSTGRES_USER: ${DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
     ports:
-      - "${DB_PORT}:${DOCKER_DB_PORT}"
+      - "${CORE_DB_HOST_PORT}:${CORE_DB_PORT}"
     networks:
       notegic-backend-net:
         ipv4_address: 172.30.0.12
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER} -d ${DB_ADMIN_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -53,9 +53,9 @@ services:
     container_name: ${DOCKER_NOTIFICATION_DB_SERVICE_NAME:-notegic-notification-db}
     image: postgres:16
     environment:
-      POSTGRES_DB: ${NOTIFICATION_DB_NAME:-notegic_notification}
-      POSTGRES_USER: ${NOTIFICATION_DB_USER:-notegic_notification}
-      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-notegic_notification}
+      POSTGRES_DB: ${NOTIFICATION_DB_ADMIN_NAME}
+      POSTGRES_USER: ${NOTIFICATION_DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_ADMIN_PASSWORD}
     ports:
       - "${NOTIFICATION_DB_HOST_PORT:-55433}:5432"
     networks:
@@ -64,7 +64,7 @@ services:
     volumes:
       - notification-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${NOTIFICATION_DB_USER:-notegic_notification} -d ${NOTIFICATION_DB_NAME:-notegic_notification}"]
+      test: ["CMD-SHELL", "pg_isready -U ${NOTIFICATION_DB_ADMIN_USER} -d ${NOTIFICATION_DB_ADMIN_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -251,11 +251,16 @@ services:
       - .:/notegic-backend
       - /notegic-backend/tmp
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DOCKER_DB_PORT: ${DOCKER_DB_PORT}
+      CORE_DB_HOST: ${CORE_DB_HOST}
+      CORE_DB_USER: ${CORE_DB_USER}
+      CORE_DB_PASSWORD: ${CORE_DB_PASSWORD}
+      CORE_DB_NAME: ${CORE_DB_NAME}
+      CORE_DB_PORT: ${CORE_DB_PORT}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
       REDIS_HOST: ${DOCKER_REDIS_SERVICE_NAME}
       REDIS_PORT: ${DOCKER_REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
@@ -417,11 +422,16 @@ services:
       - ./secrets/kafka:/run/secrets/kafka:ro
     working_dir: /notegic-backend/internal/durablejob
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DOCKER_DB_PORT: ${DOCKER_DB_PORT}
+      DURABLEJOB_DB_HOST: ${DURABLEJOB_DB_HOST}
+      DURABLEJOB_DB_USER: ${DURABLEJOB_DB_USER}
+      DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
+      DURABLEJOB_DB_NAME: ${DURABLEJOB_DB_NAME}
+      DURABLEJOB_DB_PORT: ${DURABLEJOB_DB_PORT}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
       KAFKA_BROKERS: notegic-kafka:9092
       KAFKA_DIAL_TIMEOUT: ${KAFKA_DIAL_TIMEOUT:-3s}
       KAFKA_TLS_ENABLED: ${KAFKA_TLS_ENABLED:-false}
@@ -545,6 +555,11 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-notegic_notification}
       NOTIFICATION_DB_NAME: ${NOTIFICATION_DB_NAME:-notegic_notification}
       NOTIFICATION_DB_PORT: 5432
+      NOTIFICATION_DB_ADMIN_HOST: notegic-notification-db
+      NOTIFICATION_DB_ADMIN_USER: ${NOTIFICATION_DB_ADMIN_USER}
+      NOTIFICATION_DB_ADMIN_PASSWORD: ${NOTIFICATION_DB_ADMIN_PASSWORD}
+      NOTIFICATION_DB_ADMIN_NAME: ${NOTIFICATION_DB_ADMIN_NAME}
+      NOTIFICATION_DB_ADMIN_PORT: 5432
       CORE_DELEGATION_SECRET: ${CORE_DELEGATION_SECRET}
       CORE_DELEGATION_AUDIENCE: ${CORE_DELEGATION_AUDIENCE}
       CORE_DELEGATION_ISSUER: ${CORE_DELEGATION_ISSUER}

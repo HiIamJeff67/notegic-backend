@@ -13,5 +13,6 @@ var DatabaseMigrationManifest = spostgres.MigrationManifest{
 	Runtime: ctypes.Runtime_Notification,
 	Tables: []any{
 		&sschemas.Notification{},
+		&sschemas.UserProjection{},
 	},
 }

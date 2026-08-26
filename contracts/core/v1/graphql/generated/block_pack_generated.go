@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -31,7 +30,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateBlockPack_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -75,7 +74,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_id(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_parentSubShelfId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_parentSubShelfId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -119,7 +118,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_parentSubShelfId(_ con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -163,7 +162,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_name(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_icon(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_icon(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_icon(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -186,7 +185,7 @@ func (ec *executionContext) _PrivateBlockPack_icon(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cenums.SupportedIcon)
+	res := resTmp.(*enums.SupportedIcon)
 	fc.Result = res
 	return ec.marshalOSupportedIcon2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐSupportedIcon(ctx, field.Selections, res)
 }
@@ -204,7 +203,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_icon(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_headerBackgroundURL(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_headerBackgroundURL(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -245,7 +244,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_headerBackgroundURL(_ 
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_blockCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_blockCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_blockCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -289,7 +288,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_blockCount(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -330,7 +329,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_deletedAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -374,7 +373,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_updatedAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -418,7 +417,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_createdAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateBlockPack_blockIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateBlockPack_blockIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateBlockPack) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateBlockPack_blockIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -476,7 +475,7 @@ func (ec *executionContext) fieldContext_PrivateBlockPack_blockIds(_ context.Con
 
 var privateBlockPackImplementors = []string{"PrivateBlockPack"}
 
-func (ec *executionContext) _PrivateBlockPack(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateBlockPack) graphql.Marshaler {
+func (ec *executionContext) _PrivateBlockPack(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateBlockPack) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateBlockPackImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -553,7 +552,7 @@ func (ec *executionContext) _PrivateBlockPack(ctx context.Context, sel ast.Selec
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateBlockPack2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateBlockPack(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateBlockPack) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateBlockPack2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateBlockPack(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateBlockPack) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

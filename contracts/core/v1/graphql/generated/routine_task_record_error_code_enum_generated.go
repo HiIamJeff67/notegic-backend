@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,7 +40,7 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode(ctx context.Context, v any) (*cenums.RoutineTaskRecordErrorCode, error) {
+func (ec *executionContext) unmarshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode(ctx context.Context, v any) (*enums.RoutineTaskRecordErrorCode, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -50,7 +49,7 @@ func (ec *executionContext) unmarshalORoutineTaskRecordErrorCode2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode(ctx context.Context, sel ast.SelectionSet, v *cenums.RoutineTaskRecordErrorCode) graphql.Marshaler {
+func (ec *executionContext) marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode(ctx context.Context, sel ast.SelectionSet, v *enums.RoutineTaskRecordErrorCode) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -61,27 +60,27 @@ func (ec *executionContext) marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcom�
 }
 
 var (
-	unmarshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode = map[string]cenums.RoutineTaskRecordErrorCode{
-		"RoutineTaskRecordErrorCode_PermissionDenied":  cenums.RoutineTaskRecordErrorCode_PermissionDenied,
-		"RoutineTaskRecordErrorCode_PayloadInvalid":    cenums.RoutineTaskRecordErrorCode_PayloadInvalid,
-		"RoutineTaskRecordErrorCode_TargetNotFound":    cenums.RoutineTaskRecordErrorCode_TargetNotFound,
-		"RoutineTaskRecordErrorCode_PlanLimitExceeded": cenums.RoutineTaskRecordErrorCode_PlanLimitExceeded,
-		"RoutineTaskRecordErrorCode_HandlerFailed":     cenums.RoutineTaskRecordErrorCode_HandlerFailed,
-		"RoutineTaskRecordErrorCode_DatabaseError":     cenums.RoutineTaskRecordErrorCode_DatabaseError,
-		"RoutineTaskRecordErrorCode_Timeout":           cenums.RoutineTaskRecordErrorCode_Timeout,
-		"RoutineTaskRecordErrorCode_Canceled":          cenums.RoutineTaskRecordErrorCode_Canceled,
-		"RoutineTaskRecordErrorCode_Unknown":           cenums.RoutineTaskRecordErrorCode_Unknown,
+	unmarshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode = map[string]enums.RoutineTaskRecordErrorCode{
+		"RoutineTaskRecordErrorCode_PermissionDenied":  enums.RoutineTaskRecordErrorCode_PermissionDenied,
+		"RoutineTaskRecordErrorCode_PayloadInvalid":    enums.RoutineTaskRecordErrorCode_PayloadInvalid,
+		"RoutineTaskRecordErrorCode_TargetNotFound":    enums.RoutineTaskRecordErrorCode_TargetNotFound,
+		"RoutineTaskRecordErrorCode_PlanLimitExceeded": enums.RoutineTaskRecordErrorCode_PlanLimitExceeded,
+		"RoutineTaskRecordErrorCode_HandlerFailed":     enums.RoutineTaskRecordErrorCode_HandlerFailed,
+		"RoutineTaskRecordErrorCode_DatabaseError":     enums.RoutineTaskRecordErrorCode_DatabaseError,
+		"RoutineTaskRecordErrorCode_Timeout":           enums.RoutineTaskRecordErrorCode_Timeout,
+		"RoutineTaskRecordErrorCode_Canceled":          enums.RoutineTaskRecordErrorCode_Canceled,
+		"RoutineTaskRecordErrorCode_Unknown":           enums.RoutineTaskRecordErrorCode_Unknown,
 	}
-	marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode = map[cenums.RoutineTaskRecordErrorCode]string{
-		cenums.RoutineTaskRecordErrorCode_PermissionDenied:  "RoutineTaskRecordErrorCode_PermissionDenied",
-		cenums.RoutineTaskRecordErrorCode_PayloadInvalid:    "RoutineTaskRecordErrorCode_PayloadInvalid",
-		cenums.RoutineTaskRecordErrorCode_TargetNotFound:    "RoutineTaskRecordErrorCode_TargetNotFound",
-		cenums.RoutineTaskRecordErrorCode_PlanLimitExceeded: "RoutineTaskRecordErrorCode_PlanLimitExceeded",
-		cenums.RoutineTaskRecordErrorCode_HandlerFailed:     "RoutineTaskRecordErrorCode_HandlerFailed",
-		cenums.RoutineTaskRecordErrorCode_DatabaseError:     "RoutineTaskRecordErrorCode_DatabaseError",
-		cenums.RoutineTaskRecordErrorCode_Timeout:           "RoutineTaskRecordErrorCode_Timeout",
-		cenums.RoutineTaskRecordErrorCode_Canceled:          "RoutineTaskRecordErrorCode_Canceled",
-		cenums.RoutineTaskRecordErrorCode_Unknown:           "RoutineTaskRecordErrorCode_Unknown",
+	marshalORoutineTaskRecordErrorCode2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordErrorCode = map[enums.RoutineTaskRecordErrorCode]string{
+		enums.RoutineTaskRecordErrorCode_PermissionDenied:  "RoutineTaskRecordErrorCode_PermissionDenied",
+		enums.RoutineTaskRecordErrorCode_PayloadInvalid:    "RoutineTaskRecordErrorCode_PayloadInvalid",
+		enums.RoutineTaskRecordErrorCode_TargetNotFound:    "RoutineTaskRecordErrorCode_TargetNotFound",
+		enums.RoutineTaskRecordErrorCode_PlanLimitExceeded: "RoutineTaskRecordErrorCode_PlanLimitExceeded",
+		enums.RoutineTaskRecordErrorCode_HandlerFailed:     "RoutineTaskRecordErrorCode_HandlerFailed",
+		enums.RoutineTaskRecordErrorCode_DatabaseError:     "RoutineTaskRecordErrorCode_DatabaseError",
+		enums.RoutineTaskRecordErrorCode_Timeout:           "RoutineTaskRecordErrorCode_Timeout",
+		enums.RoutineTaskRecordErrorCode_Canceled:          "RoutineTaskRecordErrorCode_Canceled",
+		enums.RoutineTaskRecordErrorCode_Unknown:           "RoutineTaskRecordErrorCode_Unknown",
 	}
 )
 

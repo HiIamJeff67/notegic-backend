@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -11,7 +12,6 @@ import (
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 
-	coreconfig "github.com/HiIamJeff67/notegic-backend/internal/core/configs"
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/seeds"
 )
@@ -21,15 +21,15 @@ var viewAllDatabaseEnumsCommand = &cobra.Command{
 	Short: "View all the nums of the database.",
 	Long:  "Use a simple select sql command to get all the enums of the database",
 	Run: func(_ *cobra.Command, _ []string) {
-		config, err := coreconfig.LoadPostgresConfig()
+		config, err := loadCoreDatabaseConfig()
 		if err != nil {
 			panic(err)
 		}
-		db, err := data.Connect(config)
+		db, err := spostgres.Connect(config)
 		if err != nil {
 			panic(err)
 		}
-		defer data.Disconnect(db)
+		defer spostgres.Disconnect(db)
 
 		if err := spostgres.ViewAllDatabaseEnums(db); err != nil {
 			slogs.NotegicLogger.Error(context.Background(), err, "Failed to display database enums")
@@ -43,15 +43,31 @@ var migrateDatabaseCommand = &cobra.Command{
 	Short: "Migrate enums, tables, and some triggers to the database.",
 	Long:  "Use some migration SQLs to migrate required enums, tables, and some triggers to the database.",
 	Run: func(_ *cobra.Command, _ []string) {
-		config, err := coreconfig.LoadPostgresConfig()
+		config, err := loadCoreDatabaseConfig()
 		if err != nil {
 			panic(err)
 		}
-		db, err := data.Connect(config)
+		adminConfig, err := loadPostgresAdminConfig()
 		if err != nil {
 			panic(err)
 		}
-		defer data.Disconnect(db)
+		adminDB, err := spostgres.Connect(adminConfig)
+		if err != nil {
+			panic(err)
+		}
+		defer spostgres.Disconnect(adminDB)
+		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, config.Password); err != nil {
+			panic(err)
+		}
+		if err := spostgres.GrantMigrationAccess(adminDB, ctypes.Runtime_Core); err != nil {
+			panic(err)
+		}
+		defer spostgres.RevokeMigrationAccess(adminDB, ctypes.Runtime_Core)
+		db, err := spostgres.Connect(config)
+		if err != nil {
+			panic(err)
+		}
+		defer spostgres.Disconnect(db)
 
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of migrating database schema to %v", config.Name))
 
@@ -69,6 +85,13 @@ var migrateDatabaseCommand = &cobra.Command{
 				return
 			}
 		}
+		if err := spostgres.ApplyPermissions(
+			adminDB,
+			ctypes.Runtime_Core,
+			data.DatabasePermissionManifest,
+		); err != nil {
+			slogs.NotegicLogger.Error(context.Background(), err, "Failed to initialize database permissions")
+		}
 	},
 }
 
@@ -77,15 +100,15 @@ var seedDatabaseCommand = &cobra.Command{
 	Short: "Seed some default data for management or main business logic.",
 	Long:  "Use some seeding default data SQLs to seed data for management or main business logic.",
 	Run: func(_ *cobra.Command, _ []string) {
-		config, err := coreconfig.LoadPostgresConfig()
+		config, err := loadCoreDatabaseConfig()
 		if err != nil {
 			panic(err)
 		}
-		db, err := data.Connect(config)
+		db, err := spostgres.Connect(config)
 		if err != nil {
 			panic(err)
 		}
-		defer data.Disconnect(db)
+		defer spostgres.Disconnect(db)
 
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of seeding database default data to %v", config.Name))
 
@@ -94,4 +117,24 @@ var seedDatabaseCommand = &cobra.Command{
 			return
 		}
 	},
+}
+
+func loadCoreDatabaseConfig() (spostgres.Config, error) {
+	return spostgres.LoadConfig(
+		os.Getenv("CORE_DB_HOST"),
+		os.Getenv("CORE_DB_USER"),
+		os.Getenv("CORE_DB_PASSWORD"),
+		os.Getenv("CORE_DB_NAME"),
+		os.Getenv("CORE_DB_PORT"),
+	)
+}
+
+func loadPostgresAdminConfig() (spostgres.Config, error) {
+	return spostgres.LoadConfig(
+		os.Getenv("DB_ADMIN_HOST"),
+		os.Getenv("DB_ADMIN_USER"),
+		os.Getenv("DB_ADMIN_PASSWORD"),
+		os.Getenv("DB_ADMIN_NAME"),
+		os.Getenv("DB_ADMIN_PORT"),
+	)
 }

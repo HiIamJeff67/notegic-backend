@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -32,7 +31,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateRootShelf_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -76,7 +75,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_id(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -120,7 +119,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_name(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_permission(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_permission(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_permission(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -146,7 +145,7 @@ func (ec *executionContext) _PrivateRootShelf_permission(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.AccessControlPermission)
+	res := resTmp.(enums.AccessControlPermission)
 	fc.Result = res
 	return ec.marshalNAccessControlPermission2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐAccessControlPermission(ctx, field.Selections, res)
 }
@@ -164,7 +163,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_permission(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_subShelfCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_subShelfCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_subShelfCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -208,7 +207,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_subShelfCount(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_itemCount(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_itemCount(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_itemCount(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -252,7 +251,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_itemCount(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_lastAnalyzedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_lastAnalyzedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_lastAnalyzedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -296,7 +295,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_lastAnalyzedAt(_ conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_deletedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_deletedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_deletedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -337,7 +336,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_deletedAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -381,7 +380,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_updatedAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -425,7 +424,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_createdAt(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_owner(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_owner(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_owner(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -451,7 +450,7 @@ func (ec *executionContext) _PrivateRootShelf_owner(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.PublicUser)
+	res := resTmp.(*gqlmodels.PublicUser)
 	fc.Result = res
 	return ec.marshalNPublicUser2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUser(ctx, field.Selections, res)
 }
@@ -487,7 +486,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_owner(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_sharers(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_sharers(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_sharers(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -513,7 +512,7 @@ func (ec *executionContext) _PrivateRootShelf_sharers(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*cgqlmodels.PublicUser)
+	res := resTmp.([]*gqlmodels.PublicUser)
 	fc.Result = res
 	return ec.marshalNPublicUser2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUserᚄ(ctx, field.Selections, res)
 }
@@ -549,7 +548,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_sharers(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRootShelf_itemIds(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRootShelf_itemIds(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRootShelf) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRootShelf_itemIds(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -607,7 +606,7 @@ func (ec *executionContext) fieldContext_PrivateRootShelf_itemIds(_ context.Cont
 
 var privateRootShelfImplementors = []string{"PrivateRootShelf"}
 
-func (ec *executionContext) _PrivateRootShelf(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateRootShelf) graphql.Marshaler {
+func (ec *executionContext) _PrivateRootShelf(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateRootShelf) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateRootShelfImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -700,7 +699,7 @@ func (ec *executionContext) _PrivateRootShelf(ctx context.Context, sel ast.Selec
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateRootShelf2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRootShelf(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateRootShelf) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateRootShelf2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRootShelf(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateRootShelf) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

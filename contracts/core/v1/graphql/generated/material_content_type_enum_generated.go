@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,13 +40,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType(ctx context.Context, v any) (cenums.MaterialContentType, error) {
+func (ec *executionContext) unmarshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType(ctx context.Context, v any) (enums.MaterialContentType, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType(ctx context.Context, sel ast.SelectionSet, v cenums.MaterialContentType) graphql.Marshaler {
+func (ec *executionContext) marshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType(ctx context.Context, sel ast.SelectionSet, v enums.MaterialContentType) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType[v])
 	if res == graphql.Null {
@@ -59,39 +58,39 @@ func (ec *executionContext) marshalNMaterialContentType2githubᚗcomᚋHiIamJeff
 }
 
 var (
-	unmarshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType = map[string]cenums.MaterialContentType{
-		"None":             cenums.MaterialContentType_None,
-		"Application_JSON": cenums.MaterialContentType_JSON,
-		"Application_PDF":  cenums.MaterialContentType_PDF,
-		"Text_Plain":       cenums.MaterialContentType_PlainText,
-		"Text_HTML":        cenums.MaterialContentType_HTML,
-		"Text_Markdown":    cenums.MaterialContentType_Markdown,
-		"Image_PNG":        cenums.MaterialContentType_PNG,
-		"Image_JPG":        cenums.MaterialContentType_JPG,
-		"Image_JPEG":       cenums.MaterialContentType_JPEG,
-		"Image_GIF":        cenums.MaterialContentType_GIF,
-		"Image_SVG":        cenums.MaterialContentType_SVG,
-		"Image_WebP":       cenums.MaterialContentType_WebP,
-		"Video_MP4":        cenums.MaterialContentType_MP4,
-		"Video_WebM":       cenums.MaterialContentType_WebM,
-		"Audio_Mpeg":       cenums.MaterialContentType_Mpeg,
+	unmarshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType = map[string]enums.MaterialContentType{
+		"None":             enums.MaterialContentType_None,
+		"Application_JSON": enums.MaterialContentType_JSON,
+		"Application_PDF":  enums.MaterialContentType_PDF,
+		"Text_Plain":       enums.MaterialContentType_PlainText,
+		"Text_HTML":        enums.MaterialContentType_HTML,
+		"Text_Markdown":    enums.MaterialContentType_Markdown,
+		"Image_PNG":        enums.MaterialContentType_PNG,
+		"Image_JPG":        enums.MaterialContentType_JPG,
+		"Image_JPEG":       enums.MaterialContentType_JPEG,
+		"Image_GIF":        enums.MaterialContentType_GIF,
+		"Image_SVG":        enums.MaterialContentType_SVG,
+		"Image_WebP":       enums.MaterialContentType_WebP,
+		"Video_MP4":        enums.MaterialContentType_MP4,
+		"Video_WebM":       enums.MaterialContentType_WebM,
+		"Audio_Mpeg":       enums.MaterialContentType_Mpeg,
 	}
-	marshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType = map[cenums.MaterialContentType]string{
-		cenums.MaterialContentType_None:      "None",
-		cenums.MaterialContentType_JSON:      "Application_JSON",
-		cenums.MaterialContentType_PDF:       "Application_PDF",
-		cenums.MaterialContentType_PlainText: "Text_Plain",
-		cenums.MaterialContentType_HTML:      "Text_HTML",
-		cenums.MaterialContentType_Markdown:  "Text_Markdown",
-		cenums.MaterialContentType_PNG:       "Image_PNG",
-		cenums.MaterialContentType_JPG:       "Image_JPG",
-		cenums.MaterialContentType_JPEG:      "Image_JPEG",
-		cenums.MaterialContentType_GIF:       "Image_GIF",
-		cenums.MaterialContentType_SVG:       "Image_SVG",
-		cenums.MaterialContentType_WebP:      "Image_WebP",
-		cenums.MaterialContentType_MP4:       "Video_MP4",
-		cenums.MaterialContentType_WebM:      "Video_WebM",
-		cenums.MaterialContentType_Mpeg:      "Audio_Mpeg",
+	marshalNMaterialContentType2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐMaterialContentType = map[enums.MaterialContentType]string{
+		enums.MaterialContentType_None:      "None",
+		enums.MaterialContentType_JSON:      "Application_JSON",
+		enums.MaterialContentType_PDF:       "Application_PDF",
+		enums.MaterialContentType_PlainText: "Text_Plain",
+		enums.MaterialContentType_HTML:      "Text_HTML",
+		enums.MaterialContentType_Markdown:  "Text_Markdown",
+		enums.MaterialContentType_PNG:       "Image_PNG",
+		enums.MaterialContentType_JPG:       "Image_JPG",
+		enums.MaterialContentType_JPEG:      "Image_JPEG",
+		enums.MaterialContentType_GIF:       "Image_GIF",
+		enums.MaterialContentType_SVG:       "Image_SVG",
+		enums.MaterialContentType_WebP:      "Image_WebP",
+		enums.MaterialContentType_MP4:       "Video_MP4",
+		enums.MaterialContentType_WebM:      "Video_WebM",
+		enums.MaterialContentType_Mpeg:      "Audio_Mpeg",
 	}
 )
 

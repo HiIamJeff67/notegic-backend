@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/datatypes"
-
-	cscalars "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -46,7 +45,7 @@ import (
 // region    ***************************** type.gotpl *****************************
 
 func (ec *executionContext) unmarshalNDatatypeJSON2gormᚗioᚋdatatypesᚐJSON(ctx context.Context, v any) (datatypes.JSON, error) {
-	res, err := cscalars.UnmarshalDatatypeJSON(v)
+	res, err := scalars.UnmarshalDatatypeJSON(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -58,7 +57,7 @@ func (ec *executionContext) marshalNDatatypeJSON2gormᚗioᚋdatatypesᚐJSON(ct
 		return graphql.Null
 	}
 	_ = sel
-	res := cscalars.MarshalDatatypeJSON(v)
+	res := scalars.MarshalDatatypeJSON(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -100,7 +99,7 @@ func (ec *executionContext) marshalNInt642int64(ctx context.Context, sel ast.Sel
 }
 
 func (ec *executionContext) unmarshalNRawJSON2encodingᚋjsonᚐRawMessage(ctx context.Context, v any) (json.RawMessage, error) {
-	res, err := cscalars.UnmarshalRawJSON(v)
+	res, err := scalars.UnmarshalRawJSON(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -112,7 +111,7 @@ func (ec *executionContext) marshalNRawJSON2encodingᚋjsonᚐRawMessage(ctx con
 		return graphql.Null
 	}
 	_ = sel
-	res := cscalars.MarshalRawJSON(v)
+	res := scalars.MarshalRawJSON(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -122,13 +121,13 @@ func (ec *executionContext) marshalNRawJSON2encodingᚋjsonᚐRawMessage(ctx con
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
-	res, err := cscalars.UnmarshalTime(v)
+	res, err := scalars.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	_ = sel
-	res := cscalars.MarshalTime(v)
+	res := scalars.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -138,13 +137,13 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 }
 
 func (ec *executionContext) unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v any) (uuid.UUID, error) {
-	res, err := cscalars.UnmarshalUUID(v)
+	res, err := scalars.UnmarshalUUID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
 	_ = sel
-	res := cscalars.MarshalUUID(v)
+	res := scalars.MarshalUUID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -187,7 +186,7 @@ func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v
 	if v == nil {
 		return nil, nil
 	}
-	res, err := cscalars.UnmarshalTime(v)
+	res, err := scalars.UnmarshalTime(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -197,7 +196,7 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	_ = sel
 	_ = ctx
-	res := cscalars.MarshalTime(*v)
+	res := scalars.MarshalTime(*v)
 	return res
 }
 
@@ -241,7 +240,7 @@ func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUI
 	if v == nil {
 		return nil, nil
 	}
-	res, err := cscalars.UnmarshalUUID(v)
+	res, err := scalars.UnmarshalUUID(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -251,7 +250,7 @@ func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(
 	}
 	_ = sel
 	_ = ctx
-	res := cscalars.MarshalUUID(*v)
+	res := scalars.MarshalUUID(*v)
 	return res
 }
 

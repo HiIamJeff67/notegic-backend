@@ -20,7 +20,6 @@ import (
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 )
 
 type ItemServiceInterface interface {
@@ -36,9 +35,6 @@ func NewItemService(
 	db *gorm.DB,
 	itemScope sscopes.ItemScopeInterface,
 ) ItemServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &ItemService{
 		db:        db,
 		itemScope: itemScope,

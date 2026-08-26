@@ -29,3 +29,7 @@ func Execute() {
 		panic(err)
 	}
 }
+
+func init() {
+	rootCommand.AddCommand(migrateDatabaseCommand)
+}

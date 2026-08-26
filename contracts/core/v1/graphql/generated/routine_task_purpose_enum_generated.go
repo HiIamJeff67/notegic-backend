@@ -6,9 +6,8 @@ import (
 	"context"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -41,13 +40,13 @@ import (
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx context.Context, v any) (cenums.RoutineTaskPurpose, error) {
+func (ec *executionContext) unmarshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx context.Context, v any) (enums.RoutineTaskPurpose, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := unmarshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx context.Context, sel ast.SelectionSet, v cenums.RoutineTaskPurpose) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx context.Context, sel ast.SelectionSet, v enums.RoutineTaskPurpose) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose[v])
 	if res == graphql.Null {
@@ -59,37 +58,37 @@ func (ec *executionContext) marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff6
 }
 
 var (
-	unmarshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose = map[string]cenums.RoutineTaskPurpose{
-		"RoutineTaskPurpose_CreateRootShelf": cenums.RoutineTaskPurpose_CreateRootShelf,
-		"RoutineTaskPurpose_UpdateRootShelf": cenums.RoutineTaskPurpose_UpdateRootShelf,
-		"RoutineTaskPurpose_ResetRootShelf":  cenums.RoutineTaskPurpose_ResetRootShelf,
-		"RoutineTaskPurpose_CreateSubShelf":  cenums.RoutineTaskPurpose_CreateSubShelf,
-		"RoutineTaskPurpose_UpdateSubShelf":  cenums.RoutineTaskPurpose_UpdateSubShelf,
-		"RoutineTaskPurpose_ResetSubShelf":   cenums.RoutineTaskPurpose_ResetSubShelf,
-		"RoutineTaskPurpose_CreateBlockPack": cenums.RoutineTaskPurpose_CreateBlockPack,
-		"RoutineTaskPurpose_UpdateBlockPack": cenums.RoutineTaskPurpose_UpdateBlockPack,
-		"RoutineTaskPurpose_ResetBlockPack":  cenums.RoutineTaskPurpose_ResetBlockPack,
-		"RoutineTaskPurpose_AppendBlock":     cenums.RoutineTaskPurpose_AppendBlock,
-		"RoutineTaskPurpose_UpdateBlock":     cenums.RoutineTaskPurpose_UpdateBlock,
-		"RoutineTaskPurpose_ResetBlock":      cenums.RoutineTaskPurpose_ResetBlock,
-		"RoutineTaskPurpose_CreateRoutine":   cenums.RoutineTaskPurpose_CreateRoutine,
-		"RoutineTaskPurpose_UpdateRoutine":   cenums.RoutineTaskPurpose_UpdateRoutine,
+	unmarshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose = map[string]enums.RoutineTaskPurpose{
+		"RoutineTaskPurpose_CreateRootShelf": enums.RoutineTaskPurpose_CreateRootShelf,
+		"RoutineTaskPurpose_UpdateRootShelf": enums.RoutineTaskPurpose_UpdateRootShelf,
+		"RoutineTaskPurpose_ResetRootShelf":  enums.RoutineTaskPurpose_ResetRootShelf,
+		"RoutineTaskPurpose_CreateSubShelf":  enums.RoutineTaskPurpose_CreateSubShelf,
+		"RoutineTaskPurpose_UpdateSubShelf":  enums.RoutineTaskPurpose_UpdateSubShelf,
+		"RoutineTaskPurpose_ResetSubShelf":   enums.RoutineTaskPurpose_ResetSubShelf,
+		"RoutineTaskPurpose_CreateBlockPack": enums.RoutineTaskPurpose_CreateBlockPack,
+		"RoutineTaskPurpose_UpdateBlockPack": enums.RoutineTaskPurpose_UpdateBlockPack,
+		"RoutineTaskPurpose_ResetBlockPack":  enums.RoutineTaskPurpose_ResetBlockPack,
+		"RoutineTaskPurpose_AppendBlock":     enums.RoutineTaskPurpose_AppendBlock,
+		"RoutineTaskPurpose_UpdateBlock":     enums.RoutineTaskPurpose_UpdateBlock,
+		"RoutineTaskPurpose_ResetBlock":      enums.RoutineTaskPurpose_ResetBlock,
+		"RoutineTaskPurpose_CreateRoutine":   enums.RoutineTaskPurpose_CreateRoutine,
+		"RoutineTaskPurpose_UpdateRoutine":   enums.RoutineTaskPurpose_UpdateRoutine,
 	}
-	marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose = map[cenums.RoutineTaskPurpose]string{
-		cenums.RoutineTaskPurpose_CreateRootShelf: "RoutineTaskPurpose_CreateRootShelf",
-		cenums.RoutineTaskPurpose_UpdateRootShelf: "RoutineTaskPurpose_UpdateRootShelf",
-		cenums.RoutineTaskPurpose_ResetRootShelf:  "RoutineTaskPurpose_ResetRootShelf",
-		cenums.RoutineTaskPurpose_CreateSubShelf:  "RoutineTaskPurpose_CreateSubShelf",
-		cenums.RoutineTaskPurpose_UpdateSubShelf:  "RoutineTaskPurpose_UpdateSubShelf",
-		cenums.RoutineTaskPurpose_ResetSubShelf:   "RoutineTaskPurpose_ResetSubShelf",
-		cenums.RoutineTaskPurpose_CreateBlockPack: "RoutineTaskPurpose_CreateBlockPack",
-		cenums.RoutineTaskPurpose_UpdateBlockPack: "RoutineTaskPurpose_UpdateBlockPack",
-		cenums.RoutineTaskPurpose_ResetBlockPack:  "RoutineTaskPurpose_ResetBlockPack",
-		cenums.RoutineTaskPurpose_AppendBlock:     "RoutineTaskPurpose_AppendBlock",
-		cenums.RoutineTaskPurpose_UpdateBlock:     "RoutineTaskPurpose_UpdateBlock",
-		cenums.RoutineTaskPurpose_ResetBlock:      "RoutineTaskPurpose_ResetBlock",
-		cenums.RoutineTaskPurpose_CreateRoutine:   "RoutineTaskPurpose_CreateRoutine",
-		cenums.RoutineTaskPurpose_UpdateRoutine:   "RoutineTaskPurpose_UpdateRoutine",
+	marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose = map[enums.RoutineTaskPurpose]string{
+		enums.RoutineTaskPurpose_CreateRootShelf: "RoutineTaskPurpose_CreateRootShelf",
+		enums.RoutineTaskPurpose_UpdateRootShelf: "RoutineTaskPurpose_UpdateRootShelf",
+		enums.RoutineTaskPurpose_ResetRootShelf:  "RoutineTaskPurpose_ResetRootShelf",
+		enums.RoutineTaskPurpose_CreateSubShelf:  "RoutineTaskPurpose_CreateSubShelf",
+		enums.RoutineTaskPurpose_UpdateSubShelf:  "RoutineTaskPurpose_UpdateSubShelf",
+		enums.RoutineTaskPurpose_ResetSubShelf:   "RoutineTaskPurpose_ResetSubShelf",
+		enums.RoutineTaskPurpose_CreateBlockPack: "RoutineTaskPurpose_CreateBlockPack",
+		enums.RoutineTaskPurpose_UpdateBlockPack: "RoutineTaskPurpose_UpdateBlockPack",
+		enums.RoutineTaskPurpose_ResetBlockPack:  "RoutineTaskPurpose_ResetBlockPack",
+		enums.RoutineTaskPurpose_AppendBlock:     "RoutineTaskPurpose_AppendBlock",
+		enums.RoutineTaskPurpose_UpdateBlock:     "RoutineTaskPurpose_UpdateBlock",
+		enums.RoutineTaskPurpose_ResetBlock:      "RoutineTaskPurpose_ResetBlock",
+		enums.RoutineTaskPurpose_CreateRoutine:   "RoutineTaskPurpose_CreateRoutine",
+		enums.RoutineTaskPurpose_UpdateRoutine:   "RoutineTaskPurpose_UpdateRoutine",
 	}
 )
 

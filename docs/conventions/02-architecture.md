@@ -274,12 +274,15 @@ views, triggers, and constraints that it is responsible for migrating. A shared
 `MigrationManifest` is only an ownership declaration and migration input; it
 does not grant database access.
 
-Database permissions are a separate deployment phase. Until PostgreSQL roles
-and grants are introduced, code importability and migration ownership must not
-be treated as read/write isolation. When permissions are added, the owner
-runtime's role will receive DDL/write access and other runtime roles will
-receive only the explicitly required access. Non-owner runtimes must not add
-the owner's migration manifest to their startup path.
+Database permissions use the shared `postgres.PermissionManifest` and the
+`postgres.ApplyPermissions` reconciler. A deployment/admin command first uses
+its admin connection to ensure the fixed role (`notegic_<runtime>`) exists,
+temporarily grants that owner role schema `CREATE`, migrates through the owner
+role, applies the permission manifest through the admin connection, and then
+revokes schema `CREATE`. Runtime application startup opens only its own runtime
+pool. Triggers and constraints are not independent permission objects; their
+authority follows the table that owns them. Non-owner runtimes must not add
+another runtime's migration manifest to their startup path.
 
 ## Composition roots
 

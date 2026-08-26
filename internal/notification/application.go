@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,7 +24,6 @@ import (
 	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
 	configs "github.com/HiIamJeff67/notegic-backend/internal/notification/configs"
-	postgres "github.com/HiIamJeff67/notegic-backend/internal/notification/data/postgres"
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
 	notificationtransports "github.com/HiIamJeff67/notegic-backend/internal/notification/transports"
 	consumers "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/core/consumers"
@@ -42,14 +42,13 @@ type ApplicationInterface interface {
 	Start() func()
 	IsHealthy() bool
 	IsReady() bool
-	loadConfig() configs.Config
 	initializeObservability() func()
-	initializeDatabase(spostgres.Config, func()) *gorm.DB
-	initializeKafka(skafka.ConnectionConfig, *gorm.DB, func()) *skafka.Producer
+	initializeDatabase(spostgres.Config) (*gorm.DB, error)
+	initializeKafka(skafka.ConnectionConfig) (*skafka.Producer, error)
 	initializeService(*gorm.DB) services.NotificationServiceInterface
 	initializeWorkers(configs.Config, services.NotificationServiceInterface, *gorm.DB, *skafka.Producer) func()
 	buildRouter(services.NotificationServiceInterface) *gin.Engine
-	startHTTP(configs.Config, *gin.Engine, func(), *gorm.DB, *skafka.Producer, func()) func()
+	startHTTP(configs.Config, *gin.Engine) (func(), error)
 }
 
 func NewApplication() *Application {
@@ -64,14 +63,6 @@ func (a *Application) IsReady() bool {
 	return a.ready.Load()
 }
 
-func (a *Application) loadConfig() configs.Config {
-	config, err := configs.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
-	return config
-}
-
 func (a *Application) initializeObservability() func() {
 	return sobservability.Initialize(
 		context.Background(),
@@ -79,39 +70,30 @@ func (a *Application) initializeObservability() func() {
 	)
 }
 
-func (a *Application) initializeDatabase(config spostgres.Config, shutdownObservability func()) *gorm.DB {
-	db, err := postgres.Connect(config)
+func (a *Application) initializeDatabase(
+	config spostgres.Config,
+) (*gorm.DB, error) {
+	if config.User != ctypes.Runtime_Notification.RoleName() {
+		return nil, fmt.Errorf("Notification PostgreSQL user must be %q", ctypes.Runtime_Notification.RoleName())
+	}
+	db, err := spostgres.Connect(config)
 	if err != nil {
-		shutdownObservability()
-		panic(err)
+		return nil, fmt.Errorf("failed to connect Notification database: %w", err)
 	}
-	if err := spostgres.Migrate(
-		db,
-		ctypes.Runtime_Notification,
-		postgres.DatabaseMigrationManifest,
-	); err != nil {
-		_ = postgres.Disconnect(db)
-		shutdownObservability()
-		panic(fmt.Errorf("failed to initialize Notification database schema: %w", err))
-	}
-	return db
+	return db, nil
 }
 
 func (a *Application) initializeKafka(
 	config skafka.ConnectionConfig,
-	db *gorm.DB,
-	shutdownObservability func(),
-) *skafka.Producer {
+) (*skafka.Producer, error) {
 	producer, err := skafka.NewProducer(skafka.ClientConfig{
 		ConnectionConfig: config,
 		ClientId:         "notegic-notification-producer",
 	})
 	if err != nil {
-		_ = postgres.Disconnect(db)
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
-	return producer
+	return producer, nil
 }
 
 func (a *Application) initializeService(db *gorm.DB) services.NotificationServiceInterface {
@@ -184,18 +166,10 @@ func (a *Application) buildRouter(service services.NotificationServiceInterface)
 func (a *Application) startHTTP(
 	config configs.Config,
 	router *gin.Engine,
-	shutdownWorkers func(),
-	db *gorm.DB,
-	producer *skafka.Producer,
-	shutdownObservability func(),
-) func() {
+) (func(), error) {
 	listener, err := net.Listen("tcp", config.ListenAddress)
 	if err != nil {
-		shutdownWorkers()
-		producer.Close()
-		_ = postgres.Disconnect(db)
-		shutdownObservability()
-		panic(err)
+		return nil, err
 	}
 	a.healthy.Store(true)
 	a.ready.Store(true)
@@ -207,32 +181,69 @@ func (a *Application) startHTTP(
 	}()
 
 	return func() {
-		// Stop background workers before closing the HTTP, Kafka, and database resources.
 		a.ready.Store(false)
 		a.healthy.Store(false)
-		shutdownWorkers()
 		shutdownContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := server.Shutdown(shutdownContext); err != nil {
 			fmt.Printf("Failed to shutdown Notification server: %v\n", err)
 		}
-		producer.Close()
-		if err := postgres.Disconnect(db); err != nil {
-			fmt.Printf("Failed to disconnect Notification database: %v\n", err)
-		}
-		shutdownObservability()
-	}
+	}, nil
 }
 
 func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
-	config := a.loadConfig()
-	db := a.initializeDatabase(config.Postgres, shutdownObservability)
-	producer := a.initializeKafka(config.Kafka.Connection, db, shutdownObservability)
+	var (
+		db              *gorm.DB
+		producer        *skafka.Producer
+		shutdownHTTP    func()
+		shutdownWorkers func()
+	)
+	var shutdownOnce sync.Once
+	shutdown := func() {
+		shutdownOnce.Do(func() {
+			if shutdownHTTP != nil {
+				shutdownHTTP()
+			}
+			if shutdownWorkers != nil {
+				shutdownWorkers()
+			}
+			if producer != nil {
+				producer.Close()
+			}
+			if db != nil {
+				if err := spostgres.Disconnect(db); err != nil {
+					fmt.Printf("Failed to disconnect Notification database: %v\n", err)
+				}
+			}
+			shutdownObservability()
+		})
+	}
+	fail := func(err error) {
+		shutdown()
+		panic(err)
+	}
+
+	config, err := configs.LoadConfig()
+	if err != nil {
+		fail(err)
+	}
+	db, err = a.initializeDatabase(config.Postgres)
+	if err != nil {
+		fail(err)
+	}
+	producer, err = a.initializeKafka(config.Kafka.Connection)
+	if err != nil {
+		fail(err)
+	}
 	service := a.initializeService(db)
-	shutdownWorkers := a.initializeWorkers(config, service, db, producer)
+	shutdownWorkers = a.initializeWorkers(config, service, db, producer)
 	router := a.buildRouter(service)
-	return a.startHTTP(config, router, shutdownWorkers, db, producer, shutdownObservability)
+	shutdownHTTP, err = a.startHTTP(config, router)
+	if err != nil {
+		fail(err)
+	}
+	return shutdown
 }
 
 // make sure Application struct followed the ApplicationInterface implementations

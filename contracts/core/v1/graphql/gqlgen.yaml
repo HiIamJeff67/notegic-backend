@@ -114,7 +114,7 @@ call_argument_directives_with_null: true
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas"
+  - "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -405,23 +405,23 @@ models:
   # ============================== Corresponded Schemas Which Have Prebuilt in Gorm ============================== #
 
   User:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.User"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.User"
   UserInfo:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.UserInfo"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.UserInfo"
   UserAccount:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.UserAccount"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.UserAccount"
   UserSetting:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.UserSetting"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.UserSetting"
   Theme:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.Theme"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.Theme"
   Badge:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.Badge"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.Badge"
   UsersToBadges:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.UsersToBadges"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.UsersToBadges"
   Shelf:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.Shelf"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.Shelf"
   Material:
-    model: "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/schemas.Material"
+    model: "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas.Material"
 
   # The GraphQL spec explicitly states that the Int type is a signed 32-bit
   # integer. Using Go int or int64 to represent it can lead to unexpected

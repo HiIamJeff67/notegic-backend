@@ -3,11 +3,11 @@ package config
 import "testing"
 
 func TestLoadPostgresConfig(t *testing.T) {
-	t.Setenv("DB_HOST", "database")
-	t.Setenv("DB_USER", "notegic")
-	t.Setenv("DB_PASSWORD", "secret")
-	t.Setenv("DB_NAME", "notegic")
-	t.Setenv("DOCKER_DB_PORT", "5432")
+	t.Setenv("CORE_DB_HOST", "database")
+	t.Setenv("CORE_DB_USER", "notegic_core")
+	t.Setenv("CORE_DB_PASSWORD", "secret")
+	t.Setenv("CORE_DB_NAME", "notegic")
+	t.Setenv("CORE_DB_PORT", "5432")
 
 	config, err := loadPostgresConfig()
 	if err != nil {

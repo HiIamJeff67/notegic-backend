@@ -10,9 +10,8 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -29,7 +28,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _SearchPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchPageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchPageInfo_hasNextPage(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -73,7 +72,7 @@ func (ec *executionContext) fieldContext_SearchPageInfo_hasNextPage(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchPageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchPageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchPageInfo_hasPreviousPage(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -117,7 +116,7 @@ func (ec *executionContext) fieldContext_SearchPageInfo_hasPreviousPage(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchPageInfo_startEncodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchPageInfo_startEncodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchPageInfo_startEncodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -158,7 +157,7 @@ func (ec *executionContext) fieldContext_SearchPageInfo_startEncodedSearchCursor
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchPageInfo_endEncodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _SearchPageInfo_endEncodedSearchCursor(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.SearchPageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SearchPageInfo_endEncodedSearchCursor(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -207,104 +206,104 @@ func (ec *executionContext) fieldContext_SearchPageInfo_endEncodedSearchCursor(_
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _SearchConnection(ctx context.Context, sel ast.SelectionSet, obj cgqlmodels.SearchConnection) graphql.Marshaler {
+func (ec *executionContext) _SearchConnection(ctx context.Context, sel ast.SelectionSet, obj gqlmodels.SearchConnection) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case cgqlmodels.SearchUserConnection:
+	case gqlmodels.SearchUserConnection:
 		return ec._SearchUserConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchUserConnection:
+	case *gqlmodels.SearchUserConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchUserConnection(ctx, sel, obj)
-	case cgqlmodels.SearchThemeConnection:
+	case gqlmodels.SearchThemeConnection:
 		return ec._SearchThemeConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchThemeConnection:
+	case *gqlmodels.SearchThemeConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchThemeConnection(ctx, sel, obj)
-	case cgqlmodels.SearchSubShelfConnection:
+	case gqlmodels.SearchSubShelfConnection:
 		return ec._SearchSubShelfConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchSubShelfConnection:
+	case *gqlmodels.SearchSubShelfConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchSubShelfConnection(ctx, sel, obj)
-	case cgqlmodels.SearchStationConnection:
+	case gqlmodels.SearchStationConnection:
 		return ec._SearchStationConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchStationConnection:
+	case *gqlmodels.SearchStationConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchStationConnection(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTaskRecordConnection:
+	case gqlmodels.SearchRoutineTaskRecordConnection:
 		return ec._SearchRoutineTaskRecordConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTaskRecordConnection:
+	case *gqlmodels.SearchRoutineTaskRecordConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTaskRecordConnection(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTaskConnection:
+	case gqlmodels.SearchRoutineTaskConnection:
 		return ec._SearchRoutineTaskConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTaskConnection:
+	case *gqlmodels.SearchRoutineTaskConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTaskConnection(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTagConnection:
+	case gqlmodels.SearchRoutineTagConnection:
 		return ec._SearchRoutineTagConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTagConnection:
+	case *gqlmodels.SearchRoutineTagConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTagConnection(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineConnection:
+	case gqlmodels.SearchRoutineConnection:
 		return ec._SearchRoutineConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineConnection:
+	case *gqlmodels.SearchRoutineConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineConnection(ctx, sel, obj)
-	case cgqlmodels.SearchRootShelfConnection:
+	case gqlmodels.SearchRootShelfConnection:
 		return ec._SearchRootShelfConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchRootShelfConnection:
+	case *gqlmodels.SearchRootShelfConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRootShelfConnection(ctx, sel, obj)
-	case cgqlmodels.SearchMaterialConnection:
+	case gqlmodels.SearchMaterialConnection:
 		return ec._SearchMaterialConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchMaterialConnection:
+	case *gqlmodels.SearchMaterialConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchMaterialConnection(ctx, sel, obj)
-	case cgqlmodels.SearchItemConnection:
+	case gqlmodels.SearchItemConnection:
 		return ec._SearchItemConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchItemConnection:
+	case *gqlmodels.SearchItemConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchItemConnection(ctx, sel, obj)
-	case cgqlmodels.SearchBlockPackConnection:
+	case gqlmodels.SearchBlockPackConnection:
 		return ec._SearchBlockPackConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchBlockPackConnection:
+	case *gqlmodels.SearchBlockPackConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchBlockPackConnection(ctx, sel, obj)
-	case cgqlmodels.SearchBlockConnection:
+	case gqlmodels.SearchBlockConnection:
 		return ec._SearchBlockConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchBlockConnection:
+	case *gqlmodels.SearchBlockConnection:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchBlockConnection(ctx, sel, obj)
-	case cgqlmodels.SearchBadgeConnection:
+	case gqlmodels.SearchBadgeConnection:
 		return ec._SearchBadgeConnection(ctx, sel, &obj)
-	case *cgqlmodels.SearchBadgeConnection:
+	case *gqlmodels.SearchBadgeConnection:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -314,104 +313,104 @@ func (ec *executionContext) _SearchConnection(ctx context.Context, sel ast.Selec
 	}
 }
 
-func (ec *executionContext) _SearchEdge(ctx context.Context, sel ast.SelectionSet, obj cgqlmodels.SearchEdge) graphql.Marshaler {
+func (ec *executionContext) _SearchEdge(ctx context.Context, sel ast.SelectionSet, obj gqlmodels.SearchEdge) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case cgqlmodels.SearchUserEdge:
+	case gqlmodels.SearchUserEdge:
 		return ec._SearchUserEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchUserEdge:
+	case *gqlmodels.SearchUserEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchUserEdge(ctx, sel, obj)
-	case cgqlmodels.SearchThemeEdge:
+	case gqlmodels.SearchThemeEdge:
 		return ec._SearchThemeEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchThemeEdge:
+	case *gqlmodels.SearchThemeEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchThemeEdge(ctx, sel, obj)
-	case cgqlmodels.SearchSubShelfEdge:
+	case gqlmodels.SearchSubShelfEdge:
 		return ec._SearchSubShelfEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchSubShelfEdge:
+	case *gqlmodels.SearchSubShelfEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchSubShelfEdge(ctx, sel, obj)
-	case cgqlmodels.SearchStationEdge:
+	case gqlmodels.SearchStationEdge:
 		return ec._SearchStationEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchStationEdge:
+	case *gqlmodels.SearchStationEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchStationEdge(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTaskRecordEdge:
+	case gqlmodels.SearchRoutineTaskRecordEdge:
 		return ec._SearchRoutineTaskRecordEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTaskRecordEdge:
+	case *gqlmodels.SearchRoutineTaskRecordEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTaskRecordEdge(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTaskEdge:
+	case gqlmodels.SearchRoutineTaskEdge:
 		return ec._SearchRoutineTaskEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTaskEdge:
+	case *gqlmodels.SearchRoutineTaskEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTaskEdge(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineTagEdge:
+	case gqlmodels.SearchRoutineTagEdge:
 		return ec._SearchRoutineTagEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineTagEdge:
+	case *gqlmodels.SearchRoutineTagEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineTagEdge(ctx, sel, obj)
-	case cgqlmodels.SearchRoutineEdge:
+	case gqlmodels.SearchRoutineEdge:
 		return ec._SearchRoutineEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchRoutineEdge:
+	case *gqlmodels.SearchRoutineEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRoutineEdge(ctx, sel, obj)
-	case cgqlmodels.SearchRootShelfEdge:
+	case gqlmodels.SearchRootShelfEdge:
 		return ec._SearchRootShelfEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchRootShelfEdge:
+	case *gqlmodels.SearchRootShelfEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchRootShelfEdge(ctx, sel, obj)
-	case cgqlmodels.SearchMaterialEdge:
+	case gqlmodels.SearchMaterialEdge:
 		return ec._SearchMaterialEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchMaterialEdge:
+	case *gqlmodels.SearchMaterialEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchMaterialEdge(ctx, sel, obj)
-	case cgqlmodels.SearchItemEdge:
+	case gqlmodels.SearchItemEdge:
 		return ec._SearchItemEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchItemEdge:
+	case *gqlmodels.SearchItemEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchItemEdge(ctx, sel, obj)
-	case cgqlmodels.SearchBlockPackEdge:
+	case gqlmodels.SearchBlockPackEdge:
 		return ec._SearchBlockPackEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchBlockPackEdge:
+	case *gqlmodels.SearchBlockPackEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchBlockPackEdge(ctx, sel, obj)
-	case cgqlmodels.SearchBlockEdge:
+	case gqlmodels.SearchBlockEdge:
 		return ec._SearchBlockEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchBlockEdge:
+	case *gqlmodels.SearchBlockEdge:
 		if obj == nil {
 			return graphql.Null
 		}
 		return ec._SearchBlockEdge(ctx, sel, obj)
-	case cgqlmodels.SearchBadgeEdge:
+	case gqlmodels.SearchBadgeEdge:
 		return ec._SearchBadgeEdge(ctx, sel, &obj)
-	case *cgqlmodels.SearchBadgeEdge:
+	case *gqlmodels.SearchBadgeEdge:
 		if obj == nil {
 			return graphql.Null
 		}
@@ -427,7 +426,7 @@ func (ec *executionContext) _SearchEdge(ctx context.Context, sel ast.SelectionSe
 
 var searchPageInfoImplementors = []string{"SearchPageInfo"}
 
-func (ec *executionContext) _SearchPageInfo(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.SearchPageInfo) graphql.Marshaler {
+func (ec *executionContext) _SearchPageInfo(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.SearchPageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, searchPageInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -477,7 +476,7 @@ func (ec *executionContext) _SearchPageInfo(ctx context.Context, sel ast.Selecti
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchPageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchPageInfo(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchPageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -487,16 +486,16 @@ func (ec *executionContext) marshalNSearchPageInfo2ᚖgithubᚗcomᚋHiIamJeff67
 	return ec._SearchPageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOSearchSortOrder2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSortOrder(ctx context.Context, v any) (*cgqlmodels.SearchSortOrder, error) {
+func (ec *executionContext) unmarshalOSearchSortOrder2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSortOrder(ctx context.Context, v any) (*gqlmodels.SearchSortOrder, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(cgqlmodels.SearchSortOrder)
+	var res = new(gqlmodels.SearchSortOrder)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSearchSortOrder2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSortOrder(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.SearchSortOrder) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchSortOrder2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐSearchSortOrder(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.SearchSortOrder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

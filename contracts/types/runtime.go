@@ -30,6 +30,10 @@ func (value Runtime) String() string {
 	return string(value)
 }
 
+func (value Runtime) RoleName() string {
+	return "notegic_" + value.String()
+}
+
 func (value *Runtime) IsValid() bool {
 	return value != nil && slices.Contains(AllRuntimes, *value)
 }

@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -32,7 +31,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PrivateRoutineTask_id(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_id(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -76,7 +75,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_id(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_routineId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_routineId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_routineId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -120,7 +119,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_routineId(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_title(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_title(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_title(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -164,7 +163,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_title(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_purpose(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_purpose(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_purpose(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -190,7 +189,7 @@ func (ec *executionContext) _PrivateRoutineTask_purpose(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.RoutineTaskPurpose)
+	res := resTmp.(enums.RoutineTaskPurpose)
 	fc.Result = res
 	return ec.marshalNRoutineTaskPurpose2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskPurpose(ctx, field.Selections, res)
 }
@@ -208,7 +207,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_purpose(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_payload(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_payload(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_payload(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -252,7 +251,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_payload(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_costUnit(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_costUnit(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_costUnit(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -296,7 +295,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_costUnit(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_priority(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_priority(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_priority(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -340,7 +339,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_priority(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_status(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_status(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_status(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -366,7 +365,7 @@ func (ec *executionContext) _PrivateRoutineTask_status(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.RoutineTaskStatus)
+	res := resTmp.(enums.RoutineTaskStatus)
 	fc.Result = res
 	return ec.marshalNRoutineTaskStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskStatus(ctx, field.Selections, res)
 }
@@ -384,7 +383,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_status(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_attempts(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_attempts(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_attempts(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -428,7 +427,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_attempts(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_maxAttempts(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_maxAttempts(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_maxAttempts(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -472,7 +471,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_maxAttempts(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_period(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_period(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_period(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -495,7 +494,7 @@ func (ec *executionContext) _PrivateRoutineTask_period(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cenums.RoutinePeriod)
+	res := resTmp.(*enums.RoutinePeriod)
 	fc.Result = res
 	return ec.marshalORoutinePeriod2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePeriod(ctx, field.Selections, res)
 }
@@ -513,7 +512,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_period(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_nextScheduledAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_nextScheduledAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_nextScheduledAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -557,7 +556,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_nextScheduledAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_scheduledAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_scheduledAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_scheduledAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -601,7 +600,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_scheduledAt(_ contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_actualStartedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_actualStartedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_actualStartedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -642,7 +641,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_actualStartedAt(_ co
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_actualEndedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_actualEndedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_actualEndedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -683,7 +682,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_actualEndedAt(_ cont
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_updatedAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_updatedAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -727,7 +726,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_updatedAt(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _PrivateRoutineTask_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrivateRoutineTask_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -785,7 +784,7 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_createdAt(_ context.
 
 var privateRoutineTaskImplementors = []string{"PrivateRoutineTask"}
 
-func (ec *executionContext) _PrivateRoutineTask(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PrivateRoutineTask) graphql.Marshaler {
+func (ec *executionContext) _PrivateRoutineTask(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PrivateRoutineTask) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, privateRoutineTaskImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -897,7 +896,7 @@ func (ec *executionContext) _PrivateRoutineTask(ctx context.Context, sel ast.Sel
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPrivateRoutineTask2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRoutineTask(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PrivateRoutineTask) graphql.Marshaler {
+func (ec *executionContext) marshalNPrivateRoutineTask2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPrivateRoutineTask(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PrivateRoutineTask) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

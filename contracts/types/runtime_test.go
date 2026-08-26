@@ -17,4 +17,7 @@ func TestRuntimeValues(t *testing.T) {
 	if err != nil || runtime == nil || *runtime != Runtime_DurableJob {
 		t.Fatalf("ConvertStringToRuntime() = %v, %v", runtime, err)
 	}
+	if got := Runtime_DurableJob.RoleName(); got != "notegic_durablejob" {
+		t.Fatalf("RoleName() = %q", got)
+	}
 }

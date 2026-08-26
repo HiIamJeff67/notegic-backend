@@ -11,8 +11,6 @@ import (
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 )
 
 type BadgeServiceInterface interface {
@@ -27,9 +25,6 @@ type BadgeService struct {
 }
 
 func NewBadgeService(db *gorm.DB) BadgeServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &BadgeService{db: db}
 }
 

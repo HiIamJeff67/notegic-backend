@@ -18,7 +18,6 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	authservices "github.com/HiIamJeff67/notegic-backend/internal/core/services/auth"
 )
 
@@ -46,9 +45,6 @@ func NewUserAccountService(
 	userQuotaRepository srepositories.UserQuotaRepositoryInterface,
 	oauthService authservices.OAuthServiceInterface,
 ) UserAccountServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &UserAccountService{
 		validator:             validator,
 		db:                    db,

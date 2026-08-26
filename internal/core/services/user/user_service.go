@@ -23,7 +23,6 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	contexts "github.com/HiIamJeff67/notegic-backend/internal/core/contexts"
-	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
 	userdata "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/internal/core/data/redis/userdata/inputs"
 )
@@ -52,9 +51,6 @@ func NewUserService(
 	userRepository srepositories.UserRepositoryInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
 ) UserServiceInterface {
-	if db == nil {
-		db = data.DB
-	}
 	return &UserService{
 		validator:           validator,
 		db:                  db,

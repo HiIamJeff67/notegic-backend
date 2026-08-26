@@ -12,17 +12,16 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	gqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	"github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/ast"
-
-	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
-	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
 // region    ************************** generated!.gotpl **************************
 
 type PublicUserResolver interface {
-	Info(ctx context.Context, obj *cgqlmodels.PublicUser) (*cgqlmodels.PublicUserInfo, error)
+	Info(ctx context.Context, obj *gqlmodels.PublicUser) (*gqlmodels.PublicUserInfo, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -37,7 +36,7 @@ type PublicUserResolver interface {
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _PublicUser_publicId(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_publicId(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_publicId(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -81,7 +80,7 @@ func (ec *executionContext) fieldContext_PublicUser_publicId(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_name(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_name(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -125,7 +124,7 @@ func (ec *executionContext) fieldContext_PublicUser_name(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_displayName(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_displayName(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_displayName(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -169,7 +168,7 @@ func (ec *executionContext) fieldContext_PublicUser_displayName(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_role(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_role(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_role(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -195,7 +194,7 @@ func (ec *executionContext) _PublicUser_role(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.UserRole)
+	res := resTmp.(enums.UserRole)
 	fc.Result = res
 	return ec.marshalNUserRole2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserRole(ctx, field.Selections, res)
 }
@@ -213,7 +212,7 @@ func (ec *executionContext) fieldContext_PublicUser_role(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_plan(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_plan(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_plan(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -239,7 +238,7 @@ func (ec *executionContext) _PublicUser_plan(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.UserPlan)
+	res := resTmp.(enums.UserPlan)
 	fc.Result = res
 	return ec.marshalNUserPlan2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserPlan(ctx, field.Selections, res)
 }
@@ -257,7 +256,7 @@ func (ec *executionContext) fieldContext_PublicUser_plan(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_status(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_status(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_status(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -283,7 +282,7 @@ func (ec *executionContext) _PublicUser_status(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(cenums.UserStatus)
+	res := resTmp.(enums.UserStatus)
 	fc.Result = res
 	return ec.marshalNUserStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐUserStatus(ctx, field.Selections, res)
 }
@@ -301,7 +300,7 @@ func (ec *executionContext) fieldContext_PublicUser_status(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_createdAt(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_createdAt(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -345,7 +344,7 @@ func (ec *executionContext) fieldContext_PublicUser_createdAt(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PublicUser_info(ctx context.Context, field graphql.CollectedField, obj *cgqlmodels.PublicUser) (ret graphql.Marshaler) {
+func (ec *executionContext) _PublicUser_info(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PublicUser) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PublicUser_info(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -368,7 +367,7 @@ func (ec *executionContext) _PublicUser_info(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*cgqlmodels.PublicUserInfo)
+	res := resTmp.(*gqlmodels.PublicUserInfo)
 	fc.Result = res
 	return ec.marshalOPublicUserInfo2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUserInfo(ctx, field.Selections, res)
 }
@@ -416,7 +415,7 @@ func (ec *executionContext) fieldContext_PublicUser_info(_ context.Context, fiel
 
 var publicUserImplementors = []string{"PublicUser"}
 
-func (ec *executionContext) _PublicUser(ctx context.Context, sel ast.SelectionSet, obj *cgqlmodels.PublicUser) graphql.Marshaler {
+func (ec *executionContext) _PublicUser(ctx context.Context, sel ast.SelectionSet, obj *gqlmodels.PublicUser) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, publicUserImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -520,7 +519,7 @@ func (ec *executionContext) _PublicUser(ctx context.Context, sel ast.SelectionSe
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNPublicUser2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*cgqlmodels.PublicUser) graphql.Marshaler {
+func (ec *executionContext) marshalNPublicUser2ᚕᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*gqlmodels.PublicUser) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -564,7 +563,7 @@ func (ec *executionContext) marshalNPublicUser2ᚕᚖgithubᚗcomᚋHiIamJeff67�
 	return ret
 }
 
-func (ec *executionContext) marshalNPublicUser2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUser(ctx context.Context, sel ast.SelectionSet, v *cgqlmodels.PublicUser) graphql.Marshaler {
+func (ec *executionContext) marshalNPublicUser2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋcoreᚋv1ᚋgraphqlᚋmodelsᚐPublicUser(ctx context.Context, sel ast.SelectionSet, v *gqlmodels.PublicUser) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
