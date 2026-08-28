@@ -11,6 +11,33 @@ func TestPermissionManifestValidate(t *testing.T) {
 		Runtime: ctypes.Runtime_Core,
 		Objects: []PermissionObject{
 			{
+				Type: PermissionObjectType_Database,
+				Grants: []PermissionGrant{
+					{
+						Runtime: ctypes.Runtime_Core,
+						Privileges: []PermissionPrivilege{
+							PermissionPrivilege_Connect,
+						},
+					},
+				},
+			},
+			{
+				Type: PermissionObjectType_Schema,
+				Name: "public",
+				Grants: []PermissionGrant{
+					{
+						Runtime: ctypes.Runtime_Core,
+						Privileges: []PermissionPrivilege{
+							PermissionPrivilege_Usage,
+						},
+					},
+				},
+			},
+			{
+				Type: PermissionObjectType_DefaultFunction,
+				Name: "public",
+			},
+			{
 				Type: PermissionObjectType_Table,
 				Name: "UserTable",
 				Grants: []PermissionGrant{
@@ -105,5 +132,23 @@ func TestPermissionManifestValidateRejectsDuplicateObjects(t *testing.T) {
 
 	if err := manifest.Validate(); err == nil {
 		t.Fatal("Validate() expected a duplicate object error")
+	}
+}
+
+func TestPermissionManifestValidateRejectsNamedDatabase(t *testing.T) {
+	manifest := PermissionManifest{
+		Runtime: ctypes.Runtime_Core,
+		Objects: []PermissionObject{{
+			Type: PermissionObjectType_Database,
+			Name: "notegic_db",
+			Grants: []PermissionGrant{{
+				Runtime:    ctypes.Runtime_Core,
+				Privileges: []PermissionPrivilege{PermissionPrivilege_Connect},
+			}},
+		}},
+	}
+
+	if err := manifest.Validate(); err == nil {
+		t.Fatal("Validate() expected a named database permission object error")
 	}
 }

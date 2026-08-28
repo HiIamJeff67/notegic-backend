@@ -13,7 +13,6 @@ import (
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 
 	data "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres"
-	seeds "github.com/HiIamJeff67/notegic-backend/internal/core/data/postgres/seeds"
 )
 
 var viewAllDatabaseEnumsCommand = &cobra.Command{
@@ -34,6 +33,30 @@ var viewAllDatabaseEnumsCommand = &cobra.Command{
 		if err := spostgres.ViewAllDatabaseEnums(db); err != nil {
 			slogs.NotegicLogger.Error(context.Background(), err, "Failed to display database enums")
 			return
+		}
+	},
+}
+
+var bootstrapDatabaseCommand = &cobra.Command{
+	Use:   "bootstrapDB",
+	Short: "Bootstrap the Core PostgreSQL runtime role.",
+	Run: func(_ *cobra.Command, _ []string) {
+		config, err := loadCoreDatabaseConfig()
+		if err != nil {
+			panic(err)
+		}
+		adminConfig, err := loadPostgresAdminConfig()
+		if err != nil {
+			panic(err)
+		}
+		adminDB, err := spostgres.Connect(adminConfig)
+		if err != nil {
+			panic(err)
+		}
+		defer spostgres.Disconnect(adminDB)
+
+		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, config.Password); err != nil {
+			panic(err)
 		}
 	},
 }
@@ -59,38 +82,31 @@ var migrateDatabaseCommand = &cobra.Command{
 		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, config.Password); err != nil {
 			panic(err)
 		}
-		if err := spostgres.GrantMigrationAccess(adminDB, ctypes.Runtime_Core); err != nil {
+		if err := spostgres.EnsureRuntimeRole(
+			adminDB,
+			ctypes.Runtime_DurableJob,
+			os.Getenv("DURABLEJOB_DB_PASSWORD"),
+		); err != nil {
 			panic(err)
 		}
-		defer spostgres.RevokeMigrationAccess(adminDB, ctypes.Runtime_Core)
-		db, err := spostgres.Connect(config)
-		if err != nil {
-			panic(err)
-		}
-		defer spostgres.Disconnect(db)
 
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of migrating database schema to %v", config.Name))
-
-		for _, migrate := range []func() error{
-			func() error {
-				return spostgres.Migrate(
-					db,
-					ctypes.Runtime_Core,
-					data.DatabaseMigrationManifest,
-				)
-			},
-		} {
-			if err := migrate(); err != nil {
-				slogs.NotegicLogger.Error(context.Background(), err, "Failed to migrate database schema")
-				return
-			}
+		if err := spostgres.Migrate(
+			adminDB,
+			ctypes.Runtime_Core,
+			data.DatabaseMigrationManifest,
+		); err != nil {
+			panic(fmt.Errorf("migrate Core PostgreSQL objects: %w", err))
 		}
 		if err := spostgres.ApplyPermissions(
 			adminDB,
 			ctypes.Runtime_Core,
 			data.DatabasePermissionManifest,
 		); err != nil {
-			slogs.NotegicLogger.Error(context.Background(), err, "Failed to initialize database permissions")
+			panic(fmt.Errorf("apply Core PostgreSQL permissions: %w", err))
+		}
+		if err := spostgres.VerifyPermissions(adminDB, ctypes.Runtime_Core, data.DatabasePermissionManifest); err != nil {
+			panic(fmt.Errorf("verify Core PostgreSQL permissions: %w", err))
 		}
 	},
 }
@@ -104,17 +120,20 @@ var seedDatabaseCommand = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
-		db, err := spostgres.Connect(config)
+		adminConfig, err := loadPostgresAdminConfig()
 		if err != nil {
 			panic(err)
 		}
-		defer spostgres.Disconnect(db)
+		adminDB, err := spostgres.Connect(adminConfig)
+		if err != nil {
+			panic(err)
+		}
+		defer spostgres.Disconnect(adminDB)
 
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of seeding database default data to %v", config.Name))
 
-		if err := spostgres.SeedDefaultDataToDatabase(db, seeds.SeedingDefaultDataSQLs); err != nil {
-			slogs.NotegicLogger.Error(context.Background(), err, "Failed to seed database default data")
-			return
+		if err := spostgres.Seed(adminDB, ctypes.Runtime_Core, data.DatabaseSeedManifest); err != nil {
+			panic(fmt.Errorf("seed Core PostgreSQL data: %w", err))
 		}
 	},
 }

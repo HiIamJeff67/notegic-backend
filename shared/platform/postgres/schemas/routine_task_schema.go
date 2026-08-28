@@ -36,8 +36,10 @@ type RoutineTask struct {
 	RecordId          uuid.UUID                 `json:"-" gorm:"column:record_id;->;-:migration"`           // to store the latest routine task record id created by the claimer
 
 	// relations
-	Routine   Routine             `json:"routine" gorm:"foreignKey:RoutineId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
-	ActorUser User                `json:"actorUser" gorm:"foreignKey:ActorUserId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:RESTRICT;"`
+	// Routine and User are owned and migrated by Core. DurableJob may use these
+	// relations at runtime, but it must not let AutoMigrate create their tables.
+	Routine   Routine             `json:"routine" gorm:"-:migration;foreignKey:RoutineId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	ActorUser UserView            `json:"actorUser" gorm:"-:migration;foreignKey:ActorUserId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:RESTRICT;"`
 	Records   []RoutineTaskRecord `json:"records" gorm:"foreignKey:RoutineTaskId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }
 

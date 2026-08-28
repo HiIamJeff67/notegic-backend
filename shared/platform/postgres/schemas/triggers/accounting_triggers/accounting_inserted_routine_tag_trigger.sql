@@ -8,6 +8,18 @@ BEGIN
         USING ERRCODE = 'program_limit_exceeded';
     END IF;
 
+    IF EXISTS (
+        SELECT 1
+        FROM (SELECT DISTINCT owner_id FROM new_table) owners
+        LEFT JOIN "UserTable" u ON u.id = owners.owner_id
+        LEFT JOIN "PlanLimitationTable" pl ON pl.key = u.plan
+        LEFT JOIN "UserAccountTable" ua ON ua.user_id = owners.owner_id
+        WHERE u.id IS NULL OR pl.key IS NULL OR ua.user_id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Data integrity: Cannot find owner or plan limitation for RoutineTag.'
+        USING ERRCODE = 'data_exception';
+    END IF;
+
     FOR r IN
         WITH owner_tag_deltas AS (
             SELECT

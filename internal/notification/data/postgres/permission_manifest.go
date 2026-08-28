@@ -10,6 +10,34 @@ var DatabasePermissionManifest = spostgres.PermissionManifest{
 	Runtime: ctypes.Runtime_Notification,
 	Objects: []spostgres.PermissionObject{
 		{
+			Type: spostgres.PermissionObjectType_Database,
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_Notification, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Schema,
+			Name: "public",
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_Notification, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Table,
+			Name: spostgres.TableName_InboxEventTable.String(),
+			Grants: []spostgres.PermissionGrant{
+				{
+					Runtime: ctypes.Runtime_Notification,
+					Privileges: []spostgres.PermissionPrivilege{
+						spostgres.PermissionPrivilege_Select,
+						spostgres.PermissionPrivilege_Insert,
+						spostgres.PermissionPrivilege_Update,
+						spostgres.PermissionPrivilege_Delete,
+					},
+				},
+			},
+		},
+		{
 			Type: spostgres.PermissionObjectType_Table,
 			Name: spostgres.TableName_NotificationTable.String(),
 			Grants: []spostgres.PermissionGrant{
@@ -17,6 +45,21 @@ var DatabasePermissionManifest = spostgres.PermissionManifest{
 					Runtime: ctypes.Runtime_Notification,
 					// Notification owns both tables and needs complete DML access
 					// to persist notifications and maintain the user projection.
+					Privileges: []spostgres.PermissionPrivilege{
+						spostgres.PermissionPrivilege_Select,
+						spostgres.PermissionPrivilege_Insert,
+						spostgres.PermissionPrivilege_Update,
+						spostgres.PermissionPrivilege_Delete,
+					},
+				},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Table,
+			Name: spostgres.TableName_OutboxEventTable.String(),
+			Grants: []spostgres.PermissionGrant{
+				{
+					Runtime: ctypes.Runtime_Notification,
 					Privileges: []spostgres.PermissionPrivilege{
 						spostgres.PermissionPrivilege_Select,
 						spostgres.PermissionPrivilege_Insert,

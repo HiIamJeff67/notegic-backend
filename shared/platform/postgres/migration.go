@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"gorm.io/gorm"
@@ -60,7 +61,14 @@ func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) err
 		for index, value := range values {
 			quotedValues[index] = "'" + strings.ReplaceAll(value, "'", "''") + "'"
 		}
-		enumSQL := fmt.Sprintf("CREATE TYPE IF NOT EXISTS %q AS ENUM (%s);", name, strings.Join(quotedValues, ", "))
+		enumSQL := fmt.Sprintf(`
+DO $$
+BEGIN
+	CREATE TYPE %s AS ENUM (%s);
+EXCEPTION
+	WHEN duplicate_object THEN NULL;
+END
+$$;`, quoteIdentifier(name), strings.Join(quotedValues, ", "))
 		if err := db.Exec(enumSQL).Error; err != nil {
 			logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to create enum %s", name))
 			return err
@@ -69,8 +77,10 @@ func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) err
 		var dbValues []string
 		if err := db.Raw(`
 			SELECT enumlabel
-			FROM pg_enum
-			WHERE enumtypid = (SELECT oid FROM pg_type WHERE typname = ?)
+			FROM pg_enum enums
+			JOIN pg_type types ON types.oid = enums.enumtypid
+			JOIN pg_namespace schemas ON schemas.oid = types.typnamespace
+			WHERE types.typname = ? AND schemas.nspname = 'public'
 			ORDER BY enumsortorder;
 		`, name).Scan(&dbValues).Error; err != nil {
 			logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to get enum %s values", name))
@@ -78,18 +88,18 @@ func MigrateEnumsToDatabase(db *gorm.DB, migratingEnums map[string][]string) err
 		}
 
 		for _, value := range values {
-			if containsString(dbValues, value) {
+			if slices.Contains(dbValues, value) {
 				continue
 			}
 			quotedValue := strings.ReplaceAll(value, "'", "''")
-			if err := db.Exec(fmt.Sprintf("ALTER TYPE %q ADD VALUE IF NOT EXISTS '%s';", name, quotedValue)).Error; err != nil {
+			if err := db.Exec(fmt.Sprintf("ALTER TYPE %s ADD VALUE IF NOT EXISTS '%s';", quoteIdentifier(name), quotedValue)).Error; err != nil {
 				logs.NotegicLogger.Error(context.Background(), err, fmt.Sprintf("Failed to add value %q to enum %s", value, name))
 				return err
 			}
 		}
 
 		for _, dbValue := range dbValues {
-			if !containsString(values, dbValue) {
+			if !slices.Contains(values, dbValue) {
 				logs.NotegicLogger.Warn(context.Background(), fmt.Sprintf("Enum %s contains value %q that is not present in code", name, dbValue))
 			}
 		}
@@ -105,8 +115,15 @@ func MigrateTablesToDatabase(db *gorm.DB, migratingTables []any) error {
 	}
 
 	logs.NotegicLogger.Info(context.Background(), "Migrating database tables...")
+	// Relations are runtime query metadata, not migration ownership. Migrating
+	// with them enabled makes GORM recursively discover tables owned by another
+	// runtime (for example, DurableJob can discover Core's User table through
+	// RoutineTask.ActorUser). Foreign keys and other cross-runtime constraints
+	// are managed explicitly by the manifest instead.
+	migrationDB := db.Session(&gorm.Session{NewDB: true})
+	migrationDB.IgnoreRelationshipsWhenMigrating = true
 	for _, table := range migratingTables {
-		if err := db.AutoMigrate(table); err != nil {
+		if err := migrationDB.AutoMigrate(table); err != nil {
 			logs.NotegicLogger.Error(context.Background(), err, "Failed to migrate table")
 			return err
 		}
@@ -116,26 +133,99 @@ func MigrateTablesToDatabase(db *gorm.DB, migratingTables []any) error {
 	return nil
 }
 
-// Migrate applies only the manifest for the requested runtime. Database
-// permissions remain a separate deployment concern.
+// Migrate applies only the manifest for the requested runtime. Each migration
+// phase grants schema CREATE, assumes the owner role, and revokes CREATE in
+// the same transaction, so a failed or interrupted phase cannot retain access.
 func Migrate(db *gorm.DB, runtime ctypes.Runtime, manifest MigrationManifest) error {
+	if db == nil {
+		return errors.New("admin database connection is required")
+	}
 	if !manifest.IsFor(runtime) {
 		return fmt.Errorf("runtime %q cannot migrate manifest for runtime %q", runtime, manifest.Runtime)
 	}
 
-	for _, migrate := range []func() error{
-		func() error { return MigrateEnumsToDatabase(db, manifest.Enums) },
-		func() error { return MigrateTablesToDatabase(db, manifest.Tables) },
-		func() error { return MigrateViewsToDatabase(db, manifest.Views) },
-		func() error { return MigrateTriggersToDatabase(db, manifest.Triggers) },
-		func() error { return MigrateConstraintsToDatabase(db, manifest.Constraints) },
-	} {
-		if err := migrate(); err != nil {
+	return db.Connection(func(connection *gorm.DB) error {
+		if err := migrateAsRuntime(connection, runtime, func(tx *gorm.DB) error {
+			return MigrateEnumsToDatabase(tx, manifest.Enums)
+		}); err != nil {
 			return err
 		}
-	}
+		// ApplyPermissions runs after the complete migration, so an existing
+		// owned table may have had the owner's ACL entry reconciled away by a
+		// previous run. Restore privileges only for tables whose PostgreSQL owner
+		// is this runtime before SET ROLE is used to recreate their triggers and
+		// constraints. A table owned by another runtime is never escalated here.
+		for _, table := range manifest.Tables {
+			tableNamer, ok := table.(interface{ TableName() string })
+			if !ok {
+				continue
+			}
+			var ownedByRuntime bool
+			if err := connection.Raw(`
+				SELECT EXISTS (
+					SELECT 1
+					FROM pg_class tables
+					JOIN pg_namespace schemas ON schemas.oid = tables.relnamespace
+					JOIN pg_roles owners ON owners.oid = tables.relowner
+					WHERE schemas.nspname = 'public'
+					  AND tables.relname = ?
+					  AND owners.rolname = ?
+				)
+			`, tableNamer.TableName(), runtime.RoleName()).Scan(&ownedByRuntime).Error; err != nil {
+				return err
+			}
+			if !ownedByRuntime {
+				continue
+			}
+			if err := connection.Exec(
+				"GRANT ALL PRIVILEGES ON TABLE " + quoteIdentifier(tableNamer.TableName()) + " TO " + quoteIdentifier(runtime.RoleName()),
+			).Error; err != nil {
+				return err
+			}
+		}
+		if err := migrateAsRuntime(connection, runtime, func(tx *gorm.DB) error {
+			return MigrateTablesToDatabase(tx, manifest.Tables)
+		}); err != nil {
+			return err
+		}
+		if err := migrateAsRuntime(connection, runtime, func(tx *gorm.DB) error {
+			return MigrateViewsToDatabase(tx, manifest.Views)
+		}); err != nil {
+			return err
+		}
+		if err := migrateAsRuntime(connection, runtime, func(tx *gorm.DB) error {
+			return MigrateTriggersToDatabase(tx, manifest.Triggers)
+		}); err != nil {
+			return err
+		}
+		return migrateAsRuntime(connection, runtime, func(tx *gorm.DB) error {
+			return MigrateConstraintsToDatabase(tx, manifest.Constraints)
+		})
+	})
+}
 
-	return nil
+func migrateAsRuntime(db *gorm.DB, runtime ctypes.Runtime, migrate func(*gorm.DB) error) error {
+	return db.Transaction(func(tx *gorm.DB) (err error) {
+		quotedRoleName := quoteIdentifier(runtime.RoleName())
+		if err = tx.Exec("GRANT CREATE ON SCHEMA public TO " + quotedRoleName).Error; err != nil {
+			return err
+		}
+		if err = tx.Exec("SET LOCAL ROLE " + quotedRoleName).Error; err != nil {
+			return err
+		}
+
+		if err = migrate(tx); err != nil {
+			return err
+		}
+		if err = tx.Exec("RESET ROLE").Error; err != nil {
+			return err
+		}
+		if err = tx.Exec("REVOKE CREATE ON SCHEMA public FROM " + quotedRoleName).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func MigrateTriggersToDatabase(db *gorm.DB, migratingSQLs []string) error {
@@ -162,14 +252,6 @@ func MigrateViewsToDatabase(db *gorm.DB, migratingSQLs []string) error {
 	return migrateSQL(db, migratingSQLs, "views", false)
 }
 
-func SeedDefaultDataToDatabase(db *gorm.DB, seedingSQLs []string) error {
-	if logs.NotegicLogger == nil {
-		return errors.New("observability logger is not initialized")
-	}
-
-	return migrateSQL(db, seedingSQLs, "default data", false)
-}
-
 func migrateSQL(db *gorm.DB, sqls []string, description string, skipAlreadyExists bool) error {
 	logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Migrating database %s...", description))
 
@@ -192,13 +274,4 @@ func migrateSQL(db *gorm.DB, sqls []string, description string, skipAlreadyExist
 
 	logs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Migration of %s is done", description))
 	return nil
-}
-
-func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
 }

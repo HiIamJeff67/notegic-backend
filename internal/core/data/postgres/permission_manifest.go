@@ -4,6 +4,10 @@ import (
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	saccountingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
+	sblockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/block_pack_yjs_triggers"
+	sitemstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/item_projection_triggers"
+	sshelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/shelf_item_cascading_triggers"
 )
 
 var DatabasePermissionManifest = spostgres.PermissionManifest{
@@ -18,6 +22,7 @@ func getCorePermissionObjects() []spostgres.PermissionObject {
 		spostgres.PermissionPrivilege_Update,
 		spostgres.PermissionPrivilege_Delete,
 	}
+	coreTablePrivileges := append(append([]spostgres.PermissionPrivilege{}, allTablePrivileges...), spostgres.PermissionPrivilege_Trigger)
 	durableWritableTables := map[string]bool{
 		spostgres.TableName_BlockTable.String():                true,
 		spostgres.TableName_BlockPackTable.String():            true,
@@ -28,7 +33,27 @@ func getCorePermissionObjects() []spostgres.PermissionObject {
 	durableReadableTables := map[string]bool{
 		spostgres.TableName_PlanLimitationTable.String(): true,
 	}
-	objects := make([]spostgres.PermissionObject, 0, len(DatabaseMigrationManifest.Tables)+len(DatabaseMigrationManifest.Enums)+1)
+	objects := []spostgres.PermissionObject{
+		{
+			Type: spostgres.PermissionObjectType_Database,
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_Core, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
+				{Runtime: ctypes.Runtime_DurableJob, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Schema,
+			Name: "public",
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_Core, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
+				{Runtime: ctypes.Runtime_DurableJob, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_DefaultFunction,
+			Name: "public",
+		},
+	}
 	for _, table := range DatabaseMigrationManifest.Tables {
 		tabler, ok := table.(interface{ TableName() string })
 		if !ok {
@@ -36,7 +61,7 @@ func getCorePermissionObjects() []spostgres.PermissionObject {
 		}
 		grants := []spostgres.PermissionGrant{{
 			Runtime:    ctypes.Runtime_Core,
-			Privileges: allTablePrivileges,
+			Privileges: coreTablePrivileges,
 		}}
 		if durableWritableTables[tabler.TableName()] {
 			grants = append(grants, spostgres.PermissionGrant{
@@ -76,5 +101,42 @@ func getCorePermissionObjects() []spostgres.PermissionObject {
 			{Runtime: ctypes.Runtime_DurableJob, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Select}},
 		},
 	})
+	for _, functionName := range []string{
+		sshelfitemcascadingtrigger.CascadingSoftDeleteRootShelfTriggerFunctionName,
+		sshelfitemcascadingtrigger.CascadingSoftDeleteSubShelfTriggerFunctionName,
+		sshelfitemcascadingtrigger.CascadingRestoreRootShelfTriggerFunctionName,
+		sshelfitemcascadingtrigger.CascadingRestoreSubShelfTriggerFunctionName,
+		sshelfitemcascadingtrigger.CascadingMoveSubShelfTriggerFunctionName,
+		sblockpackyjstrigger.SyncBlockPackYjsDocumentDeletedAtTriggerFunctionName,
+		sitemstrigger.ProjectSubShelvesToItemsTriggerFunctionName,
+		sitemstrigger.ProjectMaterialsToItemsTriggerFunctionName,
+		sitemstrigger.DeleteMaterialItemsAfterDeleteTriggerFunctionName,
+		sitemstrigger.ProjectBlockPacksToItemsTriggerFunctionName,
+		sitemstrigger.DeleteBlockPackItemsAfterDeleteTriggerFunctionName,
+		saccountingtrigger.AccountingMutatedBlockPackTriggerFunctionName,
+		saccountingtrigger.AccountingInsertedBlockTriggerFunctionName,
+		saccountingtrigger.AccountingDeletedBlockTriggerFunctionName,
+		saccountingtrigger.AccountingMutatedRootShelfTriggerFunctionName,
+		saccountingtrigger.AccountingMutatedSubShelfTriggerFunctionName,
+		saccountingtrigger.AccountingMutatedMaterialTriggerFunctionName,
+		saccountingtrigger.AccountingInsertedRoutineTagTriggerFunctionName,
+		saccountingtrigger.AccountingDeletedRoutineTagTriggerFunctionName,
+		saccountingtrigger.AccountingInsertedRoutineTriggerFunctionName,
+		saccountingtrigger.AccountingDeletedRoutineTriggerFunctionName,
+		saccountingtrigger.AccountingInsertedStationTriggerFunctionName,
+		saccountingtrigger.AccountingDeletedStationTriggerFunctionName,
+		saccountingtrigger.AccountingMutatedStationTriggerFunctionName,
+	} {
+		objects = append(objects, spostgres.PermissionObject{
+			Type: spostgres.PermissionObjectType_Function,
+			Name: functionName,
+			Grants: []spostgres.PermissionGrant{
+				{
+					Runtime:    ctypes.Runtime_Core,
+					Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Execute},
+				},
+			},
+		})
+	}
 	return objects
 }

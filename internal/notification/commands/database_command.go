@@ -35,22 +35,15 @@ var migrateDatabaseCommand = &cobra.Command{
 		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Notification, runtimeConfig.Password); err != nil {
 			panic(fmt.Errorf("bootstrap Notification PostgreSQL role: %w", err))
 		}
-		if err := spostgres.GrantMigrationAccess(adminDB, ctypes.Runtime_Notification); err != nil {
-			panic(fmt.Errorf("grant Notification migration access: %w", err))
-		}
-		defer spostgres.RevokeMigrationAccess(adminDB, ctypes.Runtime_Notification)
-
-		db, err := spostgres.Connect(runtimeConfig)
-		if err != nil {
-			panic(fmt.Errorf("connect Notification PostgreSQL database: %w", err))
-		}
-		defer spostgres.Disconnect(db)
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start Notification database migration in %v", runtimeConfig.Name))
-		if err := spostgres.Migrate(db, ctypes.Runtime_Notification, data.DatabaseMigrationManifest); err != nil {
+		if err := spostgres.Migrate(adminDB, ctypes.Runtime_Notification, data.DatabaseMigrationManifest); err != nil {
 			panic(err)
 		}
 		if err := spostgres.ApplyPermissions(adminDB, ctypes.Runtime_Notification, data.DatabasePermissionManifest); err != nil {
 			panic(err)
+		}
+		if err := spostgres.VerifyPermissions(adminDB, ctypes.Runtime_Notification, data.DatabasePermissionManifest); err != nil {
+			panic(fmt.Errorf("verify Notification PostgreSQL permissions: %w", err))
 		}
 	},
 }

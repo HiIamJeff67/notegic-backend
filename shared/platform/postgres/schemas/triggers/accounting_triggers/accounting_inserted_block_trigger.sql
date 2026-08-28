@@ -8,6 +8,30 @@ BEGIN
         USING ERRCODE = 'program_limit_exceeded';
     END IF;
 
+    IF EXISTS (
+        SELECT 1
+        FROM new_table nb
+        LEFT JOIN "BlockPackTable" bp ON bp.id = nb.block_pack_id
+        LEFT JOIN "SubShelfTable" ss ON ss.id = bp.parent_sub_shelf_id
+        LEFT JOIN "RootShelfTable" rs ON rs.id = ss.root_shelf_id
+        LEFT JOIN "UsersToShelvesTable" owner_uts
+            ON owner_uts.root_shelf_id = rs.id
+            AND owner_uts.permission = 'Owner'
+        LEFT JOIN "UserTable" u ON u.id = owner_uts.user_id
+        LEFT JOIN "PlanLimitationTable" pl ON pl.key = u.plan
+        LEFT JOIN "UserAccountTable" ua ON ua.user_id = owner_uts.user_id
+        WHERE bp.id IS NULL
+            OR ss.id IS NULL
+            OR rs.id IS NULL
+            OR owner_uts.user_id IS NULL
+            OR u.id IS NULL
+            OR pl.key IS NULL
+            OR ua.user_id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Data integrity: Cannot find owner or plan limitation for Block.'
+        USING ERRCODE = 'data_exception';
+    END IF;
+
     PERFORM 1
     FROM "RootShelfTable" rs
     JOIN "SubShelfTable" ss ON ss.root_shelf_id = rs.id

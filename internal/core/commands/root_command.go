@@ -29,6 +29,7 @@ var rootCommand = &cobra.Command{
 func init() {
 	rootCommand.AddCommand(
 		viewAllDatabaseEnumsCommand,
+		bootstrapDatabaseCommand,
 		migrateDatabaseCommand,
 		seedDatabaseCommand,
 		writeGraphQLEnumMappingValuesToConfig,

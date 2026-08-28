@@ -15,6 +15,30 @@ import (
 	data "github.com/HiIamJeff67/notegic-backend/internal/durablejob/data/postgres"
 )
 
+var bootstrapDatabaseCommand = &cobra.Command{
+	Use:   "bootstrapDB",
+	Short: "Bootstrap the DurableJob PostgreSQL runtime role.",
+	Run: func(_ *cobra.Command, _ []string) {
+		runtimeConfig, err := loadDurableJobDatabaseConfig()
+		if err != nil {
+			panic(err)
+		}
+		adminConfig, err := loadPostgresAdminConfig()
+		if err != nil {
+			panic(err)
+		}
+		adminDB, err := spostgres.Connect(adminConfig)
+		if err != nil {
+			panic(fmt.Errorf("connect DurableJob PostgreSQL admin database: %w", err))
+		}
+		defer spostgres.Disconnect(adminDB)
+
+		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_DurableJob, runtimeConfig.Password); err != nil {
+			panic(fmt.Errorf("bootstrap DurableJob PostgreSQL role: %w", err))
+		}
+	},
+}
+
 var migrateDatabaseCommand = &cobra.Command{
 	Use:   "migrateDB",
 	Short: "Migrate DurableJob PostgreSQL objects and permissions.",
@@ -35,22 +59,15 @@ var migrateDatabaseCommand = &cobra.Command{
 		if err := spostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_DurableJob, runtimeConfig.Password); err != nil {
 			panic(fmt.Errorf("bootstrap DurableJob PostgreSQL role: %w", err))
 		}
-		if err := spostgres.GrantMigrationAccess(adminDB, ctypes.Runtime_DurableJob); err != nil {
-			panic(fmt.Errorf("grant DurableJob migration access: %w", err))
-		}
-		defer spostgres.RevokeMigrationAccess(adminDB, ctypes.Runtime_DurableJob)
-
-		db, err := spostgres.Connect(runtimeConfig)
-		if err != nil {
-			panic(fmt.Errorf("connect DurableJob PostgreSQL database: %w", err))
-		}
-		defer spostgres.Disconnect(db)
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start DurableJob database migration in %v", runtimeConfig.Name))
-		if err := spostgres.Migrate(db, ctypes.Runtime_DurableJob, data.DatabaseMigrationManifest); err != nil {
+		if err := spostgres.Migrate(adminDB, ctypes.Runtime_DurableJob, data.DatabaseMigrationManifest); err != nil {
 			panic(err)
 		}
 		if err := spostgres.ApplyPermissions(adminDB, ctypes.Runtime_DurableJob, data.DatabasePermissionManifest); err != nil {
 			panic(err)
+		}
+		if err := spostgres.VerifyPermissions(adminDB, ctypes.Runtime_DurableJob, data.DatabasePermissionManifest); err != nil {
+			panic(fmt.Errorf("verify DurableJob PostgreSQL permissions: %w", err))
 		}
 	},
 }

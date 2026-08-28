@@ -16,7 +16,6 @@ import (
 
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
-	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
@@ -25,7 +24,6 @@ import (
 
 	configs "github.com/HiIamJeff67/notegic-backend/internal/notification/configs"
 	services "github.com/HiIamJeff67/notegic-backend/internal/notification/services"
-	notificationtransports "github.com/HiIamJeff67/notegic-backend/internal/notification/transports"
 	consumers "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/core/consumers"
 	endpoints "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/gateway/endpoints"
 	routers "github.com/HiIamJeff67/notegic-backend/internal/notification/transports/gateway/routers"
@@ -44,9 +42,8 @@ type ApplicationInterface interface {
 	IsReady() bool
 	initializeObservability() func()
 	initializeDatabase(spostgres.Config) (*gorm.DB, error)
-	initializeKafka(skafka.ConnectionConfig) (*skafka.Producer, error)
 	initializeService(*gorm.DB) services.NotificationServiceInterface
-	initializeWorkers(configs.Config, services.NotificationServiceInterface, *gorm.DB, *skafka.Producer) func()
+	initializeWorkers(configs.Config, services.NotificationServiceInterface) func()
 	buildRouter(services.NotificationServiceInterface) *gin.Engine
 	startHTTP(configs.Config, *gin.Engine) (func(), error)
 }
@@ -83,19 +80,6 @@ func (a *Application) initializeDatabase(
 	return db, nil
 }
 
-func (a *Application) initializeKafka(
-	config skafka.ConnectionConfig,
-) (*skafka.Producer, error) {
-	producer, err := skafka.NewProducer(skafka.ClientConfig{
-		ConnectionConfig: config,
-		ClientId:         "notegic-notification-producer",
-	})
-	if err != nil {
-		return nil, err
-	}
-	return producer, nil
-}
-
 func (a *Application) initializeService(db *gorm.DB) services.NotificationServiceInterface {
 	repository := srepositories.NewNotificationRepository(db)
 	notificationValidator := validator.New()
@@ -111,33 +95,17 @@ func (a *Application) initializeService(db *gorm.DB) services.NotificationServic
 func (a *Application) initializeWorkers(
 	config configs.Config,
 	service services.NotificationServiceInterface,
-	db *gorm.DB,
-	producer *skafka.Producer,
 ) func() {
-	repository := srepositories.NewNotificationRepository(db)
 	consumer := consumers.NewNotificationRequestConsumer(service, config.Kafka.ConsumerConfig())
-	relay := notificationtransports.NewOutboxRelay(
-		repository,
-		producer,
-		config.OutboxPollInterval,
-		config.OutboxClaimTimeout,
-		config.OutboxInitialBackoff,
-		config.OutboxMaximumBackoff,
-		config.OutboxBatchSize,
-		config.OutboxCleanupInterval,
-		config.OutboxRetention,
-	)
 	cleanup := workers.NewCleanupWorker(
 		service,
-		config.OutboxCleanupInterval,
+		config.NotificationCleanupInterval,
 		config.NotificationRetention,
 	)
 	shutdownConsumer := consumer.Start(context.Background())
-	shutdownRelay := relay.Start(context.Background())
 	shutdownCleanup := cleanup.Start(context.Background())
 	return func() {
 		shutdownCleanup()
-		shutdownRelay()
 		shutdownConsumer()
 	}
 }
@@ -195,7 +163,6 @@ func (a *Application) Start() func() {
 	shutdownObservability := a.initializeObservability()
 	var (
 		db              *gorm.DB
-		producer        *skafka.Producer
 		shutdownHTTP    func()
 		shutdownWorkers func()
 	)
@@ -207,9 +174,6 @@ func (a *Application) Start() func() {
 			}
 			if shutdownWorkers != nil {
 				shutdownWorkers()
-			}
-			if producer != nil {
-				producer.Close()
 			}
 			if db != nil {
 				if err := spostgres.Disconnect(db); err != nil {
@@ -232,12 +196,8 @@ func (a *Application) Start() func() {
 	if err != nil {
 		fail(err)
 	}
-	producer, err = a.initializeKafka(config.Kafka.Connection)
-	if err != nil {
-		fail(err)
-	}
 	service := a.initializeService(db)
-	shutdownWorkers = a.initializeWorkers(config, service, db, producer)
+	shutdownWorkers = a.initializeWorkers(config, service)
 	router := a.buildRouter(service)
 	shutdownHTTP, err = a.startHTTP(config, router)
 	if err != nil {

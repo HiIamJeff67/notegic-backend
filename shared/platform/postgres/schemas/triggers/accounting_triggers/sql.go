@@ -4,6 +4,25 @@ import (
 	_ "embed"
 )
 
+const (
+	AccountingMutatedBlockPackTriggerFunctionName    = "trigger_function_accounting_mutated_block_pack"
+	AccountingInsertedBlockTriggerFunctionName       = "trigger_function_accounting_inserted_block"
+	AccountingDeletedBlockTriggerFunctionName        = "trigger_function_accounting_deleted_block"
+	AccountingMutatedRootShelfTriggerFunctionName    = "trigger_function_accounting_mutated_root_shelf"
+	AccountingMutatedSubShelfTriggerFunctionName     = "trigger_function_accounting_mutated_sub_shelf"
+	AccountingMutatedMaterialTriggerFunctionName     = "trigger_function_accounting_mutated_material"
+	AccountingInsertedRoutineTaskTriggerFunctionName = "trigger_function_accounting_inserted_routine_task"
+	AccountingDeletedRoutineTaskTriggerFunctionName  = "trigger_function_accounting_deleted_routine_task"
+	AccountingUpdatedRoutineTaskTriggerFunctionName  = "trigger_function_accounting_updated_routine_task"
+	AccountingInsertedRoutineTagTriggerFunctionName  = "trigger_function_accounting_inserted_routine_tag"
+	AccountingDeletedRoutineTagTriggerFunctionName   = "trigger_function_accounting_deleted_routine_tag"
+	AccountingInsertedRoutineTriggerFunctionName     = "trigger_function_accounting_inserted_routine"
+	AccountingDeletedRoutineTriggerFunctionName      = "trigger_function_accounting_deleted_routine"
+	AccountingInsertedStationTriggerFunctionName     = "trigger_function_accounting_inserted_station"
+	AccountingDeletedStationTriggerFunctionName      = "trigger_function_accounting_deleted_station"
+	AccountingMutatedStationTriggerFunctionName      = "trigger_function_accounting_mutated_station"
+)
+
 var (
 	//go:embed accounting_mutated_block_pack_trigger.sql
 	AccountingMutatedBlockPackTriggerSQL string

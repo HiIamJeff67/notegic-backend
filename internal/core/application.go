@@ -533,7 +533,9 @@ func (a *Application) Start() func() {
 					fmt.Println("Failed to disconnect Core cache servers: ", err)
 				}
 			}
-			_ = spostgres.Disconnect(db)
+			if db != nil {
+				_ = spostgres.Disconnect(db)
+			}
 			shutdownObservability()
 		})
 	}

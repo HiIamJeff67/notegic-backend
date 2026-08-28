@@ -33,10 +33,6 @@ type NotificationRepository interface {
 	SoftDelete(ctx context.Context, userPublicId uuid.UUID, notificationIds []uuid.UUID) (int64, error)
 	DeleteForUser(ctx context.Context, userPublicId uuid.UUID) (int64, error)
 	DeleteExpired(ctx context.Context, now time.Time, retention time.Duration) (int64, error)
-	ClaimOutbox(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration) ([]schemas.OutboxEvent, error)
-	MarkOutboxPublished(ctx context.Context, workerId string, eventIds []uuid.UUID) error
-	MarkOutboxFailed(ctx context.Context, workerId string, eventIds []uuid.UUID, message string, availableAt time.Time) error
-	DeletePublishedOutbox(ctx context.Context, publishedBefore time.Time) (int64, error)
 }
 
 type NotificationRepositoryImpl struct {
@@ -268,105 +264,6 @@ func (r *NotificationRepositoryImpl) DeleteExpired(
 	result := r.db.WithContext(ctx).
 		Where("(expires_at IS NOT NULL AND expires_at <= ?) OR (deleted_at IS NOT NULL AND deleted_at <= ?)", now, cutoff).
 		Delete(&schemas.Notification{})
-
-	return result.RowsAffected, result.Error
-}
-
-func (r *NotificationRepositoryImpl) ClaimOutbox(
-	ctx context.Context,
-	workerId string,
-	batchSize int,
-	claimTimeout time.Duration,
-) ([]schemas.OutboxEvent, error) {
-	if batchSize <= 0 {
-		return nil, nil
-	}
-
-	var events []schemas.OutboxEvent
-	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		claimBefore := time.Now().UTC().Add(-claimTimeout)
-		query := tx.Where("published_at IS NULL").
-			Where("available_at <= ?", time.Now().UTC()).
-			Where("claimed_at IS NULL OR claimed_at < ?", claimBefore).
-			Order("available_at ASC").
-			Limit(batchSize).
-			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"})
-		if err := query.Find(&events).Error; err != nil {
-			return err
-		}
-		if len(events) == 0 {
-			return nil
-		}
-
-		ids := make([]uuid.UUID, len(events))
-		for index, event := range events {
-			ids[index] = event.Id
-		}
-		claimedAt := time.Now().UTC()
-		result := tx.Model(&schemas.OutboxEvent{}).
-			Where("id IN ?", ids).
-			Updates(map[string]any{
-				"claimed_by": workerId,
-				"claimed_at": claimedAt,
-			})
-		return result.Error
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return events, nil
-}
-
-func (r *NotificationRepositoryImpl) MarkOutboxPublished(
-	ctx context.Context,
-	workerId string,
-	eventIds []uuid.UUID,
-) error {
-	if len(eventIds) == 0 {
-		return nil
-	}
-	now := time.Now().UTC()
-	return r.db.WithContext(ctx).
-		Model(&schemas.OutboxEvent{}).
-		Where("id IN ? AND claimed_by = ? AND published_at IS NULL", eventIds, workerId).
-		Updates(map[string]any{
-			"published_at":  now,
-			"publish_count": gorm.Expr("publish_count + 1"),
-			"claimed_by":    nil,
-			"claimed_at":    nil,
-		}).Error
-}
-
-func (r *NotificationRepositoryImpl) MarkOutboxFailed(
-	ctx context.Context,
-	workerId string,
-	eventIds []uuid.UUID,
-	message string,
-	availableAt time.Time,
-) error {
-	if len(eventIds) == 0 {
-		return nil
-	}
-	return r.db.WithContext(ctx).
-		Model(&schemas.OutboxEvent{}).
-		Where("id IN ? AND claimed_by = ? AND published_at IS NULL", eventIds, workerId).
-		Updates(map[string]any{
-			"last_error":    message,
-			"available_at":  availableAt,
-			"publish_count": gorm.Expr("publish_count + 1"),
-			"claimed_by":    nil,
-			"claimed_at":    nil,
-		}).Error
-}
-
-func (r *NotificationRepositoryImpl) DeletePublishedOutbox(
-	ctx context.Context,
-	publishedBefore time.Time,
-) (int64, error) {
-	result := r.db.WithContext(ctx).
-		Where("published_at IS NOT NULL AND published_at < ?", publishedBefore).
-		Delete(&schemas.OutboxEvent{})
 
 	return result.RowsAffected, result.Error
 }

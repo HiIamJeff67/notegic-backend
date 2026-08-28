@@ -61,22 +61,6 @@ func (r *notificationRepositoryStub) DeleteExpired(context.Context, time.Time, t
 	return 0, nil
 }
 
-func (r *notificationRepositoryStub) ClaimOutbox(context.Context, string, int, time.Duration) ([]sschemas.OutboxEvent, error) {
-	return nil, nil
-}
-
-func (r *notificationRepositoryStub) MarkOutboxPublished(context.Context, string, []uuid.UUID) error {
-	return nil
-}
-
-func (r *notificationRepositoryStub) MarkOutboxFailed(context.Context, string, []uuid.UUID, string, time.Time) error {
-	return nil
-}
-
-func (r *notificationRepositoryStub) DeletePublishedOutbox(context.Context, time.Time) (int64, error) {
-	return 0, nil
-}
-
 func newNotificationServiceForTest(repository *notificationRepositoryStub) NotificationServiceInterface {
 	validate := validator.New()
 	svalidations.RegisterStringsValidation(validate)

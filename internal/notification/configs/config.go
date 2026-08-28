@@ -3,7 +3,6 @@ package configs
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -11,17 +10,11 @@ import (
 )
 
 type Config struct {
-	ListenAddress         string
-	Postgres              spostgres.Config
-	Kafka                 KafkaConsumerConfig
-	OutboxPollInterval    time.Duration
-	OutboxClaimTimeout    time.Duration
-	OutboxInitialBackoff  time.Duration
-	OutboxMaximumBackoff  time.Duration
-	OutboxBatchSize       int
-	OutboxCleanupInterval time.Duration
-	OutboxRetention       time.Duration
-	NotificationRetention time.Duration
+	ListenAddress               string
+	Postgres                    spostgres.Config
+	Kafka                       KafkaConsumerConfig
+	NotificationCleanupInterval time.Duration
+	NotificationRetention       time.Duration
 }
 
 func LoadConfig() (Config, error) {
@@ -42,33 +35,9 @@ func LoadConfig() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	outboxBatchSize, err := strconv.Atoi(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_BATCH_SIZE")))
-	if err != nil || outboxBatchSize <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_BATCH_SIZE must be a positive integer")
-	}
-	outboxPollInterval, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_POLL_INTERVAL")))
-	if err != nil || outboxPollInterval <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_POLL_INTERVAL must be a positive Go duration")
-	}
-	outboxClaimTimeout, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_CLAIM_TIMEOUT")))
-	if err != nil || outboxClaimTimeout <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_CLAIM_TIMEOUT must be a positive Go duration")
-	}
-	outboxInitialBackoff, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_INITIAL_BACKOFF")))
-	if err != nil || outboxInitialBackoff <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_INITIAL_BACKOFF must be a positive Go duration")
-	}
-	outboxMaximumBackoff, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_MAXIMUM_BACKOFF")))
-	if err != nil || outboxMaximumBackoff < outboxInitialBackoff {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_MAXIMUM_BACKOFF must be greater than or equal to NOTIFICATION_OUTBOX_INITIAL_BACKOFF")
-	}
-	outboxCleanupInterval, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_CLEANUP_INTERVAL")))
-	if err != nil || outboxCleanupInterval <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_CLEANUP_INTERVAL must be a positive Go duration")
-	}
-	outboxRetention, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_OUTBOX_RETENTION")))
-	if err != nil || outboxRetention <= 0 {
-		return Config{}, fmt.Errorf("NOTIFICATION_OUTBOX_RETENTION must be a positive Go duration")
+	notificationCleanupInterval, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_CLEANUP_INTERVAL")))
+	if err != nil || notificationCleanupInterval <= 0 {
+		return Config{}, fmt.Errorf("NOTIFICATION_CLEANUP_INTERVAL must be a positive Go duration")
 	}
 	notificationRetention, err := time.ParseDuration(strings.TrimSpace(os.Getenv("NOTIFICATION_RETENTION")))
 	if err != nil || notificationRetention <= 0 {
@@ -76,16 +45,10 @@ func LoadConfig() (Config, error) {
 	}
 
 	return Config{
-		ListenAddress:         listenAddress,
-		Postgres:              postgres,
-		Kafka:                 kafka,
-		OutboxPollInterval:    outboxPollInterval,
-		OutboxClaimTimeout:    outboxClaimTimeout,
-		OutboxInitialBackoff:  outboxInitialBackoff,
-		OutboxMaximumBackoff:  outboxMaximumBackoff,
-		OutboxBatchSize:       outboxBatchSize,
-		OutboxCleanupInterval: outboxCleanupInterval,
-		OutboxRetention:       outboxRetention,
-		NotificationRetention: notificationRetention,
+		ListenAddress:               listenAddress,
+		Postgres:                    postgres,
+		Kafka:                       kafka,
+		NotificationCleanupInterval: notificationCleanupInterval,
+		NotificationRetention:       notificationRetention,
 	}, nil
 }

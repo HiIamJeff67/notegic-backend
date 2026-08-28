@@ -8,6 +8,19 @@ BEGIN
         USING ERRCODE = 'program_limit_exceeded';
     END IF;
 
+    IF EXISTS (
+        SELECT 1
+        FROM new_table nr
+        LEFT JOIN "StationTable" s ON s.id = nr.station_id
+        LEFT JOIN "UserTable" u ON u.id = s.owner_id
+        LEFT JOIN "PlanLimitationTable" pl ON pl.key = u.plan
+        LEFT JOIN "UserAccountTable" ua ON ua.user_id = s.owner_id
+        WHERE s.id IS NULL OR u.id IS NULL OR pl.key IS NULL OR ua.user_id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Data integrity: Cannot find owner or plan limitation for Routine.'
+        USING ERRCODE = 'data_exception';
+    END IF;
+
     FOR r IN
         WITH station_deltas AS (
             SELECT

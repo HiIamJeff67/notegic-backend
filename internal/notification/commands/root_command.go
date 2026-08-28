@@ -7,6 +7,8 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
+
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 )
 
 var rootCommand = &cobra.Command{
@@ -25,6 +27,9 @@ var rootCommand = &cobra.Command{
 }
 
 func Execute() {
+	if len(os.Args) > 1 {
+		slogs.NotegicLogger = slogs.NewCommandLineInterfaceLogger()
+	}
 	if err := rootCommand.Execute(); err != nil {
 		panic(err)
 	}

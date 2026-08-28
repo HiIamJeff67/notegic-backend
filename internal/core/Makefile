@@ -19,10 +19,11 @@ psql:
 	docker exec -it notegic-db psql -U jeff -d notegic-db
 
 migrate:
-	docker compose -f ../../docker-compose.yaml exec -T notegic-core go -C internal/core run ./commands migrateDB
+	docker compose -f ../../docker-compose.yaml -f ../../docker-compose.init.yaml run --rm --no-deps notegic-core-database-init
+	docker compose -f ../../docker-compose.yaml -f ../../docker-compose.init.yaml run --rm --no-deps notegic-durable-job-database-init
 
 seed:
-	docker compose -f ../../docker-compose.yaml exec -T notegic-core go -C internal/core run ./commands seedDB
+	docker compose -f ../../docker-compose.yaml -f ../../docker-compose.init.yaml run --rm --no-deps notegic-core-database-init
 
 clear-db:
 	docker exec -i notegic-db psql -U jeff -d notegic-db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"

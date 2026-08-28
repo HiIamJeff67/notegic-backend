@@ -1,39 +1,39 @@
 package triggers
 
 import (
-	accountingtriggersql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
-	blockpackyjstriggersql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/block_pack_yjs_triggers"
-	itemprojectiontriggersql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/item_projection_triggers"
-	shelfitemcascadingtriggersql "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/shelf_item_cascading_triggers"
+	accountingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
+	blockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/block_pack_yjs_triggers"
+	itemprojectiontrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/item_projection_triggers"
+	shelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/shelf_item_cascading_triggers"
 )
 
 var MigratingTriggerSQLs = []string{
-	shelfitemcascadingtriggersql.CascadingSoftDeleteRootShelfTriggerSQL,
-	shelfitemcascadingtriggersql.CascadingSoftDeleteSubShelfTriggerSQL,
-	shelfitemcascadingtriggersql.CascadingRestoreRootShelfTriggerSQL,
-	shelfitemcascadingtriggersql.CascadingRestoreSubShelfTriggerSQL,
-	shelfitemcascadingtriggersql.CascadingMoveSubShelfTriggerSQL,
-	blockpackyjstriggersql.SyncBlockPackYjsDocumentDeletedAtTriggerSQL,
-	itemprojectiontriggersql.ProjectSubShelvesToItemsTriggerSQL,
-	itemprojectiontriggersql.ProjectMaterialsToItemsTriggerSQL,
-	itemprojectiontriggersql.ProjectBlockPacksToItemsTriggerSQL,
-	accountingtriggersql.AccountingMutatedBlockPackTriggerSQL,
-	accountingtriggersql.AccountingInsertedBlockTriggerSQL,
-	accountingtriggersql.AccountingDeletedBlockTriggerSQL,
-	accountingtriggersql.AccountingMutatedRootShelfTriggerSQL,
-	accountingtriggersql.AccountingMutatedSubShelfTriggerSQL,
-	accountingtriggersql.AccountingMutatedMaterialTriggerSQL,
-	accountingtriggersql.AccountingInsertedRoutineTagTriggerSQL,
-	accountingtriggersql.AccountingDeletedRoutineTagTriggerSQL,
-	accountingtriggersql.AccountingInsertedRoutineTriggerSQL,
-	accountingtriggersql.AccountingDeletedRoutineTriggerSQL,
-	accountingtriggersql.AccountingInsertedStationTriggerSQL,
-	accountingtriggersql.AccountingDeletedStationTriggerSQL,
-	accountingtriggersql.AccountingMutatedStationTriggerSQL,
+	shelfitemcascadingtrigger.CascadingSoftDeleteRootShelfTriggerSQL,
+	shelfitemcascadingtrigger.CascadingSoftDeleteSubShelfTriggerSQL,
+	shelfitemcascadingtrigger.CascadingRestoreRootShelfTriggerSQL,
+	shelfitemcascadingtrigger.CascadingRestoreSubShelfTriggerSQL,
+	shelfitemcascadingtrigger.CascadingMoveSubShelfTriggerSQL,
+	blockpackyjstrigger.SyncBlockPackYjsDocumentDeletedAtTriggerSQL,
+	itemprojectiontrigger.ProjectSubShelvesToItemsTriggerSQL,
+	itemprojectiontrigger.ProjectMaterialsToItemsTriggerSQL,
+	itemprojectiontrigger.ProjectBlockPacksToItemsTriggerSQL,
+	accountingtrigger.AccountingMutatedBlockPackTriggerSQL,
+	accountingtrigger.AccountingInsertedBlockTriggerSQL,
+	accountingtrigger.AccountingDeletedBlockTriggerSQL,
+	accountingtrigger.AccountingMutatedRootShelfTriggerSQL,
+	accountingtrigger.AccountingMutatedSubShelfTriggerSQL,
+	accountingtrigger.AccountingMutatedMaterialTriggerSQL,
+	accountingtrigger.AccountingInsertedRoutineTagTriggerSQL,
+	accountingtrigger.AccountingDeletedRoutineTagTriggerSQL,
+	accountingtrigger.AccountingInsertedRoutineTriggerSQL,
+	accountingtrigger.AccountingDeletedRoutineTriggerSQL,
+	accountingtrigger.AccountingInsertedStationTriggerSQL,
+	accountingtrigger.AccountingDeletedStationTriggerSQL,
+	accountingtrigger.AccountingMutatedStationTriggerSQL,
 }
 
 var RoutineTaskTriggerSQLs = []string{
-	accountingtriggersql.AccountingInsertedRoutineTaskTriggerSQL,
-	accountingtriggersql.AccountingDeletedRoutineTaskTriggerSQL,
-	accountingtriggersql.AccountingUpdatedRoutineTaskTriggerSQL,
+	accountingtrigger.AccountingInsertedRoutineTaskTriggerSQL,
+	accountingtrigger.AccountingDeletedRoutineTaskTriggerSQL,
+	accountingtrigger.AccountingUpdatedRoutineTaskTriggerSQL,
 }
