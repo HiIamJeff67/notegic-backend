@@ -1,10 +1,12 @@
 # Docker local development
 
 This runbook describes the supported local Compose workflows. The root
-`docker-compose.yaml` is the development stack. The production-like stack is
-maintained at
-`infra/docker/docker-compose.prod.yaml` and uses the same runtime boundaries,
-health checks, and dependency ordering as the deployment configuration.
+`docker-compose.yaml` contains the development runtime services and
+`docker-compose.init.yaml` contains every one-shot bootstrap, initialization,
+and migration service. The production-like pair is
+`infra/docker/docker-compose.prod.yaml` and
+`infra/docker/docker-compose.init.prod.yaml`; it uses the same runtime
+boundaries, health checks, and dependency ordering as deployment.
 
 ## Development stack
 
@@ -16,8 +18,9 @@ make compose-up
 
 `make compose-up` decrypts `.env.enc` with SOPS into a mode
 `0600` temporary file, passes that file to Docker Compose, and removes it when
-Compose exits. Raw `docker compose up` does not invoke SOPS; it only reads the
-root `.env` file and bypasses the encrypted environment flow.
+Compose exits. Raw `docker compose -f docker-compose.yaml -f
+docker-compose.init.yaml up` does not invoke SOPS; it only reads the root
+`.env` file and bypasses the encrypted environment flow.
 
 This is preferred for local development and CI-style shell sessions:
 
@@ -29,9 +32,9 @@ This is preferred for local development and CI-style shell sessions:
 Inspect status and logs with:
 
 ```sh
-docker compose ps
-docker compose logs -f notegic-client-gateway
-docker compose logs -f notegic-api-gateway
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml ps
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml logs -f notegic-client-gateway
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml logs -f notegic-api-gateway
 ```
 
 ### Hot reload
@@ -63,6 +66,7 @@ distinct `DOCKER_*_SERVICE_NAME` values if both stacks must run simultaneously:
 ```sh
 COMPOSE_PROJECT_NAME=notegic-prod-local \
 COMPOSE_FILE=infra/docker/docker-compose.prod.yaml \
+COMPOSE_INIT_FILE=infra/docker/docker-compose.init.prod.yaml \
 COMPOSE_ENCRYPTED_ENV_FILE=secrets/envs/.env.production.enc \
 make compose-up
 
@@ -71,6 +75,7 @@ docker compose \
   --project-directory . \
   --env-file .env \
   -f infra/docker/docker-compose.prod.yaml \
+  -f infra/docker/docker-compose.init.prod.yaml \
   ps
 ```
 
@@ -86,6 +91,7 @@ environment contains all required settings:
 
 ```sh
 COMPOSE_FILE=infra/docker/docker-compose.prod.yaml \
+COMPOSE_INIT_FILE=infra/docker/docker-compose.init.prod.yaml \
 COMPOSE_PROJECT_NAME=notegic-prod-local \
 COMPOSE_ENCRYPTED_ENV_FILE=secrets/envs/.env.production.enc \
 SOPS_CONFIG_FILE=.sops.yaml \
@@ -97,6 +103,7 @@ Clean up the production-like stack with the same project name and file:
 ```sh
 COMPOSE_PROJECT_NAME=notegic-prod-local \
 COMPOSE_FILE=infra/docker/docker-compose.prod.yaml \
+COMPOSE_INIT_FILE=infra/docker/docker-compose.init.prod.yaml \
 COMPOSE_ENCRYPTED_ENV_FILE=secrets/envs/.env.production.enc \
 make compose-down
 ```

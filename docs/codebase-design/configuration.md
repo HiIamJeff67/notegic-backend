@@ -38,9 +38,15 @@ name, and port fields.
 Each runtime connection uses a fixed role derived from
 `contracts/types.Runtime.RoleName()`: `notegic_core`, `notegic_durablejob`, or
 `notegic_notification`. Runtime startup opens only that runtime connection.
-Role bootstrap, migration, and permission reconciliation run through explicit
-deployment/admin commands before the runtime begins serving traffic. The admin
-connection is never part of the application pool.
+Role bootstrap, migration, permission reconciliation, and Core seed execution
+run through each runtime's one-shot `*-database-init` Compose service before
+the runtime begins serving traffic. Each service invokes the existing Cobra
+commands in order (`bootstrapDB`, `migrateDB`, and, for Core, `seedDB`) rather
+than adding a wrapper command. The admin connection is never part of the
+application pool or a long-running runtime container. Compose supplies
+`DB_ADMIN_*` or `NOTIFICATION_DB_ADMIN_*` only to the one-shot
+`*-database-init` services; runtime services receive only their own runtime
+connection values.
 
 PostgreSQL database names and roles use lowercase `snake_case`, for example
 `notegic_db` and `notegic_notification`. Docker Compose service names,

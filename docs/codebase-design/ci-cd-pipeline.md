@@ -27,11 +27,12 @@ when Compose is already running, `make test-integration` or
 management.
 
 `.github/workflows/staging.yml` is a promotion workflow requiring approval from
-the `staging` environment. On a self-hosted runner labeled `staging`, it runs
-`infra/docker/docker-compose.prod.yaml` with the selected GHCR tag, promotes
-immutable images through `infra/staging/deploy.sh`, and checks every runtime's
+the `staging` environment. On a self-hosted runner labeled `staging`, it merges
+`infra/docker/docker-compose.prod.yaml` with
+`infra/docker/docker-compose.init.prod.yaml` using the selected GHCR tag,
+promotes immutable images through `infra/staging/deploy.sh`, and checks every runtime's
 `/startedz` and `/healthz` with `infra/staging/smoke.sh`. Compose accepts
-`CLIENT_GATEWAY_IMAGE`, `API_GATEWAY_IMAGE`, `CORE_IMAGE`, `DURABLE_JOB_IMAGE`, `EMAIL_IMAGE`,
+`CLIENT_GATEWAY_IMAGE`, `API_GATEWAY_IMAGE`, `CORE_IMAGE`, `DURABLE_JOB_IMAGE`, `NOTIFICATION_IMAGE`, `EMAIL_IMAGE`,
 `REALTIME_GATEWAY_IMAGE`, and `YJS_WORKER_IMAGE`, so promotion does not rebuild
 images. The staging runner may provide plaintext settings in
 `/etc/notegic/staging.env` for compatibility, or provide an encrypted

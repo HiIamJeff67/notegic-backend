@@ -18,8 +18,10 @@ production strategy is twelve partitions, replication factor three, and
 Start the broker and idempotent topic provisioner:
 
 ```bash
-docker compose up -d notegic-kafka notegic-kafka-init
-docker compose logs --follow notegic-kafka-init
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml \
+  up -d notegic-kafka notegic-kafka-init
+docker compose -f docker-compose.yaml -f docker-compose.init.yaml \
+  logs --follow notegic-kafka-init
 ```
 
 The same provisioner can be run from the host with:

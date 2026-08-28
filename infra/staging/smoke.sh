@@ -4,6 +4,7 @@ set -eu
 
 root_directory=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 compose_file=${COMPOSE_FILE:-"$root_directory/infra/docker/docker-compose.prod.yaml"}
+compose_init_file=${COMPOSE_INIT_FILE:-"$root_directory/infra/docker/docker-compose.init.prod.yaml"}
 compose_env_file=${COMPOSE_ENV_FILE:-/etc/notegic/staging.env}
 compose_encrypted_env_file=${COMPOSE_ENCRYPTED_ENV_FILE:-}
 temporary_env_file=
@@ -33,7 +34,7 @@ if [ -n "$compose_encrypted_env_file" ]; then
 fi
 
 compose() {
-	docker compose --project-directory "$root_directory" --env-file "$compose_env_file" -f "$compose_file" "$@"
+	docker compose --project-directory "$root_directory" --env-file "$compose_env_file" -f "$compose_file" -f "$compose_init_file" "$@"
 }
 
 check_http() {
@@ -86,6 +87,8 @@ check_http notegic-realtime-gateway 7779 /startedz
 check_http notegic-realtime-gateway 7779 /healthz
 check_http notegic-durable-job 8082 /startedz
 check_http notegic-durable-job 8082 /healthz
+check_http notegic-notification 7781 /startedz
+check_http notegic-notification 7781 /healthz
 check_http notegic-email 8081 /startedz
 check_http notegic-email 8081 /healthz
 check_yjs_worker

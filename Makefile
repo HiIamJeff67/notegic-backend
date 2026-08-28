@@ -11,6 +11,7 @@ WORKSPACE_MODULES := contracts shared internal/cli internal/core internal/durabl
 COMPOSE_INTEGRATION_PROJECT := notegic-integration
 COMPOSE_INTEGRATION_FILE := infra/docker/docker-compose.integration.yaml
 COMPOSE_FILE ?= docker-compose.yaml
+COMPOSE_INIT_FILE ?= docker-compose.init.yaml
 COMPOSE_ENCRYPTED_ENV_FILE ?= .env.enc
 COMPOSE_SOPS_CONFIG ?= .sops.yaml
 SOPS ?= sops
@@ -123,7 +124,7 @@ compose-up:
 	trap 'rm -f "$$temporary_file"' EXIT INT TERM; \
 	"$(SOPS)" --config "$(COMPOSE_SOPS_CONFIG)" decrypt --input-type dotenv --output-type dotenv "$(COMPOSE_ENCRYPTED_ENV_FILE)" > "$$temporary_file"; \
 	chmod 600 "$$temporary_file"; \
-	docker compose --project-directory . --env-file "$$temporary_file" --file "$(COMPOSE_FILE)" up --build -d --wait
+	docker compose --project-directory . --env-file "$$temporary_file" --file "$(COMPOSE_FILE)" --file "$(COMPOSE_INIT_FILE)" up --build -d --wait
 
 compose-down:
 	@set -eu; \
@@ -134,7 +135,7 @@ compose-down:
 	trap 'rm -f "$$temporary_file"' EXIT INT TERM; \
 	"$(SOPS)" --config "$(COMPOSE_SOPS_CONFIG)" decrypt --input-type dotenv --output-type dotenv "$(COMPOSE_ENCRYPTED_ENV_FILE)" > "$$temporary_file"; \
 	chmod 600 "$$temporary_file"; \
-	docker compose --project-directory . --env-file "$$temporary_file" --file "$(COMPOSE_FILE)" down --volumes --remove-orphans
+	docker compose --project-directory . --env-file "$$temporary_file" --file "$(COMPOSE_FILE)" --file "$(COMPOSE_INIT_FILE)" down --volumes --remove-orphans
 
 CLI_RUN := go -C internal/cli run .
 

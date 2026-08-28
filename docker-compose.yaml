@@ -101,37 +101,6 @@ services:
       retries: 12
       start_period: 30s
 
-  notegic-kafka-init:
-    container_name: ${DOCKER_KAFKA_INIT_SERVICE_NAME:-notegic-kafka-init}
-    image: notegic-kafka-init:latest
-    build:
-      context: .
-      dockerfile: internal/cli/Dockerfile
-      target: dev
-    command: ["go", "run", "./internal/cli", "kafka", "topics", "ensure"]
-    working_dir: /notegic-backend
-    volumes:
-      - .:/notegic-backend
-      - /notegic-backend/tmp
-      - ./secrets/kafka:/run/secrets/kafka:ro
-    environment:
-      KAFKA_BROKERS: notegic-kafka:9092
-      KAFKA_DIAL_TIMEOUT: ${KAFKA_DIAL_TIMEOUT:-3s}
-      KAFKA_TLS_ENABLED: ${KAFKA_TLS_ENABLED:-false}
-      KAFKA_TLS_CA_FILE: ${KAFKA_TLS_CA_FILE:-/run/secrets/kafka/ca.pem}
-      KAFKA_TLS_CERT_FILE: ${KAFKA_TLS_CERT_FILE:-}
-      KAFKA_TLS_KEY_FILE: ${KAFKA_TLS_KEY_FILE:-}
-      KAFKA_TLS_SERVER_NAME: ${KAFKA_TLS_SERVER_NAME:-}
-      KAFKA_SASL_MECHANISM: ${KAFKA_SASL_MECHANISM:-}
-      KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-}
-      KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-}
-    networks:
-      - notegic-backend-net
-    depends_on:
-      notegic-kafka:
-        condition: service_healthy
-    restart: "no"
-
   notegic-client-gateway:
     container_name: ${DOCKER_CLIENT_GATEWAY_SERVICE_NAME:-notegic-client-gateway}
     image: ${DOCKER_CLIENT_GATEWAY_SERVICE_NAME:-notegic-client-gateway}:latest
@@ -256,11 +225,6 @@ services:
       CORE_DB_PASSWORD: ${CORE_DB_PASSWORD}
       CORE_DB_NAME: ${CORE_DB_NAME}
       CORE_DB_PORT: ${CORE_DB_PORT}
-      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
-      DB_ADMIN_USER: ${DB_ADMIN_USER}
-      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
-      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
-      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
       REDIS_HOST: ${DOCKER_REDIS_SERVICE_NAME}
       REDIS_PORT: ${DOCKER_REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
@@ -268,6 +232,13 @@ services:
       CORE_USER_DATA_CACHE_EXPIRES_IN: ${CORE_USER_DATA_CACHE_EXPIRES_IN:-1h}
       CORE_USER_DATA_CACHE_MAX_ROTATION_RETRIES: ${CORE_USER_DATA_CACHE_MAX_ROTATION_RETRIES:-5}
       CORE_QUOTA_CYCLE_WORKER_INTERVAL: ${CORE_QUOTA_CYCLE_WORKER_INTERVAL:-24h}
+      # Yjs maintenance is owned by Core. Keep the DURABLEJOB_* fallback for
+      # existing encrypted development environments while they are rotated to
+      # the CORE_* names.
+      CORE_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS: ${CORE_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS:-${DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS:-1000}}
+      CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH: ${CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH:-${DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH:-32}}
+      CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS: ${CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS:-${DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS:-8}}
+      CORE_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS: ${CORE_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS:-${DURABLEJOB_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS:-3}}
       KAFKA_BROKERS: notegic-kafka:9092
       KAFKA_CLIENT_ID: notegic-core
       KAFKA_CONSUMER_GROUP: notegic-core
@@ -320,6 +291,8 @@ services:
     depends_on:
       notegic-db:
         condition: service_healthy
+      notegic-core-database-init:
+        condition: service_completed_successfully
       notegic-redis:
         condition: service_healthy
       notegic-yjs-worker:
@@ -427,11 +400,6 @@ services:
       DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
       DURABLEJOB_DB_NAME: ${DURABLEJOB_DB_NAME}
       DURABLEJOB_DB_PORT: ${DURABLEJOB_DB_PORT}
-      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
-      DB_ADMIN_USER: ${DB_ADMIN_USER}
-      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
-      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
-      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
       KAFKA_BROKERS: notegic-kafka:9092
       KAFKA_DIAL_TIMEOUT: ${KAFKA_DIAL_TIMEOUT:-3s}
       KAFKA_TLS_ENABLED: ${KAFKA_TLS_ENABLED:-false}
@@ -443,6 +411,8 @@ services:
       KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-}
       KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-}
       DURABLEJOB_LISTEN_ADDRESS: 0.0.0.0:8082
+      YJS_DOCUMENT_INITIALIZATION_WORKER_URL: http://notegic-yjs-worker:8787/core/yjs-document-initialization/v1
+      YJS_DOCUMENT_INITIALIZATION_WORKER_TIMEOUT: ${YJS_DOCUMENT_INITIALIZATION_WORKER_TIMEOUT:-30s}
       KAFKA_CONSUMER_MAXIMUM_ATTEMPTS: ${KAFKA_CONSUMER_MAXIMUM_ATTEMPTS:-3}
       KAFKA_CONSUMER_INITIAL_RETRY_BACKOFF: ${KAFKA_CONSUMER_INITIAL_RETRY_BACKOFF:-250ms}
       KAFKA_CONSUMER_MAXIMUM_RETRY_BACKOFF: ${KAFKA_CONSUMER_MAXIMUM_RETRY_BACKOFF:-5s}
@@ -466,6 +436,8 @@ services:
     depends_on:
       notegic-db:
         condition: service_healthy
+      notegic-durable-job-database-init:
+        condition: service_completed_successfully
       notegic-core:
         condition: service_healthy
       notegic-yjs-worker:
@@ -555,11 +527,6 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:-notegic_notification}
       NOTIFICATION_DB_NAME: ${NOTIFICATION_DB_NAME:-notegic_notification}
       NOTIFICATION_DB_PORT: 5432
-      NOTIFICATION_DB_ADMIN_HOST: notegic-notification-db
-      NOTIFICATION_DB_ADMIN_USER: ${NOTIFICATION_DB_ADMIN_USER}
-      NOTIFICATION_DB_ADMIN_PASSWORD: ${NOTIFICATION_DB_ADMIN_PASSWORD}
-      NOTIFICATION_DB_ADMIN_NAME: ${NOTIFICATION_DB_ADMIN_NAME}
-      NOTIFICATION_DB_ADMIN_PORT: 5432
       CORE_DELEGATION_SECRET: ${CORE_DELEGATION_SECRET}
       CORE_DELEGATION_AUDIENCE: ${CORE_DELEGATION_AUDIENCE}
       CORE_DELEGATION_ISSUER: ${CORE_DELEGATION_ISSUER}
@@ -578,13 +545,7 @@ services:
       NOTIFICATION_KAFKA_INITIAL_RETRY_BACKOFF: ${KAFKA_CONSUMER_INITIAL_RETRY_BACKOFF:-250ms}
       NOTIFICATION_KAFKA_MAXIMUM_RETRY_BACKOFF: ${KAFKA_CONSUMER_MAXIMUM_RETRY_BACKOFF:-5s}
       NOTIFICATION_KAFKA_MAXIMUM_POLL_RECORDS: ${KAFKA_CONSUMER_MAXIMUM_POLL_RECORDS:-100}
-      NOTIFICATION_OUTBOX_BATCH_SIZE: ${NOTIFICATION_OUTBOX_BATCH_SIZE:-100}
-      NOTIFICATION_OUTBOX_POLL_INTERVAL: ${NOTIFICATION_OUTBOX_POLL_INTERVAL:-1s}
-      NOTIFICATION_OUTBOX_CLAIM_TIMEOUT: ${NOTIFICATION_OUTBOX_CLAIM_TIMEOUT:-30s}
-      NOTIFICATION_OUTBOX_INITIAL_BACKOFF: ${NOTIFICATION_OUTBOX_INITIAL_BACKOFF:-1s}
-      NOTIFICATION_OUTBOX_MAXIMUM_BACKOFF: ${NOTIFICATION_OUTBOX_MAXIMUM_BACKOFF:-1m}
-      NOTIFICATION_OUTBOX_RETENTION: ${NOTIFICATION_OUTBOX_RETENTION:-168h}
-      NOTIFICATION_OUTBOX_CLEANUP_INTERVAL: ${NOTIFICATION_OUTBOX_CLEANUP_INTERVAL:-1h}
+      NOTIFICATION_CLEANUP_INTERVAL: ${NOTIFICATION_CLEANUP_INTERVAL:-${NOTIFICATION_OUTBOX_CLEANUP_INTERVAL:-1h}}
       NOTIFICATION_RETENTION: ${NOTIFICATION_RETENTION:-720h}
       OTEL_SERVICE_NAME: notegic-notification
       OTEL_SERVICE_VERSION: ${OTEL_SERVICE_VERSION:-development}
@@ -601,6 +562,8 @@ services:
     depends_on:
       notegic-notification-db:
         condition: service_healthy
+      notegic-notification-database-init:
+        condition: service_completed_successfully
       notegic-kafka:
         condition: service_healthy
       notegic-kafka-init:
@@ -711,23 +674,6 @@ services:
     depends_on:
       notegic-mimir:
         condition: service_started
-
-  notegic-mimir-init:
-    image: busybox:1.37.0
-    command:
-      - sh
-      - -ec
-      - |
-        mkdir -p \
-          /data/mimir/blocks \
-          /data/mimir/tsdb \
-          /data/mimir/sync \
-          /data/mimir/compactor \
-          /data/mimir/alertmanager \
-          /data/mimir/alertmanager-configs
-    volumes:
-      - mimir-data:/data/mimir
-    restart: "no"
 
   notegic-mimir:
     container_name: ${DOCKER_MIMIR_SERVICE_NAME}

@@ -1,0 +1,147 @@
+services:
+  notegic-core-database-init:
+    image: ${DOCKER_CORE_SERVICE_NAME:-notegic-core}:latest
+    build:
+      context: .
+      dockerfile: internal/core/Dockerfile
+      target: dev
+    command:
+      - sh
+      - -ec
+      - |
+        go run ./commands bootstrapDB
+        go run ./commands migrateDB
+        go run ./commands seedDB
+    working_dir: /notegic-backend/internal/core
+    networks:
+      - notegic-backend-net
+    volumes:
+      - .:/notegic-backend
+      - /notegic-backend/tmp
+    environment:
+      CORE_DB_HOST: ${CORE_DB_HOST}
+      CORE_DB_USER: ${CORE_DB_USER}
+      CORE_DB_PASSWORD: ${CORE_DB_PASSWORD}
+      CORE_DB_NAME: ${CORE_DB_NAME}
+      CORE_DB_PORT: ${CORE_DB_PORT}
+      DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-db:
+        condition: service_healthy
+
+  notegic-durable-job-database-init:
+    image: ${DOCKER_DURABLE_JOB_SERVICE_NAME:-notegic-durable-job}:latest
+    build:
+      context: .
+      dockerfile: internal/durablejob/Dockerfile
+      target: dev
+    command:
+      - sh
+      - -ec
+      - |
+        go run ./commands bootstrapDB
+        go run ./commands migrateDB
+    working_dir: /notegic-backend/internal/durablejob
+    networks:
+      - notegic-backend-net
+    volumes:
+      - .:/notegic-backend
+      - /notegic-backend/tmp
+    environment:
+      DURABLEJOB_DB_HOST: ${DURABLEJOB_DB_HOST}
+      DURABLEJOB_DB_USER: ${DURABLEJOB_DB_USER}
+      DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
+      DURABLEJOB_DB_NAME: ${DURABLEJOB_DB_NAME}
+      DURABLEJOB_DB_PORT: ${DURABLEJOB_DB_PORT}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-core-database-init:
+        condition: service_completed_successfully
+
+  notegic-notification-database-init:
+    image: ${DOCKER_NOTIFICATION_SERVICE_NAME:-notegic-notification}:latest
+    build:
+      context: .
+      dockerfile: internal/notification/Dockerfile
+      target: dev
+    command: ["go", "run", "./commands", "migrateDB"]
+    working_dir: /notegic-backend/internal/notification
+    networks:
+      - notegic-backend-net
+    volumes:
+      - .:/notegic-backend
+      - /notegic-backend/tmp
+    environment:
+      NOTIFICATION_DB_HOST: ${NOTIFICATION_DB_HOST}
+      NOTIFICATION_DB_USER: ${NOTIFICATION_DB_USER}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      NOTIFICATION_DB_NAME: ${NOTIFICATION_DB_NAME}
+      NOTIFICATION_DB_PORT: ${NOTIFICATION_DB_PORT}
+      NOTIFICATION_DB_ADMIN_HOST: ${NOTIFICATION_DB_ADMIN_HOST}
+      NOTIFICATION_DB_ADMIN_USER: ${NOTIFICATION_DB_ADMIN_USER}
+      NOTIFICATION_DB_ADMIN_PASSWORD: ${NOTIFICATION_DB_ADMIN_PASSWORD}
+      NOTIFICATION_DB_ADMIN_NAME: ${NOTIFICATION_DB_ADMIN_NAME}
+      NOTIFICATION_DB_ADMIN_PORT: ${NOTIFICATION_DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-notification-db:
+        condition: service_healthy
+
+  notegic-kafka-init:
+    container_name: ${DOCKER_KAFKA_INIT_SERVICE_NAME:-notegic-kafka-init}
+    image: notegic-kafka-init:latest
+    build:
+      context: .
+      dockerfile: internal/cli/Dockerfile
+      target: dev
+    command: ["go", "run", "./internal/cli", "kafka", "topics", "ensure"]
+    working_dir: /notegic-backend
+    volumes:
+      - .:/notegic-backend
+      - /notegic-backend/tmp
+      - ./secrets/kafka:/run/secrets/kafka:ro
+    environment:
+      KAFKA_BROKERS: notegic-kafka:9092
+      KAFKA_DIAL_TIMEOUT: ${KAFKA_DIAL_TIMEOUT:-3s}
+      KAFKA_TLS_ENABLED: ${KAFKA_TLS_ENABLED:-false}
+      KAFKA_TLS_CA_FILE: ${KAFKA_TLS_CA_FILE:-/run/secrets/kafka/ca.pem}
+      KAFKA_TLS_CERT_FILE: ${KAFKA_TLS_CERT_FILE:-}
+      KAFKA_TLS_KEY_FILE: ${KAFKA_TLS_KEY_FILE:-}
+      KAFKA_TLS_SERVER_NAME: ${KAFKA_TLS_SERVER_NAME:-}
+      KAFKA_SASL_MECHANISM: ${KAFKA_SASL_MECHANISM:-}
+      KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-}
+    networks:
+      - notegic-backend-net
+    depends_on:
+      notegic-kafka:
+        condition: service_healthy
+    restart: "no"
+
+  notegic-mimir-init:
+    image: busybox:1.37.0
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p \
+          /data/mimir/blocks \
+          /data/mimir/tsdb \
+          /data/mimir/sync \
+          /data/mimir/compactor \
+          /data/mimir/alertmanager \
+          /data/mimir/alertmanager-configs
+    volumes:
+      - mimir-data:/data/mimir
+    restart: "no"

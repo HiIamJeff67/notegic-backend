@@ -1,0 +1,98 @@
+services:
+  notegic-mimir-init:
+    image: busybox:1.37.0
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p \
+          /data/mimir/blocks \
+          /data/mimir/tsdb \
+          /data/mimir/sync \
+          /data/mimir/compactor \
+          /data/mimir/alertmanager \
+          /data/mimir/alertmanager-configs
+    volumes:
+      - mimir-data:/data/mimir
+    restart: "no"
+
+  notegic-core-database-init:
+    image: ${CORE_IMAGE:-notegic-core:latest}
+    build:
+      context: ../..
+      dockerfile: internal/core/Dockerfile
+      target: production
+    command:
+      - sh
+      - -ec
+      - |
+        /app/core bootstrapDB
+        /app/core migrateDB
+        /app/core seedDB
+    environment:
+      CORE_DB_HOST: ${CORE_DB_HOST}
+      CORE_DB_USER: ${CORE_DB_USER}
+      CORE_DB_PASSWORD: ${CORE_DB_PASSWORD}
+      CORE_DB_NAME: ${CORE_DB_NAME}
+      CORE_DB_PORT: ${CORE_DB_PORT}
+      DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-db:
+        condition: service_healthy
+
+  notegic-durable-job-database-init:
+    image: ${DURABLE_JOB_IMAGE:-notegic-durable-job:latest}
+    build:
+      context: ../..
+      dockerfile: internal/durablejob/Dockerfile
+      target: production
+    command:
+      - sh
+      - -ec
+      - |
+        /app/durablejob bootstrapDB
+        /app/durablejob migrateDB
+    environment:
+      DURABLEJOB_DB_HOST: ${DURABLEJOB_DB_HOST}
+      DURABLEJOB_DB_USER: ${DURABLEJOB_DB_USER}
+      DURABLEJOB_DB_PASSWORD: ${DURABLEJOB_DB_PASSWORD}
+      DURABLEJOB_DB_NAME: ${DURABLEJOB_DB_NAME}
+      DURABLEJOB_DB_PORT: ${DURABLEJOB_DB_PORT}
+      DB_ADMIN_HOST: ${DB_ADMIN_HOST}
+      DB_ADMIN_USER: ${DB_ADMIN_USER}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_ADMIN_NAME: ${DB_ADMIN_NAME}
+      DB_ADMIN_PORT: ${DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-core-database-init:
+        condition: service_completed_successfully
+
+  notegic-notification-database-init:
+    image: ${NOTIFICATION_IMAGE:-notegic-notification:latest}
+    build:
+      context: ../..
+      dockerfile: internal/notification/Dockerfile
+      target: production
+    command: ["/app/notification", "migrateDB"]
+    environment:
+      NOTIFICATION_DB_HOST: ${NOTIFICATION_DB_HOST}
+      NOTIFICATION_DB_USER: ${NOTIFICATION_DB_USER}
+      NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      NOTIFICATION_DB_NAME: ${NOTIFICATION_DB_NAME}
+      NOTIFICATION_DB_PORT: ${NOTIFICATION_DB_PORT}
+      NOTIFICATION_DB_ADMIN_HOST: ${NOTIFICATION_DB_ADMIN_HOST}
+      NOTIFICATION_DB_ADMIN_USER: ${NOTIFICATION_DB_ADMIN_USER}
+      NOTIFICATION_DB_ADMIN_PASSWORD: ${NOTIFICATION_DB_ADMIN_PASSWORD}
+      NOTIFICATION_DB_ADMIN_NAME: ${NOTIFICATION_DB_ADMIN_NAME}
+      NOTIFICATION_DB_ADMIN_PORT: ${NOTIFICATION_DB_ADMIN_PORT}
+    restart: "no"
+    depends_on:
+      notegic-notification-db:
+        condition: service_healthy

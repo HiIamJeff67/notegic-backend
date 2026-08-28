@@ -24,6 +24,7 @@ jobs:
     env:
       IMAGE_TAG: ${{ inputs.image_tag }}
       COMPOSE_FILE: infra/docker/docker-compose.prod.yaml
+      COMPOSE_INIT_FILE: infra/docker/docker-compose.init.prod.yaml
       STAGING_ENCRYPTED_ENV_FILE: /etc/notegic/secrets/envs/.env.staging.enc
       STAGING_SOPS_CONFIG_FILE: /etc/notegic/sops/.sops.yaml
       STAGING_AGE_KEY_FILE: /etc/notegic/sops/age/keys-staging.txt
@@ -66,7 +67,7 @@ jobs:
             echo "No decrypted Compose environment is available; skipping log capture"
             exit 0
           fi
-          docker compose --project-directory . --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" logs --no-color > staging-compose.log
+          docker compose --project-directory . --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" -f "$COMPOSE_INIT_FILE" logs --no-color > staging-compose.log
       - name: Upload staging logs
         if: always()
         uses: actions/upload-artifact@v4

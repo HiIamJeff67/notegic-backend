@@ -277,12 +277,32 @@ does not grant database access.
 Database permissions use the shared `postgres.PermissionManifest` and the
 `postgres.ApplyPermissions` reconciler. A deployment/admin command first uses
 its admin connection to ensure the fixed role (`notegic_<runtime>`) exists,
-temporarily grants that owner role schema `CREATE`, migrates through the owner
-role, applies the permission manifest through the admin connection, and then
-revokes schema `CREATE`. Runtime application startup opens only its own runtime
-pool. Triggers and constraints are not independent permission objects; their
-authority follows the table that owns them. Non-owner runtimes must not add
-another runtime's migration manifest to their startup path.
+pins the admin connection, and runs each migration phase in one transaction:
+temporarily grant schema `CREATE`, migrate with `SET ROLE` as the owner, reset
+the role, revoke `CREATE`, and commit. A failure or interruption rolls back the
+whole phase, including the temporary grant. It then applies the permission
+manifest and calls `postgres.VerifyPermissions` through the same admin
+connection. Verification is read-only: it compares every declared non-owner
+runtime grant, `PUBLIC` ACL, and owner/schema default ACL against the manifest
+and fails the deployment with the affected runtime, privilege, and object when
+they differ. Role bootstrap enforces `NOINHERIT`, removes role
+memberships in both directions, revokes database/schema `PUBLIC` privileges,
+and then grants the runtime only explicit `CONNECT` and schema `USAGE`. Object
+reconciliation revokes `PUBLIC` and every existing runtime role before granting
+only the privileges declared by the current manifest, so removed grants cannot
+survive a later deployment. Manifests also declare current-database `CONNECT`,
+schema access, required enums/sequences/functions, and default privileges for
+objects an owner runtime creates; the current schemas use UUID identifiers, so
+they declare no generated sequence grants. `gen_random_uuid()` is a PostgreSQL
+builtin, not a runtime-owned `public` function, so it is not a manifest object.
+An object appears only in its owner
+runtime's manifest, including grants for other runtimes; consumer manifests
+must not repeat a shared object's grants.
+Compose places admin credentials only in one-shot database bootstrap/migration
+services; runtime application startup opens only its own runtime pool. Triggers
+and constraints are not independent permission objects; their authority follows
+the table that owns them. Non-owner runtimes must not add another runtime's
+migration manifest to their startup path.
 
 ## Composition roots
 
