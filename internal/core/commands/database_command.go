@@ -89,6 +89,13 @@ var migrateDatabaseCommand = &cobra.Command{
 		); err != nil {
 			panic(err)
 		}
+		if err := spostgres.EnsureRuntimeRole(
+			adminDB,
+			ctypes.Runtime_YjsWorker,
+			os.Getenv("YJS_DB_PASSWORD"),
+		); err != nil {
+			panic(fmt.Errorf("ensure Yjs worker PostgreSQL role: %w", err))
+		}
 
 		slogs.NotegicLogger.Info(context.Background(), fmt.Sprintf("Start the process of migrating database schema to %v", config.Name))
 		if err := spostgres.Migrate(

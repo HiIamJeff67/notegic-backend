@@ -3,7 +3,7 @@
 WORKSPACE_MODULES := contracts shared internal/cli internal/core internal/durablejob internal/email internal/clientgateway internal/apigateway internal/notification internal/realtimegateway test
 
 .PHONY: ci-format ci-vet ci-unit ci-race ci-generated ci-containers staging-deploy staging-smoke kafka-topics \
-	compose-integration-up compose-integration-down test-integration test-integration-kafka \
+	compose-integration-up compose-integration-down test-integration test-integration-yjs test-integration-kafka \
 	compose-up compose-down test-integration-managed env-check env-encrypt env-decrypt env-edit env-updatekeys env-rotate \
 	env-encrypt-all development production test staging \
 	test-client-gateway test-api-gateway devlog install-hooks
@@ -199,6 +199,9 @@ compose-integration-down:
 test-integration:
 	$(MAKE) -C test test-integration-run
 
+test-integration-yjs:
+	@cd internal/yjsworker && NOTEGIC_RUN_INTEGRATION=1 YJS_DB_HOST=127.0.0.1 YJS_DB_PORT=15432 YJS_DB_USER=notegic YJS_DB_PASSWORD=notegic YJS_DB_NAME=notegic_integration pnpm run test:integration
+
 test-integration-kafka:
 	$(MAKE) -C test test-integration-kafka-run
 
@@ -207,6 +210,7 @@ test-integration-managed:
 	trap '$(MAKE) compose-integration-down >/dev/null 2>&1 || true' EXIT; \
 	$(MAKE) compose-integration-up; \
 	$(MAKE) test-integration; \
+	$(MAKE) test-integration-yjs; \
 	$(MAKE) test-integration-kafka
 
 test-load-websocket:

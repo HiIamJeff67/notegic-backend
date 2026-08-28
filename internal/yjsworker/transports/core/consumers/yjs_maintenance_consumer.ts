@@ -1,100 +1,82 @@
-import { type Consumer, Kafka, logLevel, type Producer } from "kafkajs";
+import { type Consumer } from "kafkajs";
+
 import {
-  CoreYjsWorkerMaintenanceCommandTopic,
-  YjsWorkerCoreMaintenanceResultTopic,
+  CoreYjsMaintenanceHintTopic,
+  YjsCompactionUpdateThreshold,
 } from "../../../../../contracts/yjs-worker/v1/yjsworker_contract.js";
+import { yjsMaintenanceConfig } from "../../../configs/postgres.js";
+import type { YjsPostgresRepository } from "../../../data/postgres/repository.js";
 import type { YjsCompactionService } from "../../../services/yjs_compaction_service.js";
 import type { YjsProjectionService } from "../../../services/yjs_projection_service.js";
-import {
-  createYjsCompactionResult,
-  parseYjsCompactionInput,
-} from "../../../types/yjs_compaction.js";
-import { parseYjsDocumentState } from "../../../types/yjs_document_state.js";
-import { CoreCommandDispatcher } from "../dispatchers/core_command_dispatcher.js";
+import type { YjsDocumentState } from "../../../types/yjs_document_state.js";
+import { createKafkaClient } from "../../../util/kafka.js";
+import { Logger } from "../../../util/logger.js";
 
 type EventEnvelope = {
   schemaVersion: string;
-  eventId: string;
   eventType: string;
   aggregateType: string;
   aggregateId: string;
   kafkaKey: string;
-  occurredAt: string;
-  correlationId: string;
-  causationId?: string;
-  trace?: {
-    traceParent?: string;
-    traceState?: string;
-  };
   data: unknown;
 };
 
-type MaintenanceCommand = {
-  requestId: string;
+type MaintenanceHint = {
   blockPackId: string;
   documentId: string;
-  operation: "compact" | "project";
-  targetSequence: number;
-  correlationId: string;
+  latestUpdateSequence: number;
+  compactedUntilSequence: number;
+  projectedUntilSequence: number;
+  lastCompactedAt?: string;
+  uncompactedUpdateCount: number;
+  snapshotBytes: number;
+  stateVectorBytes: number;
+  reason: string;
 };
 
 type MaintenanceResult = {
-  requestId: string;
-  blockPackId: string;
-  documentId: string;
-  operation: "compact" | "project";
-  targetSequence: number;
   success: boolean;
   compactedUntilSequence: number;
   projectedUntilSequence: number;
-  error?: string;
 };
-
-function newKafka(): Kafka {
-  const brokers = (process.env.KAFKA_BROKERS ?? "127.0.0.1:9094")
-    .split(",")
-    .map(broker => broker.trim())
-    .filter(Boolean);
-
-  return new Kafka({
-    clientId: process.env.KAFKA_CLIENT_ID ?? "notegic-yjs-worker",
-    brokers,
-    logLevel: logLevel.NOTHING,
-  });
-}
 
 export class YjsMaintenanceConsumer {
   private readonly consumer: Consumer;
-  private readonly producer: Producer;
-  private readonly dispatcher: CoreCommandDispatcher;
+  private readonly repository: YjsPostgresRepository;
   private readonly compactionService: YjsCompactionService;
   private readonly projectionService: YjsProjectionService;
+  private readonly logger: Logger;
+  private readonly pending = new Map<string, MaintenanceHint>();
+  private readonly attempts = new Map<string, number>();
+  private readonly inFlight = new Set<string>();
+  private dispatchPromise: Promise<void> | undefined;
   private started = false;
 
   constructor(
-    dispatcher: CoreCommandDispatcher,
+    repository: YjsPostgresRepository,
     compactionService: YjsCompactionService,
-    projectionService: YjsProjectionService
+    projectionService: YjsProjectionService,
+    logger = new Logger()
   ) {
-    const kafka = newKafka();
+    const kafka = createKafkaClient();
     this.consumer = kafka.consumer({
       groupId: "notegic-yjs-worker-maintenance-v1",
     });
-    this.producer = kafka.producer();
-    this.dispatcher = dispatcher;
+    this.repository = repository;
     this.compactionService = compactionService;
     this.projectionService = projectionService;
+    this.logger = logger;
   }
 
   async start(): Promise<void> {
     if (this.started) return;
 
-    await this.producer.connect();
     await this.consumer.connect();
     await this.consumer.subscribe({
-      topic: CoreYjsWorkerMaintenanceCommandTopic,
+      topic: CoreYjsMaintenanceHintTopic,
       fromBeginning: false,
     });
+    this.started = true;
     await this.consumer.run({
       eachMessage: async ({ message }) => {
         if (message.value === null) return;
@@ -106,193 +88,256 @@ export class YjsMaintenanceConsumer {
           return;
         }
 
-        const command = this.parseCommand(event);
-        if (command === null) return;
-
-        let result: MaintenanceResult;
-        try {
-          result = await this.execute(command);
-        } catch (error) {
-          result = {
-            requestId: command.requestId,
-            blockPackId: command.blockPackId,
-            documentId: command.documentId,
-            operation: command.operation,
-            targetSequence: command.targetSequence,
-            success: false,
-            compactedUntilSequence: 0,
-            projectedUntilSequence: -1,
-            error: error instanceof Error ? error.message : String(error),
-          };
+        const data = event.data as Partial<MaintenanceHint>;
+        if (
+          event.schemaVersion !== "v1" ||
+          event.eventType !== "YjsMaintenanceHint" ||
+          event.aggregateType !== "BlockPack" ||
+          event.aggregateId !== event.kafkaKey ||
+          typeof data.blockPackId !== "string" ||
+          data.blockPackId !== event.aggregateId ||
+          typeof data.documentId !== "string" ||
+          typeof data.latestUpdateSequence !== "number" ||
+          !Number.isSafeInteger(data.latestUpdateSequence) ||
+          data.latestUpdateSequence < 0 ||
+          typeof data.compactedUntilSequence !== "number" ||
+          !Number.isSafeInteger(data.compactedUntilSequence) ||
+          data.compactedUntilSequence < 0 ||
+          typeof data.projectedUntilSequence !== "number" ||
+          !Number.isSafeInteger(data.projectedUntilSequence) ||
+          data.projectedUntilSequence < -1
+        ) {
+          return;
         }
 
-        await this.producer.send({
-          topic: YjsWorkerCoreMaintenanceResultTopic,
-          messages: [
-            {
-              key: command.blockPackId,
-              value: JSON.stringify({
-                schemaVersion: "v1",
-                eventId: command.requestId,
-                eventType: "YjsMaintenanceCompleted",
-                aggregateType: "BlockPack",
-                aggregateId: command.blockPackId,
-                kafkaKey: command.blockPackId,
-                occurredAt: new Date().toISOString(),
-                correlationId: command.correlationId,
-                causationId: event.eventId,
-                trace: event.trace ?? {},
-                data: result,
-              } satisfies EventEnvelope),
-            },
-          ],
-        });
+        this.enqueue(data as MaintenanceHint);
+        await this.dispatchPending();
       },
     });
-    this.started = true;
   }
 
-  private parseCommand(event: EventEnvelope): MaintenanceCommand | null {
+  private enqueue(hint: MaintenanceHint): void {
+    const existing = this.pending.get(hint.blockPackId);
     if (
-      event.schemaVersion !== "v1" ||
-      event.eventType !== "YjsMaintenanceCommand" ||
-      event.aggregateType !== "BlockPack" ||
-      event.aggregateId !== event.kafkaKey
+      existing === undefined &&
+      this.pending.size >= yjsMaintenanceConfig.maximumPendingHints
     ) {
-      return null;
+      throw new Error("Yjs maintenance queue is full");
     }
-
-    const data = event.data as Partial<MaintenanceCommand>;
     if (
-      typeof data.requestId !== "string" ||
-      typeof data.blockPackId !== "string" ||
-      typeof data.documentId !== "string" ||
-      data.blockPackId !== event.aggregateId ||
-      (data.operation !== "compact" && data.operation !== "project") ||
-      typeof data.targetSequence !== "number" ||
-      !Number.isSafeInteger(data.targetSequence) ||
-      data.targetSequence < 0 ||
-      typeof data.correlationId !== "string"
+      existing === undefined ||
+      hint.latestUpdateSequence >= existing.latestUpdateSequence
     ) {
-      return null;
+      this.pending.set(hint.blockPackId, hint);
     }
-
-    return data as MaintenanceCommand;
   }
 
-  private async execute(
-    command: MaintenanceCommand
-  ): Promise<MaintenanceResult> {
-    if (command.operation === "compact") {
-      return this.executeCompaction(command);
-    }
+  private dispatchPending(): Promise<void> {
+    if (this.dispatchPromise !== undefined) return this.dispatchPromise;
 
-    return this.executeProjection(command);
+    this.dispatchPromise = this.runDispatchPending();
+    return this.dispatchPromise;
   }
 
-  private async executeCompaction(
-    command: MaintenanceCommand
-  ): Promise<MaintenanceResult> {
-    const loaded = await this.dispatcher.dispatch<
-      Record<string, never>,
-      { found: boolean; payload?: string }
-    >("LoadCompactableYjsDocument", command.blockPackId, {});
-    if (!loaded.found || loaded.payload === undefined) {
-      return {
-        requestId: command.requestId,
-        blockPackId: command.blockPackId,
-        documentId: command.documentId,
-        operation: command.operation,
-        targetSequence: command.targetSequence,
-        success: true,
-        compactedUntilSequence: 0,
-        projectedUntilSequence: -1,
-      };
+  private async runDispatchPending(): Promise<void> {
+    try {
+      while (this.started && this.pending.size > 0) {
+        const hints = this.dequeueBatch(
+          yjsMaintenanceConfig.maximumDispatchBatch
+        );
+        for (
+          let offset = 0;
+          offset < hints.length;
+          offset += yjsMaintenanceConfig.maximumDispatchWorkers
+        ) {
+          const batch = hints.slice(
+            offset,
+            offset + yjsMaintenanceConfig.maximumDispatchWorkers
+          );
+          await Promise.all(batch.map(hint => this.process(hint)));
+        }
+      }
+    } finally {
+      this.dispatchPromise = undefined;
+    }
+  }
+
+  private dequeueBatch(limit: number): MaintenanceHint[] {
+    const candidates = [...this.pending.values()]
+      .filter(hint => !this.inFlight.has(hint.blockPackId))
+      .sort((left, right) => {
+        const leftScore =
+          left.uncompactedUpdateCount * 4 +
+          (left.latestUpdateSequence - left.projectedUntilSequence) * 3 +
+          (left.lastCompactedAt === undefined ? 100_000 : 0) +
+          Math.floor((left.snapshotBytes + left.stateVectorBytes) / 1024);
+        const rightScore =
+          right.uncompactedUpdateCount * 4 +
+          (right.latestUpdateSequence - right.projectedUntilSequence) * 3 +
+          (right.lastCompactedAt === undefined ? 100_000 : 0) +
+          Math.floor((right.snapshotBytes + right.stateVectorBytes) / 1024);
+        return rightScore - leftScore;
+      })
+      .slice(0, limit);
+
+    for (const hint of candidates) {
+      this.pending.delete(hint.blockPackId);
+      this.inFlight.add(hint.blockPackId);
     }
 
-    const input = parseYjsCompactionInput(
-      Buffer.from(loaded.payload, "base64")
-    );
-    if (input === null) throw new Error("invalid compactable Yjs document");
+    return candidates;
+  }
 
-    const compacted = this.compactionService.compact(input);
-    const resultPayload = createYjsCompactionResult(
-      input,
-      compacted.snapshot,
-      compacted.stateVector
+  private async process(hint: MaintenanceHint): Promise<void> {
+    const operation =
+      hint.uncompactedUpdateCount >= YjsCompactionUpdateThreshold ||
+      (hint.compactedUntilSequence < hint.latestUpdateSequence &&
+        hint.lastCompactedAt === undefined)
+        ? "compact"
+        : "project";
+
+    try {
+      const result =
+        operation === "compact"
+          ? await this.compact(hint)
+          : await this.project(hint);
+
+      if (
+        operation === "compact" &&
+        result.success &&
+        result.projectedUntilSequence < hint.latestUpdateSequence
+      ) {
+        this.enqueue({
+          ...hint,
+          compactedUntilSequence: result.compactedUntilSequence,
+          uncompactedUpdateCount: Math.max(
+            0,
+            hint.latestUpdateSequence - result.compactedUntilSequence
+          ),
+          projectedUntilSequence: result.projectedUntilSequence,
+          lastCompactedAt: new Date().toISOString(),
+        });
+      }
+      this.attempts.delete(hint.blockPackId);
+    } catch (error) {
+      const attempt = (this.attempts.get(hint.blockPackId) ?? 0) + 1;
+      this.attempts.set(hint.blockPackId, attempt);
+      if (attempt < yjsMaintenanceConfig.maximumRequestAttempts) {
+        setTimeout(() => {
+          if (!this.started) return;
+          this.enqueue(hint);
+          void this.dispatchPending();
+        }, 1_000);
+      } else {
+        this.attempts.delete(hint.blockPackId);
+        this.logger.error("Yjs maintenance request failed", {
+          blockPackId: hint.blockPackId,
+          attempt,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    } finally {
+      this.inFlight.delete(hint.blockPackId);
+    }
+  }
+
+  private async compact(hint: MaintenanceHint): Promise<MaintenanceResult> {
+    const loaded = await this.repository.loadCompactable(
+      hint.blockPackId,
+      hint.latestUpdateSequence
     );
-    const applied = await this.dispatcher.dispatch<
-      { payload: string },
-      { applied: boolean }
-    >("ApplyCompactedYjsDocument", command.blockPackId, {
-      payload: resultPayload.toString("base64"),
+    if (loaded === null) return this.emptyResult(hint);
+
+    const cutoffSequence = Math.min(
+      hint.latestUpdateSequence,
+      loaded.document.lastUpdateSequence
+    );
+    if (cutoffSequence <= loaded.document.compactedUntilSequence) {
+      return this.emptyResult(hint, loaded.document);
+    }
+
+    const compacted = this.compactionService.compact({
+      snapshot: loaded.document.snapshot,
+      stateVector: loaded.document.stateVector,
+      baseCompactedUntilSequence: loaded.document.compactedUntilSequence,
+      cutoffSequence,
+      updates: loaded.updates,
+    });
+    const applied = await this.repository.applyCompaction({
+      blockPackId: hint.blockPackId,
+      ...compacted,
     });
 
     return {
-      requestId: command.requestId,
-      blockPackId: command.blockPackId,
-      documentId: command.documentId,
-      operation: command.operation,
-      targetSequence: command.targetSequence,
-      success: applied.applied,
-      compactedUntilSequence: applied.applied
-        ? input.cutoffSequence
-        : input.baseCompactedUntilSequence,
-      projectedUntilSequence: -1,
+      success: true,
+      compactedUntilSequence: applied.compactedUntilSequence,
+      projectedUntilSequence: loaded.document.projectedUntilSequence,
     };
   }
 
-  private async executeProjection(
-    command: MaintenanceCommand
-  ): Promise<MaintenanceResult> {
-    const loaded = await this.dispatcher.dispatch<
-      Record<string, never>,
-      { found: boolean; payload?: string }
-    >("LoadYjsDocument", command.blockPackId, {});
-    if (!loaded.found || loaded.payload === undefined) {
-      return {
-        requestId: command.requestId,
-        blockPackId: command.blockPackId,
-        documentId: command.documentId,
-        operation: command.operation,
-        targetSequence: command.targetSequence,
-        success: true,
-        compactedUntilSequence: 0,
-        projectedUntilSequence: -1,
-      };
+  private async project(hint: MaintenanceHint): Promise<MaintenanceResult> {
+    const loaded = await this.repository.loadProjectable(
+      hint.blockPackId,
+      hint.latestUpdateSequence
+    );
+    if (loaded === null) return this.emptyResult(hint);
+
+    const targetSequence = Math.min(
+      hint.latestUpdateSequence,
+      loaded.document.lastUpdateSequence
+    );
+    if (targetSequence <= loaded.document.projectedUntilSequence) {
+      return this.emptyResult(hint, loaded.document);
     }
 
-    const state = parseYjsDocumentState(Buffer.from(loaded.payload, "base64"));
-    if (state === null) throw new Error("invalid Yjs document state");
-
+    const state: YjsDocumentState = {
+      snapshot: loaded.document.snapshot,
+      stateVector: loaded.document.stateVector,
+      lastUpdateSequence: targetSequence,
+      compactedUntilSequence: loaded.document.compactedUntilSequence,
+      projectedUntilSequence: loaded.document.projectedUntilSequence,
+      updates: loaded.updates,
+    };
     const projection = this.projectionService.project({
-      blockPackId: command.blockPackId,
+      blockPackId: hint.blockPackId,
       state,
     });
-    const applied = await this.dispatcher.dispatch<
-      { projection: string },
-      { applied: boolean; projectedUntilSequence: number }
-    >("ApplyBlockProjection", command.blockPackId, {
-      projection: Buffer.from(JSON.stringify(projection)).toString("base64"),
+    const applied = await this.repository.applyProjection({
+      blockPackId: hint.blockPackId,
+      projectedSequence: targetSequence,
+      blocks: projection.blocks,
     });
 
     return {
-      requestId: command.requestId,
-      blockPackId: command.blockPackId,
-      documentId: command.documentId,
-      operation: command.operation,
-      targetSequence: command.targetSequence,
-      success: applied.applied,
-      compactedUntilSequence: state.compactedUntilSequence,
+      success: true,
+      compactedUntilSequence: loaded.document.compactedUntilSequence,
       projectedUntilSequence: applied.projectedUntilSequence,
+    };
+  }
+
+  private emptyResult(
+    hint: MaintenanceHint,
+    document?: Pick<
+      YjsDocumentState,
+      "compactedUntilSequence" | "projectedUntilSequence"
+    >
+  ): MaintenanceResult {
+    return {
+      success: true,
+      compactedUntilSequence:
+        document?.compactedUntilSequence ?? hint.compactedUntilSequence,
+      projectedUntilSequence:
+        document?.projectedUntilSequence ?? hint.projectedUntilSequence,
     };
   }
 
   async shutdown(): Promise<void> {
     if (!this.started) return;
 
-    await this.consumer.disconnect();
-    await this.producer.disconnect();
     this.started = false;
+    await this.consumer.disconnect();
+    await this.dispatchPromise;
+    this.pending.clear();
+    this.inFlight.clear();
   }
 }

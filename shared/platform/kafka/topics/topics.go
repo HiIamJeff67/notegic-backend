@@ -12,7 +12,5 @@ func All() []TopicSpec {
 		NotificationTopicSpec(),
 		YjsWorkerCoreCommandTopicSpec(),
 		CoreYjsWorkerReplyTopicSpec(),
-		YjsWorkerCoreMaintenanceCommandTopicSpec(),
-		CoreYjsWorkerMaintenanceResultTopicSpec(),
 	}
 }

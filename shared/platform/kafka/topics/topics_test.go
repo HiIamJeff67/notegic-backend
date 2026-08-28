@@ -4,8 +4,8 @@ import "testing"
 
 func TestAllContainsExplicitUniqueTopicSpecs(t *testing.T) {
 	specifications := All()
-	if len(specifications) != 10 {
-		t.Fatalf("topic spec count = %d, want 10", len(specifications))
+	if len(specifications) != 8 {
+		t.Fatalf("topic spec count = %d, want 8", len(specifications))
 	}
 
 	seen := make(map[string]struct{}, len(specifications))

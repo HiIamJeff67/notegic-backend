@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
-import { type Consumer, Kafka, logLevel, type Producer } from "kafkajs";
+import { type Consumer, Kafka, type Producer } from "kafkajs";
 
 import {
   CoreYjsWorkerReplyTopic,
   YjsWorkerCoreCommandTopic,
 } from "../../../../../contracts/yjs-worker/v1/yjsworker_contract.js";
+import { createKafkaClient } from "../../../util/kafka.js";
 import { Logger } from "../../../util/logger.js";
 
 export {
@@ -105,19 +106,6 @@ const kafkajs = require("kafkajs") as typeof import("kafkajs");
 kafkajs.CompressionCodecs[
   kafkajs.CompressionTypes.Snappy
 ] = require("kafkajs-snappy");
-
-function newKafka(): Kafka {
-  const brokers = (process.env.KAFKA_BROKERS ?? "127.0.0.1:9094")
-    .split(",")
-    .map(broker => broker.trim())
-    .filter(Boolean);
-
-  return new Kafka({
-    clientId: process.env.KAFKA_CLIENT_ID ?? "notegic-yjs-worker",
-    brokers,
-    logLevel: logLevel.NOTHING,
-  });
-}
 
 export class CoreCommandProducer {
   private readonly producer: Producer;
@@ -378,7 +366,7 @@ export class CoreCommandDispatcher {
   private readonly replyConsumer: CoreReplyConsumer;
 
   constructor(logger = new Logger()) {
-    const kafka = newKafka();
+    const kafka = createKafkaClient();
     this.producer = new CoreCommandProducer(kafka);
     this.replyConsumer = new CoreReplyConsumer(kafka, logger);
   }

@@ -47,7 +47,6 @@ import (
 	status "github.com/HiIamJeff67/notegic-backend/internal/core/transports/status"
 	yjsworkertransport "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker"
 	yjsworkerconsumers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker/consumers"
-	yjsworkerproducers "github.com/HiIamJeff67/notegic-backend/internal/core/transports/yjsworker/producers"
 	validation "github.com/HiIamJeff67/notegic-backend/internal/core/validations"
 	coreworkers "github.com/HiIamJeff67/notegic-backend/internal/core/workers"
 )
@@ -418,22 +417,6 @@ func (a *Application) initializeWorkers(
 		db,
 		srepositories.NewOutboxEventRepository(db),
 	)
-	yjsMaintenanceWorker := coreworkers.NewYjsMaintenanceWorker(
-		db,
-		yjsworkerproducers.NewYjsMaintenanceCommandProducer(kafkaProducer),
-		config.YjsMaintenanceStrategy,
-		skafka.ConsumerConfig{
-			ClientConfig: skafka.ClientConfig{
-				ConnectionConfig: kafkaConnection,
-				ClientId:         "notegic-core-yjs-maintenance",
-			},
-			ConsumerGroup:       "notegic-core-yjs-maintenance-v1",
-			MaximumAttempts:     config.KafkaConsumer.MaximumAttempts,
-			InitialRetryBackoff: config.KafkaConsumer.InitialRetryBackoff,
-			MaximumRetryBackoff: config.KafkaConsumer.MaximumRetryBackoff,
-			MaximumPollRecords:  config.KafkaConsumer.MaximumPollRecords,
-		},
-	)
 	quotaCycleWorker := coreworkers.NewQuotaCycleWorker(
 		db,
 		config.QuotaCycleWorker,
@@ -465,12 +448,10 @@ func (a *Application) initializeWorkers(
 	)
 	shutdownOutboxRelay := outboxRelay.Start(context.Background())
 	shutdownYjsMaintenanceReconciliationWorker := yjsMaintenanceReconciliationWorker.Start(context.Background())
-	shutdownYjsMaintenanceWorker := yjsMaintenanceWorker.Start(context.Background())
 	shutdownQuotaCycleWorker := quotaCycleWorker.Start(context.Background())
 	shutdownYjsCommandConsumer := yjsCommandConsumer.Start(context.Background())
 	return func() {
 		shutdownYjsCommandConsumer()
-		shutdownYjsMaintenanceWorker()
 		shutdownYjsMaintenanceReconciliationWorker()
 		shutdownQuotaCycleWorker()
 		shutdownOutboxRelay()

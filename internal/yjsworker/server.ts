@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { WebSocketServer } from "ws";
 
 import { config } from "./configs/config.js";
+import { YjsPostgresRepository } from "./data/postgres/repository.js";
 import { BlockPackProjector } from "./services/block_pack_projector.js";
 import { YjsCompactionService } from "./services/yjs_compaction_service.js";
 import { YjsDocumentInitializationService } from "./services/yjs_document_initialization_service.js";
@@ -25,6 +26,7 @@ export class YjsWorkerServer {
   private readonly realtimeGateway: RealtimeGateway;
   private readonly coreCommandDispatcher: CoreCommandDispatcher;
   private readonly yjsMaintenanceConsumer: YjsMaintenanceConsumer;
+  private readonly yjsPostgresRepository: YjsPostgresRepository;
   private healthy = false;
   private ready = false;
 
@@ -39,11 +41,13 @@ export class YjsWorkerServer {
       telemetry
     );
     const roomRegistry = new RoomRegistry(telemetry);
+    this.yjsPostgresRepository = new YjsPostgresRepository();
     this.coreCommandDispatcher = new CoreCommandDispatcher(logger);
     this.yjsMaintenanceConsumer = new YjsMaintenanceConsumer(
-      this.coreCommandDispatcher,
+      this.yjsPostgresRepository,
       yjsCompactionService,
-      yjsProjectionService
+      yjsProjectionService,
+      logger
     );
     this.webSocketServer = new WebSocketServer({ noServer: true });
     this.realtimeGateway = new RealtimeGateway(
@@ -117,6 +121,7 @@ export class YjsWorkerServer {
     await this.realtimeGateway.shutdown();
     await this.yjsMaintenanceConsumer.shutdown();
     await this.coreCommandDispatcher.shutdown();
+    await this.yjsPostgresRepository.close();
     await closeServer;
   }
 }

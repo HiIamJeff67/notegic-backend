@@ -115,26 +115,28 @@ RealtimeGateway does not relay Yjs persistence or projection HTTP requests.
 
 ## Core Yjs maintenance coordination
 
-Core owns the maintenance worker. DurableJob does not consume Yjs maintenance
-hints and does not exchange Yjs maintenance requests or results with Core.
-Core's worker consumes the Core-owned hint, reads the shared PostgreSQL state,
-and sends the minimal command directly to YjsWorker.
+Core owns the maintenance hint producer and reconciliation scan. DurableJob
+does not consume Yjs maintenance hints and does not exchange Yjs maintenance
+requests or results with Core. YjsWorker consumes the Core-owned hint and
+reads the shared PostgreSQL state through its own runtime connection.
 
 Core writes `YjsMaintenanceHint` to
 `notegic.core.yjs-maintenance-hint.v1` in the same transaction as a
-new BlockPack Yjs document or accepted update. Core's worker coalesces and
-prioritizes those hints by BlockPack partition key, then publishes a compact or
-project request to `notegic.core.yjsworker.maintenance-command.v1`.
+new BlockPack Yjs document or accepted update. YjsWorker coalesces and
+prioritizes those hints by BlockPack partition key, then performs compaction or
+projection directly against PostgreSQL.
 
-The worker reads and computes against Core through the existing command/reply
-boundary; it does not receive a snapshot in the maintenance event. The result
-is published on `notegic.yjsworker.core.maintenance-result.v1` and consumed by
-Core's worker for bounded retry. The two Core/YjsWorker topics use the BlockPack
-UUID as the key and have local DLQ counterparts.
+The worker does not receive a snapshot in the maintenance event and does not
+send a maintenance result back to Core. Compaction and projection use row locks,
+watermark compare-and-set checks, and one database transaction. The Block
+accounting triggers are Core-owned `SECURITY DEFINER` functions, so their quota
+and accounting writes run under the Core function owner without exposing those
+tables to the YjsWorker role. A missing or delayed hint is recoverable through
+Core's reconciliation process.
 
-Maintenance events contain only IDs, watermarks, sizes, operation and status.
-They never carry raw Yjs updates, snapshots, state vectors, or BlockNote block
-trees. A missing result is recoverable through the next Core hint and the
+Maintenance hints contain only IDs, watermarks, sizes, and a reason. They never
+carry raw Yjs updates, snapshots, state vectors, or BlockNote block trees. A
+missing or delayed hint is recoverable through the next Core hint and the
 reconciliation process; no Core transaction waits for DurableJob or the worker.
 Core's runtime-owned
 `internal/core/workers/yjs_maintenance_reconciliation_worker.go` runs
@@ -200,14 +202,15 @@ folder and file names.
 
 ### Core/DurableJob boundary
 
-There is no Core/DurableJob Kafka producer/consumer pair for routine tasks or
-Yjs maintenance:
+There is no Core/DurableJob Kafka producer/consumer pair for routine tasks.
+Yjs maintenance uses a one-way Core-to-YjsWorker hint because the worker owns
+the database operation:
 
 | Concern | Owner | Boundary |
 | --- | --- | --- |
 | RoutineTask claim, quota, execution, finalization | DurableJob | Shared PostgreSQL, DurableJob-owned pool |
 | Yjs maintenance scheduling and retry | Core | Core worker + Core-owned outbox hint |
-| Yjs maintenance operation | YjsWorker | Core↔YjsWorker Kafka |
+| Yjs maintenance operation | YjsWorker | YjsWorker-owned PostgreSQL transaction |
 | RoutineTask lifecycle hint | DurableJob | DurableJob→RealtimeGateway Kafka |
 
 RoutineTask claim, assignment, execution, business mutation, and lifecycle

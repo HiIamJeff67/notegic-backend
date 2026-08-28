@@ -31,11 +31,6 @@ func TestLoadConfig(t *testing.T) {
 	t.Setenv("CORE_USER_DATA_CACHE_MAX_ROTATION_RETRIES", "5")
 	t.Setenv("YJS_DOCUMENT_INITIALIZATION_WORKER_URL", "http://notegic-yjs-worker:8787/core/yjs-document-initialization/v1")
 	t.Setenv("YJS_DOCUMENT_INITIALIZATION_WORKER_TIMEOUT", "30s")
-	t.Setenv("CORE_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS", "1000")
-	t.Setenv("CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH", "32")
-	t.Setenv("CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS", "8")
-	t.Setenv("CORE_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS", "3")
-
 	config, err := LoadConfig()
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)

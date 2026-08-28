@@ -12,6 +12,7 @@ clients, workers, transports, and services.
 | Core PostgreSQL connection | `internal/core/configs/postgres.go` | `CORE_DB_HOST`, `CORE_DB_USER=notegic_core`, `CORE_DB_PASSWORD`, `CORE_DB_NAME`, `CORE_DB_PORT` |
 | DurableJob PostgreSQL connection | `internal/durablejob/configs/postgres.go` | `DURABLEJOB_DB_HOST`, `DURABLEJOB_DB_USER=notegic_durablejob`, `DURABLEJOB_DB_PASSWORD`, `DURABLEJOB_DB_NAME`, `DURABLEJOB_DB_PORT` |
 | Notification PostgreSQL connection | `internal/notification/configs/postgres.go` | `NOTIFICATION_DB_*` |
+| Yjs worker PostgreSQL connection | `internal/yjsworker/configs/postgres.ts` | `YJS_DB_HOST`, `YJS_DB_USER=notegic_yjsworker`, `YJS_DB_PASSWORD`, `YJS_DB_NAME`, `YJS_DB_PORT` |
 | PostgreSQL deployment/admin connection | runtime `commands/database_command.go` | `DB_ADMIN_*` for the main database and `NOTIFICATION_DB_ADMIN_*` for Notification |
 | Redis connection | `shared/platform/redis/config.go` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_INIT_DB` |
 | Kafka connection and TLS | `shared/platform/kafka/config.go` | `KAFKA_BROKERS`, `KAFKA_DIAL_TIMEOUT`, `KAFKA_TLS_*`, `KAFKA_SASL_*` |
@@ -36,8 +37,11 @@ independent PostgreSQL connection with its own complete host, user, password,
 name, and port fields.
 
 Each runtime connection uses a fixed role derived from
-`contracts/types.Runtime.RoleName()`: `notegic_core`, `notegic_durablejob`, or
-`notegic_notification`. Runtime startup opens only that runtime connection.
+`contracts/types.Runtime.RoleName()`: `notegic_core`, `notegic_durablejob`,
+`notegic_notification`, or `notegic_yjsworker`. Runtime startup opens only that
+runtime connection. Yjs worker maintenance uses `YJS_DB_*` and shares the Core
+database by default; its role receives only the projected Yjs tables and the
+two Core-owned accounting trigger function grants required for direct writes.
 Role bootstrap, migration, permission reconciliation, and Core seed execution
 run through each runtime's one-shot `*-database-init` Compose service before
 the runtime begins serving traffic. Each service invokes the existing Cobra
@@ -54,15 +58,14 @@ container names, and internal hostnames remain lowercase `kebab-case`, for
 example `notegic-db` and `notegic-notification-db`; they are DNS names rather
 than PostgreSQL identifiers.
 
-Core owns the Yjs maintenance strategy policy. Its composition root loads these
-values through `internal/core/configs.LoadConfig` and injects one immutable
-`YjsMaintenanceStrategyConfig` into the Core worker:
+Yjs worker owns the maintenance strategy policy. Its composition root loads
+these values through `internal/yjsworker/configs/postgres.ts`:
 
 ```dotenv
-CORE_YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS=1000
-CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH=32
-CORE_YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS=8
-CORE_YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS=3
+YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS=1000
+YJS_MAINTENANCE_MAXIMUM_DISPATCH_BATCH=32
+YJS_MAINTENANCE_MAXIMUM_DISPATCH_WORKERS=8
+YJS_MAINTENANCE_MAXIMUM_REQUEST_ATTEMPTS=3
 ```
 
 ## Canonical duration names

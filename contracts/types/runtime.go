@@ -12,18 +12,21 @@ const (
 	Runtime_Core         Runtime = "core"
 	Runtime_DurableJob   Runtime = "durablejob"
 	Runtime_Notification Runtime = "notification"
+	Runtime_YjsWorker    Runtime = "yjsworker"
 )
 
 var AllRuntimes = []Runtime{
 	Runtime_Core,
 	Runtime_DurableJob,
 	Runtime_Notification,
+	Runtime_YjsWorker,
 }
 
 var AllRuntimeStrings = []string{
 	string(Runtime_Core),
 	string(Runtime_DurableJob),
 	string(Runtime_Notification),
+	string(Runtime_YjsWorker),
 }
 
 func (value Runtime) String() string {

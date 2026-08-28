@@ -18,7 +18,5 @@ export type BlockPackQuotaPolicy = {
 
 export const YjsWorkerCoreCommandTopic = "notegic.adapters.core.command.v1";
 export const CoreYjsWorkerReplyTopic = "notegic.core.adapters.reply.v1";
-export const CoreYjsWorkerMaintenanceCommandTopic =
-  "notegic.core.adapters.maintenance-command.v1";
-export const YjsWorkerCoreMaintenanceResultTopic =
-  "notegic.adapters.core.maintenance-result.v1";
+export const CoreYjsMaintenanceHintTopic =
+  "notegic.core.yjs-maintenance-hint.v1";
