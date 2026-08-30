@@ -9,8 +9,8 @@ Beta does not migrate legacy `BlockTable` content into an active Yjs document. T
 Run this only against the beta/development database. It drops the PostgreSQL `public` schema and all data in it.
 
 ```bash
-make -C internal/core remigrate-db
-make -C internal/core seed
+make -C runtimes/core remigrate-db
+make -C runtimes/core seed
 ```
 
 After reset, create BlockPacks through the normal BlockPack APIs or durable system workflow. Both paths create the `BlockPack` and its empty `BlockPackYjsDocument` in the same transaction. The first BlockPack channel subscription loads that empty Yjs document; editor changes then produce the update log and asynchronous `BlockTable` projection.

@@ -12,7 +12,7 @@
 - Gateway and each microservice may define a local factory in their own
   `exceptions/` package when two or more callers share the same domain or
   operational error semantics. Core domain factories remain in
-  `internal/core/exceptions/`; worker, cache, renderer, delivery and
+  `runtimes/core/exceptions/`; worker, cache, renderer, delivery and
   notification factories are runtime-local helpers. A local helper is never
   imported across a Gateway/service boundary.
 - Runtime-local exception packages follow the Core shape: one file per owned
@@ -31,7 +31,7 @@
   repository exception package.
 - Every exception implementation file has its own matching unit-test file:
   `renderer_exception.go` is tested by `renderer_exception_test.go`, and so on.
-- Core's `internal/core/exceptions/exception.go` and DurableJob's equivalent
+- Core's `runtimes/core/exceptions/exception.go` and DurableJob's equivalent
   define their own runtime-local `Exception` helper, which composes the
   contract `exceptions.Exception` and stores the domain. PostgreSQL repositories
   use the separate `RepositoryException` under
@@ -122,9 +122,9 @@ exception := exceptions.New(
 
 - `shared/contexts` contains only generic `context.Context` value
   helpers; it never imports exceptions or framework code.
-- `internal/clientgateway/contexts` owns Gin/request-context parsing and the
+- `runtimes/clientgateway/contexts` owns Gin/request-context parsing and the
   route-declared permission set used to construct an outbound delegation.
-- `internal/core/contexts` owns verified API-service context values,
+- `runtimes/core/contexts` owns verified API-service context values,
   including permissions reconstructed from the verified delegation credential.
   Core services must not trust client DTO fields for actor identity or route
   permission policy.

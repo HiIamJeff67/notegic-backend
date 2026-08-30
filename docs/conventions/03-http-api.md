@@ -3,7 +3,7 @@
 ## Gateway routes and middleware
 
 - Browser/client-facing HTTP routes live under
-  `internal/clientgateway/transports/api/routes`. Its middlewares and interceptors
+  `runtimes/clientgateway/transports/api/routes`. Its middlewares and interceptors
   are client transport concerns; reusable Gin cookie handlers live in
   `shared/cookies/`. Test-only routes stay in this client transport.
 - Routes register URL, middleware, trace operation, metric name, and the
@@ -70,7 +70,7 @@
 - A controller does not bind public HTTP input, query GORM, create a
   transaction, decide ownership, or call a repository directly.
 - A Gateway-to-Core adapter lives under
-  `internal/clientgateway/transports/core/adapters`. It uses its injected
+  `runtimes/clientgateway/transports/core/adapters`. It uses its injected
   long-lived client, context propagation, configured timeout, and versioned
   Request/Response mapping. It may be used by REST, GraphQL, and WebSocket.
 - Core Gateway endpoints validate the delegation credential and map the internal

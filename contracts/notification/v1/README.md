@@ -8,5 +8,5 @@ the Notification database transaction commits, Notification publishes
 
 Typed notification payloads and their `validate` tags live under `types/`.
 Custom validator functions are registered by the Notification runtime under
-`internal/notification/validations/`; the runtime does not duplicate payload
+`runtimes/notification/validations/`; the runtime does not duplicate payload
 structs outside this contract package.

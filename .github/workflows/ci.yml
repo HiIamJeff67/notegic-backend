@@ -46,21 +46,21 @@ jobs:
             artifact: contracts
           - module: shared
             artifact: shared
-          - module: internal/cli
+          - module: runtimes/cli
             artifact: internal-cli
-          - module: internal/core
+          - module: runtimes/core
             artifact: internal-core
-          - module: internal/clientgateway
+          - module: runtimes/clientgateway
             artifact: internal-clientgateway
-          - module: internal/apigateway
+          - module: runtimes/apigateway
             artifact: internal-apigateway
-          - module: internal/durablejob
+          - module: runtimes/durablejob
             artifact: internal-durablejob
-          - module: internal/email
+          - module: runtimes/email
             artifact: internal-email
-          - module: internal/realtimegateway
+          - module: runtimes/realtimegateway
             artifact: internal-realtimegateway
-          - module: internal/notification
+          - module: runtimes/notification
             artifact: internal-notification
           - module: test
             artifact: test
@@ -96,13 +96,13 @@ jobs:
         include:
           - module: contracts
           - module: shared
-          - module: internal/core
-          - module: internal/clientgateway
-          - module: internal/apigateway
-          - module: internal/durablejob
-          - module: internal/email
-          - module: internal/realtimegateway
-          - module: internal/notification
+          - module: runtimes/core
+          - module: runtimes/clientgateway
+          - module: runtimes/apigateway
+          - module: runtimes/durablejob
+          - module: runtimes/email
+          - module: runtimes/realtimegateway
+          - module: runtimes/notification
           - module: test
     steps:
       - uses: actions/checkout@v4
@@ -134,28 +134,28 @@ jobs:
       matrix:
         include:
           - runtime: clientgateway
-            dockerfile: internal/clientgateway/Dockerfile
+            dockerfile: runtimes/clientgateway/Dockerfile
             target: production
           - runtime: apigateway
-            dockerfile: internal/apigateway/Dockerfile
+            dockerfile: runtimes/apigateway/Dockerfile
             target: production
           - runtime: core
-            dockerfile: internal/core/Dockerfile
+            dockerfile: runtimes/core/Dockerfile
             target: production
           - runtime: durablejob
-            dockerfile: internal/durablejob/Dockerfile
+            dockerfile: runtimes/durablejob/Dockerfile
             target: production
           - runtime: email
-            dockerfile: internal/email/Dockerfile
+            dockerfile: runtimes/email/Dockerfile
             target: production
           - runtime: realtimegateway
-            dockerfile: internal/realtimegateway/Dockerfile
+            dockerfile: runtimes/realtimegateway/Dockerfile
             target: production
           - runtime: notification
-            dockerfile: internal/notification/Dockerfile
+            dockerfile: runtimes/notification/Dockerfile
             target: production
           - runtime: yjsworker
-            dockerfile: internal/yjsworker/Dockerfile
+            dockerfile: runtimes/yjsworker/Dockerfile
             target: runtime
     steps:
       - uses: actions/checkout@v4
@@ -180,28 +180,28 @@ jobs:
       matrix:
         include:
           - runtime: clientgateway
-            dockerfile: internal/clientgateway/Dockerfile
+            dockerfile: runtimes/clientgateway/Dockerfile
             target: production
           - runtime: apigateway
-            dockerfile: internal/apigateway/Dockerfile
+            dockerfile: runtimes/apigateway/Dockerfile
             target: production
           - runtime: core
-            dockerfile: internal/core/Dockerfile
+            dockerfile: runtimes/core/Dockerfile
             target: production
           - runtime: durablejob
-            dockerfile: internal/durablejob/Dockerfile
+            dockerfile: runtimes/durablejob/Dockerfile
             target: production
           - runtime: email
-            dockerfile: internal/email/Dockerfile
+            dockerfile: runtimes/email/Dockerfile
             target: production
           - runtime: realtimegateway
-            dockerfile: internal/realtimegateway/Dockerfile
+            dockerfile: runtimes/realtimegateway/Dockerfile
             target: production
           - runtime: notification
-            dockerfile: internal/notification/Dockerfile
+            dockerfile: runtimes/notification/Dockerfile
             target: production
           - runtime: yjsworker
-            dockerfile: internal/yjsworker/Dockerfile
+            dockerfile: runtimes/yjsworker/Dockerfile
             target: runtime
     steps:
       - uses: actions/checkout@v4

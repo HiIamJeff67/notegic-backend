@@ -139,7 +139,7 @@ carry raw Yjs updates, snapshots, state vectors, or BlockNote block trees. A
 missing or delayed hint is recoverable through the next Core hint and the
 reconciliation process; no Core transaction waits for DurableJob or the worker.
 Core's runtime-owned
-`internal/core/workers/yjs_maintenance_reconciliation_worker.go` runs
+`runtimes/core/workers/yjs_maintenance_reconciliation_worker.go` runs
 an immediate startup scan and a low-frequency hourly reconciliation scan for
 documents whose durable sequence is still ahead of a compaction or projection
 watermark. The scan emits only fresh metadata hints through the same
@@ -164,7 +164,7 @@ Kafka integration is runtime-specific transport code, not a generic worker
 layer. Core's inbound consumers are grouped by the runtime they receive from:
 
 ```text
-internal/core/transports/
+runtimes/core/transports/
   durablejob/consumers/
   durablejob/eventbuilders/
   durablejob/producers/
@@ -176,7 +176,7 @@ internal/core/transports/
 DurableJob has no Core-facing Kafka transport:
 
 ```text
-internal/durablejob/transports/core/
+runtimes/durablejob/transports/core/
   (empty)
 ```
 

@@ -14,13 +14,13 @@ connections, and asynchronous workers into independently runnable runtimes:
 
 | Runtime | Responsibility |
 | --- | --- |
-| `internal/clientgateway` | Client-facing HTTP/GraphQL entry point, client cookies, request safety, and internal Core adapter calls. |
-| `internal/apigateway` | Independent API-key HTTP entry point for external integrations, with its own Core adapter, Redis cache, rate limits, configuration, transports, and tests. |
-| `internal/core` | PostgreSQL-backed business operations, authorization, repositories, cache ownership, and transactional outbox publishing. |
-| `internal/realtimegateway` | Realtime/WebSocket gateway, ticket verification, connection admission, realtime leases, presence, and YjsWorker connections. |
-| `internal/durablejob` | Durable-job consumers and scheduling strategies. Core remains the owner of database-backed task state. |
-| `internal/email` | Email delivery runtime and message templates. |
-| `internal/yjsworker` | TypeScript Yjs document, projection, persistence, and compaction worker. |
+| `runtimes/clientgateway` | Client-facing HTTP/GraphQL entry point, client cookies, request safety, and internal Core adapter calls. |
+| `runtimes/apigateway` | Independent API-key HTTP entry point for external integrations, with its own Core adapter, Redis cache, rate limits, configuration, transports, and tests. |
+| `runtimes/core` | PostgreSQL-backed business operations, authorization, repositories, cache ownership, and transactional outbox publishing. |
+| `runtimes/realtimegateway` | Realtime/WebSocket gateway, ticket verification, connection admission, realtime leases, presence, and YjsWorker connections. |
+| `runtimes/durablejob` | Durable-job consumers and scheduling strategies. Core remains the owner of database-backed task state. |
+| `runtimes/email` | Email delivery runtime and message templates. |
+| `runtimes/yjsworker` | TypeScript Yjs document, projection, persistence, and compaction worker. |
 
 The main request paths are:
 
@@ -63,7 +63,7 @@ contracts/                         Versioned cross-runtime contracts
   yjs-worker/v1/                    YjsWorker contracts
   types/                            Portable shared contract shapes
 
-internal/
+runtimes/
   cli/                              Shared Cobra command runner
   clientgateway/                    ClientGateway runtime
   apigateway/                       APIGateway runtime
@@ -90,7 +90,7 @@ tests; runtime dependencies cross only through `contracts` and `shared`.
 
 - Go `1.26.x`
 - Docker and Docker Compose
-- Node.js `22.x` and pnpm `11.x` for `internal/yjsworker`
+- Node.js `22.x` and pnpm `11.x` for `runtimes/yjsworker`
 - SOPS and age for encrypted environment files
 - A local decrypted `.env` containing the required database, Redis, Kafka, token,
   OAuth, SMTP, and observability settings
@@ -99,8 +99,8 @@ tests; runtime dependencies cross only through `contracts` and `shared`.
 
 ```sh
 make compose-up
-make -C internal/core migrate
-make -C internal/core seed
+make -C runtimes/core migrate
+make -C runtimes/core seed
 ```
 
 `make compose-up` configures SOPS automatically. It decrypts the development
@@ -246,9 +246,9 @@ This section is automatically maintained from recent Git history. Detailed inten
 
 ### Recent snapshots
 
+- [2026-08/2026-08-30](docs/devlogs/2026-08/2026-08-30.md)
 - [2026-08/2026-08-28](docs/devlogs/2026-08/2026-08-28.md)
 - [2026-08/2026-08-26](docs/devlogs/2026-08/2026-08-26.md)
 - [2026-08/2026-08-25](docs/devlogs/2026-08/2026-08-25.md)
 - [2026-08/2026-08-24](docs/devlogs/2026-08/2026-08-24.md)
-- [2026-08/2026-08-22](docs/devlogs/2026-08/2026-08-22.md)
 <!-- DEVLOG:END -->

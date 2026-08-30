@@ -9,7 +9,7 @@ import (
 )
 
 // This table is only mutatable by the admin, and accessable by both client user and admin.
-// To declare the value or data of this table, you MUST use the seeding method under notegic-backend/internal/core/data/postgres/seeds/
+// To declare the value or data of this table, you MUST use the seeding method under notegic-backend/runtimes/core/data/postgres/seeds/
 type BillingPlan struct {
 	Id           string                       `json:"id" gorm:"column:id; primaryKey;"`
 	ProductId    string                       `json:"productId" gorm:"column:product_id; not null;"`

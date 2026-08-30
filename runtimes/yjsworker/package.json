@@ -1,0 +1,59 @@
+{
+  "name": "yjs-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Notegic internal Yjs collaboration worker",
+  "main": "dist/runtimes/yjsworker/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch main.ts",
+    "start": "node dist/runtimes/yjsworker/main.js",
+    "test": "tsx --test $(find . -name '*.test.ts' -not -path './node_modules/*')",
+    "test:integration": "tsx --test data/postgres/repository.integration.test.ts",
+    "format:all": "biome check --write .",
+    "format:check": "biome check ."
+  },
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.13.0 <23"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.7.0",
+      "onFail": "error"
+    }
+  },
+  "type": "module",
+  "dependencies": {
+    "@blocknote/core": "0.54.0",
+    "@hono/node-server": "^2.0.8",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/api-logs": "^0.220.0",
+    "@opentelemetry/exporter-logs-otlp-proto": "^0.220.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.220.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.220.0",
+    "@opentelemetry/resources": "^2.9.0",
+    "@opentelemetry/sdk-logs": "^0.220.0",
+    "@opentelemetry/sdk-metrics": "^2.9.0",
+    "@opentelemetry/sdk-node": "^0.220.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.30",
+    "kafkajs": "^2.2.4",
+    "kafkajs-snappy": "1.1.0",
+    "lib0": "0.2.117",
+    "pg": "^8.16.3",
+    "ws": "^8.18.3",
+    "y-protocols": "1.0.7",
+    "yjs": "^13.6.27"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.12",
+    "@types/node": "^22.15.30",
+    "@types/pg": "^8.15.5",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

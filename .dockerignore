@@ -8,5 +8,5 @@ secrets/**
 temp/
 backup-codes-thenotegic.*
 LICENSES/**
-internal/yjsworker/node_modules/
-internal/yjsworker/dist/
+runtimes/yjsworker/node_modules/
+runtimes/yjsworker/dist/

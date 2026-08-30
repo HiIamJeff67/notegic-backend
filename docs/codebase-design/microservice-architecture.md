@@ -7,7 +7,7 @@ Notegic adopts a staged migration rather than a one-time domain/database split. 
 ## Target ownership
 
 ```text
-internal/
+runtimes/
  clientgateway/commands/        # ClientGateway command
  apigateway/commands/           # APIGateway command
  core/commands/
@@ -31,7 +31,7 @@ contracts/
   email/v1/                # Email-owned internal boundary
   realtime-gateway/v1/     # RealtimeGateway-owned internal boundary
   yjs-worker/v1/           # YjsWorker-owned internal boundary
-internal/
+runtimes/
   clientgateway/                 # ClientGateway-owned edge implementation
     transports/
       api/
@@ -96,7 +96,7 @@ tests/
 
 Directories are created only when they receive an owned implementation. Runtime
 composition roots and Cobra commands live under their owning runtime's `commands/`
-directory (`internal/clientgateway/commands/`, `internal/apigateway/commands/`, `internal/core/commands/`, and so on). GraphQL
+directory (`runtimes/clientgateway/commands/`, `runtimes/apigateway/commands/`, `runtimes/core/commands/`, and so on). GraphQL
 SDL, generated artifacts, and generator configuration live under
 `contracts/core/v1/graphql/`. Later issues establish the remaining owners; no
 empty directory tree is committed merely to mirror this diagram.
@@ -108,13 +108,13 @@ Each Go runtime and each cross-runtime support layer owns an independent module:
 ```text
 contracts/go.mod
 shared/go.mod
-internal/core/go.mod
-internal/cli/go.mod
-internal/clientgateway/go.mod
-internal/apigateway/go.mod
-internal/durablejob/go.mod
-internal/email/go.mod
-internal/realtimegateway/go.mod
+runtimes/core/go.mod
+runtimes/cli/go.mod
+runtimes/clientgateway/go.mod
+runtimes/apigateway/go.mod
+runtimes/durablejob/go.mod
+runtimes/email/go.mod
+runtimes/realtimegateway/go.mod
 test/go.mod
 ```
 
@@ -124,7 +124,7 @@ the repository root composes the modules for local development. The `test`
 module is reserved for black-box integration and architecture tests and does
 not import runtime production packages. Runtime E2E tests live under the
 owning runtime's `test/` directory. A root-level `go test ./...` is therefore
-not a supported command; use `make test-all` or `internal/cli`. DurableJob's
+not a supported command; use `make test-all` or `runtimes/cli`. DurableJob's
 execution protocol is carried by versioned contracts; Core remains the sole
 owner of database-backed task execution and state transitions.
 Root integration tests under `test/integration/` use the committed
@@ -151,8 +151,8 @@ runtime commands -> owning internal runtime
 clientgateway -> contracts + shared + own edge implementation
 apigateway -> contracts + shared + own edge implementation
 clientgateway -X-> service data/repository
-internal/<runtime>/* -> contracts + shared + own data
-internal/<runtime>/* -X-> another runtime's source
+runtimes/<runtime>/* -> contracts + shared + own data
+runtimes/<runtime>/* -X-> another runtime's source
 shared/lib -X-> all Notegic packages
 shared/platform -X-> domain business packages
 ```
@@ -197,7 +197,7 @@ Neither layer owns transactions, business workflows, or persistence queries.
 
 Gateway internal-API adapters are outbound clients reusable by REST and
 GraphQL. They live in
-`internal/clientgateway/transports/core/adapters/`; client transport code must
+`runtimes/clientgateway/transports/core/adapters/`; client transport code must
 not contain Core service client implementation. Core transports are
 inbound adapters: they verify the internal delegation credential, map a
 versioned request to a Core service call, and map the service result to a
@@ -205,15 +205,15 @@ versioned response. Core adapters exist only for Core outbound calls to another
 runtime.
 
 Core's inbound Gateway transport is organized as
-`internal/core/transports/gateway/endpoints/` and
-`internal/core/transports/gateway/routers/`. Endpoints own the
+`runtimes/core/transports/gateway/endpoints/` and
+`runtimes/core/transports/gateway/routers/`. Endpoints own the
 delegated request/service/response flow; routers only bind HTTP paths and
 methods. Delegation and Core-owned authorization middleware belongs in
-`internal/core/transports/gateway/middlewares/`. Tests live beside
+`runtimes/core/transports/gateway/middlewares/`. Tests live beside
 their endpoint, router, or middleware target.
 
-`internal/clientgateway/commands`, `internal/apigateway/commands`, `internal/core/commands`, and
-`internal/realtimegateway/commands` are independent composition
+`runtimes/clientgateway/commands`, `runtimes/apigateway/commands`, `runtimes/core/commands`, and
+`runtimes/realtimegateway/commands` are independent composition
 roots. ClientGateway accepts browser HTTP and GraphQL traffic; APIGateway accepts
 the allowlisted external API-key resource HTTP traffic; Core owns
 PostgreSQL-backed operations and its private listener; RealtimeGateway is the
@@ -225,7 +225,7 @@ creates a new WebSocket client with its own connection state; no
 global singleton application instance is retained. It never constructs Core
 repositories or services.
 
-NOT-57 adds `internal/durablejob/commands` and `internal/email/commands` as independent
+NOT-57 adds `runtimes/durablejob/commands` and `runtimes/email/commands` as independent
 composition roots.
 DurableJob is an independent process. It owns the RoutineTask claimer, its
 PostgreSQL connection, quota consumption, task records, scheduling transitions,
@@ -348,7 +348,7 @@ shard selection, and cache operations; they never retrieve another runtime's
 store from a global registry.
 
 Core quota functions are one-function-per-file under
-`internal/core/data/redis/userdata/libraries/`. The UserData store
+`runtimes/core/data/redis/userdata/libraries/`. The UserData store
 embeds and joins them into one `user_quota_library`, then performs a single
 `FUNCTION LOAD REPLACE` during `Initialize()`.
 
@@ -388,7 +388,7 @@ Auth/User service
     -> UserDataCacheStore.ClientSet()
 ```
 
-`internal/realtimegateway/data/redis/realtimelease/` owns the RealtimeGateway
+`runtimes/realtimegateway/data/redis/realtimelease/` owns the RealtimeGateway
 runtime's user
 connection and BlockPack subscriber lease lifecycle, active lease inspection,
 participant presence, and presence PubSub fanout. A Core-issued BlockPack
@@ -411,16 +411,16 @@ lifecycle path is outbox → Kafka → RealtimeGateway.
 
 RealtimeGateway Kafka consumers are transport components, grouped by the runtime
 they receive events from: Core consumers live under
-`internal/realtimegateway/transports/core/consumers/`, and Notification consumers
-live under `internal/realtimegateway/transports/notification/consumers/`. The
+`runtimes/realtimegateway/transports/core/consumers/`, and Notification consumers
+live under `runtimes/realtimegateway/transports/notification/consumers/`. The
 long-lived WebSocket protocol implementation is shared by all client-facing
-events under `internal/realtimegateway/transports/websocket/`; it is not owned
+events under `runtimes/realtimegateway/transports/websocket/`; it is not owned
 by the Yjs worker transport. Yjs worker coordination remains an injected
 dependency of that WebSocket adapter, while notifications, lifecycle events,
 presence, and future user-facing events use the same connector and outbound
 queue.
 
-`internal/core/data/storage/` owns Core's storage implementation;
+`runtimes/core/data/storage/` owns Core's storage implementation;
 Gateway does not access it directly.
 
 ## Lifecycle event contracts
@@ -452,7 +452,7 @@ and NOT-33 can evolve those owners without changing the semantic boundary.
 
 `contracts/types/exceptions` contains only the base exception envelope and origin
 classification. Core domain factories stay in
-`internal/core/exceptions/`; Gateway-only failures use the base envelope
+`runtimes/core/exceptions/`; Gateway-only failures use the base envelope
 at their use site. They return the base envelope but are never imported across a
 Gateway/service boundary. Gateway transport owns client-safe HTTP exception
 rendering. Portable shared libraries and parsers never import or return an

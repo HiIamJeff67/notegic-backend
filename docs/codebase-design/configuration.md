@@ -9,20 +9,20 @@ clients, workers, transports, and services.
 
 | Owner | Config file | Examples |
 | --- | --- | --- |
-| Core PostgreSQL connection | `internal/core/configs/postgres.go` | `CORE_DB_HOST`, `CORE_DB_USER=notegic_core`, `CORE_DB_PASSWORD`, `CORE_DB_NAME`, `CORE_DB_PORT` |
-| DurableJob PostgreSQL connection | `internal/durablejob/configs/postgres.go` | `DURABLEJOB_DB_HOST`, `DURABLEJOB_DB_USER=notegic_durablejob`, `DURABLEJOB_DB_PASSWORD`, `DURABLEJOB_DB_NAME`, `DURABLEJOB_DB_PORT` |
-| Notification PostgreSQL connection | `internal/notification/configs/postgres.go` | `NOTIFICATION_DB_*` |
-| Yjs worker PostgreSQL connection | `internal/yjsworker/configs/postgres.ts` | `YJS_DB_HOST`, `YJS_DB_USER=notegic_yjsworker`, `YJS_DB_PASSWORD`, `YJS_DB_NAME`, `YJS_DB_PORT` |
+| Core PostgreSQL connection | `runtimes/core/configs/postgres.go` | `CORE_DB_HOST`, `CORE_DB_USER=notegic_core`, `CORE_DB_PASSWORD`, `CORE_DB_NAME`, `CORE_DB_PORT` |
+| DurableJob PostgreSQL connection | `runtimes/durablejob/configs/postgres.go` | `DURABLEJOB_DB_HOST`, `DURABLEJOB_DB_USER=notegic_durablejob`, `DURABLEJOB_DB_PASSWORD`, `DURABLEJOB_DB_NAME`, `DURABLEJOB_DB_PORT` |
+| Notification PostgreSQL connection | `runtimes/notification/configs/postgres.go` | `NOTIFICATION_DB_*` |
+| Yjs worker PostgreSQL connection | `runtimes/yjsworker/configs/postgres.ts` | `YJS_DB_HOST`, `YJS_DB_USER=notegic_yjsworker`, `YJS_DB_PASSWORD`, `YJS_DB_NAME`, `YJS_DB_PORT` |
 | PostgreSQL deployment/admin connection | runtime `commands/database_command.go` | `DB_ADMIN_*` for the main database and `NOTIFICATION_DB_ADMIN_*` for Notification |
 | Redis connection | `shared/platform/redis/config.go` | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_INIT_DB` |
 | Kafka connection and TLS | `shared/platform/kafka/config.go` | `KAFKA_BROKERS`, `KAFKA_DIAL_TIMEOUT`, `KAFKA_TLS_*`, `KAFKA_SASL_*` |
 | OpenTelemetry SDK | `shared/platform/observability/config.go` | `OTEL_SERVICE_*`, `OTEL_EXPORTER_OTLP_GRPC_ENDPOINT` |
-| ClientGateway | `internal/clientgateway/configs/` | `CLIENT_GATEWAY_LISTEN_ADDRESS`, legacy `GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
-| APIGateway | `internal/apigateway/configs/` | `API_GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
-| Core | `internal/core/configs/` | `CORE_LISTEN_ADDRESS`, `OAUTH_GOOGLE_*`, `STORAGE_KEY_SALT`, `OUTBOX_RELAY_*`, user-data cache TTL, quota-cycle worker interval, Yjs document initialization endpoint/timeout |
-| DurableJob | `internal/durablejob/configs/` | `DURABLEJOB_LISTEN_ADDRESS`, runtime Kafka and Yjs document initialization settings |
-| Email | `internal/email/configs/` | `EMAIL_LISTEN_ADDRESS`, `SMTP_*`, `NOTEGIC_OFFICIAL_*`, `KAFKA_*` consumer settings |
-| RealtimeGateway | `internal/realtimegateway/configs/` | `REALTIME_GATEWAY_LISTEN_ADDRESS`, `REALTIME_ENABLED`, `YJS_WORKER_URLS` |
+| ClientGateway | `runtimes/clientgateway/configs/` | `CLIENT_GATEWAY_LISTEN_ADDRESS`, legacy `GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
+| APIGateway | `runtimes/apigateway/configs/` | `API_GATEWAY_LISTEN_ADDRESS`, `CORE_BASE_URL` |
+| Core | `runtimes/core/configs/` | `CORE_LISTEN_ADDRESS`, `OAUTH_GOOGLE_*`, `STORAGE_KEY_SALT`, `OUTBOX_RELAY_*`, user-data cache TTL, quota-cycle worker interval, Yjs document initialization endpoint/timeout |
+| DurableJob | `runtimes/durablejob/configs/` | `DURABLEJOB_LISTEN_ADDRESS`, runtime Kafka and Yjs document initialization settings |
+| Email | `runtimes/email/configs/` | `EMAIL_LISTEN_ADDRESS`, `SMTP_*`, `NOTEGIC_OFFICIAL_*`, `KAFKA_*` consumer settings |
+| RealtimeGateway | `runtimes/realtimegateway/configs/` | `REALTIME_GATEWAY_LISTEN_ADDRESS`, `REALTIME_ENABLED`, `YJS_WORKER_URLS` |
 
 `shared/platform/config/` must not be recreated. A platform component owns
 only its infrastructure connection configuration; runtime policy remains with
@@ -59,7 +59,7 @@ example `notegic-db` and `notegic-notification-db`; they are DNS names rather
 than PostgreSQL identifiers.
 
 Yjs worker owns the maintenance strategy policy. Its composition root loads
-these values through `internal/yjsworker/configs/postgres.ts`:
+these values through `runtimes/yjsworker/configs/postgres.ts`:
 
 ```dotenv
 YJS_MAINTENANCE_MAXIMUM_PENDING_HINTS=1000
@@ -121,4 +121,4 @@ server number or cross-runtime Redis registry is part of their configuration.
 Core currently reads `CORE_USER_DATA_CACHE_EXPIRES_IN` and
 `CORE_USER_DATA_CACHE_MAX_ROTATION_RETRIES`; Gateway and
 RealtimeGateway keep their rate-limit policies in
-`internal/<runtime>/configs/rate_limit.go`.
+`runtimes/<runtime>/configs/rate_limit.go`.

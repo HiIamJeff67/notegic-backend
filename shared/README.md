@@ -1,6 +1,6 @@
 # Shared
 
-Cross-runtime helpers live here, beside `internal/` and `contracts/`.
+Cross-runtime helpers live here, beside `runtimes/` and `contracts/`.
 
 - `lib/` is portable and must not import Notegic code.
 - `util/` contains reusable application-facing utilities such as EditableBlock

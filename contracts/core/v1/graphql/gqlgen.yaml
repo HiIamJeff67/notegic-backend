@@ -35,7 +35,7 @@ resolver:
   # filename: graph/resolver.go
 
   # Only for follow-schema layout:
-  dir: ../internal/clientgateway/transports/api/graphql/resolvers
+  dir: ../runtimes/clientgateway/transports/api/graphql/resolvers
   filename_template: "{name}_resolver.go"
 
   # Optional: turn on to not generate template comments above resolvers
@@ -147,8 +147,8 @@ models:
     # unmarshal: github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars.UnmarshalTime
   Base64Bytes:
     model: "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars.Base64Bytes"
-    # marshal: github.com/HiIamJeff/notegic-backend/internal/clientgateway/transports/api/graphql/scalar.MarshalBase64Bytes
-    # unmarshal: github.com/HiIamJeff/notegic-backend/internal/clientgateway/transports/api/graphql/scalar.UnmarshalBase64Bytes
+    # marshal: github.com/HiIamJeff/notegic-backend/runtimes/clientgateway/transports/api/graphql/scalar.MarshalBase64Bytes
+    # unmarshal: github.com/HiIamJeff/notegic-backend/runtimes/clientgateway/transports/api/graphql/scalar.UnmarshalBase64Bytes
   RawJSON:
     model:
       - "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/scalars.RawJSON"

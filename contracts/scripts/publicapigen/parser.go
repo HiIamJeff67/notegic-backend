@@ -109,7 +109,7 @@ func expressionName(expr ast.Expr) string {
 }
 
 func loadBinderContracts(root string) {
-	binderRoot := filepath.Join(root, "internal", "clientgateway", "transports", "api", "binders")
+	binderRoot := filepath.Join(root, "runtimes", "clientgateway", "transports", "api", "binders")
 	pattern := regexp.MustCompile(`(?s)func \(b \*\w+Binder\) Bind(\w+)\s*\(\s*controllerFunc controllers\.Func\[\*(?:\w+\.)?(\w+RequestDto)\]`)
 	entries, err := os.ReadDir(binderRoot)
 	must(err)
@@ -126,7 +126,7 @@ func loadBinderContracts(root string) {
 }
 
 func loadControllerContracts(root string) {
-	controllerRoot := filepath.Join(root, "internal", "clientgateway", "transports", "api", "controllers")
+	controllerRoot := filepath.Join(root, "runtimes", "clientgateway", "transports", "api", "controllers")
 	pattern := regexp.MustCompile(`(?s)Call(?:Securly)?\[\s*(?:\w+\.)?(\w+RequestDto)\s*,\s*(?:\w+\.)?(\w+ResponseDto)\s*,?\s*\]`)
 	entries, err := os.ReadDir(controllerRoot)
 	must(err)
@@ -170,7 +170,7 @@ var routeConfigs = map[string]routeFileConfig{
 }
 
 func loadGatewayEndpoints(root string) []endpoint {
-	routeRoot := filepath.Join(root, "internal", "clientgateway", "transports", "api", "routes", "developmentroutes")
+	routeRoot := filepath.Join(root, "runtimes", "clientgateway", "transports", "api", "routes", "developmentroutes")
 	result := []endpoint{}
 	for fileName, config := range routeConfigs {
 		path := filepath.Join(routeRoot, fileName)

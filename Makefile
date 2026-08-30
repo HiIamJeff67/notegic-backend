@@ -1,6 +1,6 @@
 # ============================== Workspace Commands ============================== #
 
-WORKSPACE_MODULES := contracts shared internal/cli internal/core internal/durablejob internal/email internal/clientgateway internal/apigateway internal/notification internal/realtimegateway test
+WORKSPACE_MODULES := contracts shared runtimes/cli runtimes/core runtimes/durablejob runtimes/email runtimes/clientgateway runtimes/apigateway runtimes/notification runtimes/realtimegateway test
 
 .PHONY: ci-format ci-vet ci-unit ci-race ci-generated ci-containers staging-deploy staging-smoke kafka-topics \
 	compose-integration-up compose-integration-down test-integration test-integration-yjs test-integration-kafka \
@@ -77,7 +77,7 @@ env-rotate: env-check
 	@"$(SOPS)" --config "$(SOPS_CONFIG)" rotate --in-place "$(ENV_ENCRYPTED_FILE)"
 
 ci-format:
-	@files="$$(find contracts shared internal test -type f -name '*.go' -not -path '*/vendor/*' -print0 | xargs -0 gofmt -l)"; \
+	@files="$$(find contracts shared runtimes test -type f -name '*.go' -not -path '*/vendor/*' -print0 | xargs -0 gofmt -l)"; \
 	if [ -n "$$files" ]; then echo "Unformatted Go files:"; echo "$$files"; exit 1; fi
 
 ci-vet:
@@ -106,7 +106,7 @@ ci-containers:
 		echo "docker build $$runtime"; \
 		target=production; \
 		if [ "$$runtime" = yjsworker ]; then target=runtime; fi; \
-		docker build --target "$$target" --file "internal/$$runtime/Dockerfile" --tag "notegic-ci-$$runtime" .; \
+		docker build --target "$$target" --file "runtimes/$$runtime/Dockerfile" --tag "notegic-ci-$$runtime" .; \
 	done
 
 staging-deploy:
@@ -137,7 +137,7 @@ compose-down:
 	chmod 600 "$$temporary_file"; \
 	docker compose --project-directory . --env-file "$$temporary_file" --file "$(COMPOSE_FILE)" --file "$(COMPOSE_INIT_FILE)" down --volumes --remove-orphans
 
-CLI_RUN := go -C internal/cli run .
+CLI_RUN := go -C runtimes/cli run .
 
 test-all:
 	$(CLI_RUN) test-all
@@ -157,16 +157,16 @@ test-shared:
 	$(MAKE) -C shared test
 
 test-core:
-	$(MAKE) -C internal/core test
+	$(MAKE) -C runtimes/core test
 
 test-gateway:
-	$(MAKE) -C internal/clientgateway test
+	$(MAKE) -C runtimes/clientgateway test
 
 test-client-gateway:
-	$(MAKE) -C internal/clientgateway test
+	$(MAKE) -C runtimes/clientgateway test
 
 test-api-gateway:
-	$(MAKE) -C internal/apigateway test
+	$(MAKE) -C runtimes/apigateway test
 
 devlog:
 	./scripts/devlog.sh
@@ -176,16 +176,16 @@ install-hooks:
 	@echo "Git hooks enabled from .githooks"
 
 test-durable-job:
-	$(MAKE) -C internal/durablejob test
+	$(MAKE) -C runtimes/durablejob test
 
 test-email:
-	$(MAKE) -C internal/email test
+	$(MAKE) -C runtimes/email test
 
 test-realtime-gateway:
-	$(MAKE) -C internal/realtimegateway test
+	$(MAKE) -C runtimes/realtimegateway test
 
 test-notification:
-	$(MAKE) -C internal/notification test
+	$(MAKE) -C runtimes/notification test
 
 test-architecture:
 	$(MAKE) -C test test-architecture
@@ -200,7 +200,7 @@ test-integration:
 	$(MAKE) -C test test-integration-run
 
 test-integration-yjs:
-	@cd internal/yjsworker && NOTEGIC_RUN_INTEGRATION=1 YJS_DB_HOST=127.0.0.1 YJS_DB_PORT=15432 YJS_DB_USER=notegic YJS_DB_PASSWORD=notegic YJS_DB_NAME=notegic_integration pnpm run test:integration
+	@cd runtimes/yjsworker && NOTEGIC_RUN_INTEGRATION=1 YJS_DB_HOST=127.0.0.1 YJS_DB_PORT=15432 YJS_DB_USER=notegic YJS_DB_PASSWORD=notegic YJS_DB_NAME=notegic_integration pnpm run test:integration
 
 test-integration-kafka:
 	$(MAKE) -C test test-integration-kafka-run

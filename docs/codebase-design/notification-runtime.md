@@ -27,15 +27,15 @@ single database transaction. Reprocessing a Kafka event therefore has no
 additional side effect.
 
 The Notification outbox relay is a transport component at
-`internal/notification/transports/outbox_relay.go` because it publishes the
+`runtimes/notification/transports/outbox_relay.go` because it publishes the
 runtime's persisted events to Kafka. Notification-owned cleanup remains a
-runtime worker under `internal/notification/workers/`; it performs local
+runtime worker under `runtimes/notification/workers/`; it performs local
 retention work and does not represent an external transport boundary.
 
 Type-specific payloads are defined under
 `contracts/notification/v1/types/`. Each payload is a typed contract struct
 with its `validate` tags. The runtime's
-`internal/notification/validations/` package only registers the custom
+`runtimes/notification/validations/` package only registers the custom
 `validator/v10` functions referenced by those tags. The Notification
 application registers shared and notification validators once, then injects
 the configured validator into `NotificationService`, which calls
@@ -61,7 +61,7 @@ Kafka requests from recreating notifications after account deletion.
 RealtimeGateway only consumes the created event and keeps the live-delivery
 copy in its own Redis; it does not query the Notification database. The
 RealtimeGateway consumer is kept at
-`internal/realtimegateway/transports/notification/consumers/`, because Kafka
+`runtimes/realtimegateway/transports/notification/consumers/`, because Kafka
 consumption is an external transport boundary rather than a local worker.
 
 Kafka consume, retry, publish, consumer-lag, and dead-letter metrics are

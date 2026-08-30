@@ -3,7 +3,7 @@ services:
     image: ${DOCKER_CORE_SERVICE_NAME:-notegic-core}:latest
     build:
       context: .
-      dockerfile: internal/core/Dockerfile
+      dockerfile: runtimes/core/Dockerfile
       target: dev
     command:
       - sh
@@ -12,7 +12,7 @@ services:
         go run ./commands bootstrapDB
         go run ./commands migrateDB
         go run ./commands seedDB
-    working_dir: /notegic-backend/internal/core
+    working_dir: /notegic-backend/runtimes/core
     networks:
       - notegic-backend-net
     volumes:
@@ -40,7 +40,7 @@ services:
     image: ${DOCKER_DURABLE_JOB_SERVICE_NAME:-notegic-durable-job}:latest
     build:
       context: .
-      dockerfile: internal/durablejob/Dockerfile
+      dockerfile: runtimes/durablejob/Dockerfile
       target: dev
     command:
       - sh
@@ -48,7 +48,7 @@ services:
       - |
         go run ./commands bootstrapDB
         go run ./commands migrateDB
-    working_dir: /notegic-backend/internal/durablejob
+    working_dir: /notegic-backend/runtimes/durablejob
     networks:
       - notegic-backend-net
     volumes:
@@ -74,10 +74,10 @@ services:
     image: ${DOCKER_NOTIFICATION_SERVICE_NAME:-notegic-notification}:latest
     build:
       context: .
-      dockerfile: internal/notification/Dockerfile
+      dockerfile: runtimes/notification/Dockerfile
       target: dev
     command: ["go", "run", "./commands", "migrateDB"]
-    working_dir: /notegic-backend/internal/notification
+    working_dir: /notegic-backend/runtimes/notification
     networks:
       - notegic-backend-net
     volumes:
@@ -104,9 +104,9 @@ services:
     image: notegic-kafka-init:latest
     build:
       context: .
-      dockerfile: internal/cli/Dockerfile
+      dockerfile: runtimes/cli/Dockerfile
       target: dev
-    command: ["go", "run", "./internal/cli", "kafka", "topics", "ensure"]
+    command: ["go", "run", "./runtimes/cli", "kafka", "topics", "ensure"]
     working_dir: /notegic-backend
     volumes:
       - .:/notegic-backend

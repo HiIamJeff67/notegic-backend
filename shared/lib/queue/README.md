@@ -61,7 +61,7 @@ func main() {
 
 This package is used in block tree flatten/arborize flows in:
 
-- `internal/adapters/editable_block_adapter.go`
+- `runtimes/adapters/editable_block_adapter.go`
 
 ## File Structure
 

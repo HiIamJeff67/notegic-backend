@@ -31,7 +31,7 @@ GraphQL: Gateway executor -> resolver/dataloader -> Gateway Core adapter -> Core
 | Repository/scope | Assemble persistence, permission, preload, soft-delete, and locking query | Import transport request/response or return HTTP status |
 
 Gateway binders own public transport parsing and validation. They live in
-`internal/clientgateway/transports/api/binders/`, alongside controllers. Controllers
+`runtimes/clientgateway/transports/api/binders/`, alongside controllers. Controllers
 receive validated request DTOs, invoke a Gateway adapter, and turn the result
 into the client response. They do not contain public HTTP parsing, domain rules,
 or data-access code.
@@ -53,28 +53,28 @@ that require resource authorization read the strict permission context and fail
 closed when that route policy is missing.
 
 The client-facing ClientGateway transport lives in
-`internal/clientgateway/transports/api/`. It owns routes, binders, controllers, and
+`runtimes/clientgateway/transports/api/`. It owns routes, binders, controllers, and
 client-only middlewares/interceptors. Reusable Gin cookie handlers live in
 `shared/cookies/`.
 `controller_func.go` defines the shared controller function type; binder packages
 must import it explicitly as `apitransport`.
 
 Gateway-to-microservice internal HTTP is separate at
-`internal/clientgateway/transports/core/`: its `adapters/` package is the
+`runtimes/clientgateway/transports/core/`: its `adapters/` package is the
 outbound client boundary. If a Core service concern later needs middleware or
 interceptors, it belongs under this transport, never under `api/`. Core's
 inbound Gateway transport is
 organized by responsibility:
 
 ```text
-internal/core/transports/
+runtimes/core/transports/
   middlewares/              # delegation, authentication, role, and plan checks
   gateway/
     endpoints/              # endpoint interfaces, handlers, and adjacent tests
     routers/                # HTTP route registration and adjacent router tests
 ```
 
-APIGateway is a separate runtime in `internal/apigateway/`. It owns its
+APIGateway is a separate runtime in `runtimes/apigateway/`. It owns its
 API-key entry point, Core adapter, Redis cache, rate limits, configuration,
 transports, and tests; it does not import ClientGateway source.
 
@@ -90,7 +90,7 @@ producers belong under the transport owned by the peer they communicate with;
 they do not belong in a generic `workers/` package:
 
 ```text
-internal/core/transports/
+runtimes/core/transports/
   durablejob/
     consumers/
     eventbuilders/
@@ -100,7 +100,7 @@ internal/core/transports/
     producers/
   outbox_relay.go
 
-internal/durablejob/transports/
+runtimes/durablejob/transports/
   realtimegateway/
     producers/
 ```
@@ -133,7 +133,7 @@ Long-lived background loops belong to the owning runtime's `workers/` package,
 not to `services/` or a generic `workers/` package under `shared/platform`:
 
 ```text
-internal/<runtime>/
+runtimes/<runtime>/
   services/   # request-scoped business workflows
   workers/    # runtime-owned long-lived loops and reconciliation
 ```
@@ -163,7 +163,7 @@ Core services are grouped by business ownership so a future runtime split has a
 stable package boundary:
 
 ```text
-internal/core/services/
+runtimes/core/services/
   auth/                               # auth and OAuth
   user/                               # user, account, info, settings, billing plans
   shelves/                            # root shelf, sub shelf, item
@@ -202,7 +202,7 @@ append/update/reset mutation methods in Core.
 
 ## Dependency direction
 
-- Each runtime's `commands/` package may import its owning `internal/<runtime>/` packages.
+- Each runtime's `commands/` package may import its owning `runtimes/<runtime>/` packages.
 - Gateway client/API and Core-adapter transport code may import contracts, shared,
   and its own code; it must not query Core data or import repositories/
   GORM schemas. RealtimeGateway does not construct Core services, query Core
@@ -241,7 +241,7 @@ append/update/reset mutation methods in Core.
   `shared/platform/postgres/repositories/exceptions/` and are split into one file per domain;
   they are persistence-layer exceptions, not runtime service exception packages.
 - Runtime-owned exception builders belong under each runtime's
-  `internal/<runtime>/exceptions/`; PostgreSQL repository exception builders
+  `runtimes/<runtime>/exceptions/`; PostgreSQL repository exception builders
   belong under `shared/platform/postgres/repositories/exceptions/`.
 - The generic Kafka envelope is maintained in `contracts/types/events/`.
   Runtime event domains remain under their owning `contracts/<runtime>/v1/events/`
@@ -266,7 +266,7 @@ the shared package must not keep a default database or import a runtime. Runtime
 specific business workflows stay in services/workers instead of duplicating
 repository implementations. All reusable scopes live under
 `shared/platform/postgres/scopes/`. Runtime-only raw query helpers belong under
-`internal/<service>/data/postgres/sqls/`; they are not shared platform assets.
+`runtimes/<service>/data/postgres/sqls/`; they are not shared platform assets.
 
 Each database-owning runtime keeps one migration manifest under its own
 `data/postgres/` package. The manifest declares its owner and the tables, enums,
@@ -383,7 +383,7 @@ optional GraphQL/system-only methods
 ```
 
 - Keep one blank line between top-level methods.
-- In `internal/core/services/`, helper functions and helper methods belong at the top of the file, immediately after the constructor and before the public service methods. Keep the primary service workflows below the helpers; do not place a private helper after the method that calls it.
+- In `runtimes/core/services/`, helper functions and helper methods belong at the top of the file, immediately after the constructor and before the public service methods. Keep the primary service workflows below the helpers; do not place a private helper after the method that calls it.
 - Extract a helper only when two or more methods reuse the same named concept, or
   the inline logic would hide the primary workflow. One-call parsing, mapping,
   validation, temporary type, and wrapper variable stay inline.

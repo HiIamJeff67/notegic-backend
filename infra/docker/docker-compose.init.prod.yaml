@@ -20,7 +20,7 @@ services:
     image: ${CORE_IMAGE:-notegic-core:latest}
     build:
       context: ../..
-      dockerfile: internal/core/Dockerfile
+      dockerfile: runtimes/core/Dockerfile
       target: production
     command:
       - sh
@@ -51,7 +51,7 @@ services:
     image: ${DURABLE_JOB_IMAGE:-notegic-durable-job:latest}
     build:
       context: ../..
-      dockerfile: internal/durablejob/Dockerfile
+      dockerfile: runtimes/durablejob/Dockerfile
       target: production
     command:
       - sh
@@ -79,7 +79,7 @@ services:
     image: ${NOTIFICATION_IMAGE:-notegic-notification:latest}
     build:
       context: ../..
-      dockerfile: internal/notification/Dockerfile
+      dockerfile: runtimes/notification/Dockerfile
       target: production
     command: ["/app/notification", "migrateDB"]
     environment:

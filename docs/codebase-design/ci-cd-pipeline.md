@@ -2,7 +2,7 @@
 
 NOT-43 defines the division of responsibilities between GitHub Actions and
 Jenkins. Both may invoke only commands already exposed by the root `Makefile`
-or `internal/cli`; a pipeline must not duplicate a second test workflow.
+or `runtimes/cli`; a pipeline must not duplicate a second test workflow.
 
 ## GitHub Actions
 

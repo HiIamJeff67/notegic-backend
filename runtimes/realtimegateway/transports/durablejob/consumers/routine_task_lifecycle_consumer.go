@@ -1,0 +1,133 @@
+package consumers
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+
+	cdurablejobevents "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+
+	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
+	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+
+	realtimelease "github.com/HiIamJeff67/notegic-backend/runtimes/realtimegateway/data/redis/realtimelease"
+)
+
+type RoutineTaskLifecycleConsumer struct {
+	leaseStore  *realtimelease.RealtimeLeaseCacheClient
+	kafkaConfig skafka.ConsumerConfig
+}
+
+func NewRoutineTaskLifecycleConsumer(
+	leaseStore *realtimelease.RealtimeLeaseCacheClient,
+	kafkaConfig skafka.ConsumerConfig,
+) *RoutineTaskLifecycleConsumer {
+	return &RoutineTaskLifecycleConsumer{
+		leaseStore:  leaseStore,
+		kafkaConfig: kafkaConfig,
+	}
+}
+
+func (c *RoutineTaskLifecycleConsumer) Start(ctx context.Context) func() {
+	workerCtx, cancel := context.WithCancel(ctx)
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		c.run(workerCtx)
+	}()
+
+	return func() {
+		cancel()
+		waitGroup.Wait()
+	}
+}
+
+func (c *RoutineTaskLifecycleConsumer) run(ctx context.Context) {
+	for ctx.Err() == nil {
+		consumer, err := skafka.NewConsumer(
+			c.kafkaConfig,
+			cdurablejobevents.DurableJobRealtimeGatewayRoutineTaskLifecycleTopic.String(),
+		)
+		if err == nil {
+			err = consumer.Run(ctx, c.consume)
+			consumer.Close()
+		}
+		if ctx.Err() != nil {
+			return
+		}
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(
+				ctx,
+				err,
+				"RealtimeGateway DurableJob RoutineTask lifecycle consumer stopped",
+			)
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Second):
+		}
+	}
+}
+
+func (c *RoutineTaskLifecycleConsumer) consume(
+	_ context.Context,
+	_ skafka.ConsumerRecord,
+	envelope cevent.EventEnvelope[json.RawMessage],
+) error {
+	if envelope.EventType != cdurablejobevents.EventType_RoutineTaskRunning ||
+		envelope.AggregateType != cdurablejobevents.AggregateType_RoutineTask {
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_PoisonMessage,
+			Origin:         errors.New("Kafka DurableJob RoutineTask lifecycle event is unsupported"),
+		}
+	}
+
+	var data cdurablejobevents.RoutineTaskRunningData
+	if err := json.Unmarshal(envelope.Data, &data); err != nil {
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
+			Origin:         err,
+		}
+	}
+	if data.RoutineTaskId == uuid.Nil || data.RoutineTaskRecordId == uuid.Nil ||
+		data.RoutineId == uuid.Nil || data.ActorUserPublicId == uuid.Nil ||
+		data.Purpose == "" || data.Attempt <= 0 || data.StartedAt.IsZero() {
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
+			Origin:         errors.New("Kafka DurableJob RoutineTask running lifecycle event is incomplete"),
+		}
+	}
+
+	claimed, err := c.leaseStore.MarkLifecycleEventProcessed(envelope.EventId)
+	if err != nil {
+		return err
+	}
+	if !claimed {
+		return nil
+	}
+
+	if err := c.leaseStore.PublishRoutineTaskLifecycleEvent(realtimelease.RoutineTaskLifecycleEvent{
+		EventId:             envelope.EventId,
+		RoutineTaskId:       data.RoutineTaskId,
+		RoutineTaskRecordId: data.RoutineTaskRecordId,
+		RoutineId:           data.RoutineId,
+		ActorUserPublicId:   data.ActorUserPublicId,
+		Purpose:             string(data.Purpose),
+		Status:              "running",
+		Attempt:             data.Attempt,
+		OccurredAt:          data.StartedAt,
+	}); err != nil {
+		_ = c.leaseStore.ReleaseLifecycleEvent(envelope.EventId)
+		return err
+	}
+
+	return nil
+}

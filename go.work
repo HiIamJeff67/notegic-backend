@@ -2,14 +2,14 @@ go 1.26.0
 
 use (
 	./contracts
-	./internal/apigateway
-	./internal/cli
-	./internal/clientgateway
-	./internal/core
-	./internal/durablejob
-	./internal/email
-	./internal/notification
-	./internal/realtimegateway
+	./runtimes/apigateway
+	./runtimes/cli
+	./runtimes/clientgateway
+	./runtimes/core
+	./runtimes/durablejob
+	./runtimes/email
+	./runtimes/notification
+	./runtimes/realtimegateway
 	./shared
 	./test
 )

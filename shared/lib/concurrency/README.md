@@ -65,7 +65,7 @@ func main() {
 
 This package is used in service flows such as block validation fan-out in:
 
-- `internal/core/services/block_service.go`
+- `runtimes/core/services/block_service.go`
 
 ## File Structure
 
