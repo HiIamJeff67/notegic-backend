@@ -43,6 +43,7 @@ func (p *RoutineTaskLifecycleProducer) ProduceRoutineTaskRunning(
 		Data: cdurablejobevents.RoutineTaskRunningData{
 			RoutineTaskId:       assignment.RoutineTaskId,
 			RoutineTaskRecordId: assignment.RoutineTaskRecordId,
+			RoutineRecordId:     assignment.RoutineRecordId,
 			RoutineId:           assignment.RoutineId,
 			ActorUserPublicId:   assignment.ActorUserPublicId,
 			Purpose:             assignment.Purpose,

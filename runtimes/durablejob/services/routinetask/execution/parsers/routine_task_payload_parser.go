@@ -37,6 +37,43 @@ func NewRoutineTaskPayloadParser(validatorInstance *validator.Validate) RoutineT
 	return &RoutineTaskPayloadParser{validator: validatorInstance}
 }
 
+func validateArborizedEditableBlock(
+	arborizedEditableBlock *cblocknote.ArborizedEditableBlock,
+) *cexceptions.Exception {
+	if arborizedEditableBlock == nil {
+		return cexceptions.New(
+			"InvalidRoutineTaskPayload",
+			"RoutineTask",
+			"Parse",
+			"Routine task payload is invalid",
+			http.StatusBadRequest,
+		).WithOrigin(fmt.Errorf("arborizedEditableBlock is required"))
+	}
+
+	rawFlattenedBlocks, _, err := seditableblock.FlattenEditableBlock(arborizedEditableBlock)
+	if err != nil {
+		return cexceptions.New(
+			"InvalidRoutineTaskPayload",
+			"RoutineTask",
+			"Parse",
+			"Routine task payload is invalid",
+			http.StatusBadRequest,
+		).WithOrigin(err)
+	}
+	if len(rawFlattenedBlocks) == 0 {
+		return cexceptions.New(
+			"InvalidRoutineTaskPayload",
+			"RoutineTask",
+			"Parse",
+			"Routine task payload is invalid",
+			http.StatusBadRequest,
+		).
+			WithOrigin(fmt.Errorf("arborizedEditableBlock must contain at least one block"))
+	}
+
+	return nil
+}
+
 func DecodePayload[T any](validatorInstance *validator.Validate, task sschemas.RoutineTask) (*T, *cexceptions.Exception) {
 	var payload T
 	if err := sjsonpayload.Decode(task.Payload, &payload); err != nil {
@@ -127,8 +164,8 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 	payload datatypes.JSON,
 ) *cexceptions.Exception {
 	switch purpose {
-	case cenums.RoutineTaskPurpose_CreateRootShelf:
-		var parsedPayload croutinetasktypes.CreateRootShelfRoutineTaskPayload
+	case cenums.RoutineTaskPurpose_GetSubShelf:
+		var parsedPayload croutinetasktypes.GetSubShelfRoutineTaskPayload
 		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
@@ -148,9 +185,8 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 			).WithOrigin(err)
 		}
 		return nil
-
-	case cenums.RoutineTaskPurpose_UpdateRootShelf:
-		var parsedPayload croutinetasktypes.UpdateRootShelfRoutineTaskPayload
+	case cenums.RoutineTaskPurpose_DeleteSubShelf:
+		var parsedPayload croutinetasktypes.DeleteSubShelfRoutineTaskPayload
 		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
@@ -170,9 +206,166 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 			).WithOrigin(err)
 		}
 		return nil
-
-	case cenums.RoutineTaskPurpose_ResetRootShelf:
-		var parsedPayload croutinetasktypes.ResetRootShelfRoutineTaskPayload
+	case cenums.RoutineTaskPurpose_GetBlockPack:
+		var parsedPayload croutinetasktypes.GetBlockPackRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_DeleteBlockPack:
+		var parsedPayload croutinetasktypes.DeleteBlockPackRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_GetRoutine:
+		var parsedPayload croutinetasktypes.GetRoutineRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_DeleteRoutine:
+		var parsedPayload croutinetasktypes.DeleteRoutineRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_GetMaterial:
+		var parsedPayload croutinetasktypes.GetMaterialRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_CreateMaterial:
+		var parsedPayload croutinetasktypes.CreateMaterialRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_UpdateMaterial:
+		var parsedPayload croutinetasktypes.UpdateMaterialRoutineTaskPayload
+		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if parsedPayload.Name == nil && parsedPayload.Size == nil &&
+			parsedPayload.ContentKey == nil && parsedPayload.ContentType == nil &&
+			parsedPayload.ParseMediaType == nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(fmt.Errorf("at least one material field must be provided for update"))
+		}
+		return nil
+	case cenums.RoutineTaskPurpose_DeleteMaterial:
+		var parsedPayload croutinetasktypes.DeleteMaterialRoutineTaskPayload
 		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
@@ -217,28 +410,6 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 
 	case cenums.RoutineTaskPurpose_UpdateSubShelf:
 		var parsedPayload croutinetasktypes.UpdateSubShelfRoutineTaskPayload
-		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
-			return cexceptions.New(
-				"InvalidRoutineTaskPayload",
-				"RoutineTask",
-				"Parse",
-				"Routine task payload is invalid",
-				http.StatusBadRequest,
-			).WithOrigin(err)
-		}
-		if err := s.validator.Struct(&parsedPayload); err != nil {
-			return cexceptions.New(
-				"InvalidRoutineTaskPayload",
-				"RoutineTask",
-				"Parse",
-				"Routine task payload is invalid",
-				http.StatusBadRequest,
-			).WithOrigin(err)
-		}
-		return nil
-
-	case cenums.RoutineTaskPurpose_ResetSubShelf:
-		var parsedPayload croutinetasktypes.ResetSubShelfRoutineTaskPayload
 		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
@@ -337,7 +508,30 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 			).WithOrigin(err)
 		}
 
-		for index, updatedBlock := range parsedPayload.UpdatedBlocks {
+		if len(parsedPayload.Blocks) > croutinetasktypes.MaxRoutineTaskBlockPackUpdates {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(fmt.Errorf(
+				"blocks must contain at most %d blocks",
+				croutinetasktypes.MaxRoutineTaskBlockPackUpdates,
+			))
+		}
+		seenBlockIds := make(map[uuid.UUID]struct{}, len(parsedPayload.Blocks))
+		for index, updatedBlock := range parsedPayload.Blocks {
+			if _, exists := seenBlockIds[updatedBlock.BlockId]; exists {
+				return cexceptions.New(
+					"InvalidRoutineTaskPayload",
+					"RoutineTask",
+					"Parse",
+					"Routine task payload is invalid",
+					http.StatusBadRequest,
+				).WithOrigin(fmt.Errorf("blocks[%d].blockId is duplicated", index))
+			}
+			seenBlockIds[updatedBlock.BlockId] = struct{}{}
 			if exception := validateArborizedEditableBlock(updatedBlock.ArborizedEditableBlock); exception != nil {
 				return cexceptions.New(
 					"InvalidRoutineTaskPayload",
@@ -347,7 +541,7 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 					http.StatusBadRequest,
 				).
 					WithOrigin(fmt.Errorf(
-						"invalid updatedBlocks[%d].arborizedEditableBlock: %w",
+						"invalid blocks[%d].arborizedEditableBlock: %w",
 						index,
 						exception,
 					))
@@ -361,32 +555,22 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 					http.StatusBadRequest,
 				).
 					WithOrigin(fmt.Errorf(
-						"invalid updatedBlocks[%d].arborizedEditableBlock: children are not allowed for update operations",
+						"invalid blocks[%d].arborizedEditableBlock: children are not allowed for update operations",
 						index,
 					))
 			}
-		}
-		return nil
-
-	case cenums.RoutineTaskPurpose_ResetBlockPack:
-		var parsedPayload croutinetasktypes.ResetBlockPackRoutineTaskPayload
-		if err := sjsonpayload.Decode(payload, &parsedPayload); err != nil {
-			return cexceptions.New(
-				"InvalidRoutineTaskPayload",
-				"RoutineTask",
-				"Parse",
-				"Routine task payload is invalid",
-				http.StatusBadRequest,
-			).WithOrigin(err)
-		}
-		if err := s.validator.Struct(&parsedPayload); err != nil {
-			return cexceptions.New(
-				"InvalidRoutineTaskPayload",
-				"RoutineTask",
-				"Parse",
-				"Routine task payload is invalid",
-				http.StatusBadRequest,
-			).WithOrigin(err)
+			if updatedBlock.ArborizedEditableBlock.Id != updatedBlock.BlockId {
+				return cexceptions.New(
+					"InvalidRoutineTaskPayload",
+					"RoutineTask",
+					"Parse",
+					"Routine task payload is invalid",
+					http.StatusBadRequest,
+				).WithOrigin(fmt.Errorf(
+					"invalid blocks[%d].arborizedEditableBlock: id must match blockId",
+					index,
+				))
+			}
 		}
 		return nil
 
@@ -444,41 +628,4 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 		).
 			WithOrigin(fmt.Errorf("unsupported routine task purpose: %s", purpose))
 	}
-}
-
-func validateArborizedEditableBlock(
-	arborizedEditableBlock *cblocknote.ArborizedEditableBlock,
-) *cexceptions.Exception {
-	if arborizedEditableBlock == nil {
-		return cexceptions.New(
-			"InvalidRoutineTaskPayload",
-			"RoutineTask",
-			"Parse",
-			"Routine task payload is invalid",
-			http.StatusBadRequest,
-		).WithOrigin(fmt.Errorf("arborizedEditableBlock is required"))
-	}
-
-	rawFlattenedBlocks, _, err := seditableblock.FlattenEditableBlock(arborizedEditableBlock)
-	if err != nil {
-		return cexceptions.New(
-			"InvalidRoutineTaskPayload",
-			"RoutineTask",
-			"Parse",
-			"Routine task payload is invalid",
-			http.StatusBadRequest,
-		).WithOrigin(err)
-	}
-	if len(rawFlattenedBlocks) == 0 {
-		return cexceptions.New(
-			"InvalidRoutineTaskPayload",
-			"RoutineTask",
-			"Parse",
-			"Routine task payload is invalid",
-			http.StatusBadRequest,
-		).
-			WithOrigin(fmt.Errorf("arborizedEditableBlock must contain at least one block"))
-	}
-
-	return nil
 }

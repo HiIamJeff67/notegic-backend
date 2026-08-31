@@ -6,6 +6,7 @@ import { WebSocketServer } from "ws";
 import { config } from "./configs/config.js";
 import { YjsPostgresRepository } from "./data/postgres/repository.js";
 import { BlockPackProjector } from "./services/block_pack_projector.js";
+import { YjsBlockPackUpdateService } from "./services/yjs_block_pack_update_service.js";
 import { YjsCompactionService } from "./services/yjs_compaction_service.js";
 import { YjsDocumentInitializationService } from "./services/yjs_document_initialization_service.js";
 import { YjsProjectionService } from "./services/yjs_projection_service.js";
@@ -43,6 +44,10 @@ export class YjsWorkerServer {
     const roomRegistry = new RoomRegistry(telemetry);
     this.yjsPostgresRepository = new YjsPostgresRepository();
     this.coreCommandDispatcher = new CoreCommandDispatcher(logger);
+    const yjsBlockPackUpdateService = new YjsBlockPackUpdateService(
+      this.coreCommandDispatcher,
+      blockPackProjector
+    );
     this.yjsMaintenanceConsumer = new YjsMaintenanceConsumer(
       this.yjsPostgresRepository,
       yjsCompactionService,
@@ -55,7 +60,8 @@ export class YjsWorkerServer {
       yjsCompactionService,
       this.coreCommandDispatcher,
       telemetry,
-      logger
+      logger,
+      yjsBlockPackUpdateService
     );
     void this.yjsMaintenanceConsumer
       .start()
@@ -83,6 +89,7 @@ export class YjsWorkerServer {
       yjsCompactionService,
       yjsDocumentInitializationService,
       yjsProjectionService,
+      this.realtimeGateway,
       telemetry
     );
 

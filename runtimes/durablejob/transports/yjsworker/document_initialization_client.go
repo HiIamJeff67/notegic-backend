@@ -1,4 +1,4 @@
-package routinetask
+package yjsworkertransport
 
 import (
 	"bytes"
@@ -24,23 +24,38 @@ type DocumentInitializationClient struct {
 }
 
 func NewDocumentInitializationClient(config durablejobconfig.YjsDocumentInitializationConfig) *DocumentInitializationClient {
-	return &DocumentInitializationClient{endpoint: config.Endpoint, httpClient: &http.Client{Timeout: config.Timeout}}
+	return &DocumentInitializationClient{
+		endpoint: config.Endpoint,
+		httpClient: &http.Client{
+			Timeout: config.Timeout,
+		},
+	}
 }
 
-func (c *DocumentInitializationClient) InitializeDocuments(ctx context.Context, requestDtos []cblockpacks.InitializeBlockPackYjsDocumentReqDto) ([]cblockpacks.InitializeBlockPackYjsDocumentResDto, error) {
+func (c *DocumentInitializationClient) InitializeDocuments(
+	ctx context.Context,
+	requestDtos []cblockpacks.InitializeBlockPackYjsDocumentReqDto,
+) ([]cblockpacks.InitializeBlockPackYjsDocumentResDto, error) {
 	if len(requestDtos) == 0 {
 		return []cblockpacks.InitializeBlockPackYjsDocumentResDto{}, nil
 	}
 	payload, err := json.Marshal(struct {
 		Documents []cblockpacks.InitializeBlockPackYjsDocumentReqDto `json:"documents"`
-	}{Documents: requestDtos})
+	}{
+		Documents: requestDtos,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("encode Yjs document initialization request: %w", err)
 	}
 	if len(payload) > cyjsworker.YjsMaintenanceMaximumPayloadBytes {
 		return nil, errors.New("Yjs document initialization request exceeds the worker payload limit")
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.endpoint, bytes.NewReader(payload))
+	request, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		c.endpoint,
+		bytes.NewReader(payload),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("create Yjs document initialization request: %w", err)
 	}
@@ -54,7 +69,10 @@ func (c *DocumentInitializationClient) InitializeDocuments(ctx context.Context, 
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Yjs document initialization worker returned %s", response.Status)
 	}
-	responsePayload, err := io.ReadAll(io.LimitReader(response.Body, int64(cyjsworker.YjsMaintenanceMaximumPayloadBytes)+1))
+	responsePayload, err := io.ReadAll(io.LimitReader(
+		response.Body,
+		int64(cyjsworker.YjsMaintenanceMaximumPayloadBytes)+1,
+	))
 	if err != nil {
 		return nil, fmt.Errorf("read Yjs document initialization response: %w", err)
 	}

@@ -16,40 +16,24 @@ import (
 
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
-	handlers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/handlers"
+	routinetaskservice "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
 	validation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
 )
 
-type HandlerManager struct {
-	maxWorkers       int
-	activeWorkers    atomic.Int32
-	workerPool       sync.WaitGroup
-	sem              chan struct{}
-	workerId         uuid.UUID
-	failed           []failedRoutineTask
-	failedMutex      sync.Mutex
-	success          []preparedRoutineTask
-	successMutex     sync.Mutex
-	registries       map[cenums.RoutineTaskPurpose]handlers.PurposeHandler
-	resultPublisher  ResultPublisher
-	runningPublisher RoutineTaskRunningPublisher
+type Manager struct {
+	maxWorkers         int
+	activeWorkers      atomic.Int32
+	workerPool         sync.WaitGroup
+	sem                chan struct{}
+	workerId           uuid.UUID
+	failed             []failedRoutineTask
+	failedMutex        sync.Mutex
+	success            []preparedRoutineTask
+	successMutex       sync.Mutex
+	preparationService *routinetaskservice.RoutineTaskPreparationService
+	resultWriter       ResultWriteFunc
+	runningPublisher   RoutineTaskRunningPublisher
 }
-
-type RoutineTaskResultKind string
-
-const (
-	RoutineTaskResultKind_Completed RoutineTaskResultKind = "completed"
-	RoutineTaskResultKind_Failed    RoutineTaskResultKind = "failed"
-)
-
-type RoutineTaskResult struct {
-	Kind          RoutineTaskResultKind
-	WorkerId      uuid.UUID
-	CorrelationId string
-	Data          any
-}
-
-type ResultPublisher func(context.Context, RoutineTaskResult) error
 
 type RoutineTaskRunningPublisher func(
 	context.Context,
@@ -68,10 +52,10 @@ type failedRoutineTask struct {
 	errorReason string
 }
 
-func NewHandlerManager(
+func NewManager(
 	maxWorkers int,
 	workerIds ...uuid.UUID,
-) HandlerManager {
+) Manager {
 	if maxWorkers <= 0 {
 		maxWorkers = 1
 	}
@@ -81,48 +65,25 @@ func NewHandlerManager(
 		workerId = workerIds[0]
 	}
 
-	validator := validation.New()
-	prepareHandler := handlers.NewPurposeHandler(validator)
-
-	registries := make(map[cenums.RoutineTaskPurpose]handlers.PurposeHandler, 14)
-	for _, purpose := range []cenums.RoutineTaskPurpose{
-		cenums.RoutineTaskPurpose_CreateRootShelf,
-		cenums.RoutineTaskPurpose_UpdateRootShelf,
-		cenums.RoutineTaskPurpose_ResetRootShelf,
-		cenums.RoutineTaskPurpose_CreateSubShelf,
-		cenums.RoutineTaskPurpose_UpdateSubShelf,
-		cenums.RoutineTaskPurpose_ResetSubShelf,
-		cenums.RoutineTaskPurpose_CreateBlockPack,
-		cenums.RoutineTaskPurpose_UpdateBlockPack,
-		cenums.RoutineTaskPurpose_ResetBlockPack,
-		cenums.RoutineTaskPurpose_AppendBlock,
-		cenums.RoutineTaskPurpose_UpdateBlock,
-		cenums.RoutineTaskPurpose_ResetBlock,
-		cenums.RoutineTaskPurpose_CreateRoutine,
-		cenums.RoutineTaskPurpose_UpdateRoutine,
-	} {
-		registries[purpose] = prepareHandler
-	}
-
-	return HandlerManager{
-		maxWorkers: maxWorkers,
-		sem:        make(chan struct{}, maxWorkers),
-		workerId:   workerId,
-		registries: registries,
+	return Manager{
+		maxWorkers:         maxWorkers,
+		sem:                make(chan struct{}, maxWorkers),
+		workerId:           workerId,
+		preparationService: routinetaskservice.NewRoutineTaskPreparationService(validation.New()),
 	}
 }
 
-func (hm *HandlerManager) SetResultPublisher(publisher ResultPublisher) {
-	hm.resultPublisher = publisher
+func (hm *Manager) SetResultWriter(writer ResultWriteFunc) {
+	hm.resultWriter = writer
 }
 
-func (hm *HandlerManager) SetRoutineTaskRunningPublisher(
+func (hm *Manager) SetRoutineTaskRunningPublisher(
 	publisher RoutineTaskRunningPublisher,
 ) {
 	hm.runningPublisher = publisher
 }
 
-func (hm *HandlerManager) Manage(
+func (hm *Manager) Manage(
 	ctx context.Context,
 	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
 ) error {
@@ -132,17 +93,6 @@ func (hm *HandlerManager) Manage(
 
 	hm.resetResults(len(assignments))
 	for _, assignment := range assignments {
-		registry, exists := hm.registries[assignment.Purpose]
-		if !exists || registry.HandlerFunc == nil {
-			hm.appendFailure(failedRoutineTask{
-				assignment:  assignment,
-				failedAt:    time.Now().UTC(),
-				errorCode:   cenums.RoutineTaskRecordErrorCode_HandlerFailed,
-				errorReason: "routine task purpose handler was not found",
-			})
-			continue
-		}
-
 		assignment := assignment
 		hm.sem <- struct{}{}
 		hm.workerPool.Add(1)
@@ -164,7 +114,7 @@ func (hm *HandlerManager) Manage(
 				}
 			}
 
-			preparedTask, err := registry.HandlerFunc(ctx, assignment)
+			preparedTask, err := hm.preparationService.Prepare(ctx, assignment)
 			if err != nil || preparedTask == nil {
 				errorCode := cenums.RoutineTaskRecordErrorCode_HandlerFailed
 				errorReason := "routine task preparation failed"
@@ -217,7 +167,7 @@ func (hm *HandlerManager) Manage(
 	return hm.publishResults(ctx)
 }
 
-func (hm *HandlerManager) resetResults(capacity int) {
+func (hm *Manager) resetResults(capacity int) {
 	hm.failedMutex.Lock()
 	hm.failed = make([]failedRoutineTask, 0, capacity)
 	hm.failedMutex.Unlock()
@@ -227,19 +177,19 @@ func (hm *HandlerManager) resetResults(capacity int) {
 	hm.successMutex.Unlock()
 }
 
-func (hm *HandlerManager) appendSuccess(result preparedRoutineTask) {
+func (hm *Manager) appendSuccess(result preparedRoutineTask) {
 	hm.successMutex.Lock()
 	hm.success = append(hm.success, result)
 	hm.successMutex.Unlock()
 }
 
-func (hm *HandlerManager) appendFailure(result failedRoutineTask) {
+func (hm *Manager) appendFailure(result failedRoutineTask) {
 	hm.failedMutex.Lock()
 	hm.failed = append(hm.failed, result)
 	hm.failedMutex.Unlock()
 }
 
-func (hm *HandlerManager) publishResults(ctx context.Context) error {
+func (hm *Manager) publishResults(ctx context.Context) error {
 	hm.successMutex.Lock()
 	successes := append([]preparedRoutineTask(nil), hm.success...)
 	hm.successMutex.Unlock()
@@ -251,8 +201,8 @@ func (hm *HandlerManager) publishResults(ctx context.Context) error {
 	if len(successes)+len(failures) == 0 {
 		return nil
 	}
-	if hm.resultPublisher == nil {
-		return errors.New("DurableJob routine task result publisher is not configured")
+	if hm.resultWriter == nil {
+		return errors.New("DurableJob routine task result writer is not configured")
 	}
 
 	correlationId := uuid.New().String()
@@ -265,12 +215,13 @@ func (hm *HandlerManager) publishResults(ctx context.Context) error {
 			request.Tasks[index] = cdurablejobroutinetasktypes.CompletedRoutineTask{
 				RoutineTaskId:       result.preparedTask.RoutineTaskId,
 				RoutineTaskRecordId: result.preparedTask.RoutineTaskRecordId,
+				RoutineRecordId:     result.preparedTask.RoutineRecordId,
 				CompletedAt:         result.completedAt,
 				PreparedTask:        &result.preparedTask,
 			}
 		}
-		if err := hm.resultPublisher(ctx, RoutineTaskResult{
-			Kind:          RoutineTaskResultKind_Completed,
+		if err := hm.resultWriter(ctx, Result{
+			Kind:          ResultKind_Completed,
 			WorkerId:      hm.workerId,
 			CorrelationId: correlationId,
 			Data:          request,
@@ -288,13 +239,14 @@ func (hm *HandlerManager) publishResults(ctx context.Context) error {
 			request.Tasks[index] = cdurablejobroutinetasktypes.FailedRoutineTask{
 				RoutineTaskId:       failure.assignment.RoutineTaskId,
 				RoutineTaskRecordId: failure.assignment.RoutineTaskRecordId,
+				RoutineRecordId:     failure.assignment.RoutineRecordId,
 				FailedAt:            failure.failedAt,
 				ErrorCode:           failure.errorCode,
 				ErrorReason:         failure.errorReason,
 			}
 		}
-		if err := hm.resultPublisher(ctx, RoutineTaskResult{
-			Kind:          RoutineTaskResultKind_Failed,
+		if err := hm.resultWriter(ctx, Result{
+			Kind:          ResultKind_Failed,
 			WorkerId:      hm.workerId,
 			CorrelationId: correlationId,
 			Data:          request,

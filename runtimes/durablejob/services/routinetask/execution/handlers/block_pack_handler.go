@@ -2,14 +2,11 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
@@ -25,9 +22,9 @@ import (
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/matchers"
-	parsers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/parsers"
-	resolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/resolvers"
+	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
+	parsers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/parsers"
+	resolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/resolvers"
 )
 
 type YjsDocumentInitializer interface {
@@ -37,18 +34,36 @@ type YjsDocumentInitializer interface {
 	) ([]capi.InitializeBlockPackYjsDocumentResDto, error)
 }
 
+type YjsBlockPackUpdater interface {
+	UpdateBlockPack(
+		context.Context,
+		capi.UpdateBlockPackYjsDocumentRequestDto,
+	) (*capi.UpdateBlockPackYjsDocumentResponseDto, error)
+}
+
 type BlockPackHandlerInterface interface {
+	HandleGetBlockPack(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 	HandleCreateBlockPack(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 	HandleUpdateBlockPack(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
-	HandleResetBlockPack(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleDeleteBlockPack(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+}
+
+type BlockPackDetailedExecutionHandlerInterface interface {
+	HandleUpdateBlockPackWithResults(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception)
+}
+
+type BlockPackGetDetailedExecutionHandlerInterface interface {
+	HandleGetBlockPackWithResults(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception)
 }
 
 type BlockPackHandler struct {
+	Handler
 	db                   *gorm.DB
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface
 	yjsWorkerClient      YjsDocumentInitializer
+	yjsBlockPackUpdater  YjsBlockPackUpdater
 	blockPackRepository  srepositories.BlockPackRepositoryInterface
 	blockRepository      srepositories.BlockRepositoryInterface
 }
@@ -56,9 +71,10 @@ type BlockPackHandler struct {
 func NewBlockPackHandler(
 	db *gorm.DB,
 	validatorInstance *validator.Validate,
-	yjsDocumentInitializer YjsDocumentInitializer,
 	patternResolver resolvers.RoutineTaskPatternResolverInterface,
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface,
+	yjsDocumentInitializer YjsDocumentInitializer,
+	yjsBlockPackUpdater YjsBlockPackUpdater,
 ) BlockPackHandlerInterface {
 	if validatorInstance == nil {
 		validatorInstance = validator.New()
@@ -75,9 +91,21 @@ func NewBlockPackHandler(
 		patternResolver:      patternResolver,
 		templateBlockMatcher: templateBlockMatcher,
 		yjsWorkerClient:      yjsDocumentInitializer,
+		yjsBlockPackUpdater:  yjsBlockPackUpdater,
 		blockPackRepository:  srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
 		blockRepository:      srepositories.NewBlockRepository(db, sscopes.NewBlockScope()),
 	}
+}
+
+func (s *BlockPackHandler) HandleGetBlockPack(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
+	successes, _, exception := s.HandleGetBlockPackWithResults(ctx, db, tasks, taskIdToActorUserId, allowedPermissions)
+	return successes, exception
 }
 
 func (s *BlockPackHandler) HandleCreateBlockPack(
@@ -295,7 +323,64 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
 	allowedPermissions []cenums.AccessControlPermission,
 ) ([]bool, *cexceptions.Exception) {
+	successes, _, exception := s.HandleUpdateBlockPackWithResults(
+		ctx,
+		db,
+		tasks,
+		taskIdToActorUserId,
+		allowedPermissions,
+	)
+
+	return successes, exception
+}
+
+func (s *BlockPackHandler) HandleDeleteBlockPack(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
+	deleteInputs := make([]sinputs.BulkDeleteBlockPackInput, 0, len(tasks))
+	taskIndexes := make([]int, 0, len(tasks))
+	for index, task := range tasks {
+		actorUserId, exists := taskIdToActorUserId[task.Id]
+		if !exists {
+			continue
+		}
+		payload, exception := parsers.DecodePayload[croutinetasktypes.DeleteBlockPackRoutineTaskPayload](s.validator, task)
+		if exception != nil {
+			continue
+		}
+		deleteInputs = append(deleteInputs, sinputs.BulkDeleteBlockPackInput{Id: payload.BlockPackId, UserId: actorUserId})
+		taskIndexes = append(taskIndexes, index)
+	}
+	if len(deleteInputs) == 0 {
+		return successes, nil
+	}
+	deleteSuccesses, exception := s.blockPackRepository.BulkDeleteMany(
+		deleteInputs,
+		srepositories.WithDB(db.WithContext(ctx)), srepositories.WithAllowedPermissions(allowedPermissions),
+	)
+	if exception != nil {
+		return successes, exception
+	}
+	for index, success := range deleteSuccesses {
+		successes[taskIndexes[index]] = success
+	}
+	return successes, nil
+}
+
+func (s *BlockPackHandler) HandleUpdateBlockPackWithResults(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception) {
+	successes := make([]bool, len(tasks))
+	results := make(map[uuid.UUID]croutinetasktypes.ExecutionResult)
 	candidateTaskIndexes := make([]int, 0, len(tasks))
 	candidateTasks := make([]sschemas.RoutineTask, 0, len(tasks))
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
@@ -307,8 +392,8 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 		if !exists {
 			continue
 		}
-		payload, exception := parsers.DecodePayload[croutinetasktypes.UpdateBlockPackRoutineTaskPayload](s.validator, task)
-		if exception != nil {
+		payload, decodeException := parsers.DecodePayload[croutinetasktypes.UpdateBlockPackRoutineTaskPayload](s.validator, task)
+		if decodeException != nil {
 			continue
 		}
 		candidateTaskIndexes = append(candidateTaskIndexes, taskIndex)
@@ -318,7 +403,7 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 		candidatePatterns = append(candidatePatterns, payload.Pattern)
 	}
 	if len(candidateTasks) == 0 {
-		return successes, nil
+		return successes, results, nil
 	}
 
 	patternValuesByCandidate, patternSuccesses, exception := s.patternResolver.ResolveMany(
@@ -330,178 +415,165 @@ func (s *BlockPackHandler) HandleUpdateBlockPack(
 		allowedPermissions,
 	)
 	if exception != nil {
-		return successes, exception
+		return successes, results, exception
+	}
+	if s.yjsBlockPackUpdater == nil {
+		return successes, results, cexceptions.New(
+			"DependencyUnavailable",
+			"BlockPack",
+			"Update",
+			"The Yjs worker block pack updater is not configured",
+			http.StatusServiceUnavailable,
+			true,
+		)
 	}
 
-	preparedInputs := make([]sinputs.BulkUpdateBlockInput, 0)
-	taskIndexes := make([]int, 0)
-	pairPlaceholders := make([]string, 0)
-	pairArgs := make([]any, 0)
-
 	for candidateIndex, payload := range candidatePayloads {
+		taskIndex := candidateTaskIndexes[candidateIndex]
+		result := croutinetasktypes.ExecutionResult{At: time.Now().UTC()}
 		if !patternSuccesses[candidateIndex] {
 			continue
 		}
-		actorUserId := candidateActorUserIds[candidateIndex]
-		patternValues := patternValuesByCandidate[candidateIndex]
-		for _, block := range payload.UpdatedBlocks {
+
+		items := make([]croutinetasktypes.ExecutionItemResult, len(payload.Blocks))
+		requestBlocks := make([]capi.UpdateBlockPackYjsDocumentBlockRequestDto, 0, len(payload.Blocks))
+		requestBlockIndexes := make([]int, 0, len(payload.Blocks))
+		for blockIndex, block := range payload.Blocks {
+			item := croutinetasktypes.ExecutionItemResult{ItemId: block.BlockId.String()}
 			if block.ArborizedEditableBlock == nil {
+				item.Status = croutinetasktypes.ExecutionItemStatus_Failed
+				item.Reason = "block_payload_invalid"
+				result.Failed++
+				items[blockIndex] = item
 				continue
 			}
-			matchedBlock, exception := s.templateBlockMatcher.MatchArborizedEditableBlock(*block.ArborizedEditableBlock, patternValues)
-			if exception != nil {
+			matchedBlock, matchException := s.templateBlockMatcher.MatchArborizedEditableBlock(
+				*block.ArborizedEditableBlock,
+				patternValuesByCandidate[candidateIndex],
+			)
+			if matchException != nil {
+				item.Status = croutinetasktypes.ExecutionItemStatus_Failed
+				item.Reason = "block_payload_invalid"
+				result.Failed++
+				items[blockIndex] = item
 				continue
 			}
-			flattenedBlocks, _, _, exception := parsers.FlattenArborizedBlock(payload.BlockPackId, &matchedBlock)
-			if exception != nil || len(flattenedBlocks) != 1 {
+			flattenedBlocks, _, _, flattenException := parsers.FlattenArborizedBlock(
+				payload.BlockPackId,
+				&matchedBlock,
+			)
+			if flattenException != nil || len(flattenedBlocks) != 1 {
+				item.Status = croutinetasktypes.ExecutionItemStatus_Failed
+				item.Reason = "block_payload_must_be_single_block"
+				result.Failed++
+				items[blockIndex] = item
 				continue
 			}
-			blockType := flattenedBlocks[0].Type
-			props := datatypes.JSON(flattenedBlocks[0].Props)
-			content := datatypes.JSON(flattenedBlocks[0].Content)
-			pairPlaceholders = append(pairPlaceholders, "(?::uuid, ?::uuid)")
-			pairArgs = append(pairArgs, block.BlockId, payload.BlockPackId)
-			preparedInputs = append(preparedInputs, sinputs.BulkUpdateBlockInput{
-				UserId: actorUserId,
-				Id:     block.BlockId,
-				PartialUpdateInput: sinputs.PartialUpdateBlockInput{Values: sinputs.UpdateBlockInput{
-					Type:    &blockType,
-					Props:   &props,
-					Content: &content,
-				}},
+			requestBlocks = append(requestBlocks, capi.UpdateBlockPackYjsDocumentBlockRequestDto{
+				BlockId: block.BlockId,
+				Block:   matchedBlock,
 			})
-			taskIndexes = append(taskIndexes, candidateTaskIndexes[candidateIndex])
+			requestBlockIndexes = append(requestBlockIndexes, blockIndex)
 		}
-	}
-	if len(preparedInputs) == 0 {
-		return successes, nil
-	}
 
-	var validRows []struct {
-		BlockId     uuid.UUID `gorm:"column:block_id"`
-		BlockPackId uuid.UUID `gorm:"column:block_pack_id"`
-	}
-	sql := fmt.Sprintf(`
-		WITH pairs(block_id, block_pack_id) AS (VALUES %s)
-		SELECT p.block_id::uuid, p.block_pack_id::uuid
-		FROM pairs p
-		INNER JOIN "BlockTable" b ON b.id = p.block_id::uuid AND b.block_pack_id = p.block_pack_id::uuid
-	`, strings.Join(pairPlaceholders, ","))
-	if err := db.WithContext(ctx).Raw(sql, pairArgs...).Scan(&validRows).Error; err != nil {
-		return successes, cexceptions.New(
-			"QueryFailed",
-			"Block",
-			"Update",
-			"Failed to validate block pack blocks",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-	valid := make(map[[2]uuid.UUID]bool, len(validRows))
-	for _, row := range validRows {
-		valid[[2]uuid.UUID{row.BlockId, row.BlockPackId}] = true
-	}
-	filteredInputs := make([]sinputs.BulkUpdateBlockInput, 0, len(preparedInputs))
-	filteredTaskIndexes := make([]int, 0, len(taskIndexes))
-	for index, input := range preparedInputs {
-		blockPackId := pairArgs[index*2+1].(uuid.UUID)
-		if valid[[2]uuid.UUID{input.Id, blockPackId}] {
-			filteredInputs = append(filteredInputs, input)
-			filteredTaskIndexes = append(filteredTaskIndexes, taskIndexes[index])
+		if len(requestBlocks) > 0 {
+			responseDto, err := s.yjsBlockPackUpdater.UpdateBlockPack(ctx, capi.UpdateBlockPackYjsDocumentRequestDto{
+				BlockPackId: payload.BlockPackId,
+				Blocks:      requestBlocks,
+			})
+			if err != nil {
+				return successes, results, cexceptions.New(
+					"FailedToUpdate",
+					"BlockPack",
+					"Update",
+					"Failed to update block pack through the Yjs worker",
+					http.StatusInternalServerError,
+					true,
+				).WithOrigin(err)
+			}
+			if responseDto == nil || len(responseDto.Blocks) != len(requestBlocks) {
+				return successes, results, cexceptions.New(
+					"InvalidResponse",
+					"BlockPack",
+					"Update",
+					"The Yjs worker returned an incomplete block pack update response",
+					http.StatusBadGateway,
+					true,
+				)
+			}
+			for responseIndex, blockResult := range responseDto.Blocks {
+				item := croutinetasktypes.ExecutionItemResult{ItemId: blockResult.BlockId.String()}
+				switch blockResult.Status {
+				case "updated":
+					item.Status = croutinetasktypes.ExecutionItemStatus_Updated
+					result.Updated++
+				case "skipped":
+					item.Status = croutinetasktypes.ExecutionItemStatus_Skipped
+					result.Skipped++
+				default:
+					item.Status = croutinetasktypes.ExecutionItemStatus_Failed
+					result.Failed++
+				}
+				item.Reason = blockResult.Reason
+				items[requestBlockIndexes[responseIndex]] = item
+			}
 		}
-	}
-	if len(filteredInputs) == 0 {
-		return successes, nil
+
+		result.Items = items
+		successes[taskIndex] = result.Failed == 0
+		results[tasks[taskIndex].Id] = result
 	}
 
-	bulkSuccesses, exception := s.blockRepository.BulkUpdateMany(
-		filteredInputs,
-		srepositories.WithTransactionDB(db.WithContext(ctx)),
-		srepositories.WithAllowedPermissions(allowedPermissions),
-		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
-	)
-	if exception != nil {
-		return successes, exception
-	}
-	for index, success := range bulkSuccesses {
-		successes[filteredTaskIndexes[index]] = success
-	}
-
-	return successes, nil
+	return successes, results, nil
 }
 
-func (s *BlockPackHandler) HandleResetBlockPack(
+func (s *BlockPackHandler) HandleGetBlockPackWithResults(
 	ctx context.Context,
 	db *gorm.DB,
 	tasks []sschemas.RoutineTask,
 	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
 	allowedPermissions []cenums.AccessControlPermission,
-) ([]bool, *cexceptions.Exception) {
+) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception) {
 	successes := make([]bool, len(tasks))
+	results := make(map[uuid.UUID]croutinetasktypes.ExecutionResult)
 	checkInputs := make([]sinputs.BulkCheckBlockPackPermissionInput, 0, len(tasks))
 	taskIndexes := make([]int, 0, len(tasks))
-	blockPackIds := make([]uuid.UUID, 0, len(tasks))
-
-	for taskIndex, task := range tasks {
+	taskObjectIds := make([]uuid.UUID, 0, len(tasks))
+	for index, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
 		if !exists {
 			continue
 		}
-		payload, exception := parsers.DecodePayload[croutinetasktypes.ResetBlockPackRoutineTaskPayload](s.validator, task)
+		payload, exception := parsers.DecodePayload[croutinetasktypes.GetBlockPackRoutineTaskPayload](s.validator, task)
 		if exception != nil {
 			continue
 		}
-		checkInputs = append(checkInputs, sinputs.BulkCheckBlockPackPermissionInput{
-			UserId: actorUserId,
-			Id:     payload.BlockPackId,
-		})
-		taskIndexes = append(taskIndexes, taskIndex)
-		blockPackIds = append(blockPackIds, payload.BlockPackId)
+		checkInputs = append(checkInputs, sinputs.BulkCheckBlockPackPermissionInput{Id: payload.BlockPackId, UserId: actorUserId})
+		taskIndexes = append(taskIndexes, index)
+		taskObjectIds = append(taskObjectIds, payload.BlockPackId)
 	}
 	if len(checkInputs) == 0 {
-		return successes, nil
+		return successes, results, nil
 	}
-
-	tx := db.WithContext(ctx)
-
-	checkSuccesses, _, exception := s.blockPackRepository.BulkCheckPermissionsAndGetManyByIds(
-		checkInputs,
-		nil,
-		allowedPermissions,
-		srepositories.WithTransactionDB(tx),
-		srepositories.WithAllowedPermissions(allowedPermissions),
-		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
-		srepositories.WithLockingStrength(srepositories.LockingStrengthNoKeyUpdate),
+	checkSuccesses, objects, exception := s.blockPackRepository.BulkCheckPermissionsAndGetManyByIds(
+		checkInputs, nil, allowedPermissions,
+		srepositories.WithDB(db.WithContext(ctx)), srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception != nil {
-		return successes, exception
+		return successes, nil, exception
 	}
-
-	validBlockPackIds := make([]uuid.UUID, 0, len(blockPackIds))
+	objectsById := make(map[uuid.UUID]sschemas.BlockPack, len(objects))
+	for _, object := range objects {
+		objectsById[object.Id] = object
+	}
 	for index, success := range checkSuccesses {
-		if success {
-			validBlockPackIds = append(validBlockPackIds, blockPackIds[index])
+		taskIndex := taskIndexes[index]
+		successes[taskIndex] = success
+		result, resultException := s.BuildGetResult(taskObjectIds[index], success, objectsById[taskObjectIds[index]])
+		if resultException != nil {
+			return successes, nil, resultException
 		}
+		results[tasks[taskIndex].Id] = result
 	}
-	if len(validBlockPackIds) == 0 {
-		return successes, nil
-	}
-
-	if err := tx.Model(&sschemas.Block{}).
-		Where("block_pack_id IN ? AND deleted_at IS NULL", validBlockPackIds).
-		Updates(map[string]any{"deleted_at": time.Now(), "prev_block_id": nil, "next_block_id": nil}).Error; err != nil {
-		return successes, cexceptions.New(
-			"FailedToUpdate",
-			"Block",
-			"Reset",
-			"Failed to reset block pack blocks",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-	for index, success := range checkSuccesses {
-		successes[taskIndexes[index]] = success
-	}
-
-	return successes, nil
+	return successes, results, nil
 }

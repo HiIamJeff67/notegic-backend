@@ -47,6 +47,24 @@ func getDurablePermissionObjects() []spostgres.PermissionObject {
 		},
 		{
 			Type: spostgres.PermissionObjectType_Table,
+			Name: spostgres.TableName_RoutineDependencyTable.String(),
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_DurableJob, Privileges: privileges},
+				{Runtime: ctypes.Runtime_Core, Privileges: privileges},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Table,
+			Name: spostgres.TableName_RoutineRecordTable.String(),
+			Grants: []spostgres.PermissionGrant{
+				{Runtime: ctypes.Runtime_DurableJob, Privileges: privileges},
+				{Runtime: ctypes.Runtime_Core, Privileges: []spostgres.PermissionPrivilege{
+					spostgres.PermissionPrivilege_Select,
+				}},
+			},
+		},
+		{
+			Type: spostgres.PermissionObjectType_Table,
 			Name: spostgres.TableName_RoutineTaskTable.String(),
 			Grants: []spostgres.PermissionGrant{
 				{Runtime: ctypes.Runtime_DurableJob, Privileges: routineTaskPrivileges},

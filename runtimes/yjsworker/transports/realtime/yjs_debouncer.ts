@@ -162,7 +162,10 @@ export class YjsDebouncer {
     try {
       Y.applyUpdate(room.document, pendingYjsUpdate.frame.payload);
     } catch {
-      if (pendingYjsUpdate.webSocket.readyState === WebSocketState.OPEN) {
+      if (
+        pendingYjsUpdate.webSocket !== null &&
+        pendingYjsUpdate.webSocket.readyState === WebSocketState.OPEN
+      ) {
         pendingYjsUpdate.webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_ResyncRequired,
@@ -342,7 +345,9 @@ export class YjsDebouncer {
     if (
       room.inFlightPersistenceBatch === null ||
       room.persistenceRetryTimer !== null ||
-      room.inFlightPersistenceBatch.webSocket.readyState !== WebSocketState.OPEN
+      (room.inFlightPersistenceBatch.webSocket !== null &&
+        room.inFlightPersistenceBatch.webSocket.readyState !==
+          WebSocketState.OPEN)
     ) {
       return;
     }

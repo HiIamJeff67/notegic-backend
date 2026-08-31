@@ -1,5 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { WebSocket } from "ws";
 import * as Y from "yjs";
+import type {
+  UpdateBlockPackYjsDocumentRequest,
+  UpdateBlockPackYjsDocumentResponse,
+} from "../../../../contracts/yjs-worker/v1/update_block_pack.js";
 import {
   BlockPackDocumentQuotaPolicyVersion,
   type BlockPackQuotaPolicy,
@@ -11,6 +16,7 @@ import {
   YjsPendingDocumentMaximumUpdateCount,
 } from "../../configs/realtime_config.js";
 import { BlockPackProjector } from "../../services/block_pack_projector.js";
+import type { YjsBlockPackUpdateService } from "../../services/yjs_block_pack_update_service.js";
 import type { YjsCompactionService } from "../../services/yjs_compaction_service.js";
 import type { Telemetry } from "../../telemetry.js";
 import {
@@ -46,18 +52,21 @@ export class RealtimeGateway {
   private readonly yjsDebouncer: YjsDebouncer;
   private readonly telemetry: Telemetry;
   private readonly logger: Logger;
+  private readonly yjsBlockPackUpdateService: YjsBlockPackUpdateService | null;
 
   constructor(
     roomRegistry: RoomRegistry,
     yjsCompactionService: YjsCompactionService,
     coreCommandDispatcher: CoreCommandDispatcher,
     telemetry: Telemetry,
-    logger = new Logger()
+    logger = new Logger(),
+    yjsBlockPackUpdateService?: YjsBlockPackUpdateService
   ) {
     this.roomRegistry = roomRegistry;
     this.blockPackProjector = new BlockPackProjector();
     this.yjsCompactionService = yjsCompactionService;
     this.coreCommandDispatcher = coreCommandDispatcher;
+    this.yjsBlockPackUpdateService = yjsBlockPackUpdateService ?? null;
     this.logger = logger;
     this.yjsDebouncer = new YjsDebouncer(
       telemetry,
@@ -188,14 +197,14 @@ export class RealtimeGateway {
 
   private handleYjsDocumentUpdate(
     room: Room,
-    webSocket: WebSocket,
+    webSocket: WebSocket | null,
     frame: InternalFrame
   ): void {
     const subscriber = room.subscribers.get(
       `${frame.connectionId}:${frame.connectorChannelId}`
     );
     if (subscriber === undefined) {
-      if (webSocket.readyState === WebSocket.OPEN) {
+      if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
         webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_ResyncRequired,
@@ -209,7 +218,7 @@ export class RealtimeGateway {
       return;
     }
     if (subscriber.quotaRecoveryRequired) {
-      if (webSocket.readyState === WebSocket.OPEN) {
+      if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
         webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_BlockPackQuotaExceeded,
@@ -228,7 +237,7 @@ export class RealtimeGateway {
         room.pendingYjsPayloadBytes + frame.payload.length >
           YjsPendingDocumentMaximumPayloadBytes
       ) {
-        if (webSocket.readyState === WebSocket.OPEN) {
+        if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
           webSocket.send(
             createInternalFrame(
               InternalFrameType.InternalFrameType_ResyncRequired,
@@ -248,7 +257,7 @@ export class RealtimeGateway {
       return;
     }
     if (room.validationDocument === null) {
-      if (webSocket.readyState === WebSocket.OPEN) {
+      if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
         webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_ResyncRequired,
@@ -275,7 +284,7 @@ export class RealtimeGateway {
         room.validationDocument,
         Y.encodeStateAsUpdate(room.document)
       );
-      if (webSocket.readyState === WebSocket.OPEN) {
+      if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
         webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_ResyncRequired,
@@ -303,7 +312,7 @@ export class RealtimeGateway {
         durationMilliseconds: 0,
         payloadBytes: frame.payload.length,
       });
-      if (webSocket.readyState === WebSocket.OPEN) {
+      if (webSocket !== null && webSocket.readyState === WebSocket.OPEN) {
         webSocket.send(
           createInternalFrame(
             InternalFrameType.InternalFrameType_BlockPackQuotaExceeded,
@@ -653,7 +662,7 @@ export class RealtimeGateway {
     blockPackId: string,
     inFlightPersistenceBatch: {
       payload: Buffer;
-      webSocket: WebSocket;
+      webSocket: WebSocket | null;
       connectionId: string;
       connectorChannelId: number;
     }
@@ -1124,6 +1133,80 @@ export class RealtimeGateway {
 
   getActiveRoomCount(): number {
     return this.roomRegistry.size;
+  }
+
+  async updateBlockPack(
+    request: UpdateBlockPackYjsDocumentRequest
+  ): Promise<UpdateBlockPackYjsDocumentResponse> {
+    const room = this.roomRegistry.get(request.blockPackId);
+    if (room === undefined || room.document === null) {
+      if (this.yjsBlockPackUpdateService === null) {
+        throw new Error("the Yjs block pack updater is not configured");
+      }
+
+      return this.yjsBlockPackUpdateService.update(request);
+    }
+    if (room.validationDocument === null) {
+      throw new Error("the active Yjs room is not ready for updates");
+    }
+
+    const workingDocument = new Y.Doc();
+    try {
+      Y.applyUpdate(workingDocument, Y.encodeStateAsUpdate(room.document));
+      if (this.yjsBlockPackUpdateService === null) {
+        throw new Error("the Yjs block pack updater is not configured");
+      }
+
+      const result = this.yjsBlockPackUpdateService.apply(
+        workingDocument,
+        request.blocks
+      );
+      if (result.update.length === 0) {
+        return result.response;
+      }
+
+      const validationDocument = new Y.Doc();
+      try {
+        Y.applyUpdate(
+          validationDocument,
+          Y.encodeStateAsUpdate(room.validationDocument)
+        );
+        Y.applyUpdate(validationDocument, result.update);
+        if (
+          this.blockPackProjector.countYjsDocumentBlocks(validationDocument) >
+          room.maximumBlockCount
+        ) {
+          return {
+            blocks: result.response.blocks.map(block => ({
+              ...block,
+              status: "failed",
+              reason: "block_pack_quota_exceeded",
+            })),
+          };
+        }
+      } finally {
+        validationDocument.destroy();
+      }
+
+      Y.applyUpdate(room.document, result.update);
+      Y.applyUpdate(room.validationDocument, result.update);
+      const subscriber = room.subscribers.values().next().value;
+      this.yjsDebouncer.queueUpdate(room, {
+        webSocket: subscriber?.webSocket ?? null,
+        frame: {
+          version: 1,
+          type: InternalFrameType.InternalFrameType_YjsDocument,
+          connectionId: randomUUID(),
+          connectorChannelId: 1,
+          blockPackId: request.blockPackId,
+          payload: result.update,
+        },
+      });
+
+      return result.response;
+    } finally {
+      workingDocument.destroy();
+    }
   }
 
   async shutdown(): Promise<void> {

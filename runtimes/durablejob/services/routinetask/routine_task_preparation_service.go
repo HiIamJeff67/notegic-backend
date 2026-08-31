@@ -1,4 +1,4 @@
-package handlers
+package routinetask
 
 import (
 	"context"
@@ -16,32 +16,23 @@ import (
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 )
 
-type PurposeHandler struct {
-	HandlerFunc PurposeHandlerFunc
+type RoutineTaskPreparationService struct {
+	validator *validator.Validate
 }
 
-type PurposeHandlerFunc func(
-	context.Context,
-	croutinetasktypes.RoutineTaskAssignment,
-) (*croutinetasktypes.PreparedRoutineTask, error)
-
-func NewPurposeHandler(validator *validator.Validate) PurposeHandler {
-	return PurposeHandler{
-		HandlerFunc: func(
-			ctx context.Context,
-			assignment croutinetasktypes.RoutineTaskAssignment,
-		) (*croutinetasktypes.PreparedRoutineTask, error) {
-			return prepareAssignment(ctx, validator, assignment)
-		},
+func NewRoutineTaskPreparationService(
+	validatorInstance *validator.Validate,
+) *RoutineTaskPreparationService {
+	return &RoutineTaskPreparationService{
+		validator: validatorInstance,
 	}
 }
 
-func prepareAssignment(
+func (s *RoutineTaskPreparationService) Prepare(
 	_ context.Context,
-	validator *validator.Validate,
 	assignment croutinetasktypes.RoutineTaskAssignment,
 ) (*croutinetasktypes.PreparedRoutineTask, error) {
-	if assignment.RoutineTaskId == uuid.Nil || assignment.RoutineTaskRecordId == uuid.Nil ||
+	if assignment.RoutineTaskId == uuid.Nil || assignment.RoutineTaskRecordId == uuid.Nil || assignment.RoutineRecordId == uuid.Nil ||
 		assignment.RoutineId == uuid.Nil || assignment.ActorUserId == uuid.Nil || assignment.ActorUserPublicId == uuid.Nil ||
 		assignment.Purpose == "" || len(assignment.Payload) == 0 {
 		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
@@ -51,30 +42,34 @@ func prepareAssignment(
 
 	var payload any
 	switch assignment.Purpose {
-	case cenums.RoutineTaskPurpose_CreateRootShelf:
-		payload = &croutinetasktypes.CreateRootShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateRootShelf:
-		payload = &croutinetasktypes.UpdateRootShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_ResetRootShelf:
-		payload = &croutinetasktypes.ResetRootShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetSubShelf:
+		payload = &croutinetasktypes.GetSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteSubShelf:
+		payload = &croutinetasktypes.DeleteSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetBlockPack:
+		payload = &croutinetasktypes.GetBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteBlockPack:
+		payload = &croutinetasktypes.DeleteBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetRoutine:
+		payload = &croutinetasktypes.GetRoutineRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteRoutine:
+		payload = &croutinetasktypes.DeleteRoutineRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetMaterial:
+		payload = &croutinetasktypes.GetMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_CreateMaterial:
+		payload = &croutinetasktypes.CreateMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_UpdateMaterial:
+		payload = &croutinetasktypes.UpdateMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteMaterial:
+		payload = &croutinetasktypes.DeleteMaterialRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_CreateSubShelf:
 		payload = &croutinetasktypes.CreateSubShelfRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_UpdateSubShelf:
 		payload = &croutinetasktypes.UpdateSubShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_ResetSubShelf:
-		payload = &croutinetasktypes.ResetSubShelfRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_CreateBlockPack:
 		payload = &croutinetasktypes.CreateBlockPackRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_UpdateBlockPack:
 		payload = &croutinetasktypes.UpdateBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_ResetBlockPack:
-		payload = &croutinetasktypes.ResetBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_AppendBlock:
-		payload = &croutinetasktypes.AppendBlockRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateBlock:
-		payload = &croutinetasktypes.UpdateBlockRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_ResetBlock:
-		payload = &croutinetasktypes.ResetBlockRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_CreateRoutine:
 		payload = &croutinetasktypes.CreateRoutineRoutineTaskPayload{}
 	case cenums.RoutineTaskPurpose_UpdateRoutine:
@@ -88,8 +83,8 @@ func prepareAssignment(
 	if err := json.Unmarshal(assignment.Payload, payload); err != nil {
 		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
-	if validator != nil {
-		if err := validator.Struct(payload); err != nil {
+	if s.validator != nil {
+		if err := s.validator.Struct(payload); err != nil {
 			return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 		}
 	}
@@ -111,6 +106,7 @@ func prepareAssignment(
 	return &croutinetasktypes.PreparedRoutineTask{
 		RoutineTaskId:       assignment.RoutineTaskId,
 		RoutineTaskRecordId: assignment.RoutineTaskRecordId,
+		RoutineRecordId:     assignment.RoutineRecordId,
 		RoutineId:           assignment.RoutineId,
 		ActorUserId:         assignment.ActorUserId,
 		ActorUserPublicId:   assignment.ActorUserPublicId,

@@ -14,7 +14,7 @@ export type InFlightYjsPersistenceBatch = {
   persistenceBatchId: string;
   originConnectionId: string | null;
   payload: Buffer;
-  webSocket: WebSocket;
+  webSocket: WebSocket | null;
   connectionId: string;
   connectorChannelId: number;
   updateCount: number;

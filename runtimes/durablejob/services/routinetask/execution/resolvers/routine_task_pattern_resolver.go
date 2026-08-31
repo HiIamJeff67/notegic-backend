@@ -158,9 +158,6 @@ func (r RoutineTaskPatternResolver) ResolveMany(
 			switch binding.Source {
 			case PatternSourceScheduledAt:
 				scheduledAt := tasks[patternIndex].RecordScheduledAt
-				if scheduledAt.IsZero() {
-					scheduledAt = tasks[patternIndex].ScheduledAt
-				}
 				if binding.Timezone != nil && *binding.Timezone != "" {
 					location, err := time.LoadLocation(*binding.Timezone)
 					if err != nil {

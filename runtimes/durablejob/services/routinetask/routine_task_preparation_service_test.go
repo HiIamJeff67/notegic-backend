@@ -1,4 +1,4 @@
-package handlers
+package routinetask
 
 import (
 	"encoding/json"
@@ -15,9 +15,11 @@ import (
 	validation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
 )
 
-func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
-	payload, err := json.Marshal(croutinetasktypes.CreateRootShelfRoutineTaskPayload{
-		Name: "Daily {{date}}",
+func TestRoutineTaskPreparationServicePreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
+	payload, err := json.Marshal(croutinetasktypes.CreateMaterialRoutineTaskPayload{
+		ParentSubShelfId: uuid.New(),
+		Name:             "Daily {{date}}",
+		ContentKey:       "material-key",
 	})
 	if err != nil {
 		t.Fatalf("marshal payload: %v", err)
@@ -26,10 +28,11 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 	assignment := croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
+		RoutineRecordId:     uuid.New(),
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_CreateMaterial,
 		Payload:             payload,
 		Attempt:             1,
 		ScheduledAt:         time.Now().UTC(),
@@ -37,7 +40,7 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 		PatternValues:       map[string]string{"date": "2026-08-05"},
 	}
 
-	prepared, exception := NewPurposeHandler(validation.New()).HandlerFunc(t.Context(), assignment)
+	prepared, exception := NewRoutineTaskPreparationService(validation.New()).Prepare(t.Context(), assignment)
 	if exception != nil {
 		t.Fatalf("prepare assignment: %v", exception)
 	}
@@ -45,7 +48,7 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 		t.Fatalf("prepared task = %#v", prepared)
 	}
 
-	var preparedPayload croutinetasktypes.CreateRootShelfRoutineTaskPayload
+	var preparedPayload croutinetasktypes.CreateMaterialRoutineTaskPayload
 	if err := json.Unmarshal(prepared.Payload, &preparedPayload); err != nil {
 		t.Fatalf("decode prepared payload: %v", err)
 	}
@@ -54,18 +57,19 @@ func TestPurposeHandlerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 	}
 }
 
-func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
+func TestRoutineTaskPreparationServiceReturnsLocalErrorForInvalidPayload(t *testing.T) {
 	assignment := croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
+		RoutineRecordId:     uuid.New(),
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
-		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_GetMaterial,
 		Payload:             []byte("{"),
 	}
 
-	prepared, err := NewPurposeHandler(validation.New()).HandlerFunc(t.Context(), assignment)
+	prepared, err := NewRoutineTaskPreparationService(validation.New()).Prepare(t.Context(), assignment)
 	if prepared != nil {
 		t.Fatalf("prepared task = %#v, want nil", prepared)
 	}
@@ -73,6 +77,26 @@ func TestPurposeHandlerReturnsLocalErrorForInvalidPayload(t *testing.T) {
 		t.Fatalf("error type = %T, want *exceptions.Exception", err)
 	} else if durableJobError.Reason != "InvalidRoutineTaskPayload" || durableJobError.Domain != "RoutineTask" {
 		t.Fatalf("error = %#v, want InvalidRoutineTaskPayload/RoutineTask", durableJobError)
+	}
+}
+
+func TestRoutineTaskPreparationServiceRejectsRetiredPurpose(t *testing.T) {
+	assignment := croutinetasktypes.RoutineTaskAssignment{
+		RoutineTaskId:       uuid.New(),
+		RoutineTaskRecordId: uuid.New(),
+		RoutineId:           uuid.New(),
+		ActorUserId:         uuid.New(),
+		ActorUserPublicId:   uuid.New(),
+		Purpose:             cenums.RoutineTaskPurpose("AppendBlock"),
+		Payload:             []byte(`{}`),
+	}
+
+	prepared, err := NewRoutineTaskPreparationService(validation.New()).Prepare(t.Context(), assignment)
+	if prepared != nil {
+		t.Fatalf("prepared task = %#v, want nil", prepared)
+	}
+	if err == nil {
+		t.Fatal("retired AppendBlock purpose should be rejected")
 	}
 }
 
@@ -102,9 +126,10 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		t.Fatalf("json.Marshal() error = %v", err)
 	}
 
-	prepared, err := prepareAssignment(nil, nil, croutinetasktypes.RoutineTaskAssignment{
+	prepared, err := NewRoutineTaskPreparationService(nil).Prepare(nil, croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
+		RoutineRecordId:     uuid.New(),
 		RoutineId:           uuid.New(),
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
@@ -113,7 +138,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		PatternValues:       map[string]string{"date1": "2026-08-13"},
 	})
 	if err != nil {
-		t.Fatalf("prepareAssignment() error = %v", err)
+		t.Fatalf("Prepare() error = %v", err)
 	}
 
 	var preparedPayload croutinetasktypes.CreateBlockPackRoutineTaskPayload

@@ -16,7 +16,9 @@ var DatabaseMigrationManifest = spostgres.MigrationManifest{
 	Triggers:    striggers.RoutineTaskTriggerSQLs,
 	Constraints: sconstraints.UserQuotaConstraintSQLs,
 	Tables: []any{
+		&sschemas.RoutineRecord{},
 		&sschemas.RoutineTask{},
+		&sschemas.RoutineTaskDependency{},
 		&sschemas.RoutineTaskRecord{},
 		&sschemas.UserQuota{},
 	},

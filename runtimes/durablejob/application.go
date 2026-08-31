@@ -10,7 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
@@ -19,17 +18,19 @@ import (
 	"gorm.io/gorm"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
-	routinetask "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask"
-	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution"
+	routinetaskservice "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/realtimegateway/producers"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/status"
+	yjsworkertransport "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/yjsworker"
 	validation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
+	routinetaskworker "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/workers/routinetask"
 )
 
 type Application struct {
 	healthy           atomic.Bool
 	ready             atomic.Bool
-	routineTaskEngine *routinetask.Engine
+	routineTaskEngine *routinetaskworker.Engine
 }
 
 type ApplicationInterface interface {
@@ -99,30 +100,29 @@ func (a *Application) initializeWorkers(
 ) func() {
 
 	// Construct and start the durable-job workers that claim and execute tasks.
-	routineTaskEngine := routinetask.NewEngine(config)
+	routineTaskClaimer := routinetaskworker.NewClaimer(db, validation.New())
+	routineTaskEngine := routinetaskworker.NewEngine(config, routineTaskClaimer)
+	routineTaskEngine.SetRoutineTaskRecoveryService(
+		routinetaskservice.NewRoutineTaskRecoveryService(db),
+	)
 	a.routineTaskEngine = routineTaskEngine
 	routineTaskLifecycleProducer := realtimegatewayproducers.NewRoutineTaskLifecycleProducer(kafkaProducer)
-	routineTaskClaimer := routinetask.NewClaimer(db, validation.New())
+	routineTaskCompletionProducer := realtimegatewayproducers.NewRoutineTaskCompletionProducer(kafkaProducer)
 	routineTaskExecutionService := routineexecution.NewRoutineTaskExecutionService(
 		validation.New(),
 		db,
-		routinetask.NewDocumentInitializationClient(config.YjsDocumentInitialization),
+		yjsworkertransport.NewDocumentInitializationClient(config.YjsDocumentInitialization),
+		yjsworkertransport.NewBlockPackUpdateClient(config.YjsDocumentInitialization),
 	)
-	routineTaskResultWriter := routinetask.NewRoutineTaskResultWriter(db, routineTaskExecutionService)
-	routineTaskEngine.SetResultPublisher(routineTaskResultWriter.Write)
+	routineTaskResultWriter := routinetaskworker.NewResultWriter(
+		routineTaskExecutionService,
+		routineTaskCompletionProducer.ProduceRoutineTaskCompleted,
+	)
+	routineTaskEngine.SetResultWriter(routineTaskResultWriter.Write)
 	routineTaskEngine.SetRoutineTaskRunningPublisher(
 		routineTaskLifecycleProducer.ProduceRoutineTaskRunning,
 	)
-	shutdownRoutineTaskEngine := routineTaskEngine.Start(
-		context.Background(),
-		func(ctx context.Context, request cdurablejob.ClaimRoutineTasksRequestDto) error {
-			response, exception := routineTaskClaimer.ClaimRoutineTasks(ctx, request)
-			if exception != nil {
-				return exception
-			}
-			return routineTaskEngine.HandleRoutineTaskAssignments(ctx, response.Assignments)
-		},
-	)
+	shutdownRoutineTaskEngine := routineTaskEngine.Start(context.Background())
 
 	return func() {
 		shutdownRoutineTaskEngine()

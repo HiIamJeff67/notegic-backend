@@ -17,17 +17,24 @@ import (
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
-	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/matchers"
-	parsers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/parsers"
-	resolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/routinetask/execution/resolvers"
+	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
+	parsers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/parsers"
+	resolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/resolvers"
 )
 
 type RoutineHandlerInterface interface {
+	HandleGetRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 	HandleCreateRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
 	HandleUpdateRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+	HandleDeleteRoutine(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, *cexceptions.Exception)
+}
+
+type RoutineDetailedExecutionHandlerInterface interface {
+	HandleGetRoutineWithResults(ctx context.Context, db *gorm.DB, tasks []sschemas.RoutineTask, taskIdToActorUserId map[uuid.UUID]uuid.UUID, allowedPermissions []cenums.AccessControlPermission) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception)
 }
 
 type RoutineHandler struct {
+	Handler
 	db                   *gorm.DB
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
@@ -57,6 +64,17 @@ func NewRoutineHandler(
 		templateBlockMatcher: templateBlockMatcher,
 		routineRepository:    srepositories.NewRoutineRepository(db, sscopes.NewRoutineScope()),
 	}
+}
+
+func (s *RoutineHandler) HandleGetRoutine(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
+	successes, _, exception := s.HandleGetRoutineWithResults(ctx, db, tasks, taskIdToActorUserId, allowedPermissions)
+	return successes, exception
 }
 
 func (s *RoutineHandler) HandleCreateRoutine(
@@ -252,4 +270,94 @@ func (s *RoutineHandler) HandleUpdateRoutine(
 	}
 
 	return successes, nil
+}
+
+func (s *RoutineHandler) HandleDeleteRoutine(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, *cexceptions.Exception) {
+	successes := make([]bool, len(tasks))
+	deleteInputs := make([]sinputs.BulkDeleteRoutineInput, 0, len(tasks))
+	taskIndexes := make([]int, 0, len(tasks))
+	for index, task := range tasks {
+		actorUserId, exists := taskIdToActorUserId[task.Id]
+		if !exists {
+			continue
+		}
+		payload, exception := parsers.DecodePayload[croutinetasktypes.DeleteRoutineRoutineTaskPayload](s.validator, task)
+		if exception != nil {
+			continue
+		}
+		deleteInputs = append(deleteInputs, sinputs.BulkDeleteRoutineInput{Id: payload.RoutineId, UserId: actorUserId})
+		taskIndexes = append(taskIndexes, index)
+	}
+	if len(deleteInputs) == 0 {
+		return successes, nil
+	}
+	deleteSuccesses, exception := s.routineRepository.BulkDeleteMany(
+		deleteInputs,
+		srepositories.WithDB(db.WithContext(ctx)),
+		srepositories.WithAllowedPermissions(allowedPermissions),
+	)
+	if exception != nil {
+		return successes, exception
+	}
+	for index, success := range deleteSuccesses {
+		successes[taskIndexes[index]] = success
+	}
+	return successes, nil
+}
+
+func (s *RoutineHandler) HandleGetRoutineWithResults(
+	ctx context.Context,
+	db *gorm.DB,
+	tasks []sschemas.RoutineTask,
+	taskIdToActorUserId map[uuid.UUID]uuid.UUID,
+	allowedPermissions []cenums.AccessControlPermission,
+) ([]bool, map[uuid.UUID]croutinetasktypes.ExecutionResult, *cexceptions.Exception) {
+	successes := make([]bool, len(tasks))
+	results := make(map[uuid.UUID]croutinetasktypes.ExecutionResult)
+	checkInputs := make([]sinputs.BulkCheckRoutinePermissionInput, 0, len(tasks))
+	taskIndexes := make([]int, 0, len(tasks))
+	taskObjectIds := make([]uuid.UUID, 0, len(tasks))
+	for index, task := range tasks {
+		actorUserId, exists := taskIdToActorUserId[task.Id]
+		if !exists {
+			continue
+		}
+		payload, exception := parsers.DecodePayload[croutinetasktypes.GetRoutineRoutineTaskPayload](s.validator, task)
+		if exception != nil {
+			continue
+		}
+		checkInputs = append(checkInputs, sinputs.BulkCheckRoutinePermissionInput{Id: payload.RoutineId, UserId: actorUserId})
+		taskIndexes = append(taskIndexes, index)
+		taskObjectIds = append(taskObjectIds, payload.RoutineId)
+	}
+	if len(checkInputs) == 0 {
+		return successes, results, nil
+	}
+	checkSuccesses, objects, exception := s.routineRepository.BulkCheckPermissionsAndGetManyByIds(
+		checkInputs, nil, allowedPermissions,
+		srepositories.WithDB(db.WithContext(ctx)), srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
+	)
+	if exception != nil {
+		return successes, nil, exception
+	}
+	objectsById := make(map[uuid.UUID]sschemas.Routine, len(objects))
+	for _, object := range objects {
+		objectsById[object.Id] = object
+	}
+	for index, success := range checkSuccesses {
+		taskIndex := taskIndexes[index]
+		successes[taskIndex] = success
+		result, resultException := s.BuildGetResult(taskObjectIds[index], success, objectsById[taskObjectIds[index]])
+		if resultException != nil {
+			return successes, nil, resultException
+		}
+		results[tasks[taskIndex].Id] = result
+	}
+	return successes, results, nil
 }

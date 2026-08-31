@@ -119,28 +119,7 @@ var (
 		string(cenums.RoutineStatus_Completed),
 		string(cenums.RoutineStatus_OverDue),
 	}
-	allRoutineTaskPurposeStrings = []string{
-		string(cenums.RoutineTaskPurpose_CreateRootShelf),
-		string(cenums.RoutineTaskPurpose_UpdateRootShelf),
-		string(cenums.RoutineTaskPurpose_ResetRootShelf),
-		string(cenums.RoutineTaskPurpose_CreateSubShelf),
-		string(cenums.RoutineTaskPurpose_UpdateSubShelf),
-		string(cenums.RoutineTaskPurpose_ResetSubShelf),
-		string(cenums.RoutineTaskPurpose_CreateBlockPack),
-		string(cenums.RoutineTaskPurpose_UpdateBlockPack),
-		string(cenums.RoutineTaskPurpose_ResetBlockPack),
-		string(cenums.RoutineTaskPurpose_AppendBlock),
-		string(cenums.RoutineTaskPurpose_UpdateBlock),
-		string(cenums.RoutineTaskPurpose_ResetBlock),
-		string(cenums.RoutineTaskPurpose_CreateRoutine),
-		string(cenums.RoutineTaskPurpose_UpdateRoutine),
-	}
-	allRoutineTaskStatusStrings = []string{
-		string(cenums.RoutineTaskStatus_Idle),
-		string(cenums.RoutineTaskStatus_Waiting),
-		string(cenums.RoutineTaskStatus_Running),
-		string(cenums.RoutineTaskStatus_Pause),
-	}
+	allRoutineTaskPurposeStrings = cenums.AllRoutineTaskPurposeStrings
 	allSupportedIconStrings = []string{
 		string(cenums.SupportedIcon_GrinningFace),
 		string(cenums.SupportedIcon_SmilingFaceWithSmilingEyes),
@@ -255,10 +234,6 @@ func RegisterEnumsValidation(validate *validator.Validate) {
 	validate.RegisterValidation("isroutinetaskpurpose", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
 		return slices.Contains(allRoutineTaskPurposeStrings, val)
-	})
-	validate.RegisterValidation("isroutinetaskstatus", func(fl validator.FieldLevel) bool {
-		val := fl.Field().String()
-		return slices.Contains(allRoutineTaskStatusStrings, val)
 	})
 	validate.RegisterValidation("issupportedicon", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()

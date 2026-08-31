@@ -3,6 +3,8 @@ import type { YjsCompactionService } from "../../../services/yjs_compaction_serv
 import type { YjsDocumentInitializationService } from "../../../services/yjs_document_initialization_service.js";
 import type { YjsProjectionService } from "../../../services/yjs_projection_service.js";
 import type { Telemetry } from "../../../telemetry.js";
+import type { RealtimeGateway } from "../../realtime/realtime_gateway.js";
+import { configureYjsBlockPackUpdateEndpoint } from "../endpoints/yjs_block_pack_update_endpoint.js";
 import { configureYjsCompactionEndpoint } from "../endpoints/yjs_compaction_endpoint.js";
 import { configureYjsDocumentInitializationEndpoint } from "../endpoints/yjs_document_initialization_endpoint.js";
 import { configureYjsProjectionEndpoint } from "../endpoints/yjs_projection_endpoint.js";
@@ -12,6 +14,7 @@ export function configureCoreRouter(
   yjsCompactionService: YjsCompactionService,
   yjsDocumentInitializationService: YjsDocumentInitializationService,
   yjsProjectionService: YjsProjectionService,
+  realtimeGateway: RealtimeGateway,
   telemetry: Telemetry
 ): void {
   configureYjsCompactionEndpoint(app, yjsCompactionService, telemetry);
@@ -21,4 +24,5 @@ export function configureCoreRouter(
     telemetry
   );
   configureYjsProjectionEndpoint(app, yjsProjectionService, telemetry);
+  configureYjsBlockPackUpdateEndpoint(app, realtimeGateway, telemetry);
 }

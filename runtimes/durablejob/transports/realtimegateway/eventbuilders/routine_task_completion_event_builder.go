@@ -23,7 +23,7 @@ func (b *RoutineTaskCompletionEventBuilder) Build(
 ) cevent.EventEnvelope[coreevents.RoutineTaskCompletedData] {
 	return cevent.EventEnvelope[coreevents.RoutineTaskCompletedData]{
 		SchemaVersion: cevent.Version,
-		EventId:       uuid.New(),
+		EventId:       uuid.NewSHA1(uuid.NameSpaceURL, []byte(completedTask.RoutineTaskRecordId.String()+":completed")),
 		EventType:     coreevents.EventType_RoutineTaskCompleted,
 		AggregateType: coreevents.AggregateType_RoutineTask,
 		AggregateId:   completedTask.RoutineTaskId,
@@ -33,12 +33,14 @@ func (b *RoutineTaskCompletionEventBuilder) Build(
 		Data: coreevents.RoutineTaskCompletedData{
 			RoutineTaskId:       completedTask.RoutineTaskId,
 			RoutineTaskRecordId: completedTask.RoutineTaskRecordId,
+			RoutineRecordId:     completedTask.RoutineRecordId,
 			RoutineId:           completedTask.PreparedTask.RoutineId,
 			ActorUserPublicId:   completedTask.PreparedTask.ActorUserPublicId,
 			Purpose:             completedTask.PreparedTask.Purpose,
 			WorkerId:            workerId,
 			Attempt:             completedTask.PreparedTask.Attempt,
 			CompletedAt:         completedTask.CompletedAt,
+			ExecutionResult:     completedTask.ExecutionResult,
 		},
 	}
 }
