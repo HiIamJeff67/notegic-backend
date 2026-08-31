@@ -625,11 +625,12 @@ X-API-Key: {{apiKey}}
 
 {
   "maxAttempts": 1,
-  "nextScheduledAt": "2026-01-01T00:00:00Z",
   "payload": {},
-  "period": "Daily",
+  "previousRoutineTaskIds": [
+    "00000000-0000-4000-8000-000000000001"
+  ],
   "priority": 1,
-  "purpose": "CreateRootShelf",
+  "purpose": "GetSubShelf",
   "routineId": "00000000-0000-4000-8000-000000000001",
   "title": "example"
 }
@@ -639,28 +640,8 @@ GET {{apiGatewayBaseUrl}}/routine-tasks/routines?areDeleted=true&routineIds=0000
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
 
-### GET Visualize My Routine Task Actual Ended At Count
-GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/actual-ended-at-count
-User-Agent: {{userAgent}}
-X-API-Key: {{apiKey}}
-
-### GET Visualize My Routine Task Actual Started At Count
-GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/actual-started-at-count
-User-Agent: {{userAgent}}
-X-API-Key: {{apiKey}}
-
 ### GET Visualize My Routine Task Purpose Count
-GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/purpose-count
-User-Agent: {{userAgent}}
-X-API-Key: {{apiKey}}
-
-### GET Visualize My Routine Task Scheduled At Count
-GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/scheduled-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&timeHourUnit=1
-User-Agent: {{userAgent}}
-X-API-Key: {{apiKey}}
-
-### GET Visualize My Routine Task Status Count
-GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/status-count?permission=Read
+GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/purpose-count?permission=Read
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
 
@@ -680,11 +661,12 @@ X-API-Key: {{apiKey}}
   "setNull": {},
   "values": {
     "maxAttempts": 1,
-    "nextScheduledAt": "2026-01-01T00:00:00Z",
     "payload": {},
-    "period": "Daily",
+    "previousRoutineTaskIds": [
+      "00000000-0000-4000-8000-000000000001"
+    ],
     "priority": 1,
-    "purpose": "CreateRootShelf",
+    "purpose": "GetSubShelf",
     "routineId": "00000000-0000-4000-8000-000000000001",
     "title": "example"
   }
@@ -692,26 +674,6 @@ X-API-Key: {{apiKey}}
 
 ### DELETE Hard Delete My Routine Task By Id
 DELETE {{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/permanently
-User-Agent: {{userAgent}}
-Content-Type: application/json
-X-API-Key: {{apiKey}}
-
-{
-  "routineTaskId": "00000000-0000-4000-8000-000000000001"
-}
-
-### DELETE Resume My Routine Task By Id
-DELETE {{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/suspension
-User-Agent: {{userAgent}}
-Content-Type: application/json
-X-API-Key: {{apiKey}}
-
-{
-  "routineTaskId": "00000000-0000-4000-8000-000000000001"
-}
-
-### PUT Pause My Routine Task By Id
-PUT {{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/suspension
 User-Agent: {{userAgent}}
 Content-Type: application/json
 X-API-Key: {{apiKey}}

@@ -963,24 +963,16 @@
             "minimum": 1,
             "type": "integer"
           },
-          "nextScheduledAt": {
-            "format": "date-time",
-            "type": "string"
-          },
           "payload": {
             "additionalProperties": true,
             "type": "object"
           },
-          "period": {
-            "enum": [
-              "Daily",
-              "Weekly",
-              "Monthly"
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+          "previousRoutineTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "priority": {
             "format": "int32",
@@ -990,20 +982,22 @@
           },
           "purpose": {
             "enum": [
-              "CreateRootShelf",
-              "UpdateRootShelf",
-              "ResetRootShelf",
+              "GetSubShelf",
               "CreateSubShelf",
               "UpdateSubShelf",
-              "ResetSubShelf",
+              "DeleteSubShelf",
+              "GetBlockPack",
               "CreateBlockPack",
               "UpdateBlockPack",
-              "ResetBlockPack",
-              "AppendBlock",
-              "UpdateBlock",
-              "ResetBlock",
+              "DeleteBlockPack",
+              "GetRoutine",
               "CreateRoutine",
-              "UpdateRoutine"
+              "UpdateRoutine",
+              "DeleteRoutine",
+              "GetMaterial",
+              "CreateMaterial",
+              "UpdateMaterial",
+              "DeleteMaterial"
             ],
             "type": "string"
           },
@@ -1021,7 +1015,7 @@
           "routineId",
           "title",
           "purpose",
-          "nextScheduledAt"
+          "previousRoutineTaskIds"
         ],
         "type": "object"
       },
@@ -2908,24 +2902,6 @@
       "GetAllMyRoutineTasksByRoutineIdsResponseData": {
         "items": {
           "properties": {
-            "actualEndedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "actualStartedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "attempts": {
-              "format": "int32",
-              "type": "integer"
-            },
             "costUnit": {
               "format": "int64",
               "type": "integer"
@@ -2942,24 +2918,16 @@
               "format": "int32",
               "type": "integer"
             },
-            "nextScheduledAt": {
-              "format": "date-time",
-              "type": "string"
-            },
             "payload": {
               "additionalProperties": true,
               "type": "object"
             },
-            "period": {
-              "enum": [
-                "Daily",
-                "Weekly",
-                "Monthly"
-              ],
-              "type": [
-                "string",
-                "null"
-              ]
+            "previousRoutineTaskIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
             },
             "priority": {
               "format": "int32",
@@ -2967,38 +2935,27 @@
             },
             "purpose": {
               "enum": [
-                "CreateRootShelf",
-                "UpdateRootShelf",
-                "ResetRootShelf",
+                "GetSubShelf",
                 "CreateSubShelf",
                 "UpdateSubShelf",
-                "ResetSubShelf",
+                "DeleteSubShelf",
+                "GetBlockPack",
                 "CreateBlockPack",
                 "UpdateBlockPack",
-                "ResetBlockPack",
-                "AppendBlock",
-                "UpdateBlock",
-                "ResetBlock",
+                "DeleteBlockPack",
+                "GetRoutine",
                 "CreateRoutine",
-                "UpdateRoutine"
+                "UpdateRoutine",
+                "DeleteRoutine",
+                "GetMaterial",
+                "CreateMaterial",
+                "UpdateMaterial",
+                "DeleteMaterial"
               ],
               "type": "string"
             },
             "routineId": {
               "format": "uuid",
-              "type": "string"
-            },
-            "scheduledAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "status": {
-              "enum": [
-                "Idle",
-                "Waiting",
-                "Running",
-                "Pause"
-              ],
               "type": "string"
             },
             "title": {
@@ -3017,11 +2974,8 @@
             "payload",
             "costUnit",
             "priority",
-            "status",
-            "attempts",
             "maxAttempts",
-            "nextScheduledAt",
-            "scheduledAt",
+            "previousRoutineTaskIds",
             "updatedAt",
             "createdAt"
           ],
@@ -3069,24 +3023,6 @@
       "GetAllMyRoutineTasksResponseData": {
         "items": {
           "properties": {
-            "actualEndedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "actualStartedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "attempts": {
-              "format": "int32",
-              "type": "integer"
-            },
             "costUnit": {
               "format": "int64",
               "type": "integer"
@@ -3103,24 +3039,16 @@
               "format": "int32",
               "type": "integer"
             },
-            "nextScheduledAt": {
-              "format": "date-time",
-              "type": "string"
-            },
             "payload": {
               "additionalProperties": true,
               "type": "object"
             },
-            "period": {
-              "enum": [
-                "Daily",
-                "Weekly",
-                "Monthly"
-              ],
-              "type": [
-                "string",
-                "null"
-              ]
+            "previousRoutineTaskIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
             },
             "priority": {
               "format": "int32",
@@ -3128,38 +3056,27 @@
             },
             "purpose": {
               "enum": [
-                "CreateRootShelf",
-                "UpdateRootShelf",
-                "ResetRootShelf",
+                "GetSubShelf",
                 "CreateSubShelf",
                 "UpdateSubShelf",
-                "ResetSubShelf",
+                "DeleteSubShelf",
+                "GetBlockPack",
                 "CreateBlockPack",
                 "UpdateBlockPack",
-                "ResetBlockPack",
-                "AppendBlock",
-                "UpdateBlock",
-                "ResetBlock",
+                "DeleteBlockPack",
+                "GetRoutine",
                 "CreateRoutine",
-                "UpdateRoutine"
+                "UpdateRoutine",
+                "DeleteRoutine",
+                "GetMaterial",
+                "CreateMaterial",
+                "UpdateMaterial",
+                "DeleteMaterial"
               ],
               "type": "string"
             },
             "routineId": {
               "format": "uuid",
-              "type": "string"
-            },
-            "scheduledAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "status": {
-              "enum": [
-                "Idle",
-                "Waiting",
-                "Running",
-                "Pause"
-              ],
               "type": "string"
             },
             "title": {
@@ -3178,11 +3095,8 @@
             "payload",
             "costUnit",
             "priority",
-            "status",
-            "attempts",
             "maxAttempts",
-            "nextScheduledAt",
-            "scheduledAt",
+            "previousRoutineTaskIds",
             "updatedAt",
             "createdAt"
           ],
@@ -5022,24 +4936,6 @@
       },
       "GetMyRoutineTaskByIdResponseData": {
         "properties": {
-          "actualEndedAt": {
-            "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "actualStartedAt": {
-            "format": "date-time",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "attempts": {
-            "format": "int32",
-            "type": "integer"
-          },
           "costUnit": {
             "format": "int64",
             "type": "integer"
@@ -5056,24 +4952,16 @@
             "format": "int32",
             "type": "integer"
           },
-          "nextScheduledAt": {
-            "format": "date-time",
-            "type": "string"
-          },
           "payload": {
             "additionalProperties": true,
             "type": "object"
           },
-          "period": {
-            "enum": [
-              "Daily",
-              "Weekly",
-              "Monthly"
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
+          "previousRoutineTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "priority": {
             "format": "int32",
@@ -5081,38 +4969,27 @@
           },
           "purpose": {
             "enum": [
-              "CreateRootShelf",
-              "UpdateRootShelf",
-              "ResetRootShelf",
+              "GetSubShelf",
               "CreateSubShelf",
               "UpdateSubShelf",
-              "ResetSubShelf",
+              "DeleteSubShelf",
+              "GetBlockPack",
               "CreateBlockPack",
               "UpdateBlockPack",
-              "ResetBlockPack",
-              "AppendBlock",
-              "UpdateBlock",
-              "ResetBlock",
+              "DeleteBlockPack",
+              "GetRoutine",
               "CreateRoutine",
-              "UpdateRoutine"
+              "UpdateRoutine",
+              "DeleteRoutine",
+              "GetMaterial",
+              "CreateMaterial",
+              "UpdateMaterial",
+              "DeleteMaterial"
             ],
             "type": "string"
           },
           "routineId": {
             "format": "uuid",
-            "type": "string"
-          },
-          "scheduledAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "Idle",
-              "Waiting",
-              "Running",
-              "Pause"
-            ],
             "type": "string"
           },
           "title": {
@@ -5131,11 +5008,8 @@
           "payload",
           "costUnit",
           "priority",
-          "status",
-          "attempts",
           "maxAttempts",
-          "nextScheduledAt",
-          "scheduledAt",
+          "previousRoutineTaskIds",
           "updatedAt",
           "createdAt"
         ],
@@ -7516,67 +7390,6 @@
         ],
         "type": "object"
       },
-      "PauseMyRoutineTaskByIdRequestBody": {
-        "properties": {
-          "routineTaskId": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "routineTaskId"
-        ],
-        "type": "object"
-      },
-      "PauseMyRoutineTaskByIdResponseData": {
-        "properties": {
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "updatedAt"
-        ],
-        "type": "object"
-      },
-      "PauseMyRoutineTaskByIdSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/PauseMyRoutineTaskByIdResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "RestoreMyBlockPackByIdResponseData": {
         "properties": {
           "blockCount": {
@@ -9023,67 +8836,6 @@
         ],
         "type": "object"
       },
-      "ResumeMyRoutineTaskByIdRequestBody": {
-        "properties": {
-          "routineTaskId": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "routineTaskId"
-        ],
-        "type": "object"
-      },
-      "ResumeMyRoutineTaskByIdResponseData": {
-        "properties": {
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "updatedAt"
-        ],
-        "type": "object"
-      },
-      "ResumeMyRoutineTaskByIdSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/ResumeMyRoutineTaskByIdResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "SaveMyMaterialByIdRequestBody": {
         "properties": {
           "contentFile": {
@@ -10192,13 +9944,6 @@
                   "null"
                 ]
               },
-              "nextScheduledAt": {
-                "format": "date-time",
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
               "payload": {
                 "additionalProperties": true,
                 "type": [
@@ -10206,14 +9951,13 @@
                   "null"
                 ]
               },
-              "period": {
-                "enum": [
-                  "Daily",
-                  "Weekly",
-                  "Monthly"
-                ],
+              "previousRoutineTaskIds": {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
                 "type": [
-                  "string",
+                  "array",
                   "null"
                 ]
               },
@@ -10226,20 +9970,22 @@
               },
               "purpose": {
                 "enum": [
-                  "CreateRootShelf",
-                  "UpdateRootShelf",
-                  "ResetRootShelf",
+                  "GetSubShelf",
                   "CreateSubShelf",
                   "UpdateSubShelf",
-                  "ResetSubShelf",
+                  "DeleteSubShelf",
+                  "GetBlockPack",
                   "CreateBlockPack",
                   "UpdateBlockPack",
-                  "ResetBlockPack",
-                  "AppendBlock",
-                  "UpdateBlock",
-                  "ResetBlock",
+                  "DeleteBlockPack",
+                  "GetRoutine",
                   "CreateRoutine",
-                  "UpdateRoutine"
+                  "UpdateRoutine",
+                  "DeleteRoutine",
+                  "GetMaterial",
+                  "CreateMaterial",
+                  "UpdateMaterial",
+                  "DeleteMaterial"
                 ],
                 "type": [
                   "string",
@@ -10260,6 +10006,9 @@
                 ]
               }
             },
+            "required": [
+              "previousRoutineTaskIds"
+            ],
             "type": "object"
           }
         },
@@ -11536,146 +11285,6 @@
         ],
         "type": "object"
       },
-      "VisualizeMyRoutineTaskActualEndedAtCountResponseData": {
-        "properties": {
-          "data": {
-            "items": {
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "meta": {},
-                "value": {
-                  "format": "int64",
-                  "type": "integer"
-                },
-                "x": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "x",
-                "value",
-                "meta"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskActualEndedAtCountSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/VisualizeMyRoutineTaskActualEndedAtCountResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskActualStartedAtCountResponseData": {
-        "properties": {
-          "data": {
-            "items": {
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "meta": {},
-                "value": {
-                  "format": "int64",
-                  "type": "integer"
-                },
-                "x": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "x",
-                "value",
-                "meta"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskActualStartedAtCountSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/VisualizeMyRoutineTaskActualStartedAtCountResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "VisualizeMyRoutineTaskPurposeCountResponseData": {
         "properties": {
           "data": {
@@ -11713,146 +11322,6 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/VisualizeMyRoutineTaskPurposeCountResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskScheduledAtCountResponseData": {
-        "properties": {
-          "data": {
-            "items": {
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "meta": {},
-                "value": {
-                  "format": "int64",
-                  "type": "integer"
-                },
-                "x": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "x",
-                "value",
-                "meta"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskScheduledAtCountSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/VisualizeMyRoutineTaskScheduledAtCountResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskStatusCountResponseData": {
-        "properties": {
-          "data": {
-            "items": {
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "meta": {},
-                "value": {
-                  "format": "int64",
-                  "type": "integer"
-                },
-                "x": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "x",
-                "value",
-                "meta"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
-      },
-      "VisualizeMyRoutineTaskStatusCountSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/VisualizeMyRoutineTaskStatusCountResponseData"
           },
           "embedded": {
             "properties": {
@@ -20182,11 +19651,12 @@
             "application/json": {
               "example": {
                 "maxAttempts": 1,
-                "nextScheduledAt": "2026-01-01T00:00:00Z",
                 "payload": {},
-                "period": "Daily",
+                "previousRoutineTaskIds": [
+                  "00000000-0000-4000-8000-000000000001"
+                ],
                 "priority": 1,
-                "purpose": "CreateRootShelf",
+                "purpose": "GetSubShelf",
                 "routineId": "00000000-0000-4000-8000-000000000001",
                 "title": "example"
               },
@@ -20450,225 +19920,35 @@
         "x-go-response-dto": "GetAllMyRoutineTasksByRoutineIdsResponseDto"
       }
     },
-    "/routine-tasks/visualizations/actual-ended-at-count": {
-      "get": {
-        "operationId": "visualizeMyRoutineTaskActualEndedAtCount",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VisualizeMyRoutineTaskActualEndedAtCountSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Visualize My Routine Task Actual Ended At Count",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "VisualizeMyRoutineTaskActualEndedAtCountRequestDto",
-        "x-go-response-dto": "VisualizeMyRoutineTaskActualEndedAtCountResponseDto"
-      }
-    },
-    "/routine-tasks/visualizations/actual-started-at-count": {
-      "get": {
-        "operationId": "visualizeMyRoutineTaskActualStartedAtCount",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VisualizeMyRoutineTaskActualStartedAtCountSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Visualize My Routine Task Actual Started At Count",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "VisualizeMyRoutineTaskActualStartedAtCountRequestDto",
-        "x-go-response-dto": "VisualizeMyRoutineTaskActualStartedAtCountResponseDto"
-      }
-    },
     "/routine-tasks/visualizations/purpose-count": {
       "get": {
         "operationId": "visualizeMyRoutineTaskPurposeCount",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "Read",
+            "in": "query",
+            "name": "permission",
+            "required": true,
+            "schema": {
+              "enum": [
+                "Read",
+                "Write",
+                "Admin",
+                "Owner"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -20772,305 +20052,6 @@
         ],
         "x-go-request-dto": "VisualizeMyRoutineTaskPurposeCountRequestDto",
         "x-go-response-dto": "VisualizeMyRoutineTaskPurposeCountResponseDto"
-      }
-    },
-    "/routine-tasks/visualizations/scheduled-at-count": {
-      "get": {
-        "operationId": "visualizeMyRoutineTaskScheduledAtCount",
-        "parameters": [
-          {
-            "example": "NotegicIntegration/1.0",
-            "in": "header",
-            "name": "User-Agent",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "Read",
-            "in": "query",
-            "name": "permission",
-            "required": true,
-            "schema": {
-              "enum": [
-                "Read",
-                "Write",
-                "Admin",
-                "Owner"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "example": "2026-01-01T00:00:00Z",
-            "in": "query",
-            "name": "queryRangeEndedAt",
-            "required": true,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "example": "2026-01-01T00:00:00Z",
-            "in": "query",
-            "name": "queryRangeStartedAt",
-            "required": true,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "example": 1,
-            "in": "query",
-            "name": "timeHourUnit",
-            "required": true,
-            "schema": {
-              "format": "int32",
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VisualizeMyRoutineTaskScheduledAtCountSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Visualize My Routine Task Scheduled At Count",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "VisualizeMyRoutineTaskScheduledAtCountRequestDto",
-        "x-go-response-dto": "VisualizeMyRoutineTaskScheduledAtCountResponseDto"
-      }
-    },
-    "/routine-tasks/visualizations/status-count": {
-      "get": {
-        "operationId": "visualizeMyRoutineTaskStatusCount",
-        "parameters": [
-          {
-            "example": "NotegicIntegration/1.0",
-            "in": "header",
-            "name": "User-Agent",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "Read",
-            "in": "query",
-            "name": "permission",
-            "required": true,
-            "schema": {
-              "enum": [
-                "Read",
-                "Write",
-                "Admin",
-                "Owner"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VisualizeMyRoutineTaskStatusCountSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Visualize My Routine Task Status Count",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "VisualizeMyRoutineTaskStatusCountRequestDto",
-        "x-go-response-dto": "VisualizeMyRoutineTaskStatusCountResponseDto"
       }
     },
     "/routine-tasks/{routine-task-id}": {
@@ -21244,11 +20225,12 @@
                 "setNull": {},
                 "values": {
                   "maxAttempts": 1,
-                  "nextScheduledAt": "2026-01-01T00:00:00Z",
                   "payload": {},
-                  "period": "Daily",
+                  "previousRoutineTaskIds": [
+                    "00000000-0000-4000-8000-000000000001"
+                  ],
                   "priority": 1,
-                  "purpose": "CreateRootShelf",
+                  "purpose": "GetSubShelf",
                   "routineId": "00000000-0000-4000-8000-000000000001",
                   "title": "example"
                 }
@@ -21505,288 +20487,6 @@
         ],
         "x-go-request-dto": "HardDeleteMyRoutineTaskByIdRequestDto",
         "x-go-response-dto": "HardDeleteMyRoutineTaskByIdResponseDto"
-      }
-    },
-    "/routine-tasks/{routine-task-id}/suspension": {
-      "delete": {
-        "operationId": "resumeMyRoutineTaskById",
-        "parameters": [
-          {
-            "example": "NotegicIntegration/1.0",
-            "in": "header",
-            "name": "User-Agent",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "00000000-0000-4000-8000-000000000001",
-            "in": "path",
-            "name": "routine-task-id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "routineTaskId": "00000000-0000-4000-8000-000000000001"
-              },
-              "schema": {
-                "$ref": "#/components/schemas/ResumeMyRoutineTaskByIdRequestBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeMyRoutineTaskByIdSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Resume My Routine Task By Id",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "ResumeMyRoutineTaskByIdRequestDto",
-        "x-go-response-dto": "ResumeMyRoutineTaskByIdResponseDto"
-      },
-      "put": {
-        "operationId": "pauseMyRoutineTaskById",
-        "parameters": [
-          {
-            "example": "NotegicIntegration/1.0",
-            "in": "header",
-            "name": "User-Agent",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "00000000-0000-4000-8000-000000000001",
-            "in": "path",
-            "name": "routine-task-id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "example": {
-                "routineTaskId": "00000000-0000-4000-8000-000000000001"
-              },
-              "schema": {
-                "$ref": "#/components/schemas/PauseMyRoutineTaskByIdRequestBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PauseMyRoutineTaskByIdSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Pause My Routine Task By Id",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "PauseMyRoutineTaskByIdRequestDto",
-        "x-go-response-dto": "PauseMyRoutineTaskByIdResponseDto"
       }
     },
     "/routines": {

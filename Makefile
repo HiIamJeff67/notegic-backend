@@ -4,6 +4,7 @@ WORKSPACE_MODULES := contracts shared runtimes/cli runtimes/core runtimes/durabl
 
 .PHONY: ci-format ci-vet ci-unit ci-race ci-generated ci-containers staging-deploy staging-smoke kafka-topics \
 	compose-integration-up compose-integration-down test-integration test-integration-yjs test-integration-kafka \
+	test-integration-postgres \
 	compose-up compose-down test-integration-managed env-check env-encrypt env-decrypt env-edit env-updatekeys env-rotate \
 	env-encrypt-all development production test staging \
 	test-client-gateway test-api-gateway devlog install-hooks
@@ -205,11 +206,15 @@ test-integration-yjs:
 test-integration-kafka:
 	$(MAKE) -C test test-integration-kafka-run
 
+test-integration-postgres:
+	@NOTEGIC_RUN_POSTGRES_REPOSITORY_INTEGRATION=1 go test ./shared/platform/postgres/...
+
 test-integration-managed:
 	@set -e; \
 	trap '$(MAKE) compose-integration-down >/dev/null 2>&1 || true' EXIT; \
 	$(MAKE) compose-integration-up; \
 	$(MAKE) test-integration; \
+	$(MAKE) test-integration-postgres; \
 	$(MAKE) test-integration-yjs; \
 	$(MAKE) test-integration-kafka
 

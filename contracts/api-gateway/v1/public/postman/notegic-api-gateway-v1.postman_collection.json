@@ -2815,7 +2815,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"maxAttempts\": 1,\n  \"nextScheduledAt\": \"2026-01-01T00:00:00Z\",\n  \"payload\": {},\n  \"period\": \"Daily\",\n  \"priority\": 1,\n  \"purpose\": \"CreateRootShelf\",\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"title\": \"example\"\n}"
+              "raw": "{\n  \"maxAttempts\": 1,\n  \"payload\": {},\n  \"previousRoutineTaskIds\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ],\n  \"priority\": 1,\n  \"purpose\": \"GetSubShelf\",\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"title\": \"example\"\n}"
             },
             "description": "Create Routine Task By Routine Id. Go DTO: `CreateRoutineTaskByRoutineIdRequestDto`; response DTO: `CreateRoutineTaskByRoutineIdResponseDto`.",
             "header": [
@@ -2902,78 +2902,6 @@
               }
             }
           ],
-          "name": "visualize-my-routine-task-actual-ended-at-count",
-          "request": {
-            "description": "Visualize My Routine Task Actual Ended At Count. Go DTO: `VisualizeMyRoutineTaskActualEndedAtCountRequestDto`; response DTO: `VisualizeMyRoutineTaskActualEndedAtCountResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "method": "GET",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/actual-ended-at-count"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "visualize-my-routine-task-actual-started-at-count",
-          "request": {
-            "description": "Visualize My Routine Task Actual Started At Count. Go DTO: `VisualizeMyRoutineTaskActualStartedAtCountRequestDto`; response DTO: `VisualizeMyRoutineTaskActualStartedAtCountResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "method": "GET",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/actual-started-at-count"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "name": "visualize-my-routine-task-purpose-count",
           "request": {
             "description": "Visualize My Routine Task Purpose Count. Go DTO: `VisualizeMyRoutineTaskPurposeCountRequestDto`; response DTO: `VisualizeMyRoutineTaskPurposeCountResponseDto`.",
@@ -2994,103 +2922,13 @@
               "host": [
                 "{{apiGatewayBaseUrl}}"
               ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/purpose-count"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "visualize-my-routine-task-scheduled-at-count",
-          "request": {
-            "description": "Visualize My Routine Task Scheduled At Count. Go DTO: `VisualizeMyRoutineTaskScheduledAtCountRequestDto`; response DTO: `VisualizeMyRoutineTaskScheduledAtCountResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "method": "GET",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "query": [
-                {
-                  "key": "permission",
-                  "value": "Read"
-                },
-                {
-                  "key": "queryRangeEndedAt",
-                  "value": "2026-01-01T00:00:00Z"
-                },
-                {
-                  "key": "queryRangeStartedAt",
-                  "value": "2026-01-01T00:00:00Z"
-                },
-                {
-                  "key": "timeHourUnit",
-                  "value": "1"
-                }
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/scheduled-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026timeHourUnit=1"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "visualize-my-routine-task-status-count",
-          "request": {
-            "description": "Visualize My Routine Task Status Count. Go DTO: `VisualizeMyRoutineTaskStatusCountRequestDto`; response DTO: `VisualizeMyRoutineTaskStatusCountResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "method": "GET",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
               "query": [
                 {
                   "key": "permission",
                   "value": "Read"
                 }
               ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/status-count?permission=Read"
+              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/visualizations/purpose-count?permission=Read"
             }
           }
         },
@@ -3157,7 +2995,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"maxAttempts\": 1,\n    \"nextScheduledAt\": \"2026-01-01T00:00:00Z\",\n    \"payload\": {},\n    \"period\": \"Daily\",\n    \"priority\": 1,\n    \"purpose\": \"CreateRootShelf\",\n    \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n    \"title\": \"example\"\n  }\n}"
+              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"maxAttempts\": 1,\n    \"payload\": {},\n    \"previousRoutineTaskIds\": [\n      \"00000000-0000-4000-8000-000000000001\"\n    ],\n    \"priority\": 1,\n    \"purpose\": \"GetSubShelf\",\n    \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n    \"title\": \"example\"\n  }\n}"
             },
             "description": "Update My Routine Task By Id. Go DTO: `UpdateMyRoutineTaskByIdRequestDto`; response DTO: `UpdateMyRoutineTaskByIdResponseDto`.",
             "header": [
@@ -3233,106 +3071,6 @@
                 "{{apiGatewayBaseUrl}}"
               ],
               "raw": "{{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/permanently"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "[DESTRUCTIVE] resume-my-routine-task-by-id",
-          "request": {
-            "body": {
-              "mode": "raw",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              },
-              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n}"
-            },
-            "description": "Resume My Routine Task By Id. Go DTO: `ResumeMyRoutineTaskByIdRequestDto`; response DTO: `ResumeMyRoutineTaskByIdResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              },
-              {
-                "key": "Content-Type",
-                "type": "text",
-                "value": "application/json"
-              }
-            ],
-            "method": "DELETE",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/suspension"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "pause-my-routine-task-by-id",
-          "request": {
-            "body": {
-              "mode": "raw",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              },
-              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n}"
-            },
-            "description": "Pause My Routine Task By Id. Go DTO: `PauseMyRoutineTaskByIdRequestDto`; response DTO: `PauseMyRoutineTaskByIdResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              },
-              {
-                "key": "Content-Type",
-                "type": "text",
-                "value": "application/json"
-              }
-            ],
-            "method": "PUT",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/{{routineTaskId}}/suspension"
             }
           }
         }

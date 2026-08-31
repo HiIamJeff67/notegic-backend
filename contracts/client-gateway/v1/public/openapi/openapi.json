@@ -3429,6 +3429,10 @@
               "format": "uuid",
               "type": "string"
             },
+            "routineRecordId": {
+              "format": "uuid",
+              "type": "string"
+            },
             "purpose": {
               "type": "string"
             },
@@ -3436,16 +3440,18 @@
               "format": "uuid",
               "type": "string"
             },
-            "scheduledAt": {
-              "format": "date-time",
-              "type": "string"
+            "attempts": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "payloadSnapshot": {
+              "type": "object"
+            },
+            "resultSnapshot": {
+              "type": "object"
             },
             "status": {
               "type": "string"
-            },
-            "totalAttempts": {
-              "format": "int64",
-              "type": "integer"
             },
             "updatedAt": {
               "format": "date-time",
@@ -3454,12 +3460,14 @@
           },
           "required": [
             "id",
+            "routineRecordId",
             "routineTaskId",
             "purpose",
             "status",
             "costUnit",
-            "totalAttempts",
-            "scheduledAt",
+            "attempts",
+            "payloadSnapshot",
+            "resultSnapshot",
             "updatedAt",
             "createdAt"
           ],

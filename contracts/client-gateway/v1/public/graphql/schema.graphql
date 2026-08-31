@@ -152,20 +152,22 @@ enum RoutineStatus {
 
 # Source: enums/routine_task_purpose_enum.graphql
 enum RoutineTaskPurpose {
-  RoutineTaskPurpose_CreateRootShelf
-  RoutineTaskPurpose_UpdateRootShelf
-  RoutineTaskPurpose_ResetRootShelf
+  RoutineTaskPurpose_GetSubShelf
   RoutineTaskPurpose_CreateSubShelf
   RoutineTaskPurpose_UpdateSubShelf
-  RoutineTaskPurpose_ResetSubShelf
+  RoutineTaskPurpose_DeleteSubShelf
+  RoutineTaskPurpose_GetBlockPack
   RoutineTaskPurpose_CreateBlockPack
   RoutineTaskPurpose_UpdateBlockPack
-  RoutineTaskPurpose_ResetBlockPack
-  RoutineTaskPurpose_AppendBlock
-  RoutineTaskPurpose_UpdateBlock
-  RoutineTaskPurpose_ResetBlock
+  RoutineTaskPurpose_DeleteBlockPack
+  RoutineTaskPurpose_GetRoutine
   RoutineTaskPurpose_CreateRoutine
   RoutineTaskPurpose_UpdateRoutine
+  RoutineTaskPurpose_DeleteRoutine
+  RoutineTaskPurpose_GetMaterial
+  RoutineTaskPurpose_CreateMaterial
+  RoutineTaskPurpose_UpdateMaterial
+  RoutineTaskPurpose_DeleteMaterial
 }
 
 # Source: enums/routine_task_record_error_code_enum.graphql
@@ -183,18 +185,13 @@ enum RoutineTaskRecordErrorCode {
 
 # Source: enums/routine_task_record_status_enum.graphql
 enum RoutineTaskRecordStatus {
+  RoutineTaskRecordStatus_Waiting
+  RoutineTaskRecordStatus_Ready
   RoutineTaskRecordStatus_Running
   RoutineTaskRecordStatus_Success
   RoutineTaskRecordStatus_Failed
+  RoutineTaskRecordStatus_Blocked
   RoutineTaskRecordStatus_Cancel
-}
-
-# Source: enums/routine_task_status_enum.graphql
-enum RoutineTaskStatus {
-  RoutineTaskStatus_Idle
-  RoutineTaskStatus_Waiting
-  RoutineTaskStatus_Running
-  RoutineTaskStatus_Pause
 }
 
 # Source: enums/supported_icon_enum.graphql
@@ -423,14 +420,8 @@ type PrivateRoutineTask {
   payload: RawJSON!
   costUnit: Int64!
   priority: Int32!
-  status: RoutineTaskStatus!
-  attempts: Int32!
   maxAttempts: Int32!
-  period: RoutinePeriod
-  nextScheduledAt: Time!
-  scheduledAt: Time!
-  actualStartedAt: Time
-  actualEndedAt: Time
+  previousRoutineTaskIds: [UUID!]!
   updatedAt: Time!
   createdAt: Time!
 }
@@ -438,14 +429,16 @@ type PrivateRoutineTask {
 # Source: routine_task_record.graphql
 type PrivateRoutineTaskRecord {
   id: UUID!
+  routineRecordId: UUID!
   routineTaskId: UUID!
   purpose: RoutineTaskPurpose!
   status: RoutineTaskRecordStatus!
   errorCode: RoutineTaskRecordErrorCode
   errorReason: String
   costUnit: Int64!
-  totalAttempts: Int64!
-  scheduledAt: Time!
+  attempts: Int32!
+  payloadSnapshot: RawJSON!
+  resultSnapshot: RawJSON!
   actualStartedAt: Time
   actualEndedAt: Time
   updatedAt: Time!
@@ -758,7 +751,7 @@ enum SearchRoutineTaskRecordSortBy {
   PURPOSE
   STATUS
   COST_UNIT
-  TOTAL_ATTEMPTS
+  ATTEMPTS
   SCHEDULED_AT
   ACTUAL_STARTED_AT
   ACTUAL_ENDED_AT
@@ -803,12 +796,7 @@ enum SearchRoutineTaskSortBy {
   TITLE
   PURPOSE
   PRIORITY
-  STATUS
-  ATTEMPTS
   MAX_ATTEMPTS
-  SCHEDULED_AT
-  ACTUAL_STARTED_AT
-  ACTUAL_ENDED_AT
   LAST_UPDATE
   CREATED_AT
 }

@@ -66,16 +66,10 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `DELETE` | `/routine-tasks/batch/permanently` | `hardDeleteMyRoutineTasksByIds` | `HardDeleteMyRoutineTasksByIdsRequestDto` | `HardDeleteMyRoutineTasksByIdsResponseDto` |
 | `POST` | `/routine-tasks/routine/{routine-id}` | `createRoutineTaskByRoutineId` | `CreateRoutineTaskByRoutineIdRequestDto` | `CreateRoutineTaskByRoutineIdResponseDto` |
 | `GET` | `/routine-tasks/routines` | `getAllMyRoutineTasksByRoutineIds` | `GetAllMyRoutineTasksByRoutineIdsRequestDto` | `GetAllMyRoutineTasksByRoutineIdsResponseDto` |
-| `GET` | `/routine-tasks/visualizations/actual-ended-at-count` | `visualizeMyRoutineTaskActualEndedAtCount` | `VisualizeMyRoutineTaskActualEndedAtCountRequestDto` | `VisualizeMyRoutineTaskActualEndedAtCountResponseDto` |
-| `GET` | `/routine-tasks/visualizations/actual-started-at-count` | `visualizeMyRoutineTaskActualStartedAtCount` | `VisualizeMyRoutineTaskActualStartedAtCountRequestDto` | `VisualizeMyRoutineTaskActualStartedAtCountResponseDto` |
 | `GET` | `/routine-tasks/visualizations/purpose-count` | `visualizeMyRoutineTaskPurposeCount` | `VisualizeMyRoutineTaskPurposeCountRequestDto` | `VisualizeMyRoutineTaskPurposeCountResponseDto` |
-| `GET` | `/routine-tasks/visualizations/scheduled-at-count` | `visualizeMyRoutineTaskScheduledAtCount` | `VisualizeMyRoutineTaskScheduledAtCountRequestDto` | `VisualizeMyRoutineTaskScheduledAtCountResponseDto` |
-| `GET` | `/routine-tasks/visualizations/status-count` | `visualizeMyRoutineTaskStatusCount` | `VisualizeMyRoutineTaskStatusCountRequestDto` | `VisualizeMyRoutineTaskStatusCountResponseDto` |
 | `GET` | `/routine-tasks/{routine-task-id}` | `getMyRoutineTaskById` | `GetMyRoutineTaskByIdRequestDto` | `GetMyRoutineTaskByIdResponseDto` |
 | `PUT` | `/routine-tasks/{routine-task-id}` | `updateMyRoutineTaskById` | `UpdateMyRoutineTaskByIdRequestDto` | `UpdateMyRoutineTaskByIdResponseDto` |
 | `DELETE` | `/routine-tasks/{routine-task-id}/permanently` | `hardDeleteMyRoutineTaskById` | `HardDeleteMyRoutineTaskByIdRequestDto` | `HardDeleteMyRoutineTaskByIdResponseDto` |
-| `DELETE` | `/routine-tasks/{routine-task-id}/suspension` | `resumeMyRoutineTaskById` | `ResumeMyRoutineTaskByIdRequestDto` | `ResumeMyRoutineTaskByIdResponseDto` |
-| `PUT` | `/routine-tasks/{routine-task-id}/suspension` | `pauseMyRoutineTaskById` | `PauseMyRoutineTaskByIdRequestDto` | `PauseMyRoutineTaskByIdResponseDto` |
 | `GET` | `/routines` | `getAllMyRoutinesByTimeRange` | `GetAllMyRoutinesByTimeRangeRequestDto` | `GetAllMyRoutinesByTimeRangeResponseDto` |
 | `DELETE` | `/routines/batch` | `deleteMyRoutinesByIds` | `DeleteMyRoutinesByIdsRequestDto` | `DeleteMyRoutinesByIdsResponseDto` |
 | `POST` | `/routines/batch` | `createRoutinesByStationIds` | `CreateRoutinesByStationIdsRequestDto` | `CreateRoutinesByStationIdsResponseDto` |

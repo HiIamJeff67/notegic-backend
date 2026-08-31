@@ -169,14 +169,8 @@ fragment FragmentedBasicPrivateRoutineTask on PrivateRoutineTask {
   purpose
   costUnit
   priority
-  status
-  attempts
   maxAttempts
-  period
-  nextScheduledAt
-  scheduledAt
-  actualStartedAt
-  actualEndedAt
+  previousRoutineTaskIds
   updatedAt
   createdAt
 }
@@ -188,14 +182,16 @@ fragment FragmentedPrivateRoutineTask on PrivateRoutineTask {
 # Source: routine_task_record_fragment.graphql
 fragment FragmentedPrivateRoutineTaskRecord on PrivateRoutineTaskRecord {
   id
+  routineRecordId
   routineTaskId
   purpose
   status
   errorCode
   errorReason
   costUnit
-  totalAttempts
-  scheduledAt
+  attempts
+  payloadSnapshot
+  resultSnapshot
   actualStartedAt
   actualEndedAt
   updatedAt

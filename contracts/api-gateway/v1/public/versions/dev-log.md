@@ -2,7 +2,7 @@
 
 ## Current contract baseline
 
-- Published surface: 131 APIGateway operations across nine enabled resource domains.
+- Published surface: 125 APIGateway operations across nine enabled resource domains.
 - Contract format: OpenAPI 3.1.
 - Authentication: user-owned `X-API-Key` header; key creation remains on ClientGateway.
 - Tooling: Postman 2.1 collection/environment, curl functions, and an HTTP client file.

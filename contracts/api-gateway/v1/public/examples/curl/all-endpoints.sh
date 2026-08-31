@@ -525,7 +525,7 @@ createRoutineTaskByRoutineId() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"maxAttempts":1,"nextScheduledAt":"2026-01-01T00:00:00Z","payload":{},"period":"Daily","priority":1,"purpose":"CreateRootShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}' \
+    --data '{"maxAttempts":1,"payload":{},"previousRoutineTaskIds":["00000000-0000-4000-8000-000000000001"],"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}' \
     "$api_gateway_base_url/routine-tasks/routine/${routineId}"
 }
 
@@ -536,39 +536,11 @@ getAllMyRoutineTasksByRoutineIds() {
     "$api_gateway_base_url/routine-tasks/routines?areDeleted=true&routineIds=00000000-0000-4000-8000-000000000001"
 }
 
-visualizeMyRoutineTaskActualEndedAtCount() {
-  curl --fail-with-body --silent --show-error -X GET \
-    -H "User-Agent: $user_agent" \
-    -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/visualizations/actual-ended-at-count"
-}
-
-visualizeMyRoutineTaskActualStartedAtCount() {
-  curl --fail-with-body --silent --show-error -X GET \
-    -H "User-Agent: $user_agent" \
-    -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/visualizations/actual-started-at-count"
-}
-
 visualizeMyRoutineTaskPurposeCount() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
     -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/visualizations/purpose-count"
-}
-
-visualizeMyRoutineTaskScheduledAtCount() {
-  curl --fail-with-body --silent --show-error -X GET \
-    -H "User-Agent: $user_agent" \
-    -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/visualizations/scheduled-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&timeHourUnit=1"
-}
-
-visualizeMyRoutineTaskStatusCount() {
-  curl --fail-with-body --silent --show-error -X GET \
-    -H "User-Agent: $user_agent" \
-    -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/visualizations/status-count?permission=Read"
+    "$api_gateway_base_url/routine-tasks/visualizations/purpose-count?permission=Read"
 }
 
 getMyRoutineTaskById() {
@@ -583,7 +555,7 @@ updateMyRoutineTaskById() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"maxAttempts":1,"nextScheduledAt":"2026-01-01T00:00:00Z","payload":{},"period":"Daily","priority":1,"purpose":"CreateRootShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}}' \
+    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"maxAttempts":1,"payload":{},"previousRoutineTaskIds":["00000000-0000-4000-8000-000000000001"],"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}}' \
     "$api_gateway_base_url/routine-tasks/${routineTaskId}"
 }
 
@@ -594,24 +566,6 @@ hardDeleteMyRoutineTaskById() {
     -H "X-API-Key: $api_key" \
     --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
     "$api_gateway_base_url/routine-tasks/${routineTaskId}/permanently"
-}
-
-resumeMyRoutineTaskById() {
-  curl --fail-with-body --silent --show-error -X DELETE \
-    -H "User-Agent: $user_agent" \
-    -H "Content-Type: application/json" \
-    -H "X-API-Key: $api_key" \
-    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
-    "$api_gateway_base_url/routine-tasks/${routineTaskId}/suspension"
-}
-
-pauseMyRoutineTaskById() {
-  curl --fail-with-body --silent --show-error -X PUT \
-    -H "User-Agent: $user_agent" \
-    -H "Content-Type: application/json" \
-    -H "X-API-Key: $api_key" \
-    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
-    "$api_gateway_base_url/routine-tasks/${routineTaskId}/suspension"
 }
 
 getAllMyRoutinesByTimeRange() {

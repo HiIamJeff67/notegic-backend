@@ -1,6 +1,6 @@
 # Notegic APIGateway v1 public API
 
-This directory contains the machine-readable and human-readable contract for all 131 versioned routes currently exposed by APIGateway v1.
+This directory contains the machine-readable and human-readable contract for all 125 versioned routes currently exposed by APIGateway v1.
 
 The published domains are RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, and RoutineTag. Client-only auth, user/account, notification, realtime, GraphQL, and static routes are intentionally excluded.
 
