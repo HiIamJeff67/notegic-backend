@@ -61,10 +61,9 @@ type ApplicationInterface interface {
 	initializeDatabase(spostgres.Config) (*gorm.DB, error)
 	initializeRedis(sredis.Config) (*sredis.ClientSet, error)
 	initializeCacheClients(coreconfig.Config, *sredis.ClientSet) (*userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient, error)
-	initializeYjsClient(coreconfig.Config) *yjsworkertransport.DocumentInitializationClient
 	initializeKafka(skafka.ConnectionConfig) (*skafka.Producer, bool)
 	initializeWorkers(coreconfig.Config, *gorm.DB, skafka.ConnectionConfig, *skafka.Producer) func()
-	buildRouter(coreconfig.Config, *gorm.DB, *skafka.Producer, *userdata.UserDataCacheClient, *yjsworkertransport.DocumentInitializationClient, *apikeycache.APIKeyCacheClient) *gin.Engine
+	buildRouter(coreconfig.Config, *gorm.DB, *skafka.Producer, *userdata.UserDataCacheClient, *apikeycache.APIKeyCacheClient) *gin.Engine
 	startHTTP(coreconfig.Config, *gin.Engine, bool) (func(), error)
 	Start() func()
 	IsHealthy() bool
@@ -88,7 +87,6 @@ func (a *Application) buildRouter(
 	db *gorm.DB,
 	kafkaProducer *skafka.Producer,
 	userDataCacheClient *userdata.UserDataCacheClient,
-	yjsDocumentInitializationClient *yjsworkertransport.DocumentInitializationClient,
 	apiKeyCacheClient *apikeycache.APIKeyCacheClient,
 ) *gin.Engine {
 	validator := validation.New()
@@ -244,19 +242,11 @@ func (a *Application) buildRouter(
 		routineTaskRepository,
 		itemRepository,
 	)
-	routineTaskExecutionService := routineservices.NewRoutineTaskExecutionService(
-		validator,
-		db,
-		yjsDocumentInitializationClient,
-	)
 	routineTaskService := routineservices.NewRoutineTaskService(
 		validator,
 		db,
 		routineTaskScope,
 		routineTaskRepository,
-		routineTaskRecordRepository,
-		srepositories.NewUserQuotaRepository(db),
-		routineTaskExecutionService,
 	)
 	themeService := otherservices.NewThemeService(db)
 	itemService := shelfservices.NewItemService(db, itemScope)
@@ -378,10 +368,6 @@ func (a *Application) initializeCacheClients(
 		return nil, nil, exception
 	}
 	return userdata.NewUserDataCacheClient(config.UserDataCache, userDataCacheStore), apikeycache.NewAPIKeyCacheClient(apiKeyCacheStore), nil
-}
-
-func (a *Application) initializeYjsClient(config coreconfig.Config) *yjsworkertransport.DocumentInitializationClient {
-	return yjsworkertransport.NewDocumentInitializationClient(config.YjsDocumentInitialization)
 }
 
 func (a *Application) initializeKafka(
@@ -549,10 +535,9 @@ func (a *Application) Start() func() {
 	if err != nil {
 		fail(err)
 	}
-	yjsDocumentInitializationClient := a.initializeYjsClient(config)
 	kafkaProducer, kafkaReady := a.initializeKafka(kafkaConnectionConfig)
 	shutdownWorkers = a.initializeWorkers(config, db, kafkaConnectionConfig, kafkaProducer)
-	router := a.buildRouter(config, db, kafkaProducer, userDataCacheClient, yjsDocumentInitializationClient, apiKeyCacheClient)
+	router := a.buildRouter(config, db, kafkaProducer, userDataCacheClient, apiKeyCacheClient)
 	shutdownHTTP, err = a.startHTTP(config, router, kafkaReady)
 	if err != nil {
 		fail(err)

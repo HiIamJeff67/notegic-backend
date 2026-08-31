@@ -24,7 +24,7 @@ type RoutineTaskRecordRepositoryInterface interface {
 	CheckPermissionAndGetOneById(id uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) (*schemas.RoutineTaskRecord, *cexceptions.Exception)
 	CheckPermissionsAndGetManyByIds(ids []uuid.UUID, userId uuid.UUID, preloads []schemas.RoutineTaskRecordRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]schemas.RoutineTaskRecord, *cexceptions.Exception)
 	GetAllByRoutineTaskId(routineTaskId uuid.UUID, userId uuid.UUID, limit int, preloads []schemas.RoutineTaskRecordRelation, opts ...RepositoryOptions) ([]schemas.RoutineTaskRecord, *cexceptions.Exception)
-	UpdateManyAsFailed(failureInputs []inputs.UpdateRoutineTaskRecordFailureInput, failedAt time.Time, opts ...RepositoryOptions) (int64, *cexceptions.Exception)
+	UpdateManyAsFailed(failureInputs []inputs.UpdateRoutineTaskRecordFailureInput, opts ...RepositoryOptions) (int64, *cexceptions.Exception)
 	HardDeleteOneById(id uuid.UUID, userId uuid.UUID, opts ...RepositoryOptions) *cexceptions.Exception
 	HardDeleteManyByIds(ids []uuid.UUID, userId uuid.UUID, opts ...RepositoryOptions) *cexceptions.Exception
 }
@@ -35,8 +35,8 @@ type RoutineTaskRecordRepository struct {
 	exceptions             exceptions.RoutineTaskRecordException
 }
 
-func NewRoutineTaskRecordRepository(db *gorm.DB,
-
+func NewRoutineTaskRecordRepository(
+	db *gorm.DB,
 	routineTaskRecordScope scopes.RoutineTaskRecordScopeInterface,
 ) RoutineTaskRecordRepositoryInterface {
 	return &RoutineTaskRecordRepository{
@@ -189,7 +189,23 @@ func (r *RoutineTaskRecordRepository) GetAllByRoutineTaskId(
 	var routineTaskRecords []schemas.RoutineTaskRecord
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTaskRecord{}).
-		Select(`"RoutineTaskRecordTable".*`).
+		Select(`
+			"RoutineTaskRecordTable".id,
+			"RoutineTaskRecordTable".routine_record_id,
+			"RoutineTaskRecordTable".routine_task_id,
+			"RoutineTaskRecordTable".purpose,
+			"RoutineTaskRecordTable".status,
+			"RoutineTaskRecordTable".error_code,
+			"RoutineTaskRecordTable".error_reason,
+			"RoutineTaskRecordTable".cost_unit,
+			"RoutineTaskRecordTable".attempts,
+			"RoutineTaskRecordTable".payload_snapshot,
+			"RoutineTaskRecordTable".result_snapshot,
+			"RoutineTaskRecordTable".actual_started_at,
+			"RoutineTaskRecordTable".actual_ended_at,
+			"RoutineTaskRecordTable".updated_at,
+			"RoutineTaskRecordTable".created_at`).
+		Joins(`INNER JOIN "RoutineRecordTable" routine_record ON routine_record.id = "RoutineTaskRecordTable".routine_record_id`).
 		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = routine_task.routine_id AND routine.deleted_at IS NULL`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
@@ -208,7 +224,6 @@ func (r *RoutineTaskRecordRepository) GetAllByRoutineTaskId(
 
 func (r *RoutineTaskRecordRepository) UpdateManyAsFailed(
 	failureInputs []inputs.UpdateRoutineTaskRecordFailureInput,
-	failedAt time.Time,
 	opts ...RepositoryOptions,
 ) (int64, *cexceptions.Exception) {
 	if len(failureInputs) == 0 {
@@ -221,14 +236,15 @@ func (r *RoutineTaskRecordRepository) UpdateManyAsFailed(
 		}, opts...)...,
 	)
 	valuePlaceholders := make([]string, 0, len(failureInputs))
-	valueArgs := make([]any, 0, len(failureInputs)*3+4)
+	valueArgs := make([]any, 0, len(failureInputs)*4+2)
 	for _, failureInput := range failureInputs {
-		valuePlaceholders = append(valuePlaceholders, "(?::uuid, ?::\"RoutineTaskRecordErrorCode\", ?::varchar)")
+		valuePlaceholders = append(valuePlaceholders, "(?::uuid, ?::\"RoutineTaskRecordErrorCode\", ?::varchar, ?::timestamptz)")
 		valueArgs = append(
 			valueArgs,
 			failureInput.Id,
 			failureInput.ErrorCode.String(),
 			failureInput.ErrorReason,
+			failureInput.FailedAt,
 		)
 	}
 
@@ -236,19 +252,18 @@ func (r *RoutineTaskRecordRepository) UpdateManyAsFailed(
 		UPDATE "RoutineTaskRecordTable" AS routine_task_record
 		SET
 			status = ?::"RoutineTaskRecordStatus",
-			actual_ended_at = ?::timestamptz,
+			actual_ended_at = value.failed_at,
 			error_code = value.error_code,
 			error_reason = value.error_reason,
 			updated_at = ?::timestamptz
-		FROM (VALUES %s) AS value(id, error_code, error_reason)
+		FROM (VALUES %s) AS value(id, error_code, error_reason, failed_at)
 		WHERE routine_task_record.id = value.id
 			AND routine_task_record.status = ?::"RoutineTaskRecordStatus"
 	`, strings.Join(valuePlaceholders, ","))
 	valueArgs = append(
 		[]any{
 			cenums.RoutineTaskRecordStatus_Failed.String(),
-			failedAt,
-			failedAt,
+			time.Now().UTC(),
 			cenums.RoutineTaskRecordStatus_Running.String(),
 		},
 		valueArgs...,

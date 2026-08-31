@@ -40,6 +40,7 @@ const (
 const (
 	RoutineTaskEngineMaxWorkers         int           = 8
 	RoutineTaskEngineTickerDuration     time.Duration = 1 * time.Minute
+	RoutineTaskExecutionLeaseTTL        time.Duration = 10 * time.Minute
 	RoutineTaskClaimerMaxClaimableTasks int           = 1e6
 )
 

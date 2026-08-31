@@ -105,7 +105,7 @@ func TestPermissionManifestValidateRejectsDuplicateObjects(t *testing.T) {
 		Objects: []PermissionObject{
 			{
 				Type: PermissionObjectType_Enum,
-				Name: "RoutineTaskStatus",
+				Name: "DuplicateEnum",
 				Grants: []PermissionGrant{
 					{
 						Runtime: ctypes.Runtime_DurableJob,
@@ -117,7 +117,7 @@ func TestPermissionManifestValidateRejectsDuplicateObjects(t *testing.T) {
 			},
 			{
 				Type: PermissionObjectType_Enum,
-				Name: "RoutineTaskStatus",
+				Name: "DuplicateEnum",
 				Grants: []PermissionGrant{
 					{
 						Runtime: ctypes.Runtime_DurableJob,

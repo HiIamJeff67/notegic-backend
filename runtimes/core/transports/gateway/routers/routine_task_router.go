@@ -73,22 +73,6 @@ func configureRoutineTaskRoutes(
 			endpoint.UpdateMyRoutineTaskById,
 		)
 		routineTaskRoutes.POST(
-			"/pause",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.PauseMyRoutineTaskByIdOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.PauseMyRoutineTaskById,
-		)
-		routineTaskRoutes.POST(
-			"/resume",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.ResumeMyRoutineTaskByIdOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.ResumeMyRoutineTaskById,
-		)
-		routineTaskRoutes.POST(
 			"/hard-delete",
 			middlewares.DelegationAuthenticatedMiddleware(
 				capi.HardDeleteMyRoutineTaskByIdOperation,
@@ -108,44 +92,12 @@ func configureRoutineTaskRoutes(
 	visualizationRoutes := router.Group("/routine-tasks/visualizations")
 	{
 		visualizationRoutes.POST(
-			"/visualize-status-count",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.VisualizeMyRoutineTaskStatusCountOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.VisualizeMyRoutineTaskStatusCount,
-		)
-		visualizationRoutes.POST(
 			"/visualize-purpose-count",
 			middlewares.DelegationAuthenticatedMiddleware(
 				capi.VisualizeMyRoutineTaskPurposeCountOperation,
 			),
 			apiCompatibleAuthMiddleware,
 			endpoint.VisualizeMyRoutineTaskPurposeCount,
-		)
-		visualizationRoutes.POST(
-			"/visualize-scheduled-at-count",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.VisualizeMyRoutineTaskScheduledAtCountOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.VisualizeMyRoutineTaskScheduledAtCount,
-		)
-		visualizationRoutes.POST(
-			"/visualize-actual-started-at-count",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.VisualizeMyRoutineTaskActualStartedAtCountOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.VisualizeMyRoutineTaskActualStartedAtCount,
-		)
-		visualizationRoutes.POST(
-			"/visualize-actual-ended-at-count",
-			middlewares.DelegationAuthenticatedMiddleware(
-				capi.VisualizeMyRoutineTaskActualEndedAtCountOperation,
-			),
-			apiCompatibleAuthMiddleware,
-			endpoint.VisualizeMyRoutineTaskActualEndedAtCount,
 		)
 	}
 	router.POST(

@@ -35,6 +35,7 @@ const (
 	TableName_StationTable              TableName = "StationTable"
 	TableName_RoutineTable              TableName = "RoutineTable"
 	TableName_RoutineDependencyTable    TableName = "RoutineDependencyTable"
+	TableName_RoutineRecordTable        TableName = "RoutineRecordTable"
 	TableName_RoutineTaskTable          TableName = "RoutineTaskTable"
 	TableName_RoutineTaskRecordTable    TableName = "RoutineTaskRecordTable"
 	TableName_RoutineTagTable           TableName = "RoutineTagTable"

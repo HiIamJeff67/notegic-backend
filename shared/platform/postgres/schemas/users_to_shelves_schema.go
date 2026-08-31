@@ -19,8 +19,8 @@ type UsersToShelves struct {
 	CreatedAt   time.Time                      `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
 	// relations
-	User      User      `gorm:"foreignKey:UserId; reference:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
-	RootShelf RootShelf `gorm:"foreignKey:RootShelfId; reference:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	User      User      `gorm:"foreignKey:UserId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	RootShelf RootShelf `gorm:"foreignKey:RootShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }
 
 // UsersToShelves Table Name

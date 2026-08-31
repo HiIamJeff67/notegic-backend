@@ -8,6 +8,14 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
+type GetRoutineRoutineTaskPayload struct {
+	RoutineId uuid.UUID `json:"routineId" validate:"required"`
+}
+
+type DeleteRoutineRoutineTaskPayload struct {
+	RoutineId uuid.UUID `json:"routineId" validate:"required"`
+}
+
 type CreateRoutineRoutineTaskPayload struct {
 	Id               *uuid.UUID            `json:"id" validate:"omitnil"`
 	StationId        uuid.UUID             `json:"stationId" validate:"required"`

@@ -18,17 +18,11 @@ type RoutineTaskEndpointInterface interface {
 	GetAllMyRoutineTasks(ctx *gin.Context)
 	CreateRoutineTaskByRoutineId(ctx *gin.Context)
 	UpdateMyRoutineTaskById(ctx *gin.Context)
-	PauseMyRoutineTaskById(ctx *gin.Context)
-	ResumeMyRoutineTaskById(ctx *gin.Context)
 	HardDeleteMyRoutineTaskById(ctx *gin.Context)
 	HardDeleteMyRoutineTasksByIds(ctx *gin.Context)
 
 	/* ============================== Visualization Methods ============================== */
-	VisualizeMyRoutineTaskStatusCount(ctx *gin.Context)
 	VisualizeMyRoutineTaskPurposeCount(ctx *gin.Context)
-	VisualizeMyRoutineTaskScheduledAtCount(ctx *gin.Context)
-	VisualizeMyRoutineTaskActualStartedAtCount(ctx *gin.Context)
-	VisualizeMyRoutineTaskActualEndedAtCount(ctx *gin.Context)
 
 	/* ============================== GraphQL Methods ============================== */
 	SearchRoutineTasks(ctx *gin.Context)
@@ -122,38 +116,6 @@ func (t *RoutineTaskEndpoint) UpdateMyRoutineTaskById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cgateway.Response[capi.UpdateMyRoutineTaskByIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
-func (t *RoutineTaskEndpoint) PauseMyRoutineTaskById(ctx *gin.Context) {
-	request := &cgateway.Request[capi.PauseMyRoutineTaskByIdRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.PauseMyRoutineTaskById(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.PauseMyRoutineTaskByIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
-func (t *RoutineTaskEndpoint) ResumeMyRoutineTaskById(ctx *gin.Context) {
-	request := &cgateway.Request[capi.ResumeMyRoutineTaskByIdRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.ResumeMyRoutineTaskById(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.ResumeMyRoutineTaskByIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
 func (t *RoutineTaskEndpoint) HardDeleteMyRoutineTaskById(ctx *gin.Context) {
 	request := &cgateway.Request[capi.HardDeleteMyRoutineTaskByIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
@@ -186,22 +148,6 @@ func (t *RoutineTaskEndpoint) HardDeleteMyRoutineTasksByIds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cgateway.Response[capi.HardDeleteMyRoutineTasksByIdsResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
-func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskStatusCount(ctx *gin.Context) {
-	request := &cgateway.Request[capi.VisualizeMyRoutineTaskStatusCountRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.VisualizeMyRoutineTaskStatusCount(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.VisualizeMyRoutineTaskStatusCountResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
 func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Context) {
 	request := &cgateway.Request[capi.VisualizeMyRoutineTaskPurposeCountRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
@@ -216,52 +162,4 @@ func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Contex
 		return
 	}
 	ctx.JSON(http.StatusOK, cgateway.Response[capi.VisualizeMyRoutineTaskPurposeCountResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
-func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskScheduledAtCount(ctx *gin.Context) {
-	request := &cgateway.Request[capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.VisualizeMyRoutineTaskScheduledAtCount(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.VisualizeMyRoutineTaskScheduledAtCountResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
-func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskActualStartedAtCount(ctx *gin.Context) {
-	request := &cgateway.Request[capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.VisualizeMyRoutineTaskActualStartedAtCount(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.VisualizeMyRoutineTaskActualStartedAtCountResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
-}
-
-func (t *RoutineTaskEndpoint) VisualizeMyRoutineTaskActualEndedAtCount(ctx *gin.Context) {
-	request := &cgateway.Request[capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto]{}
-	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	responseDto, exception := t.routineTaskService.VisualizeMyRoutineTaskActualEndedAtCount(ctx.Request.Context(), &request.Dto)
-	if exception != nil {
-		publicException := exception.ToPublic()
-		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
-		return
-	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.VisualizeMyRoutineTaskActualEndedAtCountResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }

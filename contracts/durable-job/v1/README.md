@@ -10,14 +10,15 @@ Routine task execution uses the shared PostgreSQL instance directly:
 DurableJob -> PostgreSQL: claim, quota, execute, finalize
 
 DurableJob claims tasks through its own PostgreSQL connection, executes the
-runtime-owned handlers, and writes business mutations plus RoutineTask and
-RoutineTaskRecord state in the same database flow. Core is not involved in
+runtime-owned handlers, and writes business mutations plus RoutineRecord and
+RoutineTaskRecord state in the same database flow. RoutineTask remains the
+immutable task definition during execution; Core is not involved in
 routine-task execution.
 ```
 
 `ClaimRoutineTasksRequestDto` is a capacity request, not a request for one
-specific task. DurableJob owns task claiming, quota consumption, task records,
-and scheduling state. It returns one `RoutineTaskAssignment` per task claimed
+specific task. DurableJob owns task claiming, quota consumption, routine
+records, and scheduling state. It returns one `RoutineTaskAssignment` per task claimed
 within the requested batch size.
 
 The service owns its runtime, handlers, validation, and execution state. Its

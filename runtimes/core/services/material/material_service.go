@@ -485,7 +485,7 @@ func (s *MaterialService) SaveMyMaterialById(
 	if err != nil {
 		return nil, apiexceptions.NewMaterialException().InvalidType(object.ContentType).WithOrigin(err)
 	}
-	partialUpdate.Values.ParseMediaType = object.ParseMediaType
+	partialUpdate.Values.ParseMediaType = &object.ParseMediaType
 	partialUpdate.Values.Size = &size
 	partialUpdate.Values.ContentType = contentType
 

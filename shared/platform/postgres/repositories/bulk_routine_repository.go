@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
@@ -22,6 +23,7 @@ import (
 type RoutineBulkRepositoryInterface interface {
 	BulkCreateMany(inputs []inputs.BulkCreateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(inputs []inputs.BulkDeleteRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 func (r *RoutineBulkRepository) BulkCheckPermissionsAndGetManyByIds(
@@ -443,6 +445,87 @@ func (r *RoutineBulkRepository) BulkUpdateMany(
 		if updatedIndex.Index >= 0 && updatedIndex.Index < len(successes) {
 			successes[updatedIndex.Index] = true
 		}
+	}
+
+	return successes, nil
+}
+
+func (r *RoutineBulkRepository) BulkDeleteMany(
+	bulkInputs []inputs.BulkDeleteRoutineInput,
+	opts ...RepositoryOptions,
+) ([]bool, *cexceptions.Exception) {
+	if len(bulkInputs) == 0 {
+		return []bool{}, r.exceptions.NoChanges()
+	}
+
+	parsedOptions := ParseRepositoryOptions(
+		append([]RepositoryOptions{
+			WithDB(r.db),
+		}, opts...)...,
+	)
+
+	shouldStartTransaction := !parsedOptions.IsTransactionStarted
+	if shouldStartTransaction {
+		parsedOptions.DB = parsedOptions.DB.Begin()
+	}
+
+	checkInputs := make([]inputs.BulkCheckRoutinePermissionInput, len(bulkInputs))
+	for index, in := range bulkInputs {
+		checkInputs[index] = inputs.BulkCheckRoutinePermissionInput{
+			UserId: in.UserId,
+			Id:     in.Id,
+		}
+	}
+	checkOptions := append(opts, WithTransactionDB(parsedOptions.DB))
+	checkOptions = append(checkOptions, WithOnlyDeleted(types.Ternary_Negative))
+	checkOptions = append(checkOptions, WithLockingStrength(LockingStrengthNoKeyUpdate))
+	successes, _, exception := r.BulkCheckPermissionsAndGetManyByIds(
+		checkInputs,
+		nil,
+		parsedOptions.AllowedPermissions,
+		checkOptions...,
+	)
+	if exception != nil {
+		parsedOptions.DB.Rollback()
+		return nil, exception
+	}
+
+	validIds := make([]uuid.UUID, 0, len(bulkInputs))
+	for index, in := range bulkInputs {
+		if successes[index] {
+			validIds = append(validIds, in.Id)
+		}
+	}
+	if len(validIds) == 0 {
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
+		return successes, nil
+	}
+
+	var deletedRoutines []schemas.Routine
+	result := parsedOptions.DB.Model(&deletedRoutines).
+		Clauses(clause.Returning{}).
+		Where(`id IN ? AND deleted_at IS NULL`, validIds).
+		Updates(map[string]interface{}{"deleted_at": time.Now(), "updated_at": time.Now()})
+	if result.Error != nil {
+		parsedOptions.DB.Rollback()
+		return nil, r.exceptions.FailedToDelete().WithOrigin(result.Error)
+	}
+
+	if shouldStartTransaction {
+		if err := parsedOptions.DB.Commit().Error; err != nil {
+			parsedOptions.DB.Rollback()
+			return nil, r.exceptions.FailedToCommitTransaction().WithOrigin(err)
+		}
+	}
+
+	deletedIdSet := make(map[uuid.UUID]bool, len(deletedRoutines))
+	for _, routine := range deletedRoutines {
+		deletedIdSet[routine.Id] = true
+	}
+	for index, in := range bulkInputs {
+		successes[index] = successes[index] && deletedIdSet[in.Id]
 	}
 
 	return successes, nil

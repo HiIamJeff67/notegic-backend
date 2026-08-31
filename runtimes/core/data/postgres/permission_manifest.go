@@ -29,6 +29,7 @@ func getCorePermissionObjects() []spostgres.PermissionObject {
 		spostgres.TableName_BlockPackTable.String():            true,
 		spostgres.TableName_BlockPackYjsDocumentTable.String(): true,
 		spostgres.TableName_MaterialTable.String():             true,
+		spostgres.TableName_RoutineTable.String():              true,
 		spostgres.TableName_SubShelfTable.String():             true,
 	}
 	durableReadableTables := map[string]bool{

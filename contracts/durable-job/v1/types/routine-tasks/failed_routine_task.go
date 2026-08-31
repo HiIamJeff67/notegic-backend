@@ -11,6 +11,7 @@ import (
 type FailedRoutineTask struct {
 	RoutineTaskId       uuid.UUID                         `json:"routineTaskId" validate:"required"`
 	RoutineTaskRecordId uuid.UUID                         `json:"routineTaskRecordId" validate:"required"`
+	RoutineRecordId     uuid.UUID                         `json:"routineRecordId" validate:"required"`
 	FailedAt            time.Time                         `json:"failedAt" validate:"required"`
 	ErrorCode           cenums.RoutineTaskRecordErrorCode `json:"errorCode" validate:"required"`
 	ErrorReason         string                            `json:"errorReason" validate:"required,max=256"`

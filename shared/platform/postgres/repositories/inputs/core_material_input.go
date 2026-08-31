@@ -21,7 +21,7 @@ type UpdateMaterialInput struct {
 	Size             *int64                      `json:"size" gorm:"column:size;"`
 	ContentKey       *string                     `json:"contentKey" gorm:"column:content_key;"`
 	ContentType      *cenums.MaterialContentType `json:"contentType" gorm:"column:content_type;"`
-	ParseMediaType   string                      `json:"parseMediaType" gorm:"column:parse_media_type;"`
+	ParseMediaType   *string                     `json:"parseMediaType" gorm:"column:parse_media_type;"`
 }
 
 type PartialUpdateMaterialInput = PartialUpdateInput[UpdateMaterialInput]

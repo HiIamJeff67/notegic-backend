@@ -135,38 +135,34 @@ type ComplexityRoot struct {
 	}
 
 	PrivateRoutineTask struct {
-		ActualEndedAt   func(childComplexity int) int
-		ActualStartedAt func(childComplexity int) int
-		Attempts        func(childComplexity int) int
-		CostUnit        func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		ID              func(childComplexity int) int
-		MaxAttempts     func(childComplexity int) int
-		NextScheduledAt func(childComplexity int) int
-		Payload         func(childComplexity int) int
-		Period          func(childComplexity int) int
-		Priority        func(childComplexity int) int
-		Purpose         func(childComplexity int) int
-		RoutineID       func(childComplexity int) int
-		ScheduledAt     func(childComplexity int) int
-		Status          func(childComplexity int) int
-		Title           func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
+		CostUnit               func(childComplexity int) int
+		CreatedAt              func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		MaxAttempts            func(childComplexity int) int
+		Payload                func(childComplexity int) int
+		PreviousRoutineTaskIds func(childComplexity int) int
+		Priority               func(childComplexity int) int
+		Purpose                func(childComplexity int) int
+		RoutineID              func(childComplexity int) int
+		Title                  func(childComplexity int) int
+		UpdatedAt              func(childComplexity int) int
 	}
 
 	PrivateRoutineTaskRecord struct {
 		ActualEndedAt   func(childComplexity int) int
 		ActualStartedAt func(childComplexity int) int
+		Attempts        func(childComplexity int) int
 		CostUnit        func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
 		ErrorCode       func(childComplexity int) int
 		ErrorReason     func(childComplexity int) int
 		ID              func(childComplexity int) int
+		PayloadSnapshot func(childComplexity int) int
 		Purpose         func(childComplexity int) int
+		ResultSnapshot  func(childComplexity int) int
+		RoutineRecordID func(childComplexity int) int
 		RoutineTaskID   func(childComplexity int) int
-		ScheduledAt     func(childComplexity int) int
 		Status          func(childComplexity int) int
-		TotalAttempts   func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 	}
 
@@ -984,27 +980,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutineTag.UpdatedAt(childComplexity), true
 
-	case "PrivateRoutineTask.actualEndedAt":
-		if e.complexity.PrivateRoutineTask.ActualEndedAt == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.ActualEndedAt(childComplexity), true
-
-	case "PrivateRoutineTask.actualStartedAt":
-		if e.complexity.PrivateRoutineTask.ActualStartedAt == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.ActualStartedAt(childComplexity), true
-
-	case "PrivateRoutineTask.attempts":
-		if e.complexity.PrivateRoutineTask.Attempts == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.Attempts(childComplexity), true
-
 	case "PrivateRoutineTask.costUnit":
 		if e.complexity.PrivateRoutineTask.CostUnit == nil {
 			break
@@ -1033,13 +1008,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutineTask.MaxAttempts(childComplexity), true
 
-	case "PrivateRoutineTask.nextScheduledAt":
-		if e.complexity.PrivateRoutineTask.NextScheduledAt == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.NextScheduledAt(childComplexity), true
-
 	case "PrivateRoutineTask.payload":
 		if e.complexity.PrivateRoutineTask.Payload == nil {
 			break
@@ -1047,12 +1015,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutineTask.Payload(childComplexity), true
 
-	case "PrivateRoutineTask.period":
-		if e.complexity.PrivateRoutineTask.Period == nil {
+	case "PrivateRoutineTask.previousRoutineTaskIds":
+		if e.complexity.PrivateRoutineTask.PreviousRoutineTaskIds == nil {
 			break
 		}
 
-		return e.complexity.PrivateRoutineTask.Period(childComplexity), true
+		return e.complexity.PrivateRoutineTask.PreviousRoutineTaskIds(childComplexity), true
 
 	case "PrivateRoutineTask.priority":
 		if e.complexity.PrivateRoutineTask.Priority == nil {
@@ -1074,20 +1042,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PrivateRoutineTask.RoutineID(childComplexity), true
-
-	case "PrivateRoutineTask.scheduledAt":
-		if e.complexity.PrivateRoutineTask.ScheduledAt == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.ScheduledAt(childComplexity), true
-
-	case "PrivateRoutineTask.status":
-		if e.complexity.PrivateRoutineTask.Status == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTask.Status(childComplexity), true
 
 	case "PrivateRoutineTask.title":
 		if e.complexity.PrivateRoutineTask.Title == nil {
@@ -1116,6 +1070,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PrivateRoutineTaskRecord.ActualStartedAt(childComplexity), true
+
+	case "PrivateRoutineTaskRecord.attempts":
+		if e.complexity.PrivateRoutineTaskRecord.Attempts == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutineTaskRecord.Attempts(childComplexity), true
 
 	case "PrivateRoutineTaskRecord.costUnit":
 		if e.complexity.PrivateRoutineTaskRecord.CostUnit == nil {
@@ -1152,12 +1113,33 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutineTaskRecord.ID(childComplexity), true
 
+	case "PrivateRoutineTaskRecord.payloadSnapshot":
+		if e.complexity.PrivateRoutineTaskRecord.PayloadSnapshot == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutineTaskRecord.PayloadSnapshot(childComplexity), true
+
 	case "PrivateRoutineTaskRecord.purpose":
 		if e.complexity.PrivateRoutineTaskRecord.Purpose == nil {
 			break
 		}
 
 		return e.complexity.PrivateRoutineTaskRecord.Purpose(childComplexity), true
+
+	case "PrivateRoutineTaskRecord.resultSnapshot":
+		if e.complexity.PrivateRoutineTaskRecord.ResultSnapshot == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutineTaskRecord.ResultSnapshot(childComplexity), true
+
+	case "PrivateRoutineTaskRecord.routineRecordId":
+		if e.complexity.PrivateRoutineTaskRecord.RoutineRecordID == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutineTaskRecord.RoutineRecordID(childComplexity), true
 
 	case "PrivateRoutineTaskRecord.routineTaskId":
 		if e.complexity.PrivateRoutineTaskRecord.RoutineTaskID == nil {
@@ -1166,26 +1148,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutineTaskRecord.RoutineTaskID(childComplexity), true
 
-	case "PrivateRoutineTaskRecord.scheduledAt":
-		if e.complexity.PrivateRoutineTaskRecord.ScheduledAt == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTaskRecord.ScheduledAt(childComplexity), true
-
 	case "PrivateRoutineTaskRecord.status":
 		if e.complexity.PrivateRoutineTaskRecord.Status == nil {
 			break
 		}
 
 		return e.complexity.PrivateRoutineTaskRecord.Status(childComplexity), true
-
-	case "PrivateRoutineTaskRecord.totalAttempts":
-		if e.complexity.PrivateRoutineTaskRecord.TotalAttempts == nil {
-			break
-		}
-
-		return e.complexity.PrivateRoutineTaskRecord.TotalAttempts(childComplexity), true
 
 	case "PrivateRoutineTaskRecord.updatedAt":
 		if e.complexity.PrivateRoutineTaskRecord.UpdatedAt == nil {
@@ -2714,20 +2682,22 @@ var sources = []*ast.Source{
 }
 `, BuiltIn: false},
 	{Name: "../schemas/enums/routine_task_purpose_enum.graphql", Input: `enum RoutineTaskPurpose {
-  RoutineTaskPurpose_CreateRootShelf
-  RoutineTaskPurpose_UpdateRootShelf
-  RoutineTaskPurpose_ResetRootShelf
+  RoutineTaskPurpose_GetSubShelf
   RoutineTaskPurpose_CreateSubShelf
   RoutineTaskPurpose_UpdateSubShelf
-  RoutineTaskPurpose_ResetSubShelf
+  RoutineTaskPurpose_DeleteSubShelf
+  RoutineTaskPurpose_GetBlockPack
   RoutineTaskPurpose_CreateBlockPack
   RoutineTaskPurpose_UpdateBlockPack
-  RoutineTaskPurpose_ResetBlockPack
-  RoutineTaskPurpose_AppendBlock
-  RoutineTaskPurpose_UpdateBlock
-  RoutineTaskPurpose_ResetBlock
+  RoutineTaskPurpose_DeleteBlockPack
+  RoutineTaskPurpose_GetRoutine
   RoutineTaskPurpose_CreateRoutine
   RoutineTaskPurpose_UpdateRoutine
+  RoutineTaskPurpose_DeleteRoutine
+  RoutineTaskPurpose_GetMaterial
+  RoutineTaskPurpose_CreateMaterial
+  RoutineTaskPurpose_UpdateMaterial
+  RoutineTaskPurpose_DeleteMaterial
 }
 `, BuiltIn: false},
 	{Name: "../schemas/enums/routine_task_record_error_code_enum.graphql", Input: `enum RoutineTaskRecordErrorCode {
@@ -2743,17 +2713,13 @@ var sources = []*ast.Source{
 }
 `, BuiltIn: false},
 	{Name: "../schemas/enums/routine_task_record_status_enum.graphql", Input: `enum RoutineTaskRecordStatus {
+  RoutineTaskRecordStatus_Waiting
+  RoutineTaskRecordStatus_Ready
   RoutineTaskRecordStatus_Running
   RoutineTaskRecordStatus_Success
   RoutineTaskRecordStatus_Failed
+  RoutineTaskRecordStatus_Blocked
   RoutineTaskRecordStatus_Cancel
-}
-`, BuiltIn: false},
-	{Name: "../schemas/enums/routine_task_status_enum.graphql", Input: `enum RoutineTaskStatus {
-  RoutineTaskStatus_Idle
-  RoutineTaskStatus_Waiting
-  RoutineTaskStatus_Running
-  RoutineTaskStatus_Pause
 }
 `, BuiltIn: false},
 	{Name: "../schemas/enums/supported_icon_enum.graphql", Input: `enum SupportedIcon {
@@ -3009,28 +2975,24 @@ type PrivateSearchableRoutine {
   payload: RawJSON!
   costUnit: Int64!
   priority: Int32!
-  status: RoutineTaskStatus!
-  attempts: Int32!
   maxAttempts: Int32!
-  period: RoutinePeriod
-  nextScheduledAt: Time!
-  scheduledAt: Time!
-  actualStartedAt: Time
-  actualEndedAt: Time
+  previousRoutineTaskIds: [UUID!]!
   updatedAt: Time!
   createdAt: Time!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/routine_task_record.graphql", Input: `type PrivateRoutineTaskRecord {
   id: UUID!
+  routineRecordId: UUID!
   routineTaskId: UUID!
   purpose: RoutineTaskPurpose!
   status: RoutineTaskRecordStatus!
   errorCode: RoutineTaskRecordErrorCode
   errorReason: String
   costUnit: Int64!
-  totalAttempts: Int64!
-  scheduledAt: Time!
+  attempts: Int32!
+  payloadSnapshot: RawJSON!
+  resultSnapshot: RawJSON!
   actualStartedAt: Time
   actualEndedAt: Time
   updatedAt: Time!
@@ -3333,7 +3295,7 @@ enum SearchRoutineTaskRecordSortBy {
   PURPOSE
   STATUS
   COST_UNIT
-  TOTAL_ATTEMPTS
+  ATTEMPTS
   SCHEDULED_AT
   ACTUAL_STARTED_AT
   ACTUAL_ENDED_AT
@@ -3377,12 +3339,7 @@ enum SearchRoutineTaskSortBy {
   TITLE
   PURPOSE
   PRIORITY
-  STATUS
-  ATTEMPTS
   MAX_ATTEMPTS
-  SCHEDULED_AT
-  ACTUAL_STARTED_AT
-  ACTUAL_ENDED_AT
   LAST_UPDATE
   CREATED_AT
 }

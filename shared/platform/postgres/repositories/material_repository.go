@@ -39,6 +39,8 @@ type MaterialRepositoryInterface interface {
 	/* ============================== System Only Method ============================== */
 
 	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckMaterialPermissionInput, preloads []schemas.MaterialRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Material, *cexceptions.Exception)
+	BulkCreateMany(inputs []inputs.BulkCreateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(inputs []inputs.BulkUpdateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkDeleteMany(inputs []inputs.BulkDeleteMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 

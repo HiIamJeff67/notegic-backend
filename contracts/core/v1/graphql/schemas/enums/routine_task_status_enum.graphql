@@ -1,6 +1,0 @@
-enum RoutineTaskStatus {
-  RoutineTaskStatus_Idle
-  RoutineTaskStatus_Waiting
-  RoutineTaskStatus_Running
-  RoutineTaskStatus_Pause
-}

@@ -65,10 +65,6 @@ func RegisterEnumsValidation(validate *validator.Validate) {
 		val := fl.Field().String()
 		return slices.Contains(cenums.AllRoutineTaskPurposeStrings, val)
 	})
-	validate.RegisterValidation("isroutinetaskstatus", func(fl validator.FieldLevel) bool {
-		val := fl.Field().String()
-		return slices.Contains(cenums.AllRoutineTaskStatusStrings, val)
-	})
 	validate.RegisterValidation("issupportedicon", func(fl validator.FieldLevel) bool {
 		val := fl.Field().String()
 		return slices.Contains(cenums.AllSupportedIconStrings, val)

@@ -1,13 +1,16 @@
 fragment FragmentedPrivateRoutineTaskRecord on PrivateRoutineTaskRecord {
   id
+  routineRecordId
+  routineRecordId
   routineTaskId
   purpose
   status
   errorCode
   errorReason
   costUnit
-  totalAttempts
-  scheduledAt
+  attempts
+  payloadSnapshot
+  resultSnapshot
   actualStartedAt
   actualEndedAt
   updatedAt

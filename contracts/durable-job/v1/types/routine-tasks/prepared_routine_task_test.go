@@ -19,7 +19,7 @@ func TestPreparedRoutineTaskContractRoundTripPreservesAttempt(t *testing.T) {
 		ActorUserId:         uuid.New(),
 		ActorUserPublicId:   uuid.New(),
 		Attempt:             2,
-		Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
+		Purpose:             cenums.RoutineTaskPurpose_GetMaterial,
 		Payload:             json.RawMessage(`{"name":"daily"}`),
 		PreparedAt:          time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC),
 	}
@@ -49,7 +49,7 @@ func TestCompletedRoutineTaskContractRequiresAttempt(t *testing.T) {
 			RoutineId:           uuid.New(),
 			ActorUserId:         uuid.New(),
 			ActorUserPublicId:   uuid.New(),
-			Purpose:             cenums.RoutineTaskPurpose_CreateRootShelf,
+			Purpose:             cenums.RoutineTaskPurpose_GetMaterial,
 			Payload:             json.RawMessage(`{"name":"daily"}`),
 			PreparedAt:          time.Now().UTC(),
 		},

@@ -110,34 +110,6 @@ func configureDevelopmentRoutineTaskRoutes(
 				routineTaskBinder.BindUpdateMyRoutineTaskById(routineTaskController.UpdateMyRoutineTaskById),
 			)...,
 		)
-		routineTaskRoutes.PUT(
-			"/:routine-task-id/suspension",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("pauseMyRoutineTaskById"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.pauseMyRoutineTaskById"),
-				},
-				append(
-					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
-				),
-				routineTaskBinder.BindPauseMyRoutineTaskById(routineTaskController.PauseMyRoutineTaskById),
-			)...,
-		)
-		routineTaskRoutes.DELETE(
-			"/:routine-task-id/suspension",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("resumeMyRoutineTaskById"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.resumeMyRoutineTaskById"),
-				},
-				append(
-					defaultMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Write),
-				),
-				routineTaskBinder.BindResumeMyRoutineTaskById(routineTaskController.ResumeMyRoutineTaskById),
-			)...,
-		)
 		routineTaskRoutes.DELETE(
 			"/:routine-task-id/permanently",
 			middlewares.Reposition(
@@ -180,20 +152,6 @@ func configureDevelopmentRoutineTaskRoutes(
 	}
 	{
 		visualizationRoutes.GET(
-			"/status-count",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("visualizeMyRoutineTaskStatusCount"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.visualizeMyRoutineTaskStatusCount"),
-				},
-				append(
-					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
-				),
-				routineTaskBinder.BindVisualizeMyRoutineTaskStatusCount(routineTaskController.VisualizeMyRoutineTaskStatusCount),
-			)...,
-		)
-		visualizationRoutes.GET(
 			"/purpose-count",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
@@ -205,48 +163,6 @@ func configureDevelopmentRoutineTaskRoutes(
 					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
 				routineTaskBinder.BindVisualizeMyRoutineTaskPurposeCount(routineTaskController.VisualizeMyRoutineTaskPurposeCount),
-			)...,
-		)
-		visualizationRoutes.GET(
-			"/scheduled-at-count",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("visualizeMyRoutineTaskScheduledAtCount"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.visualizeMyRoutineTaskScheduledAtCount"),
-				},
-				append(
-					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
-				),
-				routineTaskBinder.BindVisualizeMyRoutineTaskScheduledAtCount(routineTaskController.VisualizeMyRoutineTaskScheduledAtCount),
-			)...,
-		)
-		visualizationRoutes.GET(
-			"/actual-started-at-count",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("visualizeMyRoutineTaskActualStartedAtCount"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.visualizeMyRoutineTaskActualStartedAtCount"),
-				},
-				append(
-					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
-				),
-				routineTaskBinder.BindVisualizeMyRoutineTaskActualStartedAtCount(routineTaskController.VisualizeMyRoutineTaskActualStartedAtCount),
-			)...,
-		)
-		visualizationRoutes.GET(
-			"/actual-ended-at-count",
-			middlewares.Reposition(
-				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("visualizeMyRoutineTaskActualEndedAtCount"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTask.visualizeMyRoutineTaskActualEndedAtCount"),
-				},
-				append(
-					visualizationMiddlewares,
-					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
-				),
-				routineTaskBinder.BindVisualizeMyRoutineTaskActualEndedAtCount(routineTaskController.VisualizeMyRoutineTaskActualEndedAtCount),
 			)...,
 		)
 	}

@@ -289,54 +289,53 @@ models:
   RoutineTaskPurpose:
     model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose"
     enum_values:
-      RoutineTaskPurpose_CreateRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateRootShelf"
-      RoutineTaskPurpose_UpdateRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateRootShelf"
-      RoutineTaskPurpose_ResetRootShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetRootShelf"
+      RoutineTaskPurpose_GetSubShelf:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_GetSubShelf"
       RoutineTaskPurpose_CreateSubShelf:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateSubShelf"
       RoutineTaskPurpose_UpdateSubShelf:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateSubShelf"
-      RoutineTaskPurpose_ResetSubShelf:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetSubShelf"
+      RoutineTaskPurpose_DeleteSubShelf:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_DeleteSubShelf"
+      RoutineTaskPurpose_GetBlockPack:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_GetBlockPack"
       RoutineTaskPurpose_CreateBlockPack:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateBlockPack"
       RoutineTaskPurpose_UpdateBlockPack:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateBlockPack"
-      RoutineTaskPurpose_ResetBlockPack:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetBlockPack"
-      RoutineTaskPurpose_AppendBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_AppendBlock"
-      RoutineTaskPurpose_UpdateBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateBlock"
-      RoutineTaskPurpose_ResetBlock:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_ResetBlock"
+      RoutineTaskPurpose_DeleteBlockPack:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_DeleteBlockPack"
+      RoutineTaskPurpose_GetRoutine:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_GetRoutine"
       RoutineTaskPurpose_CreateRoutine:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateRoutine"
       RoutineTaskPurpose_UpdateRoutine:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateRoutine"
-  RoutineTaskStatus:
-    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus"
-    enum_values:
-      RoutineTaskStatus_Idle:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Idle"
-      RoutineTaskStatus_Waiting:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Waiting"
-      RoutineTaskStatus_Running:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Running"
-      RoutineTaskStatus_Pause:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskStatus_Pause"
+      RoutineTaskPurpose_DeleteRoutine:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_DeleteRoutine"
+      RoutineTaskPurpose_GetMaterial:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_GetMaterial"
+      RoutineTaskPurpose_CreateMaterial:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_CreateMaterial"
+      RoutineTaskPurpose_UpdateMaterial:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_UpdateMaterial"
+      RoutineTaskPurpose_DeleteMaterial:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose_DeleteMaterial"
   RoutineTaskRecordStatus:
     model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus"
     enum_values:
+      RoutineTaskRecordStatus_Waiting:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Waiting"
+      RoutineTaskRecordStatus_Ready:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Ready"
       RoutineTaskRecordStatus_Running:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Running"
       RoutineTaskRecordStatus_Success:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Success"
       RoutineTaskRecordStatus_Failed:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Failed"
+      RoutineTaskRecordStatus_Blocked:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Blocked"
       RoutineTaskRecordStatus_Cancel:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskRecordStatus_Cancel"
   RoutineTaskRecordErrorCode:

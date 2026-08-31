@@ -5,14 +5,8 @@ fragment FragmentedBasicPrivateRoutineTask on PrivateRoutineTask {
   purpose
   costUnit
   priority
-  status
-  attempts
   maxAttempts
-  period
-  nextScheduledAt
-  scheduledAt
-  actualStartedAt
-  actualEndedAt
+  previousRoutineTaskIds
   updatedAt
   createdAt
 }

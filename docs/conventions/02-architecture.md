@@ -102,17 +102,20 @@ runtimes/core/transports/
 
 runtimes/durablejob/transports/
   realtimegateway/
+    eventbuilders/
     producers/
+  yjsworker/
 ```
 
-DurableJob has no Core-facing Kafka transport. A file under `producers/` is a
-broker producer only when it owns a `Produce()` method
-and receives the platform Kafka producer. A file under `eventbuilders/` only
-builds a versioned envelope through `Build()`; it never publishes to Kafka.
-Core events written inside a database transaction use the Core `OutboxRelay` as
-their Kafka publisher. The event builder and the outbox relay together provide
-the atomic database-to-Kafka handoff, so an event builder must not call the
-broker directly.
+DurableJob has no Core-facing request/response Kafka transport. Its lifecycle
+notifications to RealtimeGateway belong under
+`runtimes/durablejob/transports/realtimegateway/`. A file under `producers/` is
+a broker producer only when it owns a `Produce()` method and receives the
+platform Kafka producer. A file under `eventbuilders/` only builds a versioned
+envelope through `Build()`; it never publishes to Kafka. Core-owned events
+written inside a Core database transaction use the Core `OutboxRelay` as their
+Kafka publisher; DurableJob-owned lifecycle notifications use the
+DurableJob-to-RealtimeGateway producer.
 
 The transport owns Kafka envelopes, producer/consumer setup, retry and offset
 handling, and calls the local service or engine through constructor-injected
@@ -170,35 +173,21 @@ runtimes/core/services/
   blocks/                             # block pack, block, Yjs persistence
   material/
   routines/                           # station, routine, routine tag, RoutineTask
-    handlers/                          # RoutineTask execution handlers by aggregate
-      block_pack_handler.go
-      root_shelf_handler.go
-      routine_handler.go
-      sub_shelf_handler.go
-    matchers/                          # template matching
-    parsers/                           # RoutineTask payload decoding and flattening
-    resolvers/                         # RoutineTask and block-pattern resolution
+    parsers/                           # RoutineTask payload validation
   other/                              # badge and theme
   realtime/
 ```
 
-`routines/routine_task_execution_service.go` owns Core's transaction, permission,
-and result-application boundary. Aggregate-specific RoutineTask execution belongs
-to the `handlers` package (`RootShelfHandler`, `SubShelfHandler`,
-`BlockPackHandler`, and `RoutineHandler`), each with an interface and constructor
-for dependency injection. Pattern resolution, payload parsing, and template
-matching live in their respective `resolvers`, `parsers`, and `matchers`
-packages. Handler constructors receive the base `*gorm.DB` and initialize their
-own repositories; operation methods receive the exact `*gorm.DB` session from the
-execution service, so a transaction and a normal session use the same path and
-never require a service clone such as `withTransactionDB`. Handler methods use an
-explicit `Handle...` prefix (for example, `HandleCreateBlockPack`) so they remain
-visually distinct from Core service methods.
-These packages must not contain a second service orchestration layer or transaction
-helper.
-Pure assignment execution and template interpolation remain in the DurableJob
-runtime; Block remains a projection read model and must not gain RoutineTask
-append/update/reset mutation methods in Core.
+Core's RoutineTask service owns task lifecycle APIs and validates the versioned
+payload before persisting a task. It does not contain RoutineTask execution
+handlers, mutation dispatch, pattern resolvers, or completion application logic.
+DurableJob owns assignment claiming, payload interpolation, permission checks,
+CRUD execution for the four supported objects, per-item execution results, task
+finalization, and completion event publication. Any future Core/DurableJob
+request must cross an explicit transport boundary under `transports/`; Core
+services must not import DurableJob execution packages. Block remains a
+projection read model and must not gain RoutineTask append/update/reset mutation
+methods in Core.
 
 ## Dependency direction
 

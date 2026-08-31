@@ -48,3 +48,8 @@ type BulkUpdateRoutineInput struct {
 	Id                 uuid.UUID                              `json:"id" gorm:"column:id;"`
 	PartialUpdateInput PartialUpdateInput[UpdateRoutineInput] `json:"partialUpdateInput"`
 }
+
+type BulkDeleteRoutineInput struct {
+	UserId uuid.UUID `json:"userId" gorm:"column:user_id;"`
+	Id     uuid.UUID `json:"id" gorm:"column:id;"`
+}

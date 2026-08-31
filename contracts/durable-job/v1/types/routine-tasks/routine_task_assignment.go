@@ -12,6 +12,7 @@ import (
 type RoutineTaskAssignment struct {
 	RoutineTaskId       uuid.UUID                 `json:"routineTaskId"`
 	RoutineTaskRecordId uuid.UUID                 `json:"routineTaskRecordId"`
+	RoutineRecordId     uuid.UUID                 `json:"routineRecordId"`
 	RoutineId           uuid.UUID                 `json:"routineId"`
 	ActorUserId         uuid.UUID                 `json:"actorUserId"`
 	ActorUserPublicId   uuid.UUID                 `json:"actorUserPublicId"`

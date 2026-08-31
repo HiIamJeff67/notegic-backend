@@ -1,3 +1,0 @@
-package eventscontract
-
-type RootShelfPermissionRevokedData = ResourceChangedData

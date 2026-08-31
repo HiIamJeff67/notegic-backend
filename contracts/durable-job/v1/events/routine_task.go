@@ -11,6 +11,7 @@ import (
 type RoutineTaskRunningData struct {
 	RoutineTaskId       uuid.UUID                 `json:"routineTaskId"`
 	RoutineTaskRecordId uuid.UUID                 `json:"routineTaskRecordId"`
+	RoutineRecordId     uuid.UUID                 `json:"routineRecordId"`
 	RoutineId           uuid.UUID                 `json:"routineId"`
 	ActorUserPublicId   uuid.UUID                 `json:"actorUserPublicId"`
 	Purpose             cenums.RoutineTaskPurpose `json:"purpose"`

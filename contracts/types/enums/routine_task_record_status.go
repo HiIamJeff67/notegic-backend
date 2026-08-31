@@ -10,23 +10,32 @@ import (
 type RoutineTaskRecordStatus string
 
 const (
+	RoutineTaskRecordStatus_Waiting RoutineTaskRecordStatus = "Waiting"
+	RoutineTaskRecordStatus_Ready   RoutineTaskRecordStatus = "Ready"
 	RoutineTaskRecordStatus_Running RoutineTaskRecordStatus = "Running"
 	RoutineTaskRecordStatus_Success RoutineTaskRecordStatus = "Success"
 	RoutineTaskRecordStatus_Failed  RoutineTaskRecordStatus = "Failed"
+	RoutineTaskRecordStatus_Blocked RoutineTaskRecordStatus = "Blocked"
 	RoutineTaskRecordStatus_Cancel  RoutineTaskRecordStatus = "Cancel"
 )
 
 var AllRoutineTaskRecordStatuses = []RoutineTaskRecordStatus{
+	RoutineTaskRecordStatus_Waiting,
+	RoutineTaskRecordStatus_Ready,
 	RoutineTaskRecordStatus_Running,
 	RoutineTaskRecordStatus_Success,
 	RoutineTaskRecordStatus_Failed,
+	RoutineTaskRecordStatus_Blocked,
 	RoutineTaskRecordStatus_Cancel,
 }
 
 var AllRoutineTaskRecordStatusStrings = []string{
+	string(RoutineTaskRecordStatus_Waiting),
+	string(RoutineTaskRecordStatus_Ready),
 	string(RoutineTaskRecordStatus_Running),
 	string(RoutineTaskRecordStatus_Success),
 	string(RoutineTaskRecordStatus_Failed),
+	string(RoutineTaskRecordStatus_Blocked),
 	string(RoutineTaskRecordStatus_Cancel),
 }
 

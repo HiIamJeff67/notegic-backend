@@ -121,35 +121,31 @@ type PrivateRoutineTag struct {
 }
 
 type PrivateRoutineTask struct {
-	ID              uuid.UUID                `json:"id"`
-	RoutineID       uuid.UUID                `json:"routineId"`
-	Title           string                   `json:"title"`
-	Purpose         enums.RoutineTaskPurpose `json:"purpose"`
-	Payload         json.RawMessage          `json:"payload"`
-	CostUnit        int64                    `json:"costUnit"`
-	Priority        int32                    `json:"priority"`
-	Status          enums.RoutineTaskStatus  `json:"status"`
-	Attempts        int32                    `json:"attempts"`
-	MaxAttempts     int32                    `json:"maxAttempts"`
-	Period          *enums.RoutinePeriod     `json:"period,omitempty"`
-	NextScheduledAt time.Time                `json:"nextScheduledAt"`
-	ScheduledAt     time.Time                `json:"scheduledAt"`
-	ActualStartedAt *time.Time               `json:"actualStartedAt,omitempty"`
-	ActualEndedAt   *time.Time               `json:"actualEndedAt,omitempty"`
-	UpdatedAt       time.Time                `json:"updatedAt"`
-	CreatedAt       time.Time                `json:"createdAt"`
+	ID                     uuid.UUID                `json:"id"`
+	RoutineID              uuid.UUID                `json:"routineId"`
+	Title                  string                   `json:"title"`
+	Purpose                enums.RoutineTaskPurpose `json:"purpose"`
+	Payload                json.RawMessage          `json:"payload"`
+	CostUnit               int64                    `json:"costUnit"`
+	Priority               int32                    `json:"priority"`
+	MaxAttempts            int32                    `json:"maxAttempts"`
+	PreviousRoutineTaskIds []uuid.UUID              `json:"previousRoutineTaskIds"`
+	UpdatedAt              time.Time                `json:"updatedAt"`
+	CreatedAt              time.Time                `json:"createdAt"`
 }
 
 type PrivateRoutineTaskRecord struct {
 	ID              uuid.UUID                         `json:"id"`
+	RoutineRecordID uuid.UUID                         `json:"routineRecordId"`
 	RoutineTaskID   uuid.UUID                         `json:"routineTaskId"`
 	Purpose         enums.RoutineTaskPurpose          `json:"purpose"`
 	Status          enums.RoutineTaskRecordStatus     `json:"status"`
 	ErrorCode       *enums.RoutineTaskRecordErrorCode `json:"errorCode,omitempty"`
 	ErrorReason     *string                           `json:"errorReason,omitempty"`
 	CostUnit        int64                             `json:"costUnit"`
-	TotalAttempts   int64                             `json:"totalAttempts"`
-	ScheduledAt     time.Time                         `json:"scheduledAt"`
+	Attempts        int32                             `json:"attempts"`
+	PayloadSnapshot json.RawMessage                   `json:"payloadSnapshot"`
+	ResultSnapshot  json.RawMessage                   `json:"resultSnapshot"`
 	ActualStartedAt *time.Time                        `json:"actualStartedAt,omitempty"`
 	ActualEndedAt   *time.Time                        `json:"actualEndedAt,omitempty"`
 	UpdatedAt       time.Time                         `json:"updatedAt"`
@@ -1255,7 +1251,7 @@ const (
 	SearchRoutineTaskRecordSortByPurpose         SearchRoutineTaskRecordSortBy = "PURPOSE"
 	SearchRoutineTaskRecordSortByStatus          SearchRoutineTaskRecordSortBy = "STATUS"
 	SearchRoutineTaskRecordSortByCostUnit        SearchRoutineTaskRecordSortBy = "COST_UNIT"
-	SearchRoutineTaskRecordSortByTotalAttempts   SearchRoutineTaskRecordSortBy = "TOTAL_ATTEMPTS"
+	SearchRoutineTaskRecordSortByAttempts        SearchRoutineTaskRecordSortBy = "ATTEMPTS"
 	SearchRoutineTaskRecordSortByScheduledAt     SearchRoutineTaskRecordSortBy = "SCHEDULED_AT"
 	SearchRoutineTaskRecordSortByActualStartedAt SearchRoutineTaskRecordSortBy = "ACTUAL_STARTED_AT"
 	SearchRoutineTaskRecordSortByActualEndedAt   SearchRoutineTaskRecordSortBy = "ACTUAL_ENDED_AT"
@@ -1268,7 +1264,7 @@ var AllSearchRoutineTaskRecordSortBy = []SearchRoutineTaskRecordSortBy{
 	SearchRoutineTaskRecordSortByPurpose,
 	SearchRoutineTaskRecordSortByStatus,
 	SearchRoutineTaskRecordSortByCostUnit,
-	SearchRoutineTaskRecordSortByTotalAttempts,
+	SearchRoutineTaskRecordSortByAttempts,
 	SearchRoutineTaskRecordSortByScheduledAt,
 	SearchRoutineTaskRecordSortByActualStartedAt,
 	SearchRoutineTaskRecordSortByActualEndedAt,
@@ -1278,7 +1274,7 @@ var AllSearchRoutineTaskRecordSortBy = []SearchRoutineTaskRecordSortBy{
 
 func (e SearchRoutineTaskRecordSortBy) IsValid() bool {
 	switch e {
-	case SearchRoutineTaskRecordSortByRelevance, SearchRoutineTaskRecordSortByPurpose, SearchRoutineTaskRecordSortByStatus, SearchRoutineTaskRecordSortByCostUnit, SearchRoutineTaskRecordSortByTotalAttempts, SearchRoutineTaskRecordSortByScheduledAt, SearchRoutineTaskRecordSortByActualStartedAt, SearchRoutineTaskRecordSortByActualEndedAt, SearchRoutineTaskRecordSortByLastUpdate, SearchRoutineTaskRecordSortByCreatedAt:
+	case SearchRoutineTaskRecordSortByRelevance, SearchRoutineTaskRecordSortByPurpose, SearchRoutineTaskRecordSortByStatus, SearchRoutineTaskRecordSortByCostUnit, SearchRoutineTaskRecordSortByAttempts, SearchRoutineTaskRecordSortByScheduledAt, SearchRoutineTaskRecordSortByActualStartedAt, SearchRoutineTaskRecordSortByActualEndedAt, SearchRoutineTaskRecordSortByLastUpdate, SearchRoutineTaskRecordSortByCreatedAt:
 		return true
 	}
 	return false
@@ -1322,18 +1318,13 @@ func (e SearchRoutineTaskRecordSortBy) MarshalJSON() ([]byte, error) {
 type SearchRoutineTaskSortBy string
 
 const (
-	SearchRoutineTaskSortByRelevance       SearchRoutineTaskSortBy = "RELEVANCE"
-	SearchRoutineTaskSortByTitle           SearchRoutineTaskSortBy = "TITLE"
-	SearchRoutineTaskSortByPurpose         SearchRoutineTaskSortBy = "PURPOSE"
-	SearchRoutineTaskSortByPriority        SearchRoutineTaskSortBy = "PRIORITY"
-	SearchRoutineTaskSortByStatus          SearchRoutineTaskSortBy = "STATUS"
-	SearchRoutineTaskSortByAttempts        SearchRoutineTaskSortBy = "ATTEMPTS"
-	SearchRoutineTaskSortByMaxAttempts     SearchRoutineTaskSortBy = "MAX_ATTEMPTS"
-	SearchRoutineTaskSortByScheduledAt     SearchRoutineTaskSortBy = "SCHEDULED_AT"
-	SearchRoutineTaskSortByActualStartedAt SearchRoutineTaskSortBy = "ACTUAL_STARTED_AT"
-	SearchRoutineTaskSortByActualEndedAt   SearchRoutineTaskSortBy = "ACTUAL_ENDED_AT"
-	SearchRoutineTaskSortByLastUpdate      SearchRoutineTaskSortBy = "LAST_UPDATE"
-	SearchRoutineTaskSortByCreatedAt       SearchRoutineTaskSortBy = "CREATED_AT"
+	SearchRoutineTaskSortByRelevance   SearchRoutineTaskSortBy = "RELEVANCE"
+	SearchRoutineTaskSortByTitle       SearchRoutineTaskSortBy = "TITLE"
+	SearchRoutineTaskSortByPurpose     SearchRoutineTaskSortBy = "PURPOSE"
+	SearchRoutineTaskSortByPriority    SearchRoutineTaskSortBy = "PRIORITY"
+	SearchRoutineTaskSortByMaxAttempts SearchRoutineTaskSortBy = "MAX_ATTEMPTS"
+	SearchRoutineTaskSortByLastUpdate  SearchRoutineTaskSortBy = "LAST_UPDATE"
+	SearchRoutineTaskSortByCreatedAt   SearchRoutineTaskSortBy = "CREATED_AT"
 )
 
 var AllSearchRoutineTaskSortBy = []SearchRoutineTaskSortBy{
@@ -1341,19 +1332,14 @@ var AllSearchRoutineTaskSortBy = []SearchRoutineTaskSortBy{
 	SearchRoutineTaskSortByTitle,
 	SearchRoutineTaskSortByPurpose,
 	SearchRoutineTaskSortByPriority,
-	SearchRoutineTaskSortByStatus,
-	SearchRoutineTaskSortByAttempts,
 	SearchRoutineTaskSortByMaxAttempts,
-	SearchRoutineTaskSortByScheduledAt,
-	SearchRoutineTaskSortByActualStartedAt,
-	SearchRoutineTaskSortByActualEndedAt,
 	SearchRoutineTaskSortByLastUpdate,
 	SearchRoutineTaskSortByCreatedAt,
 }
 
 func (e SearchRoutineTaskSortBy) IsValid() bool {
 	switch e {
-	case SearchRoutineTaskSortByRelevance, SearchRoutineTaskSortByTitle, SearchRoutineTaskSortByPurpose, SearchRoutineTaskSortByPriority, SearchRoutineTaskSortByStatus, SearchRoutineTaskSortByAttempts, SearchRoutineTaskSortByMaxAttempts, SearchRoutineTaskSortByScheduledAt, SearchRoutineTaskSortByActualStartedAt, SearchRoutineTaskSortByActualEndedAt, SearchRoutineTaskSortByLastUpdate, SearchRoutineTaskSortByCreatedAt:
+	case SearchRoutineTaskSortByRelevance, SearchRoutineTaskSortByTitle, SearchRoutineTaskSortByPurpose, SearchRoutineTaskSortByPriority, SearchRoutineTaskSortByMaxAttempts, SearchRoutineTaskSortByLastUpdate, SearchRoutineTaskSortByCreatedAt:
 		return true
 	}
 	return false

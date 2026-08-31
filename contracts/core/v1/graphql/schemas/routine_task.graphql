@@ -6,14 +6,8 @@ type PrivateRoutineTask {
   payload: RawJSON!
   costUnit: Int64!
   priority: Int32!
-  status: RoutineTaskStatus!
-  attempts: Int32!
   maxAttempts: Int32!
-  period: RoutinePeriod
-  nextScheduledAt: Time!
-  scheduledAt: Time!
-  actualStartedAt: Time
-  actualEndedAt: Time
+  previousRoutineTaskIds: [UUID!]!
   updatedAt: Time!
   createdAt: Time!
 }

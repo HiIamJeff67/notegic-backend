@@ -7,6 +7,16 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
 
+const MaxRoutineTaskBlockPackUpdates = 1000
+
+type GetBlockPackRoutineTaskPayload struct {
+	BlockPackId uuid.UUID `json:"blockPackId" validate:"required"`
+}
+
+type DeleteBlockPackRoutineTaskPayload struct {
+	BlockPackId uuid.UUID `json:"blockPackId" validate:"required"`
+}
+
 type CreateBlockPackRoutineTaskTemplateBlock struct {
 	ClientId               string                            `json:"clientId" validate:"required"`
 	PrevClientId           *string                           `json:"prevClientId" validate:"omitnil"`
@@ -32,11 +42,7 @@ type UpdateBlockPackRoutineTaskPayloadBlock struct {
 }
 
 type UpdateBlockPackRoutineTaskPayload struct {
-	BlockPackId   uuid.UUID                                `json:"blockPackId" validate:"required"`
-	Pattern       RoutineTaskPattern                       `json:"pattern" validate:"omitempty,dive"`
-	UpdatedBlocks []UpdateBlockPackRoutineTaskPayloadBlock `json:"updatedBlocks" validate:"required,min=1"`
-}
-
-type ResetBlockPackRoutineTaskPayload struct {
-	BlockPackId uuid.UUID `json:"blockPackId" validate:"required"`
+	BlockPackId uuid.UUID                                `json:"blockPackId" validate:"required"`
+	Pattern     RoutineTaskPattern                       `json:"pattern" validate:"omitempty,dive"`
+	Blocks      []UpdateBlockPackRoutineTaskPayloadBlock `json:"blocks" validate:"required,min=1"`
 }

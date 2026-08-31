@@ -306,6 +306,8 @@ func (ec *executionContext) fieldContext_SearchRoutineTaskRecordEdge_node(_ cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_PrivateRoutineTaskRecord_id(ctx, field)
+			case "routineRecordId":
+				return ec.fieldContext_PrivateRoutineTaskRecord_routineRecordId(ctx, field)
 			case "routineTaskId":
 				return ec.fieldContext_PrivateRoutineTaskRecord_routineTaskId(ctx, field)
 			case "purpose":
@@ -318,10 +320,12 @@ func (ec *executionContext) fieldContext_SearchRoutineTaskRecordEdge_node(_ cont
 				return ec.fieldContext_PrivateRoutineTaskRecord_errorReason(ctx, field)
 			case "costUnit":
 				return ec.fieldContext_PrivateRoutineTaskRecord_costUnit(ctx, field)
-			case "totalAttempts":
-				return ec.fieldContext_PrivateRoutineTaskRecord_totalAttempts(ctx, field)
-			case "scheduledAt":
-				return ec.fieldContext_PrivateRoutineTaskRecord_scheduledAt(ctx, field)
+			case "attempts":
+				return ec.fieldContext_PrivateRoutineTaskRecord_attempts(ctx, field)
+			case "payloadSnapshot":
+				return ec.fieldContext_PrivateRoutineTaskRecord_payloadSnapshot(ctx, field)
+			case "resultSnapshot":
+				return ec.fieldContext_PrivateRoutineTaskRecord_resultSnapshot(ctx, field)
 			case "actualStartedAt":
 				return ec.fieldContext_PrivateRoutineTaskRecord_actualStartedAt(ctx, field)
 			case "actualEndedAt":

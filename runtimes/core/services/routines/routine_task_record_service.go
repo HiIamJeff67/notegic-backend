@@ -81,9 +81,18 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 		RoutineTaskRecordCount int64     `gorm:"column:routine_task_record_count;"`
 	}
 
-	recordJoin := `LEFT JOIN "RoutineTaskRecordTable" routine_task_record
-		ON routine_task_record.` + columnName + ` >= buckets.bucket_start
-		AND routine_task_record.` + columnName + ` < buckets.bucket_start + ?::integer * interval '1 hour'`
+	recordJoin := `LEFT JOIN "RoutineTaskRecordTable" routine_task_record ON `
+	if columnName == "scheduled_at" {
+		recordJoin += `EXISTS (
+			SELECT 1 FROM "RoutineRecordTable" routine_record
+			WHERE routine_record.id = routine_task_record.routine_record_id
+				AND routine_record.scheduled_at >= buckets.bucket_start
+				AND routine_record.scheduled_at < buckets.bucket_start + ?::integer * interval '1 hour'
+		)`
+	} else {
+		recordJoin += `routine_task_record.` + columnName + ` >= buckets.bucket_start
+			AND routine_task_record.` + columnName + ` < buckets.bucket_start + ?::integer * interval '1 hour'`
+	}
 	recordJoinArgs := []any{timeHourUnit}
 	if len(routineTaskIds) > 0 {
 		recordJoin += ` AND routine_task_record.routine_task_id IN ?`
@@ -191,14 +200,16 @@ func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 		}
 		responseDto[index] = capi.RoutineTaskRecordResponseDto{
 			Id:              routineTaskRecord.Id,
+			RoutineRecordId: routineTaskRecord.RoutineRecordId,
 			RoutineTaskId:   routineTaskRecord.RoutineTaskId,
 			Purpose:         routineTaskRecord.Purpose.String(),
 			Status:          routineTaskRecord.Status.String(),
 			ErrorCode:       errorCode,
 			ErrorReason:     routineTaskRecord.ErrorReason,
 			CostUnit:        routineTaskRecord.CostUnit,
-			TotalAttempts:   routineTaskRecord.TotalAttempts,
-			ScheduledAt:     routineTaskRecord.ScheduledAt,
+			Attempts:        routineTaskRecord.Attempts,
+			PayloadSnapshot: routineTaskRecord.PayloadSnapshot,
+			ResultSnapshot:  routineTaskRecord.ResultSnapshot,
 			ActualStartedAt: routineTaskRecord.ActualStartedAt,
 			ActualEndedAt:   routineTaskRecord.ActualEndedAt,
 			UpdatedAt:       routineTaskRecord.UpdatedAt,
@@ -473,7 +484,24 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 	}
 
 	query := db.Model(&sschemas.RoutineTaskRecord{}).
-		Select(`"RoutineTaskRecordTable".*, uts.permission AS permission`).
+		Select(`
+			"RoutineTaskRecordTable".id,
+			"RoutineTaskRecordTable".routine_record_id,
+			"RoutineTaskRecordTable".routine_task_id,
+			"RoutineTaskRecordTable".purpose,
+			"RoutineTaskRecordTable".status,
+			"RoutineTaskRecordTable".error_code,
+			"RoutineTaskRecordTable".error_reason,
+			"RoutineTaskRecordTable".cost_unit,
+			"RoutineTaskRecordTable".attempts,
+			"RoutineTaskRecordTable".payload_snapshot,
+			"RoutineTaskRecordTable".result_snapshot,
+			"RoutineTaskRecordTable".actual_started_at,
+			"RoutineTaskRecordTable".actual_ended_at,
+			"RoutineTaskRecordTable".updated_at,
+			"RoutineTaskRecordTable".created_at,
+			uts.permission AS permission`).
+		Joins(`INNER JOIN "RoutineRecordTable" routine_record ON routine_record.id = "RoutineTaskRecordTable".routine_record_id`).
 		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
 		Joins(`INNER JOIN "RoutineTable" routine ON routine.id = routine_task.routine_id AND routine.deleted_at IS NULL`).
 		Joins(`INNER JOIN "UsersToStationsTable" uts ON uts.station_id = routine.station_id`).
@@ -520,11 +548,11 @@ func (s *RoutineTaskRecordService) SearchPrivateRoutineTaskRecords(
 		case cgqlmodels.SearchRoutineTaskRecordSortByCostUnit:
 			query = query.Order(`"RoutineTaskRecordTable".cost_unit ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
-		case cgqlmodels.SearchRoutineTaskRecordSortByTotalAttempts:
-			query = query.Order(`"RoutineTaskRecordTable".total_attempts ` + cending).
+		case cgqlmodels.SearchRoutineTaskRecordSortByAttempts:
+			query = query.Order(`"RoutineTaskRecordTable".attempts ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
 		case cgqlmodels.SearchRoutineTaskRecordSortByScheduledAt:
-			query = query.Order(`"RoutineTaskRecordTable".scheduled_at ` + cending).
+			query = query.Order(`routine_record.scheduled_at ` + cending).
 				Order(`"RoutineTaskRecordTable".created_at ` + cending)
 		case cgqlmodels.SearchRoutineTaskRecordSortByActualStartedAt:
 			query = query.Order(`"RoutineTaskRecordTable".actual_started_at ` + cending).

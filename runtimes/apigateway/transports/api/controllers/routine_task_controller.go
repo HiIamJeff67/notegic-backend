@@ -16,17 +16,11 @@ type RoutineTaskControllerInterface interface {
 	GetAllMyRoutineTasks(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksRequestDto)
 	CreateRoutineTaskByRoutineId(ctx *gin.Context, requestDto *capi.CreateRoutineTaskByRoutineIdRequestDto)
 	UpdateMyRoutineTaskById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTaskByIdRequestDto)
-	PauseMyRoutineTaskById(ctx *gin.Context, requestDto *capi.PauseMyRoutineTaskByIdRequestDto)
-	ResumeMyRoutineTaskById(ctx *gin.Context, requestDto *capi.ResumeMyRoutineTaskByIdRequestDto)
 	HardDeleteMyRoutineTaskById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTaskByIdRequestDto)
 	HardDeleteMyRoutineTasksByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTasksByIdsRequestDto)
 
 	/* ============================== Visualization Methods ============================== */
-	VisualizeMyRoutineTaskStatusCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskStatusCountRequestDto)
 	VisualizeMyRoutineTaskPurposeCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskPurposeCountRequestDto)
-	VisualizeMyRoutineTaskScheduledAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto)
-	VisualizeMyRoutineTaskActualStartedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto)
-	VisualizeMyRoutineTaskActualEndedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto)
 }
 
 type RoutineTaskController struct {
@@ -117,38 +111,6 @@ func (c *RoutineTaskController) UpdateMyRoutineTaskById(ctx *gin.Context, reques
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTaskController) PauseMyRoutineTaskById(ctx *gin.Context, requestDto *capi.PauseMyRoutineTaskByIdRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.PauseMyRoutineTaskByIdRequestDto, capi.PauseMyRoutineTaskByIdResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.PauseMyRoutineTaskByIdOperation,
-		"/core/v1/routine-tasks/pause",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
-func (c *RoutineTaskController) ResumeMyRoutineTaskById(ctx *gin.Context, requestDto *capi.ResumeMyRoutineTaskByIdRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.ResumeMyRoutineTaskByIdRequestDto, capi.ResumeMyRoutineTaskByIdResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.ResumeMyRoutineTaskByIdOperation,
-		"/core/v1/routine-tasks/resume",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
 func (c *RoutineTaskController) HardDeleteMyRoutineTaskById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTaskByIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.HardDeleteMyRoutineTaskByIdRequestDto, capi.HardDeleteMyRoutineTaskByIdResponseDto](
 		ctx,
@@ -181,22 +143,6 @@ func (c *RoutineTaskController) HardDeleteMyRoutineTasksByIds(ctx *gin.Context, 
 	writeClientResponse(ctx, response.Data)
 }
 
-func (c *RoutineTaskController) VisualizeMyRoutineTaskStatusCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskStatusCountRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.VisualizeMyRoutineTaskStatusCountRequestDto, capi.VisualizeMyRoutineTaskStatusCountResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.VisualizeMyRoutineTaskStatusCountOperation,
-		"/core/v1/routine-tasks/visualize-status-count",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
 func (c *RoutineTaskController) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskPurposeCountRequestDto) {
 	response, exception := coreadapters.CallSecurly[capi.VisualizeMyRoutineTaskPurposeCountRequestDto, capi.VisualizeMyRoutineTaskPurposeCountResponseDto](
 		ctx,
@@ -204,54 +150,6 @@ func (c *RoutineTaskController) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Cont
 		requestDto,
 		capi.VisualizeMyRoutineTaskPurposeCountOperation,
 		"/core/v1/routine-tasks/visualize-purpose-count",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
-func (c *RoutineTaskController) VisualizeMyRoutineTaskScheduledAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto, capi.VisualizeMyRoutineTaskScheduledAtCountResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.VisualizeMyRoutineTaskScheduledAtCountOperation,
-		"/core/v1/routine-tasks/visualize-scheduled-at-count",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
-func (c *RoutineTaskController) VisualizeMyRoutineTaskActualStartedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto, capi.VisualizeMyRoutineTaskActualStartedAtCountResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.VisualizeMyRoutineTaskActualStartedAtCountOperation,
-		"/core/v1/routine-tasks/visualize-actual-started-at-count",
-	)
-	if exception != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
-		return
-	}
-
-	writeClientResponse(ctx, response.Data)
-}
-
-func (c *RoutineTaskController) VisualizeMyRoutineTaskActualEndedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto, capi.VisualizeMyRoutineTaskActualEndedAtCountResponseDto](
-		ctx,
-		c.coreAdapter,
-		requestDto,
-		capi.VisualizeMyRoutineTaskActualEndedAtCountOperation,
-		"/core/v1/routine-tasks/visualize-actual-ended-at-count",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

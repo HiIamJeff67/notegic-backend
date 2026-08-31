@@ -59,15 +59,21 @@ func (ec *executionContext) marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIam
 
 var (
 	unmarshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[string]enums.RoutineTaskRecordStatus{
+		"RoutineTaskRecordStatus_Waiting": enums.RoutineTaskRecordStatus_Waiting,
+		"RoutineTaskRecordStatus_Ready":   enums.RoutineTaskRecordStatus_Ready,
 		"RoutineTaskRecordStatus_Running": enums.RoutineTaskRecordStatus_Running,
 		"RoutineTaskRecordStatus_Success": enums.RoutineTaskRecordStatus_Success,
 		"RoutineTaskRecordStatus_Failed":  enums.RoutineTaskRecordStatus_Failed,
+		"RoutineTaskRecordStatus_Blocked": enums.RoutineTaskRecordStatus_Blocked,
 		"RoutineTaskRecordStatus_Cancel":  enums.RoutineTaskRecordStatus_Cancel,
 	}
 	marshalNRoutineTaskRecordStatus2githubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutineTaskRecordStatus = map[enums.RoutineTaskRecordStatus]string{
+		enums.RoutineTaskRecordStatus_Waiting: "RoutineTaskRecordStatus_Waiting",
+		enums.RoutineTaskRecordStatus_Ready:   "RoutineTaskRecordStatus_Ready",
 		enums.RoutineTaskRecordStatus_Running: "RoutineTaskRecordStatus_Running",
 		enums.RoutineTaskRecordStatus_Success: "RoutineTaskRecordStatus_Success",
 		enums.RoutineTaskRecordStatus_Failed:  "RoutineTaskRecordStatus_Failed",
+		enums.RoutineTaskRecordStatus_Blocked: "RoutineTaskRecordStatus_Blocked",
 		enums.RoutineTaskRecordStatus_Cancel:  "RoutineTaskRecordStatus_Cancel",
 	}
 )

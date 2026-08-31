@@ -47,6 +47,7 @@ type RoutineRepositoryInterface interface {
 	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRoutinePermissionInput, preloads []schemas.RoutineRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Routine, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(inputs []inputs.BulkDeleteRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
 type RoutineRepository struct {

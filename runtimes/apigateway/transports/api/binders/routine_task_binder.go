@@ -3,7 +3,6 @@ package binders
 import (
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,17 +22,11 @@ type RoutineTaskBinderInterface interface {
 	BindGetAllMyRoutineTasks(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksRequestDto]) gin.HandlerFunc
 	BindCreateRoutineTaskByRoutineId(controllerFunc controllers.Func[*capi.CreateRoutineTaskByRoutineIdRequestDto]) gin.HandlerFunc
 	BindUpdateMyRoutineTaskById(controllerFunc controllers.Func[*capi.UpdateMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
-	BindPauseMyRoutineTaskById(controllerFunc controllers.Func[*capi.PauseMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
-	BindResumeMyRoutineTaskById(controllerFunc controllers.Func[*capi.ResumeMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
 	BindHardDeleteMyRoutineTaskById(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
 	BindHardDeleteMyRoutineTasksByIds(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTasksByIdsRequestDto]) gin.HandlerFunc
 
 	/* ============================== Visualization Methods ============================== */
-	BindVisualizeMyRoutineTaskStatusCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskStatusCountRequestDto]) gin.HandlerFunc
 	BindVisualizeMyRoutineTaskPurposeCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskPurposeCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskScheduledAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskActualStartedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto]) gin.HandlerFunc
-	BindVisualizeMyRoutineTaskActualEndedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto]) gin.HandlerFunc
 }
 
 type RoutineTaskBinder struct{}
@@ -81,15 +74,6 @@ func parseRoutineTaskPermission(ctx *gin.Context) (cenums.AccessControlPermissio
 		return "", false
 	}
 }
-func parseRoutineTaskTime(ctx *gin.Context, name string) (time.Time, bool) {
-	value, err := time.Parse(time.RFC3339, ctx.Query(name))
-	if err != nil {
-		sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
-		return time.Time{}, false
-	}
-	return value, true
-}
-
 func (b *RoutineTaskBinder) BindGetMyRoutineTaskById(controllerFunc controllers.Func[*capi.GetMyRoutineTaskByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		requestDto := &capi.GetMyRoutineTaskByIdRequestDto{}
@@ -181,34 +165,6 @@ func (b *RoutineTaskBinder) BindUpdateMyRoutineTaskById(controllerFunc controlle
 	}
 }
 
-func (b *RoutineTaskBinder) BindPauseMyRoutineTaskById(controllerFunc controllers.Func[*capi.PauseMyRoutineTaskByIdRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.PauseMyRoutineTaskByIdRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		value, ok := parseRoutineTaskUUID(ctx, "routine-task-id")
-		if !ok {
-			return
-		}
-		requestDto.Body.RoutineTaskId = value
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
-func (b *RoutineTaskBinder) BindResumeMyRoutineTaskById(controllerFunc controllers.Func[*capi.ResumeMyRoutineTaskByIdRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.ResumeMyRoutineTaskByIdRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		value, ok := parseRoutineTaskUUID(ctx, "routine-task-id")
-		if !ok {
-			return
-		}
-		requestDto.Body.RoutineTaskId = value
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
 func (b *RoutineTaskBinder) BindHardDeleteMyRoutineTaskById(controllerFunc controllers.Func[*capi.HardDeleteMyRoutineTaskByIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		requestDto := &capi.HardDeleteMyRoutineTaskByIdRequestDto{}
@@ -232,95 +188,12 @@ func (b *RoutineTaskBinder) BindHardDeleteMyRoutineTasksByIds(controllerFunc con
 	}
 }
 
-func (b *RoutineTaskBinder) BindVisualizeMyRoutineTaskStatusCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskStatusCountRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.VisualizeMyRoutineTaskStatusCountRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		ok := true
-		requestDto.Param.Permission, ok = parseRoutineTaskPermission(ctx)
-		if !ok {
-			return
-		}
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
 func (b *RoutineTaskBinder) BindVisualizeMyRoutineTaskPurposeCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskPurposeCountRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		requestDto := &capi.VisualizeMyRoutineTaskPurposeCountRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		ok := true
 		requestDto.Param.Permission, ok = parseRoutineTaskPermission(ctx)
-		if !ok {
-			return
-		}
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
-func (b *RoutineTaskBinder) BindVisualizeMyRoutineTaskScheduledAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.VisualizeMyRoutineTaskScheduledAtCountRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		ok := true
-		requestDto.Param.Permission, ok = parseRoutineTaskPermission(ctx)
-		if !ok {
-			return
-		}
-		requestDto.Param.TimeHourUnit, _ = strconv.Atoi(ctx.Query("timeHourUnit"))
-		requestDto.Param.QueryRangeStartedAt, ok = parseRoutineTaskTime(ctx, "queryRangeStartedAt")
-		if !ok {
-			return
-		}
-		requestDto.Param.QueryRangeEndedAt, ok = parseRoutineTaskTime(ctx, "queryRangeEndedAt")
-		if !ok {
-			return
-		}
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
-func (b *RoutineTaskBinder) BindVisualizeMyRoutineTaskActualStartedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.VisualizeMyRoutineTaskActualStartedAtCountRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		ok := true
-		requestDto.Param.Permission, ok = parseRoutineTaskPermission(ctx)
-		if !ok {
-			return
-		}
-		requestDto.Param.TimeHourUnit, _ = strconv.Atoi(ctx.Query("timeHourUnit"))
-		requestDto.Param.QueryRangeStartedAt, ok = parseRoutineTaskTime(ctx, "queryRangeStartedAt")
-		if !ok {
-			return
-		}
-		requestDto.Param.QueryRangeEndedAt, ok = parseRoutineTaskTime(ctx, "queryRangeEndedAt")
-		if !ok {
-			return
-		}
-		controllerFunc(ctx, requestDto)
-		return
-	}
-}
-
-func (b *RoutineTaskBinder) BindVisualizeMyRoutineTaskActualEndedAtCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto]) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		requestDto := &capi.VisualizeMyRoutineTaskActualEndedAtCountRequestDto{}
-		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
-		ok := true
-		requestDto.Param.Permission, ok = parseRoutineTaskPermission(ctx)
-		if !ok {
-			return
-		}
-		requestDto.Param.TimeHourUnit, _ = strconv.Atoi(ctx.Query("timeHourUnit"))
-		requestDto.Param.QueryRangeStartedAt, ok = parseRoutineTaskTime(ctx, "queryRangeStartedAt")
-		if !ok {
-			return
-		}
-		requestDto.Param.QueryRangeEndedAt, ok = parseRoutineTaskTime(ctx, "queryRangeEndedAt")
 		if !ok {
 			return
 		}

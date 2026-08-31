@@ -318,22 +318,10 @@ func (ec *executionContext) fieldContext_SearchRoutineTaskEdge_node(_ context.Co
 				return ec.fieldContext_PrivateRoutineTask_costUnit(ctx, field)
 			case "priority":
 				return ec.fieldContext_PrivateRoutineTask_priority(ctx, field)
-			case "status":
-				return ec.fieldContext_PrivateRoutineTask_status(ctx, field)
-			case "attempts":
-				return ec.fieldContext_PrivateRoutineTask_attempts(ctx, field)
 			case "maxAttempts":
 				return ec.fieldContext_PrivateRoutineTask_maxAttempts(ctx, field)
-			case "period":
-				return ec.fieldContext_PrivateRoutineTask_period(ctx, field)
-			case "nextScheduledAt":
-				return ec.fieldContext_PrivateRoutineTask_nextScheduledAt(ctx, field)
-			case "scheduledAt":
-				return ec.fieldContext_PrivateRoutineTask_scheduledAt(ctx, field)
-			case "actualStartedAt":
-				return ec.fieldContext_PrivateRoutineTask_actualStartedAt(ctx, field)
-			case "actualEndedAt":
-				return ec.fieldContext_PrivateRoutineTask_actualEndedAt(ctx, field)
+			case "previousRoutineTaskIds":
+				return ec.fieldContext_PrivateRoutineTask_previousRoutineTaskIds(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_PrivateRoutineTask_updatedAt(ctx, field)
 			case "createdAt":

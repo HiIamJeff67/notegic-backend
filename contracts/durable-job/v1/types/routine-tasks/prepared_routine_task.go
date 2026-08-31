@@ -15,6 +15,7 @@ import (
 type PreparedRoutineTask struct {
 	RoutineTaskId       uuid.UUID                 `json:"routineTaskId" validate:"required"`
 	RoutineTaskRecordId uuid.UUID                 `json:"routineTaskRecordId" validate:"required"`
+	RoutineRecordId     uuid.UUID                 `json:"routineRecordId" validate:"required"`
 	RoutineId           uuid.UUID                 `json:"routineId" validate:"required"`
 	ActorUserId         uuid.UUID                 `json:"actorUserId" validate:"required"`
 	ActorUserPublicId   uuid.UUID                 `json:"actorUserPublicId" validate:"required"`

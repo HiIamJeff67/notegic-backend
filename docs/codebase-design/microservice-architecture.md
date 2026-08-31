@@ -58,13 +58,13 @@ runtimes/
       storage/              # Core-owned storage implementations
     services/
       routines/
-        handlers/            # RoutineTask aggregate execution handlers
-        resolvers/           # RoutineTask and block-pattern resolution
-        parsers/             # RoutineTask payload decoding and flattening
-        matchers/            # RoutineTask template matching
+        parsers/             # RoutineTask payload validation
     workers/                # Core-owned long-lived reconciliation and background loops
   durablejob/               # independent runtime; direct shared PostgreSQL access
     data/postgres/           # DurableJob repository composition, and migration manifest
+    services/routinetask/    # RoutineTask claim, preparation, and result-application workflows
+    workers/routinetask/     # RoutineTask scheduling, execution, and result handoff loop
+    transports/              # RealtimeGateway lifecycle and YjsWorker clients
   email/                    # independent runtime and SMTP sender
   yjsworker/                # standalone TypeScript runtime; no src/ layer
     configs/                # runtime tuning and environment-backed settings
@@ -231,7 +231,9 @@ DurableJob is an independent process. It owns the RoutineTask claimer, its
 PostgreSQL connection, quota consumption, task records, scheduling transitions,
 local handlers, business mutations, and finalization. Its GORM models come from
 `shared/platform/postgres/schemas`; it has no import path to Core's repositories,
-scopes, or services, and it does not publish routine-task results to Core. Email owns its SMTP sender and queue and consumes
+scopes, or services. It publishes only lifecycle notifications to
+RealtimeGateway through its own transport; routine-task persistence and
+execution remain in DurableJob. Email owns its SMTP sender and queue and consumes
 Core's versioned Kafka email request contract; its HTTP transport exposes only
 started/health endpoints. Both
 commands initialize observability and stop their workers/HTTP servers on
