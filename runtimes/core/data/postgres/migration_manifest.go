@@ -6,9 +6,10 @@ import (
 
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sconstraints "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/constraints"
-	striggers "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers"
-	sviews "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/views"
+
+	constraints "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/constraints"
+	triggers "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers"
+	views "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/views"
 )
 
 // DatabaseMigrationManifest describes the schemas owned and migrated by Core.
@@ -43,9 +44,9 @@ var DatabaseMigrationManifest = spostgres.MigrationManifest{
 		new(cenums.UserStatus).Name():                 cenums.AllUserStatusStrings,
 		new(cenums.UsersToBillingPlansStatus).Name():  cenums.AllUsersToBillingPlansStatusStrings,
 	},
-	Views:       sviews.MigratingViewSQLs,
-	Triggers:    striggers.MigratingTriggerSQLs,
-	Constraints: sconstraints.MigratingConstraintSQLs,
+	Views:       views.MigratingViewSQLs,
+	Triggers:    triggers.MigratingTriggerSQLs,
+	Constraints: constraints.MigratingConstraintSQLs,
 	Tables: []any{
 		&sschemas.User{},
 		&sschemas.UserInfo{},

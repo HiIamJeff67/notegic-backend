@@ -4,7 +4,8 @@ import (
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-	saccountingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
+
+	saccountingtrigger "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/triggers/accounting_triggers"
 )
 
 var DatabasePermissionManifest = spostgres.PermissionManifest{
@@ -88,8 +89,8 @@ func getDurablePermissionObjects() []spostgres.PermissionObject {
 			},
 		},
 	}
-	// Core owns these trigger functions, while DurableJob needs EXECUTE when
-	// updating tables whose triggers invoke them.
+	// DurableJob owns these trigger functions, while Core needs EXECUTE when
+	// updating the RoutineTask table whose triggers invoke them.
 	for _, functionName := range []string{
 		saccountingtrigger.AccountingInsertedRoutineTaskTriggerFunctionName,
 		saccountingtrigger.AccountingUpdatedRoutineTaskTriggerFunctionName,

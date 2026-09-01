@@ -5,10 +5,11 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
-	saccountingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
-	sblockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/block_pack_yjs_triggers"
-	sitemstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/item_projection_triggers"
-	sshelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/shelf_item_cascading_triggers"
+
+	saccountingtrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/accounting_triggers"
+	sblockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/block_pack_yjs_triggers"
+	sitemstrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/item_projection_triggers"
+	sshelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/shelf_item_cascading_triggers"
 )
 
 var DatabasePermissionManifest = spostgres.PermissionManifest{

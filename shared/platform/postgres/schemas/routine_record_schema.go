@@ -1,11 +1,13 @@
 package schemas
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
+	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	postgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
@@ -42,3 +44,23 @@ const (
 	RoutineRecordRelation_Routine            RoutineRecordRelation = "Routine"
 	RoutineRecordRelation_RoutineTaskRecords RoutineRecordRelation = "RoutineTaskRecords"
 )
+
+func (rr *RoutineRecord) ToPrivateRoutineRecord() *cgqlmodels.PrivateRoutineRecord {
+	return &cgqlmodels.PrivateRoutineRecord{
+		ID:               rr.Id,
+		RoutineID:        rr.RoutineId,
+		Status:           rr.Status,
+		ScheduledAt:      rr.ScheduledAt,
+		ActualStartedAt:  rr.ActualStartedAt,
+		ActualEndedAt:    rr.ActualEndedAt,
+		TotalTaskCount:   rr.TotalTaskCount,
+		SuccessTaskCount: rr.SuccessTaskCount,
+		FailedTaskCount:  rr.FailedTaskCount,
+		BlockedTaskCount: rr.BlockedTaskCount,
+		RunningTaskCount: rr.RunningTaskCount,
+		WaitingTaskCount: rr.WaitingTaskCount,
+		Snapshot:         json.RawMessage(rr.Snapshot),
+		UpdatedAt:        rr.UpdatedAt,
+		CreatedAt:        rr.CreatedAt,
+	}
+}

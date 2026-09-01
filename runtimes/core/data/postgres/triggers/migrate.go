@@ -1,10 +1,10 @@
 package triggers
 
 import (
-	accountingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/accounting_triggers"
-	blockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/block_pack_yjs_triggers"
-	itemprojectiontrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/item_projection_triggers"
-	shelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers/shelf_item_cascading_triggers"
+	accountingtrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/accounting_triggers"
+	blockpackyjstrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/block_pack_yjs_triggers"
+	itemprojectiontrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/item_projection_triggers"
+	shelfitemcascadingtrigger "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/postgres/triggers/shelf_item_cascading_triggers"
 )
 
 var MigratingTriggerSQLs = []string{
@@ -30,10 +30,4 @@ var MigratingTriggerSQLs = []string{
 	accountingtrigger.AccountingInsertedStationTriggerSQL,
 	accountingtrigger.AccountingDeletedStationTriggerSQL,
 	accountingtrigger.AccountingMutatedStationTriggerSQL,
-}
-
-var RoutineTaskTriggerSQLs = []string{
-	accountingtrigger.AccountingInsertedRoutineTaskTriggerSQL,
-	accountingtrigger.AccountingDeletedRoutineTaskTriggerSQL,
-	accountingtrigger.AccountingUpdatedRoutineTaskTriggerSQL,
 }

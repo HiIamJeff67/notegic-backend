@@ -23,7 +23,7 @@ type SubShelf struct {
 
 	// relations
 	RootShelf      RootShelf   `json:"rootShelf" gorm:"foreignKey:RootShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
-	NextSubShelves []SubShelf  `json:"subShelves" gorm:"foreignKey:PrevSubShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	NextSubShelves []SubShelf  `json:"subShelves" gorm:"foreignKey:PrevSubShelfId; references:Id;"`
 	Materials      []Material  `json:"materials" gorm:"foreignKey:ParentSubShelfId; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	BlockPacks     []BlockPack `json:"blockSets" gorm:"foreignKey:ParentSubShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	Items          []Item      `json:"items" gorm:"foreignKey:ParentSubShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`

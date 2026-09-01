@@ -199,7 +199,7 @@ methods in Core.
   YjsWorker and receives Core lifecycle facts through Kafka.
 - A runtime may import contracts, shared, and its own data. A runtime
   must not import another service source package.
-- Shared PostgreSQL schemas, table names, scopes, migration DDL, repository
+- Shared PostgreSQL schemas, table names, scopes, repository
   implementations, and shared repository inputs are importable platform code.
   Runtime-owned repository inputs remain private to that runtime. Runtime
   packages may compose these implementations in thin local wrappers to add
@@ -245,17 +245,18 @@ methods in Core.
 
 All PostgreSQL GORM models that represent shared physical tables live under
 `shared/platform/postgres/schemas/`, including their table names and relations.
-Migration DDL is colocated with its operation under
-`shared/platform/postgres/schemas/views/`, `schemas/triggers/`, and
-`schemas/constraints/`. Runtimes import these models directly; they do not keep
-duplicate local schema definitions. All repository implementations, inputs, and
-repository exceptions live under `shared/platform/postgres/repositories/`,
-organized by domain. Constructors receive the owning runtime's `*gorm.DB` pool;
-the shared package must not keep a default database or import a runtime. Runtime
-specific business workflows stay in services/workers instead of duplicating
-repository implementations. All reusable scopes live under
-`shared/platform/postgres/scopes/`. Runtime-only raw query helpers belong under
-`runtimes/<service>/data/postgres/sqls/`; they are not shared platform assets.
+Migration DDL is owned by the runtime that owns the tables and lives under that
+runtime's `data/postgres/constraints/`, `data/postgres/triggers/`, or
+`data/postgres/views/` directory. Runtimes import shared models directly; they
+do not keep duplicate local schema definitions. All repository implementations,
+inputs, and repository exceptions live under
+`shared/platform/postgres/repositories/`, organized by domain. Constructors
+receive the owning runtime's `*gorm.DB` pool; the shared package must not keep a
+default database or import a runtime. Runtime-specific business workflows stay
+in services/workers instead of duplicating repository implementations. All
+reusable scopes live under `shared/platform/postgres/scopes/`. Runtime-only raw
+query helpers belong under `runtimes/<service>/data/postgres/sqls/`; they are not
+shared platform assets.
 
 Each database-owning runtime keeps one migration manifest under its own
 `data/postgres/` package. The manifest declares its owner and the tables, enums,

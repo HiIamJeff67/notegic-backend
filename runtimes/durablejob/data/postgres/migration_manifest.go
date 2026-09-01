@@ -5,16 +5,17 @@ import (
 
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sconstraints "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/constraints"
-	striggers "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas/triggers"
+
+	constraints "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/constraints"
+	triggers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/triggers"
 )
 
 // DatabaseMigrationManifest describes the schemas owned and migrated by
 // DurableJob. Database permissions are intentionally configured separately.
 var DatabaseMigrationManifest = spostgres.MigrationManifest{
 	Runtime:     ctypes.Runtime_DurableJob,
-	Triggers:    striggers.RoutineTaskTriggerSQLs,
-	Constraints: sconstraints.UserQuotaConstraintSQLs,
+	Triggers:    triggers.RoutineTaskTriggerSQLs,
+	Constraints: constraints.UserQuotaConstraintSQLs,
 	Tables: []any{
 		&sschemas.RoutineRecord{},
 		&sschemas.RoutineTask{},
