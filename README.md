@@ -246,9 +246,9 @@ This section is automatically maintained from recent Git history. Detailed inten
 
 ### Recent snapshots
 
+- [2026-09/2026-09-02](docs/devlogs/2026-09/2026-09-02.md)
 - [2026-09/2026-09-01](docs/devlogs/2026-09/2026-09-01.md)
 - [2026-08/2026-08-30](docs/devlogs/2026-08/2026-08-30.md)
 - [2026-08/2026-08-28](docs/devlogs/2026-08/2026-08-28.md)
 - [2026-08/2026-08-26](docs/devlogs/2026-08/2026-08-26.md)
-- [2026-08/2026-08-25](docs/devlogs/2026-08/2026-08-25.md)
 <!-- DEVLOG:END -->

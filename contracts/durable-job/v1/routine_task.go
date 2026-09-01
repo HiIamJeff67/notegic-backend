@@ -6,16 +6,16 @@ import (
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 )
 
-type ClaimRoutineTasksRequestDto struct {
+type ClaimRoutinesRequestDto struct {
 	RequestId uuid.UUID `json:"requestId" validate:"required"`
 	WorkerId  uuid.UUID `json:"workerId" validate:"required"`
 	BatchSize int       `json:"batchSize" validate:"required,min=1,max=1000"`
 }
 
-type ClaimRoutineTasksResponseDto struct {
-	RequestId   uuid.UUID                                 `json:"requestId"`
-	WorkerId    uuid.UUID                                 `json:"workerId"`
-	Assignments []croutinetasktypes.RoutineTaskAssignment `json:"assignments"`
+type ClaimRoutinesResponseDto struct {
+	RequestId          uuid.UUID                             `json:"requestId"`
+	WorkerId           uuid.UUID                             `json:"workerId"`
+	RoutineAssignments []croutinetasktypes.RoutineAssignment `json:"routineAssignments"`
 }
 
 type MarkCompletedRoutineTasksRequestDto struct {

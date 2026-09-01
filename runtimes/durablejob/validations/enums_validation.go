@@ -120,7 +120,7 @@ var (
 		string(cenums.RoutineStatus_OverDue),
 	}
 	allRoutineTaskPurposeStrings = cenums.AllRoutineTaskPurposeStrings
-	allSupportedIconStrings = []string{
+	allSupportedIconStrings      = []string{
 		string(cenums.SupportedIcon_GrinningFace),
 		string(cenums.SupportedIcon_SmilingFaceWithSmilingEyes),
 		string(cenums.SupportedIcon_RedHeart),

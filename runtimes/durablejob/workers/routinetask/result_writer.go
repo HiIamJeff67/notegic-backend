@@ -9,7 +9,7 @@ import (
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 
-	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
 )
 
 type ResultWriteFunc func(context.Context, Result) error

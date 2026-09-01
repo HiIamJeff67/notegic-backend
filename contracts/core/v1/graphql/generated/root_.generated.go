@@ -114,6 +114,7 @@ type ComplexityRoot struct {
 		IsPinned         func(childComplexity int) int
 		ItemIds          func(childComplexity int) int
 		Period           func(childComplexity int) int
+		Phase            func(childComplexity int) int
 		ScheduledEndAt   func(childComplexity int) int
 		ScheduledStartAt func(childComplexity int) int
 		StationID        func(childComplexity int) int
@@ -191,6 +192,7 @@ type ComplexityRoot struct {
 		IsPinned         func(childComplexity int) int
 		ItemIds          func(childComplexity int) int
 		Period           func(childComplexity int) int
+		Phase            func(childComplexity int) int
 		ScheduledEndAt   func(childComplexity int) int
 		ScheduledStartAt func(childComplexity int) int
 		StationID        func(childComplexity int) int
@@ -906,6 +908,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PrivateRoutine.Period(childComplexity), true
 
+	case "PrivateRoutine.phase":
+		if e.complexity.PrivateRoutine.Phase == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutine.Phase(childComplexity), true
+
 	case "PrivateRoutine.scheduledEndAt":
 		if e.complexity.PrivateRoutine.ScheduledEndAt == nil {
 			break
@@ -1339,6 +1348,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PrivateSearchableRoutine.Period(childComplexity), true
+
+	case "PrivateSearchableRoutine.phase":
+		if e.complexity.PrivateSearchableRoutine.Phase == nil {
+			break
+		}
+
+		return e.complexity.PrivateSearchableRoutine.Phase(childComplexity), true
 
 	case "PrivateSearchableRoutine.scheduledEndAt":
 		if e.complexity.PrivateSearchableRoutine.ScheduledEndAt == nil {
@@ -2866,6 +2882,15 @@ var sources = []*ast.Source{
   RoutinePeriod_Monthly
 }
 `, BuiltIn: false},
+	{Name: "../schemas/enums/routine_phase_enum.graphql", Input: `enum RoutinePhase {
+  RoutinePhase_Claimed
+  RoutinePhase_Preparation
+  RoutinePhase_Plan
+  RoutinePhase_Execution
+  RoutinePhase_Recovery
+  RoutinePhase_Analysis
+}
+`, BuiltIn: false},
 	{Name: "../schemas/enums/routine_record_status_enum.graphql", Input: `enum RoutineRecordStatus {
   RoutineRecordStatus_Pending
   RoutineRecordStatus_Running
@@ -3126,6 +3151,7 @@ interface SearchConnection {
   title: String!
   description: String!
   status: RoutineStatus!
+  phase: RoutinePhase
   isPinned: Boolean!
   scheduledStartAt: Time!
   scheduledEndAt: Time!
@@ -3146,6 +3172,7 @@ type PrivateSearchableRoutine {
   stationId: UUID!
   title: String!
   status: RoutineStatus!
+  phase: RoutinePhase
   isPinned: Boolean!
   scheduledStartAt: Time!
   scheduledEndAt: Time!
@@ -3159,7 +3186,8 @@ type PrivateSearchableRoutine {
   tagIds: [UUID!]!
   taskIds: [UUID!]!
   itemIds: [UUID!]! 
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../schemas/routine_record.graphql", Input: `type PrivateRoutineRecord {
   id: UUID!
   routineId: UUID!

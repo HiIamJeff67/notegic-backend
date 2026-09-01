@@ -1,4 +1,4 @@
-package routinetask
+package recoverers
 
 import (
 	"context"
@@ -11,33 +11,31 @@ import (
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
+	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
-type RoutineTaskRecoveryServiceInterface interface {
+type StaleRecordRecovererInterface interface {
 	RecoverStaleRoutineTaskRecords(context.Context, time.Time) (int64, error)
 }
 
-type RoutineTaskRecoveryService struct {
+type StaleRecordRecoverer struct {
 	db *gorm.DB
 }
 
-func NewRoutineTaskRecoveryService(db *gorm.DB) *RoutineTaskRecoveryService {
-	return &RoutineTaskRecoveryService{db: db}
+func NewStaleRecordRecoverer(db *gorm.DB) *StaleRecordRecoverer {
+	return &StaleRecordRecoverer{db: db}
 }
 
-func (s *RoutineTaskRecoveryService) RecoverStaleRoutineTaskRecords(
+func (r *StaleRecordRecoverer) RecoverStaleRoutineTaskRecords(
 	ctx context.Context,
 	staleBefore time.Time,
 ) (int64, error) {
-	if s.db == nil {
+	if r.db == nil {
 		return 0, fmt.Errorf("DurableJob routine task recovery database is not configured")
 	}
 
-	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return 0, fmt.Errorf("begin routine task recovery transaction: %w", tx.Error)
-	}
+	tx := r.db.WithContext(ctx).Begin()
 
 	var staleRecords []struct {
 		Id              uuid.UUID `gorm:"column:id"`
@@ -110,22 +108,8 @@ func (s *RoutineTaskRecoveryService) RecoverStaleRoutineTaskRecords(
 			return 0, fmt.Errorf("fail exhausted stale routine task records: %w", result.Error)
 		}
 
-		result = tx.Exec(`WITH RECURSIVE blocked_tasks(routine_record_id, routine_task_id) AS (
-			SELECT routine_record_id, routine_task_id
-			FROM "RoutineTaskRecordTable"
-			WHERE id IN ?
-			UNION
-			SELECT blocked_tasks.routine_record_id, dependency.routine_task_id
-			FROM blocked_tasks
-			INNER JOIN "RoutineDependencyTable" dependency
-				ON dependency.previous_routine_task_id = blocked_tasks.routine_task_id
-		)
-		UPDATE "RoutineTaskRecordTable" AS routine_task_record
-		SET status = ?, updated_at = ?
-		FROM blocked_tasks
-		WHERE routine_task_record.routine_record_id = blocked_tasks.routine_record_id
-			AND routine_task_record.routine_task_id = blocked_tasks.routine_task_id
-			AND routine_task_record.status IN (?, ?)`,
+		result = tx.Exec(
+			routinetasksql.BlockRoutineTaskRecordDependenciesSQL,
 			failedIds,
 			cenums.RoutineTaskRecordStatus_Blocked,
 			now,
@@ -136,37 +120,38 @@ func (s *RoutineTaskRecoveryService) RecoverStaleRoutineTaskRecords(
 			tx.Rollback()
 			return 0, fmt.Errorf("block dependent stale routine tasks: %w", result.Error)
 		}
+		failedRoutineRecordIdsQuery := tx.Model(&sschemas.RoutineTaskRecord{}).
+			Select("routine_record_id").
+			Where("id IN ?", failedIds)
+		result = tx.Model(&sschemas.RoutineTaskRecord{}).
+			Where("routine_record_id IN (?)", failedRoutineRecordIdsQuery).
+			Where("status IN ?", []cenums.RoutineTaskRecordStatus{
+				cenums.RoutineTaskRecordStatus_Waiting,
+				cenums.RoutineTaskRecordStatus_Ready,
+			}).
+			Where(`EXISTS (
+				SELECT 1
+				FROM "RoutineTaskRecordTable" barrier_record
+				INNER JOIN "RoutineTaskTable" barrier_task
+					ON barrier_task.id = barrier_record.routine_task_id
+				WHERE barrier_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+					AND barrier_task.purpose IN (?, ?, ?)
+					AND barrier_record.status IN (?, ?)
+			)`, cenums.RoutineTaskPurpose_CreateSubShelf, cenums.RoutineTaskPurpose_CreateBlockPack, cenums.RoutineTaskPurpose_CreateMaterial, cenums.RoutineTaskRecordStatus_Failed, cenums.RoutineTaskRecordStatus_Blocked).
+			Updates(map[string]any{
+				"status":     cenums.RoutineTaskRecordStatus_Blocked,
+				"updated_at": now,
+			})
+		if result.Error != nil {
+			tx.Rollback()
+			return 0, fmt.Errorf("block tasks behind deterministic creation failure: %w", result.Error)
+		}
 	}
 
-	result = tx.Exec(`UPDATE "RoutineRecordTable" AS routine_record
-		SET success_task_count = counts.success_task_count,
-			failed_task_count = counts.failed_task_count,
-			blocked_task_count = counts.blocked_task_count,
-			running_task_count = counts.running_task_count,
-			waiting_task_count = counts.waiting_task_count,
-			status = CASE
-				WHEN counts.running_task_count > 0 OR counts.waiting_task_count > 0 THEN ?::"RoutineRecordStatus"
-				WHEN counts.failed_task_count > 0 OR counts.blocked_task_count > 0 THEN ?::"RoutineRecordStatus"
-				ELSE ?::"RoutineRecordStatus"
-			END,
-			actual_ended_at = CASE
-				WHEN counts.running_task_count = 0 AND counts.waiting_task_count = 0 THEN ?
-				ELSE routine_record.actual_ended_at
-			END,
-			updated_at = ?
-		FROM (
-			SELECT routine_record_id,
-				COUNT(*) FILTER (WHERE status = 'Success')::integer AS success_task_count,
-				COUNT(*) FILTER (WHERE status = 'Failed')::integer AS failed_task_count,
-				COUNT(*) FILTER (WHERE status = 'Blocked')::integer AS blocked_task_count,
-				COUNT(*) FILTER (WHERE status = 'Running')::integer AS running_task_count,
-				COUNT(*) FILTER (WHERE status IN ('Waiting', 'Ready'))::integer AS waiting_task_count
-			FROM "RoutineTaskRecordTable"
-			WHERE routine_record_id IN ?
-			GROUP BY routine_record_id
-		) counts
-		WHERE routine_record.id = counts.routine_record_id`,
+	result = tx.Exec(
+		routinetasksql.UpdateRoutineRecordAggregateSQL,
 		cenums.RoutineRecordStatus_Running,
+		cenums.RoutineRecordStatus_Blocked,
 		cenums.RoutineRecordStatus_Failed,
 		cenums.RoutineRecordStatus_Success,
 		now,
@@ -178,22 +163,19 @@ func (s *RoutineTaskRecoveryService) RecoverStaleRoutineTaskRecords(
 		return 0, fmt.Errorf("update recovered routine record aggregates: %w", result.Error)
 	}
 
-	result = tx.Exec(`UPDATE "RoutineTable" AS routine
-		SET status = CASE WHEN routine.period IS NULL THEN ? ELSE ? END, updated_at = ?
-		WHERE routine.id IN (
-			SELECT routine_record.routine_id
-			FROM "RoutineRecordTable" routine_record
-			WHERE routine_record.id IN ?
-				AND routine_record.status IN (?, ?, ?)
-		)`,
-		cenums.RoutineStatus_Completed,
-		cenums.RoutineStatus_Scheduled,
-		now,
-		routineRecordIds,
-		cenums.RoutineRecordStatus_Success,
-		cenums.RoutineRecordStatus_Failed,
-		cenums.RoutineRecordStatus_Blocked,
-	)
+	routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
+		Select("routine_id").
+		Where("id IN ? AND status IN ?", routineRecordIds, []cenums.RoutineRecordStatus{
+			cenums.RoutineRecordStatus_Success,
+			cenums.RoutineRecordStatus_Failed,
+			cenums.RoutineRecordStatus_Blocked,
+		})
+	result = tx.Model(&sschemas.Routine{}).
+		Where("id IN (?)", routineIdsToFinalize).
+		Updates(map[string]any{
+			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"updated_at": now,
+		})
 	if result.Error != nil {
 		tx.Rollback()
 		return 0, fmt.Errorf("finalize recovered routines: %w", result.Error)

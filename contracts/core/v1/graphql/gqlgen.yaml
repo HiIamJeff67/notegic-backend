@@ -286,6 +286,21 @@ models:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_Completed"
       RoutineStatus_OverDue:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_OverDue"
+  RoutinePhase:
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase"
+    enum_values:
+      RoutinePhase_Claimed:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Claimed"
+      RoutinePhase_Preparation:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Preparation"
+      RoutinePhase_Plan:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Plan"
+      RoutinePhase_Execution:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Execution"
+      RoutinePhase_Recovery:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Recovery"
+      RoutinePhase_Analysis:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Analysis"
   RoutineRecordStatus:
     model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus"
     enum_values:

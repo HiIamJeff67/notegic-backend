@@ -1,4 +1,4 @@
-package execution
+package routinetask
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
@@ -24,6 +23,7 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 
+	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	handlers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/handlers"
 	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
 	resolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/resolvers"
@@ -126,16 +126,6 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"FailedToBeginTransaction",
-			"RoutineTask",
-			"ApplyPreparedRoutineTasks",
-			"Failed to start the routine task completion transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	taskIds := make([]uuid.UUID, len(request.Tasks))
 	recordIds := make([]uuid.UUID, len(request.Tasks))
@@ -199,9 +189,10 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	for _, task := range storedTasks {
 		storedTaskById[task.Id] = task
 	}
+	lockingStrength := srepositories.LockingStrengthUpdate
 	var storedRecords []sschemas.RoutineTaskRecord
 	if err := tx.WithContext(ctx).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("id IN ?", recordIds).
 		Find(&storedRecords).Error; err != nil {
 		tx.Rollback()
@@ -217,8 +208,26 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		return cexceptions.New("FailedToRead", "RoutineRecord", "ApplyPreparedRoutineTasks", "Failed to read routine records for execution", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 	routineRecordById := make(map[uuid.UUID]sschemas.RoutineRecord, len(routineRecords))
+	routineTaskPlanByRecordId := make(map[uuid.UUID]*croutinetasktypes.RoutineTaskPlan, len(routineRecords))
 	for _, record := range routineRecords {
 		routineRecordById[record.Id] = record
+		if len(record.Snapshot) == 0 || string(record.Snapshot) == "{}" {
+			continue
+		}
+		var snapshot struct {
+			RoutineTaskPlan *croutinetasktypes.RoutineTaskPlan `json:"routineTaskPlan"`
+		}
+		if err := json.Unmarshal(record.Snapshot, &snapshot); err != nil {
+			tx.Rollback()
+			return cexceptions.New(
+				"InvalidRoutinePlan",
+				"RoutineRecord",
+				"ApplyPreparedRoutineTasks",
+				"The routine record snapshot contains an invalid routine task plan",
+				http.StatusConflict,
+			).WithOrigin(err)
+		}
+		routineTaskPlanByRecordId[record.Id] = snapshot.RoutineTaskPlan
 	}
 	groupedTasks := make(map[cenums.RoutineTaskPurpose][]sschemas.RoutineTask)
 	actorsByTaskId := make(map[cenums.RoutineTaskPurpose]map[uuid.UUID]uuid.UUID)
@@ -251,7 +260,99 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			continue
 		}
 
-		storedTask.Payload = datatypes.JSON(preparedTask.Payload)
+		payload := preparedTask.Payload
+		plan := routineTaskPlanByRecordId[completedTask.RoutineRecordId]
+		facts := map[string]uuid.UUID(nil)
+		if plan != nil {
+			facts = plan.Facts
+		}
+		switch preparedTask.Purpose {
+		case cenums.RoutineTaskPurpose_CreateSubShelf:
+			if plan == nil {
+				tx.Rollback()
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The routine task does not have a persisted deterministic plan",
+					http.StatusConflict,
+				)
+			}
+			var createPayload croutinetasktypes.CreateSubShelfRoutineTaskPayload
+			if err := json.Unmarshal(payload, &createPayload); err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf payload is invalid", http.StatusConflict).WithOrigin(err)
+			}
+			precreatedSubShelf, exists := plan.PrecreatedSubShelves[string(createPayload.FakeId)]
+			if !exists {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf fake id is not in the persisted plan", http.StatusConflict)
+			}
+			createPayload.Id = &precreatedSubShelf.RealId
+			if createPayload.PrevSubShelfId != nil {
+				resolvedId, err := createPayload.PrevSubShelfId.Resolve(facts)
+				if err != nil {
+					tx.Rollback()
+					return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+				}
+				resolvedReference := croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
+				createPayload.PrevSubShelfId = &resolvedReference
+			}
+			if precreatedSubShelf.Path != nil {
+				createPayload.Path = append([]uuid.UUID{}, precreatedSubShelf.Path...)
+			}
+			var err error
+			payload, err = json.Marshal(createPayload)
+			if err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+			}
+		case cenums.RoutineTaskPurpose_CreateBlockPack:
+			var createPayload croutinetasktypes.CreateBlockPackRoutineTaskPayload
+			if err := json.Unmarshal(payload, &createPayload); err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack payload is invalid", http.StatusConflict).WithOrigin(err)
+			}
+			resolvedId, err := createPayload.TargetSubShelfId.Resolve(facts)
+			if err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+			}
+			createPayload.TargetSubShelfId = croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
+			if plan != nil {
+				if plannedId, exists := plan.PlannedObjectIds[completedTask.RoutineTaskId.String()]; exists {
+					createPayload.Id = &plannedId
+				}
+			}
+			payload, err = json.Marshal(createPayload)
+			if err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+			}
+		case cenums.RoutineTaskPurpose_CreateMaterial:
+			var createPayload croutinetasktypes.CreateMaterialRoutineTaskPayload
+			if err := json.Unmarshal(payload, &createPayload); err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material payload is invalid", http.StatusConflict).WithOrigin(err)
+			}
+			resolvedId, err := createPayload.ParentSubShelfId.Resolve(facts)
+			if err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+			}
+			createPayload.ParentSubShelfId = croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
+			if plan != nil {
+				if plannedId, exists := plan.PlannedObjectIds[completedTask.RoutineTaskId.String()]; exists {
+					createPayload.Id = &plannedId
+				}
+			}
+			payload, err = json.Marshal(createPayload)
+			if err != nil {
+				tx.Rollback()
+				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+			}
+		}
+		storedTask.Payload = datatypes.JSON(payload)
 		storedTask.RecordId = completedTask.RoutineTaskRecordId
 		storedTask.RecordScheduledAt = routineRecord.ScheduledAt
 		purpose := cenums.RoutineTaskPurpose(preparedTask.Purpose)
@@ -262,7 +363,29 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		actorsByTaskId[purpose][storedTask.Id] = preparedTask.ActorUserId
 	}
 
-	for purpose, tasks := range groupedTasks {
+	purposeOrder := []cenums.RoutineTaskPurpose{
+		cenums.RoutineTaskPurpose_GetSubShelf,
+		cenums.RoutineTaskPurpose_CreateSubShelf,
+		cenums.RoutineTaskPurpose_UpdateSubShelf,
+		cenums.RoutineTaskPurpose_DeleteSubShelf,
+		cenums.RoutineTaskPurpose_GetBlockPack,
+		cenums.RoutineTaskPurpose_CreateBlockPack,
+		cenums.RoutineTaskPurpose_UpdateBlockPack,
+		cenums.RoutineTaskPurpose_DeleteBlockPack,
+		cenums.RoutineTaskPurpose_GetRoutine,
+		cenums.RoutineTaskPurpose_CreateRoutine,
+		cenums.RoutineTaskPurpose_UpdateRoutine,
+		cenums.RoutineTaskPurpose_DeleteRoutine,
+		cenums.RoutineTaskPurpose_GetMaterial,
+		cenums.RoutineTaskPurpose_CreateMaterial,
+		cenums.RoutineTaskPurpose_UpdateMaterial,
+		cenums.RoutineTaskPurpose_DeleteMaterial,
+	}
+	for _, purpose := range purposeOrder {
+		tasks, exists := groupedTasks[purpose]
+		if !exists {
+			continue
+		}
 		var (
 			successes          []bool
 			executionResults   map[uuid.UUID]croutinetasktypes.ExecutionResult
@@ -502,65 +625,64 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		resultSnapshotArgs = append(resultSnapshotArgs, task.RoutineTaskRecordId, snapshot)
 	}
 	if len(resultSnapshotPlaceholders) > 0 {
-		result = tx.Exec(fmt.Sprintf(`UPDATE "RoutineTaskRecordTable" AS routine_task_record
-			SET result_snapshot = results.result_snapshot, updated_at = ?
-			FROM (VALUES %s) AS results(id, result_snapshot)
-			WHERE routine_task_record.id = results.id`, strings.Join(resultSnapshotPlaceholders, ",")), append([]any{now}, resultSnapshotArgs...)...)
+		result = tx.Exec(fmt.Sprintf(routinetasksql.UpdateRoutineTaskRecordResultSnapshotSQL, strings.Join(resultSnapshotPlaceholders, ",")), append([]any{now}, resultSnapshotArgs...)...)
 		if result.Error != nil {
 			tx.Rollback()
 			return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "MarkCompletedRoutineTasks", "Failed to store routine task execution results", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
 	}
-	result = tx.Exec(`UPDATE "RoutineTaskRecordTable" AS child
-		SET status = ?, updated_at = ?
-		WHERE child.status = ? AND child.routine_record_id IN ?
-		AND NOT EXISTS (
-			SELECT 1 FROM "RoutineDependencyTable" dependency
+	result = tx.Model(&sschemas.RoutineTaskRecord{}).
+		Where("status = ? AND routine_record_id IN ?", cenums.RoutineTaskRecordStatus_Waiting, routineRecordIds).
+		Where(`NOT EXISTS (
+			SELECT 1
+			FROM "RoutineDependencyTable" dependency
 			INNER JOIN "RoutineTaskRecordTable" previous
 				ON previous.routine_task_id = dependency.previous_routine_task_id
-				AND previous.routine_record_id = child.routine_record_id
-			WHERE dependency.routine_task_id = child.routine_task_id
+				AND previous.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+			WHERE dependency.routine_task_id = "RoutineTaskRecordTable".routine_task_id
 				AND previous.status <> ?
-		)`, cenums.RoutineTaskRecordStatus_Ready, now, cenums.RoutineTaskRecordStatus_Waiting, routineRecordIds, cenums.RoutineTaskRecordStatus_Success)
+		)`, cenums.RoutineTaskRecordStatus_Success).
+		Updates(map[string]any{
+			"status":     cenums.RoutineTaskRecordStatus_Ready,
+			"updated_at": now,
+		})
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "MarkCompletedRoutineTasks", "Failed to release dependent routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
-	result = tx.Exec(`UPDATE "RoutineRecordTable" AS routine_record
-		SET success_task_count = counts.success_task_count, failed_task_count = counts.failed_task_count,
-			blocked_task_count = counts.blocked_task_count, running_task_count = counts.running_task_count,
-			waiting_task_count = counts.waiting_task_count,
-			status = CASE
-				WHEN counts.running_task_count > 0 OR counts.waiting_task_count > 0 THEN ?::"RoutineRecordStatus"
-				WHEN counts.failed_task_count > 0 OR counts.blocked_task_count > 0 THEN ?::"RoutineRecordStatus"
-				ELSE ?::"RoutineRecordStatus"
-			END,
-			actual_ended_at = CASE WHEN counts.running_task_count = 0 AND counts.waiting_task_count = 0 THEN ? ELSE routine_record.actual_ended_at END,
-			updated_at = ?
-		FROM (
-			SELECT routine_record_id,
-				COUNT(*) FILTER (WHERE status = 'Success')::integer AS success_task_count,
-				COUNT(*) FILTER (WHERE status = 'Failed')::integer AS failed_task_count,
-				COUNT(*) FILTER (WHERE status = 'Blocked')::integer AS blocked_task_count,
-				COUNT(*) FILTER (WHERE status = 'Running')::integer AS running_task_count,
-				COUNT(*) FILTER (WHERE status IN ('Waiting', 'Ready'))::integer AS waiting_task_count
-			FROM "RoutineTaskRecordTable" WHERE routine_record_id IN ? GROUP BY routine_record_id
-		) counts WHERE routine_record.id = counts.routine_record_id`, cenums.RoutineRecordStatus_Running, cenums.RoutineRecordStatus_Failed, cenums.RoutineRecordStatus_Success, now, now, routineRecordIds)
+	result = tx.Exec(
+		routinetasksql.UpdateRoutineRecordAggregateSQL,
+		cenums.RoutineRecordStatus_Running,
+		cenums.RoutineRecordStatus_Blocked,
+		cenums.RoutineRecordStatus_Failed,
+		cenums.RoutineRecordStatus_Success,
+		now,
+		now,
+		routineRecordIds,
+	)
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "RoutineRecord", "MarkCompletedRoutineTasks", "Failed to update routine record aggregates", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
-	result = tx.Exec(`UPDATE "RoutineTable" AS routine
-		SET status = CASE WHEN routine.period IS NULL THEN ? ELSE ? END, updated_at = ?
-		WHERE routine.id IN (
-			SELECT routine_record.routine_id FROM "RoutineRecordTable" routine_record
-			WHERE routine_record.id IN ? AND routine_record.status IN (?, ?, ?)
-		)`, cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled, now, routineRecordIds, cenums.RoutineRecordStatus_Success, cenums.RoutineRecordStatus_Failed, cenums.RoutineRecordStatus_Blocked)
+	routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
+		Select("routine_id").
+		Where("id IN ? AND status IN ?", routineRecordIds, []cenums.RoutineRecordStatus{
+			cenums.RoutineRecordStatus_Success,
+			cenums.RoutineRecordStatus_Failed,
+			cenums.RoutineRecordStatus_Blocked,
+		})
+	result = tx.Model(&sschemas.Routine{}).
+		Where("id IN (?)", routineIdsToFinalize).
+		Updates(map[string]any{
+			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"updated_at": now,
+		})
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "Routine", "MarkCompletedRoutineTasks", "Failed to finalize routine schedule", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return cexceptions.New(
 			"FailedToCommitTransaction",
 			"RoutineTask",
@@ -623,19 +745,10 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"FailedToBeginTransaction",
-			"RoutineTask",
-			"ApplyFailedRoutineTasks",
-			"Failed to start the routine task failure transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
+	lockingStrength := srepositories.LockingStrengthUpdate
 	var runningRecords []sschemas.RoutineTaskRecord
 	if result := tx.Model(&sschemas.RoutineTaskRecord{}).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("id IN ?", recordIds).
 		Find(&runningRecords); result.Error != nil {
 		tx.Rollback()
@@ -690,62 +803,78 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 		}
 	}
 	now := time.Now().UTC()
-	result := tx.Exec(`WITH RECURSIVE blocked_tasks(routine_record_id, routine_task_id) AS (
-		SELECT routine_record_id, routine_task_id
-		FROM "RoutineTaskRecordTable"
-		WHERE id IN ?
-		UNION
-		SELECT blocked_tasks.routine_record_id, dependency.routine_task_id
-		FROM blocked_tasks
-		INNER JOIN "RoutineDependencyTable" dependency
-			ON dependency.previous_routine_task_id = blocked_tasks.routine_task_id
+	result := tx.Exec(
+		routinetasksql.BlockRoutineTaskRecordDependenciesSQL,
+		recordIds,
+		cenums.RoutineTaskRecordStatus_Blocked,
+		now,
+		cenums.RoutineTaskRecordStatus_Waiting,
+		cenums.RoutineTaskRecordStatus_Ready,
 	)
-	UPDATE "RoutineTaskRecordTable" AS routine_task_record
-	SET status = ?, updated_at = ?
-	FROM blocked_tasks
-	WHERE routine_task_record.routine_record_id = blocked_tasks.routine_record_id
-		AND routine_task_record.routine_task_id = blocked_tasks.routine_task_id
-		AND routine_task_record.status IN (?, ?)`, recordIds, cenums.RoutineTaskRecordStatus_Blocked, now, cenums.RoutineTaskRecordStatus_Waiting, cenums.RoutineTaskRecordStatus_Ready)
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "Failed to block dependent routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
-	result = tx.Exec(`UPDATE "RoutineRecordTable" AS routine_record
-		SET success_task_count = counts.success_task_count, failed_task_count = counts.failed_task_count,
-			blocked_task_count = counts.blocked_task_count, running_task_count = counts.running_task_count,
-			waiting_task_count = counts.waiting_task_count,
-			status = CASE
-				WHEN counts.running_task_count > 0 OR counts.waiting_task_count > 0 THEN ?::"RoutineRecordStatus"
-				WHEN counts.failed_task_count > 0 OR counts.blocked_task_count > 0 THEN ?::"RoutineRecordStatus"
-				ELSE ?::"RoutineRecordStatus"
-			END,
-			actual_ended_at = CASE WHEN counts.running_task_count = 0 AND counts.waiting_task_count = 0 THEN ? ELSE routine_record.actual_ended_at END,
-			updated_at = ?
-		FROM (
-			SELECT routine_record_id,
-				COUNT(*) FILTER (WHERE status = 'Success')::integer AS success_task_count,
-				COUNT(*) FILTER (WHERE status = 'Failed')::integer AS failed_task_count,
-				COUNT(*) FILTER (WHERE status = 'Blocked')::integer AS blocked_task_count,
-				COUNT(*) FILTER (WHERE status = 'Running')::integer AS running_task_count,
-				COUNT(*) FILTER (WHERE status IN ('Waiting', 'Ready'))::integer AS waiting_task_count
-			FROM "RoutineTaskRecordTable" WHERE routine_record_id IN ? GROUP BY routine_record_id
-		) counts WHERE routine_record.id = counts.routine_record_id`, cenums.RoutineRecordStatus_Running, cenums.RoutineRecordStatus_Failed, cenums.RoutineRecordStatus_Success, now, now, routineRecordIds)
+	routineRecordIdsQuery := tx.Model(&sschemas.RoutineTaskRecord{}).
+		Select("routine_record_id").
+		Where("id IN ?", recordIds)
+	result = tx.Model(&sschemas.RoutineTaskRecord{}).
+		Where("routine_record_id IN (?)", routineRecordIdsQuery).
+		Where("status IN ?", []cenums.RoutineTaskRecordStatus{
+			cenums.RoutineTaskRecordStatus_Waiting,
+			cenums.RoutineTaskRecordStatus_Ready,
+		}).
+		Where(`EXISTS (
+			SELECT 1
+			FROM "RoutineTaskRecordTable" barrier_record
+			INNER JOIN "RoutineTaskTable" barrier_task
+				ON barrier_task.id = barrier_record.routine_task_id
+			WHERE barrier_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+				AND barrier_task.purpose IN (?, ?, ?)
+				AND barrier_record.status IN (?, ?)
+		)`, cenums.RoutineTaskPurpose_CreateSubShelf, cenums.RoutineTaskPurpose_CreateBlockPack, cenums.RoutineTaskPurpose_CreateMaterial, cenums.RoutineTaskRecordStatus_Failed, cenums.RoutineTaskRecordStatus_Blocked).
+		Updates(map[string]any{
+			"status":     cenums.RoutineTaskRecordStatus_Blocked,
+			"updated_at": now,
+		})
+	if result.Error != nil {
+		tx.Rollback()
+		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "Failed to block tasks behind deterministic creation failure", http.StatusInternalServerError, true).WithOrigin(result.Error)
+	}
+	result = tx.Exec(
+		routinetasksql.UpdateRoutineRecordAggregateSQL,
+		cenums.RoutineRecordStatus_Running,
+		cenums.RoutineRecordStatus_Blocked,
+		cenums.RoutineRecordStatus_Failed,
+		cenums.RoutineRecordStatus_Success,
+		now,
+		now,
+		routineRecordIds,
+	)
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "RoutineRecord", "ApplyFailedRoutineTasks", "Failed to update routine record aggregates", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
-	result = tx.Exec(`UPDATE "RoutineTable" AS routine
-		SET status = CASE WHEN routine.period IS NULL THEN ? ELSE ? END, updated_at = ?
-		WHERE routine.id IN (
-			SELECT routine_record.routine_id FROM "RoutineRecordTable" routine_record
-			WHERE routine_record.id IN ? AND routine_record.status IN (?, ?, ?)
-		)`, cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled, now, routineRecordIds, cenums.RoutineRecordStatus_Success, cenums.RoutineRecordStatus_Failed, cenums.RoutineRecordStatus_Blocked)
+	routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
+		Select("routine_id").
+		Where("id IN ? AND status IN ?", routineRecordIds, []cenums.RoutineRecordStatus{
+			cenums.RoutineRecordStatus_Success,
+			cenums.RoutineRecordStatus_Failed,
+			cenums.RoutineRecordStatus_Blocked,
+		})
+	result = tx.Model(&sschemas.Routine{}).
+		Where("id IN (?)", routineIdsToFinalize).
+		Updates(map[string]any{
+			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"updated_at": now,
+		})
 	if result.Error != nil {
 		tx.Rollback()
 		return cexceptions.New("FailedToUpdate", "Routine", "ApplyFailedRoutineTasks", "Failed to finalize routine schedule", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 
 	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
 		return cexceptions.New(
 			"FailedToCommitTransaction",
 			"RoutineTask",

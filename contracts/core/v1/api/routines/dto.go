@@ -14,6 +14,7 @@ type RoutineResponseDto struct {
 	Title            string                `json:"title"`
 	Description      string                `json:"description"`
 	Status           cenums.RoutineStatus  `json:"status"`
+	Phase            *cenums.RoutinePhase  `json:"phase"`
 	IsPinned         bool                  `json:"isPinned"`
 	ScheduledStartAt time.Time             `json:"scheduledStartAt"`
 	ScheduledEndAt   time.Time             `json:"scheduledEndAt"`

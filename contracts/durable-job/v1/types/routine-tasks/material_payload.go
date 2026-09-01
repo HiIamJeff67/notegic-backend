@@ -12,7 +12,7 @@ type GetMaterialRoutineTaskPayload struct {
 
 type CreateMaterialRoutineTaskPayload struct {
 	Id               *uuid.UUID                  `json:"id" validate:"omitnil"`
-	ParentSubShelfId uuid.UUID                   `json:"parentSubShelfId" validate:"required"`
+	ParentSubShelfId RoutineTaskObjectReference  `json:"parentSubShelfId" validate:"required"`
 	Name             string                      `json:"name" validate:"required,min=1,max=128"`
 	ContentKey       string                      `json:"contentKey" validate:"required,min=1,max=512"`
 	ContentType      *cenums.MaterialContentType `json:"contentType" validate:"omitnil,ismaterialcontenttype"`

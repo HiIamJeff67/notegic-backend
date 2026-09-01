@@ -250,6 +250,47 @@ func (ec *executionContext) fieldContext_PrivateRoutine_status(_ context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _PrivateRoutine_phase(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PrivateRoutine_phase(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phase, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*enums.RoutinePhase)
+	fc.Result = res
+	return ec.marshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePhase(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PrivateRoutine_phase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PrivateRoutine",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RoutinePhase does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PrivateRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutine_isPinned(ctx, field)
 	if err != nil {
@@ -904,6 +945,47 @@ func (ec *executionContext) fieldContext_PrivateSearchableRoutine_status(_ conte
 	return fc, nil
 }
 
+func (ec *executionContext) _PrivateSearchableRoutine_phase(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PrivateSearchableRoutine_phase(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phase, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*enums.RoutinePhase)
+	fc.Result = res
+	return ec.marshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePhase(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PrivateSearchableRoutine_phase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PrivateSearchableRoutine",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RoutinePhase does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PrivateSearchableRoutine_isPinned(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateSearchableRoutine) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateSearchableRoutine_isPinned(ctx, field)
 	if err != nil {
@@ -1430,6 +1512,8 @@ func (ec *executionContext) _PrivateRoutine(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "phase":
+			out.Values[i] = ec._PrivateRoutine_phase(ctx, field, obj)
 		case "isPinned":
 			out.Values[i] = ec._PrivateRoutine_isPinned(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1533,6 +1617,8 @@ func (ec *executionContext) _PrivateSearchableRoutine(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "phase":
+			out.Values[i] = ec._PrivateSearchableRoutine_phase(ctx, field, obj)
 		case "isPinned":
 			out.Values[i] = ec._PrivateSearchableRoutine_isPinned(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

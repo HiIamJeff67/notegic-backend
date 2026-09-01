@@ -4,6 +4,7 @@ fragment FragmentedBasicPrivateRoutine on PrivateRoutine {
   title
   description
   status
+  phase
   isPinned
   scheduledStartAt
   scheduledEndAt
@@ -26,6 +27,7 @@ fragment FragmentedBasicPrivateSearchableRoutine on PrivateSearchableRoutine {
   stationId
   title
   status
+  phase
   isPinned
   scheduledStartAt
   scheduledEndAt

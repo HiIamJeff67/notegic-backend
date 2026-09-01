@@ -4,6 +4,7 @@ type PrivateRoutine {
   title: String!
   description: String!
   status: RoutineStatus!
+  phase: RoutinePhase
   isPinned: Boolean!
   scheduledStartAt: Time!
   scheduledEndAt: Time!
@@ -24,6 +25,7 @@ type PrivateSearchableRoutine {
   stationId: UUID!
   title: String!
   status: RoutineStatus!
+  phase: RoutinePhase
   isPinned: Boolean!
   scheduledStartAt: Time!
   scheduledEndAt: Time!

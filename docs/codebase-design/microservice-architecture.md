@@ -62,7 +62,17 @@ runtimes/
     workers/                # Core-owned long-lived reconciliation and background loops
   durablejob/               # independent runtime; direct shared PostgreSQL access
     data/postgres/           # DurableJob repository composition, and migration manifest
-    services/routinetask/    # RoutineTask claim, preparation, and result-application workflows
+    services/routinetask/    # RoutineTask components
+      dependencies/          # Pure dependency-graph validation shared by preparation and plan
+      preparation/           # Assignment payload preparation and interpolation
+        preparers/            # Assignment preparation components
+      plan/                  # DAG validation and deterministic object planning
+        builders/             # Deterministic plan builders
+      execution/             # CRUD execution components
+      recovery/              # Optional stale execution lease recovery
+        recoverers/           # Stale record recovery components
+      analysis/              # Future post-execution analysis components
+      *_service.go           # Phase orchestration services
     workers/routinetask/     # RoutineTask scheduling, execution, and result handoff loop
     transports/              # RealtimeGateway lifecycle and YjsWorker clients
   email/                    # independent runtime and SMTP sender
@@ -238,6 +248,14 @@ Core's versioned Kafka email request contract; its HTTP transport exposes only
 started/health endpoints. Both
 commands initialize observability and stop their workers/HTTP servers on
 context cancellation or SIGTERM.
+
+RoutineTask processing follows an explicit phase order:
+`claimed -> preparation -> plan -> execution -> recovery (optional) -> analysis`. Each
+phase owns its own validation and verification rules. A component belongs under
+the earliest phase that executes it; pure phase-independent contracts and
+dependency-graph validation may belong outside the phase directories when they
+are intentionally shared by multiple phases. Phase orchestration services remain
+directly under `services/routinetask/`.
 
 RealtimeGateway owns socket admission, tickets, leases, connection state, and
 worker forwarding. Core owns authorization, durable Yjs state, and block

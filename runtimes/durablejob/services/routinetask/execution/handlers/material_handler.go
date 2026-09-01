@@ -98,6 +98,9 @@ func (s *MaterialHandler) HandleCreateMaterial(
 		if exception != nil {
 			continue
 		}
+		if _, err := payload.ParentSubShelfId.Resolve(nil); err != nil {
+			continue
+		}
 		candidateIndexes = append(candidateIndexes, index)
 		candidateTasks = append(candidateTasks, task)
 		candidateActors = append(candidateActors, actorUserId)
@@ -121,6 +124,10 @@ func (s *MaterialHandler) HandleCreateMaterial(
 		if !patternSuccesses[index] {
 			continue
 		}
+		parentSubShelfId, err := payload.ParentSubShelfId.Resolve(nil)
+		if err != nil {
+			continue
+		}
 		id := uuid.New()
 		if payload.Id != nil {
 			id = *payload.Id
@@ -139,7 +146,7 @@ func (s *MaterialHandler) HandleCreateMaterial(
 		bulkInputs = append(bulkInputs, sinputs.BulkCreateMaterialInput{
 			UserId:           candidateActors[index],
 			Id:               &values.Id,
-			ParentSubShelfId: payload.ParentSubShelfId,
+			ParentSubShelfId: parentSubShelfId,
 			Name:             values.Name,
 			Size:             values.Size,
 			ContentKey:       values.ContentKey,

@@ -16,10 +16,18 @@ immutable task definition during execution; Core is not involved in
 routine-task execution.
 ```
 
-`ClaimRoutineTasksRequestDto` is a capacity request, not a request for one
-specific task. DurableJob owns task claiming, quota consumption, routine
-records, and scheduling state. It returns one `RoutineTaskAssignment` per task claimed
-within the requested batch size.
+`ClaimRoutinesRequestDto` is a capacity request, not a request for one
+specific routine. DurableJob owns routine claiming, quota consumption, routine
+records, and scheduling state. It returns one `RoutineAssignment` per claimed
+Routine, with that Routine's claimed `RoutineTaskAssignment` values nested under
+`routineTasks`.
+
+RoutineTask dependencies must form an acyclic graph. Core rejects invalid
+dependency changes at the API persistence boundary, and DurableJob validates
+the claimed Routine snapshot again during Preparation. A failed validation
+terminally blocks the current RoutineRecord and all unfinished
+RoutineTaskRecords; it is eligible again only after the Routine definition is
+changed.
 
 The service owns its runtime, handlers, validation, and execution state. Its
 claim persistence models are runtime-owned and are accessed through the shared

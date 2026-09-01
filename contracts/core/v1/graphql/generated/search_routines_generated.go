@@ -312,6 +312,8 @@ func (ec *executionContext) fieldContext_SearchRoutineEdge_node(_ context.Contex
 				return ec.fieldContext_PrivateSearchableRoutine_title(ctx, field)
 			case "status":
 				return ec.fieldContext_PrivateSearchableRoutine_status(ctx, field)
+			case "phase":
+				return ec.fieldContext_PrivateSearchableRoutine_phase(ctx, field)
 			case "isPinned":
 				return ec.fieldContext_PrivateSearchableRoutine_isPinned(ctx, field)
 			case "scheduledStartAt":

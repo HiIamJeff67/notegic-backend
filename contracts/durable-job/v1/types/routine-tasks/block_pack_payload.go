@@ -31,7 +31,8 @@ type CreateBlockPackRoutineTaskTemplate struct {
 }
 
 type CreateBlockPackRoutineTaskPayload struct {
-	TargetSubShelfId uuid.UUID                          `json:"targetSubShelfId" validate:"required"`
+	Id               *uuid.UUID                         `json:"id,omitempty" validate:"omitnil"`
+	TargetSubShelfId RoutineTaskObjectReference         `json:"targetSubShelfId" validate:"required"`
 	Template         CreateBlockPackRoutineTaskTemplate `json:"template" validate:"required"`
 	Pattern          RoutineTaskPattern                 `json:"pattern" validate:"omitempty,dive"`
 }

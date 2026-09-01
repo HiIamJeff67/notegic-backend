@@ -20,7 +20,9 @@ import (
 
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
+	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	usersql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/user"
+	routinetaskdependencies "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/dependencies"
 )
 
 type Claimer struct {
@@ -38,10 +40,10 @@ func NewClaimer(db *gorm.DB, validatorInstance *validator.Validate) *Claimer {
 	}
 }
 
-func (c *Claimer) ClaimRoutineTasks(
+func (c *Claimer) ClaimRoutines(
 	ctx context.Context,
-	request cdurablejob.ClaimRoutineTasksRequestDto,
-) (*cdurablejob.ClaimRoutineTasksResponseDto, *cexceptions.Exception) {
+	request cdurablejob.ClaimRoutinesRequestDto,
+) (*cdurablejob.ClaimRoutinesResponseDto, *cexceptions.Exception) {
 	if c.db == nil || request.RequestId == uuid.Nil || request.WorkerId == uuid.Nil ||
 		request.BatchSize < 1 || request.BatchSize > 1000 {
 		return nil, cexceptions.New("InvalidDto", "RoutineTask", "Claim", "The routine task claim request is invalid", http.StatusBadRequest)
@@ -51,14 +53,11 @@ func (c *Claimer) ClaimRoutineTasks(
 	}
 
 	tx := c.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New("FailedToBeginTransaction", "RoutineTask", "Claim", "Failed to start the routine task claim transaction", http.StatusInternalServerError, true).WithOrigin(tx.Error)
-	}
 
 	now := time.Now().UTC()
 	var dueRoutines []sschemas.Routine
 	result := tx.Model(&sschemas.Routine{}).
-		Select("id, title, description, is_pinned, scheduled_start_at, scheduled_end_at, period, timezone, status").
+		Select("id, title, description, is_pinned, scheduled_start_at, scheduled_end_at, period, timezone, status, definition_version").
 		Where("deleted_at IS NULL").
 		Where("status = ?", cenums.RoutineStatus_Scheduled).
 		Where("scheduled_start_at <= ?", now).
@@ -81,22 +80,24 @@ func (c *Claimer) ClaimRoutineTasks(
 		routineIds[index] = routine.Id
 		recordScheduledAt[index] = routine.ScheduledStartAt
 		routineSnapshots[routine.Id] = map[string]any{
-			"id":               routine.Id,
-			"title":            routine.Title,
-			"description":      routine.Description,
-			"isPinned":         routine.IsPinned,
-			"scheduledStartAt": routine.ScheduledStartAt,
-			"scheduledEndAt":   routine.ScheduledEndAt,
-			"period":           routine.Period,
-			"timezone":         routine.Timezone,
-			"routineTasks":     []any{},
+			"id":                routine.Id,
+			"definitionVersion": routine.DefinitionVersion,
+			"title":             routine.Title,
+			"description":       routine.Description,
+			"isPinned":          routine.IsPinned,
+			"scheduledStartAt":  routine.ScheduledStartAt,
+			"scheduledEndAt":    routine.ScheduledEndAt,
+			"period":            routine.Period,
+			"timezone":          routine.Timezone,
+			"routineTasks":      []any{},
 		}
 		records[index] = sschemas.RoutineRecord{
-			Id:          uuid.New(),
-			RoutineId:   routine.Id,
-			Status:      cenums.RoutineRecordStatus_Pending,
-			ScheduledAt: routine.ScheduledStartAt,
-			Snapshot:    []byte("{}"),
+			Id:                uuid.New(),
+			RoutineId:         routine.Id,
+			DefinitionVersion: routine.DefinitionVersion,
+			Status:            cenums.RoutineRecordStatus_Pending,
+			ScheduledAt:       routine.ScheduledStartAt,
+			Snapshot:          []byte("{}"),
 		}
 	}
 
@@ -112,6 +113,7 @@ func (c *Claimer) ClaimRoutineTasks(
 			Where("id IN ?", routineIds).
 			Updates(map[string]any{
 				"status": cenums.RoutineStatus_InProgress,
+				"phase":  cenums.RoutinePhase_Claimed,
 				"scheduled_start_at": gorm.Expr(`CASE period
 				WHEN ? THEN scheduled_start_at + INTERVAL '1 day'
 				WHEN ? THEN scheduled_start_at + INTERVAL '7 days'
@@ -140,7 +142,9 @@ func (c *Claimer) ClaimRoutineTasks(
 		routineRecordByRoutineId = make(map[uuid.UUID]sschemas.RoutineRecord, len(storedRecords))
 		for _, routine := range dueRoutines {
 			for _, record := range storedRecords {
-				if record.RoutineId == routine.Id && record.ScheduledAt.Equal(routine.ScheduledStartAt) {
+				if record.RoutineId == routine.Id &&
+					record.DefinitionVersion == routine.DefinitionVersion &&
+					record.ScheduledAt.Equal(routine.ScheduledStartAt) {
 					routineRecordByRoutineId[routine.Id] = record
 					break
 				}
@@ -177,21 +181,47 @@ func (c *Claimer) ClaimRoutineTasks(
 			}
 			previousCountByTaskId := make(map[uuid.UUID]int, len(taskIds))
 			previousTaskIdsByTaskId := make(map[uuid.UUID][]uuid.UUID, len(taskIds))
-			for _, dependency := range dependencies {
+			taskPurposeById := make(map[uuid.UUID]cenums.RoutineTaskPurpose, len(routineTasks))
+			dependencyEdges := make([]routinetaskdependencies.Edge, len(dependencies))
+			for _, task := range routineTasks {
+				taskPurposeById[task.Id] = task.Purpose
+			}
+			for index, dependency := range dependencies {
 				previousCountByTaskId[dependency.RoutineTaskId]++
 				previousTaskIdsByTaskId[dependency.RoutineTaskId] = append(
 					previousTaskIdsByTaskId[dependency.RoutineTaskId],
 					dependency.PreviousRoutineTaskId,
 				)
+				dependencyEdges[index] = routinetaskdependencies.Edge{
+					TaskId:         dependency.RoutineTaskId,
+					PreviousTaskId: dependency.PreviousRoutineTaskId,
+				}
 			}
+			dependencyGraphError := routinetaskdependencies.Validate(taskIds, dependencyEdges)
 			taskRecords := make([]sschemas.RoutineTaskRecord, len(routineTasks))
-			for index, task := range routineTasks {
+			taskRecordIndex := 0
+			for _, task := range routineTasks {
 				record := routineRecordByRoutineId[task.RoutineId]
 				status := cenums.RoutineTaskRecordStatus_Ready
 				if previousCountByTaskId[task.Id] > 0 {
 					status = cenums.RoutineTaskRecordStatus_Waiting
 				}
-				taskRecords[index] = sschemas.RoutineTaskRecord{
+				if dependencyGraphError == nil &&
+					(task.Purpose == cenums.RoutineTaskPurpose_CreateSubShelf ||
+						task.Purpose == cenums.RoutineTaskPurpose_CreateBlockPack ||
+						task.Purpose == cenums.RoutineTaskPurpose_CreateMaterial) {
+					status = cenums.RoutineTaskRecordStatus_Ready
+					for _, previousTaskId := range previousTaskIdsByTaskId[task.Id] {
+						previousPurpose := taskPurposeById[previousTaskId]
+						if previousPurpose != cenums.RoutineTaskPurpose_CreateSubShelf &&
+							previousPurpose != cenums.RoutineTaskPurpose_CreateBlockPack &&
+							previousPurpose != cenums.RoutineTaskPurpose_CreateMaterial {
+							status = cenums.RoutineTaskRecordStatus_Waiting
+							break
+						}
+					}
+				}
+				taskRecords[taskRecordIndex] = sschemas.RoutineTaskRecord{
 					Id:              uuid.New(),
 					RoutineRecordId: record.Id,
 					RoutineTaskId:   task.Id,
@@ -214,21 +244,19 @@ func (c *Claimer) ClaimRoutineTasks(
 						"previousRoutineTaskIds": previousTaskIdsByTaskId[task.Id],
 					},
 				)
+				taskRecordIndex++
 			}
-			result = tx.Model(&sschemas.RoutineTaskRecord{}).
-				Clauses(clause.OnConflict{DoNothing: true}).
-				CreateInBatches(&taskRecords, request.BatchSize)
-			if result.Error != nil {
-				tx.Rollback()
-				return nil, cexceptions.New("ClaimFailed", "RoutineTaskRecord", "Claim", "Failed to create routine task records", http.StatusInternalServerError, true).WithOrigin(result.Error)
+			if taskRecordIndex > 0 {
+				taskRecords = taskRecords[:taskRecordIndex]
+				result = tx.Model(&sschemas.RoutineTaskRecord{}).
+					Clauses(clause.OnConflict{DoNothing: true}).
+					CreateInBatches(&taskRecords, len(taskRecords))
+				if result.Error != nil {
+					tx.Rollback()
+					return nil, cexceptions.New("ClaimFailed", "RoutineTaskRecord", "Claim", "Failed to create routine task records", http.StatusInternalServerError, true).WithOrigin(result.Error)
+				}
 			}
-			result = tx.Exec(`UPDATE "RoutineRecordTable" AS routine_record
-				SET total_task_count = counts.total_task_count, waiting_task_count = counts.waiting_task_count, updated_at = ?
-				FROM (
-					SELECT routine_record_id, COUNT(*)::integer AS total_task_count,
-					COUNT(*) FILTER (WHERE status = 'Waiting')::integer AS waiting_task_count
-					FROM "RoutineTaskRecordTable" WHERE routine_record_id IN ? GROUP BY routine_record_id
-				) counts WHERE routine_record.id = counts.routine_record_id`, now, routineRecordIds)
+			result = tx.Exec(routinetasksql.UpdateRoutineRecordInitialAggregateSQL, now, routineRecordIds)
 			if result.Error != nil {
 				tx.Rollback()
 				return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to update routine record aggregates", http.StatusInternalServerError, true).WithOrigin(result.Error)
@@ -242,14 +270,11 @@ func (c *Claimer) ClaimRoutineTasks(
 				tx.Rollback()
 				return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to encode routine record snapshots", http.StatusInternalServerError, true).WithOrigin(err)
 			}
-			snapshotPlaceholders = append(snapshotPlaceholders, "(?, ?::jsonb)")
+			snapshotPlaceholders = append(snapshotPlaceholders, "(?::uuid, ?::jsonb)")
 			snapshotArgs = append(snapshotArgs, routineRecordByRoutineId[routineId].Id, snapshotData)
 		}
 		if len(snapshotPlaceholders) > 0 {
-			result = tx.Exec(fmt.Sprintf(`UPDATE "RoutineRecordTable" AS routine_record
-				SET snapshot = snapshots.snapshot, updated_at = ?
-				FROM (VALUES %s) AS snapshots(id, snapshot)
-				WHERE routine_record.id = snapshots.id AND routine_record.snapshot = '{}'::jsonb`, strings.Join(snapshotPlaceholders, ",")), append([]any{now}, snapshotArgs...)...)
+			result = tx.Exec(fmt.Sprintf(routinetasksql.UpdateRoutineRecordSnapshotSQL, strings.Join(snapshotPlaceholders, ",")), append([]any{now}, snapshotArgs...)...)
 			if result.Error != nil {
 				tx.Rollback()
 				return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to store routine record snapshots", http.StatusInternalServerError, true).WithOrigin(result.Error)
@@ -257,46 +282,187 @@ func (c *Claimer) ClaimRoutineTasks(
 		}
 	}
 	if len(routineRecordIds) > 0 {
-		result = tx.Exec(`UPDATE "RoutineRecordTable"
-			SET status = ?, actual_ended_at = ?, updated_at = ?
-			WHERE id IN ? AND total_task_count = 0`, cenums.RoutineRecordStatus_Success, now, now, routineRecordIds)
+		result = tx.Model(&sschemas.RoutineRecord{}).
+			Where("id IN ? AND status = ? AND total_task_count = 0", routineRecordIds, cenums.RoutineRecordStatus_Pending).
+			Updates(map[string]any{
+				"status":          cenums.RoutineRecordStatus_Success,
+				"actual_ended_at": now,
+				"updated_at":      now,
+			})
 		if result.Error != nil {
 			tx.Rollback()
 			return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to finalize empty routine records", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
-		result = tx.Exec(`UPDATE "RoutineTable" AS routine
-			SET status = CASE WHEN routine.period IS NULL THEN ? ELSE ? END, updated_at = ?
-			WHERE routine.id IN (SELECT routine_id FROM "RoutineRecordTable" WHERE id IN ? AND status = ?)`, cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled, now, routineRecordIds, cenums.RoutineRecordStatus_Success)
+		routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
+			Select("routine_id").
+			Where("id IN ? AND status = ?", routineRecordIds, cenums.RoutineRecordStatus_Success)
+		result = tx.Model(&sschemas.Routine{}).
+			Where("id IN (?)", routineIdsToFinalize).
+			Updates(map[string]any{
+				"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+				"updated_at": now,
+			})
 		if result.Error != nil {
 			tx.Rollback()
-			return nil, cexceptions.New("ClaimFailed", "Routine", "Claim", "Failed to finalize empty routine schedules", http.StatusInternalServerError, true).WithOrigin(result.Error)
+			return nil, cexceptions.New("ClaimFailed", "Routine", "Claim", "Failed to finalize routine schedules", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
 	}
 
-	var readyRecords []sschemas.RoutineTaskRecord
-	result = tx.Model(&sschemas.RoutineTaskRecord{}).
-		Select(`"RoutineTaskRecordTable".*`).
-		Joins(`INNER JOIN "RoutineRecordTable" routine_record ON routine_record.id = "RoutineTaskRecordTable".routine_record_id`).
-		Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
-		Where(`"RoutineTaskRecordTable".status = ?`, cenums.RoutineTaskRecordStatus_Ready).
-		Where(`routine_record.status IN ?`, []cenums.RoutineRecordStatus{cenums.RoutineRecordStatus_Pending, cenums.RoutineRecordStatus_Running}).
-		Where(`"RoutineTaskRecordTable".attempts < routine_task.max_attempts`).
-		Order(`routine_task.priority DESC, "RoutineTaskRecordTable".created_at ASC, "RoutineTaskRecordTable".id ASC`).
+	var claimableRoutineRecords []sschemas.RoutineRecord
+	result = tx.Model(&sschemas.RoutineRecord{}).
+		Where(`"RoutineRecordTable".status IN ?`, []cenums.RoutineRecordStatus{
+			cenums.RoutineRecordStatus_Pending,
+			cenums.RoutineRecordStatus_Running,
+		}).
+		Where(`EXISTS (
+			SELECT 1
+			FROM "RoutineTaskRecordTable" ready_record
+			INNER JOIN "RoutineTaskTable" ready_task
+				ON ready_task.id = ready_record.routine_task_id
+			WHERE ready_record.routine_record_id = "RoutineRecordTable".id
+				AND ready_record.status = ?
+				AND ready_record.attempts < ready_task.max_attempts
+				AND (
+					(
+						ready_task.purpose IN (?, ?, ?)
+						AND (
+							ready_task.purpose <> ?
+							OR NOT EXISTS (
+								SELECT 1
+								FROM "RoutineTaskRecordTable" shelf_record
+								INNER JOIN "RoutineTaskTable" shelf_task
+									ON shelf_task.id = shelf_record.routine_task_id
+								WHERE shelf_record.routine_record_id = ready_record.routine_record_id
+									AND shelf_task.purpose = ?
+									AND shelf_record.status <> ?
+							)
+						)
+					)
+					OR (
+						ready_task.purpose NOT IN (?, ?, ?)
+						AND NOT EXISTS (
+							SELECT 1
+							FROM "RoutineTaskRecordTable" deterministic_record
+							INNER JOIN "RoutineTaskTable" deterministic_task
+								ON deterministic_task.id = deterministic_record.routine_task_id
+							WHERE deterministic_record.routine_record_id = ready_record.routine_record_id
+								AND deterministic_task.purpose IN (?, ?, ?)
+								AND deterministic_record.status <> ?
+						)
+					)
+				)
+		)`,
+			cenums.RoutineTaskRecordStatus_Ready,
+			cenums.RoutineTaskPurpose_CreateSubShelf,
+			cenums.RoutineTaskPurpose_CreateBlockPack,
+			cenums.RoutineTaskPurpose_CreateMaterial,
+			cenums.RoutineTaskPurpose_CreateBlockPack,
+			cenums.RoutineTaskPurpose_CreateSubShelf,
+			cenums.RoutineTaskRecordStatus_Success,
+			cenums.RoutineTaskPurpose_CreateSubShelf,
+			cenums.RoutineTaskPurpose_CreateBlockPack,
+			cenums.RoutineTaskPurpose_CreateMaterial,
+			cenums.RoutineTaskPurpose_CreateSubShelf,
+			cenums.RoutineTaskPurpose_CreateBlockPack,
+			cenums.RoutineTaskPurpose_CreateMaterial,
+			cenums.RoutineTaskRecordStatus_Success,
+		).
+		Order(`"RoutineRecordTable".created_at ASC, "RoutineRecordTable".id ASC`).
 		Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
 		Limit(request.BatchSize).
-		Find(&readyRecords)
+		Find(&claimableRoutineRecords)
 	if result.Error != nil {
 		tx.Rollback()
-		return nil, cexceptions.New("ClaimFailed", "RoutineTaskRecord", "Claim", "Failed to find ready routine task records", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to find claimable routines", http.StatusInternalServerError, true).WithOrigin(result.Error)
+	}
+	claimableRoutineRecordIds := make([]uuid.UUID, len(claimableRoutineRecords))
+	for index, record := range claimableRoutineRecords {
+		claimableRoutineRecordIds[index] = record.Id
+	}
+
+	var readyRecords []sschemas.RoutineTaskRecord
+	if len(claimableRoutineRecordIds) > 0 {
+		result = tx.Model(&sschemas.RoutineTaskRecord{}).
+			Select(`"RoutineTaskRecordTable".*`).
+			Joins(`INNER JOIN "RoutineTaskTable" routine_task ON routine_task.id = "RoutineTaskRecordTable".routine_task_id`).
+			Where(`"RoutineTaskRecordTable".routine_record_id IN ?`, claimableRoutineRecordIds).
+			Where(`"RoutineTaskRecordTable".status = ?`, cenums.RoutineTaskRecordStatus_Ready).
+			Where(`"RoutineTaskRecordTable".attempts < routine_task.max_attempts`).
+			Where(`(
+				(
+					routine_task.purpose IN (?, ?, ?)
+					AND (
+						routine_task.purpose <> ?
+						OR NOT EXISTS (
+							SELECT 1
+							FROM "RoutineTaskRecordTable" shelf_record
+							INNER JOIN "RoutineTaskTable" shelf_task
+								ON shelf_task.id = shelf_record.routine_task_id
+							WHERE shelf_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+								AND shelf_task.purpose = ?
+								AND shelf_record.status <> ?
+						)
+					)
+				)
+				OR (
+					routine_task.purpose NOT IN (?, ?, ?)
+					AND NOT EXISTS (
+						SELECT 1
+						FROM "RoutineTaskRecordTable" deterministic_record
+						INNER JOIN "RoutineTaskTable" deterministic_task
+							ON deterministic_task.id = deterministic_record.routine_task_id
+						WHERE deterministic_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+							AND deterministic_task.purpose IN (?, ?, ?)
+							AND deterministic_record.status <> ?
+						)
+				)
+			)`,
+				cenums.RoutineTaskPurpose_CreateSubShelf,
+				cenums.RoutineTaskPurpose_CreateBlockPack,
+				cenums.RoutineTaskPurpose_CreateMaterial,
+				cenums.RoutineTaskPurpose_CreateBlockPack,
+				cenums.RoutineTaskPurpose_CreateSubShelf,
+				cenums.RoutineTaskRecordStatus_Success,
+				cenums.RoutineTaskPurpose_CreateSubShelf,
+				cenums.RoutineTaskPurpose_CreateBlockPack,
+				cenums.RoutineTaskPurpose_CreateMaterial,
+				cenums.RoutineTaskPurpose_CreateSubShelf,
+				cenums.RoutineTaskPurpose_CreateBlockPack,
+				cenums.RoutineTaskPurpose_CreateMaterial,
+				cenums.RoutineTaskRecordStatus_Success,
+			).
+			Order(`routine_task.priority DESC, "RoutineTaskRecordTable".created_at ASC, "RoutineTaskRecordTable".id ASC`).
+			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Find(&readyRecords)
+		if result.Error != nil {
+			tx.Rollback()
+			return nil, cexceptions.New("ClaimFailed", "RoutineTaskRecord", "Claim", "Failed to find routine tasks under claimed routines", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		}
 	}
 	if len(readyRecords) == 0 {
+		routineAssignments := make([]cdurablejobroutinetasktypes.RoutineAssignment, 0, len(dueRoutines))
+		for _, routine := range dueRoutines {
+			record, exists := routineRecordByRoutineId[routine.Id]
+			tasks, hasTasks := routineSnapshots[routine.Id]["routineTasks"].([]any)
+			if !exists || !hasTasks || len(tasks) == 0 ||
+				(record.Status != cenums.RoutineRecordStatus_Pending && record.Status != cenums.RoutineRecordStatus_Running) {
+				continue
+			}
+			routineAssignments = append(routineAssignments, cdurablejobroutinetasktypes.RoutineAssignment{
+				RoutineId:         routine.Id,
+				RoutineRecordId:   record.Id,
+				DefinitionVersion: routine.DefinitionVersion,
+				ScheduledAt:       record.ScheduledAt,
+				RoutineTasks:      []cdurablejobroutinetasktypes.RoutineTaskAssignment{},
+			})
+		}
 		if err := tx.Commit().Error; err != nil {
 			return nil, cexceptions.New("FailedToCommitTransaction", "RoutineTask", "Claim", "Failed to commit the routine task claim transaction", http.StatusInternalServerError, true).WithOrigin(err)
 		}
-		return &cdurablejob.ClaimRoutineTasksResponseDto{
-			RequestId:   request.RequestId,
-			WorkerId:    request.WorkerId,
-			Assignments: []cdurablejobroutinetasktypes.RoutineTaskAssignment{},
+		return &cdurablejob.ClaimRoutinesResponseDto{
+			RequestId:          request.RequestId,
+			WorkerId:           request.WorkerId,
+			RoutineAssignments: routineAssignments,
 		}, nil
 	}
 
@@ -329,9 +495,11 @@ func (c *Claimer) ClaimRoutineTasks(
 		return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to retrieve ready routine record schedules", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 	routineIdByRecordId := make(map[uuid.UUID]uuid.UUID, len(routineRecords))
+	definitionVersionByRecordId := make(map[uuid.UUID]int64, len(routineRecords))
 	scheduledAtByRecordId := make(map[uuid.UUID]time.Time, len(routineRecords))
 	for _, record := range routineRecords {
 		routineIdByRecordId[record.Id] = record.RoutineId
+		definitionVersionByRecordId[record.Id] = record.DefinitionVersion
 		scheduledAtByRecordId[record.Id] = record.ScheduledAt
 	}
 
@@ -375,7 +543,7 @@ func (c *Claimer) ClaimRoutineTasks(
 		}
 		if result = tx.Model(&sschemas.UserQuota{}).
 			Clauses(clause.OnConflict{DoNothing: true}).
-			CreateInBatches(&quotas, request.BatchSize); result.Error != nil {
+			CreateInBatches(&quotas, len(quotas)); result.Error != nil {
 			tx.Rollback()
 			return nil, cexceptions.New("ClaimFailed", "UserQuota", "Claim", "Failed to initialize user quotas", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
@@ -416,10 +584,10 @@ func (c *Claimer) ClaimRoutineTasks(
 		if err := tx.Commit().Error; err != nil {
 			return nil, cexceptions.New("FailedToCommitTransaction", "RoutineTask", "Claim", "Failed to commit the routine task claim transaction", http.StatusInternalServerError, true).WithOrigin(err)
 		}
-		return &cdurablejob.ClaimRoutineTasksResponseDto{
-			RequestId:   request.RequestId,
-			WorkerId:    request.WorkerId,
-			Assignments: []cdurablejobroutinetasktypes.RoutineTaskAssignment{},
+		return &cdurablejob.ClaimRoutinesResponseDto{
+			RequestId:          request.RequestId,
+			WorkerId:           request.WorkerId,
+			RoutineAssignments: []cdurablejobroutinetasktypes.RoutineAssignment{},
 		}, nil
 	}
 
@@ -449,11 +617,22 @@ func (c *Claimer) ClaimRoutineTasks(
 		tx.Rollback()
 		return nil, cexceptions.New("ClaimFailed", "RoutineRecord", "Claim", "Failed to start routine records", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
+	routineIdsForPhase := tx.Model(&sschemas.RoutineRecord{}).
+		Select("routine_id").
+		Where("id IN ?", consumedRecordIds)
+	result = tx.Model(&sschemas.Routine{}).
+		Where("id IN (?)", routineIdsForPhase).
+		Update("phase", cenums.RoutinePhase_Claimed)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, cexceptions.New("ClaimFailed", "Routine", "Claim", "Failed to update claimed routine phases", http.StatusInternalServerError, true).WithOrigin(result.Error)
+	}
 	consumedIds := make(map[uuid.UUID]struct{}, len(consumedRecordIds))
 	for _, id := range consumedRecordIds {
 		consumedIds[id] = struct{}{}
 	}
-	assignments := make([]cdurablejobroutinetasktypes.RoutineTaskAssignment, 0, len(consumedRecordIds))
+	routineAssignments := make([]cdurablejobroutinetasktypes.RoutineAssignment, 0, len(recordRoutineIds))
+	routineAssignmentIndexByRecordId := make(map[uuid.UUID]int, len(recordRoutineIds))
 	for _, record := range readyRecords {
 		if _, ok := consumedIds[record.Id]; !ok {
 			continue
@@ -495,23 +674,38 @@ func (c *Claimer) ClaimRoutineTasks(
 				patternValues[key] = task.Id.String()
 			}
 		}
-		assignments = append(assignments, cdurablejobroutinetasktypes.RoutineTaskAssignment{
-			RoutineTaskId:       task.Id,
-			RoutineTaskRecordId: record.Id,
-			RoutineRecordId:     record.RoutineRecordId,
-			RoutineId:           routineIdByRecordId[record.RoutineRecordId],
-			ActorUserId:         task.ActorUserId,
-			ActorUserPublicId:   actorUserPublicIds[task.ActorUserId],
-			Title:               task.Title,
-			Purpose:             task.Purpose,
-			Payload:             json.RawMessage(task.Payload),
-			CostUnit:            task.CostUnit,
-			Priority:            task.Priority,
-			Attempt:             record.Attempts + 1,
-			ScheduledAt:         scheduledAtByRecordId[record.RoutineRecordId],
-			StartedAt:           now,
-			PatternValues:       patternValues,
-		})
+		routineAssignmentIndex, exists := routineAssignmentIndexByRecordId[record.RoutineRecordId]
+		if !exists {
+			routineAssignmentIndex = len(routineAssignments)
+			routineAssignmentIndexByRecordId[record.RoutineRecordId] = routineAssignmentIndex
+			routineAssignments = append(routineAssignments, cdurablejobroutinetasktypes.RoutineAssignment{
+				RoutineId:         routineIdByRecordId[record.RoutineRecordId],
+				RoutineRecordId:   record.RoutineRecordId,
+				DefinitionVersion: definitionVersionByRecordId[record.RoutineRecordId],
+				ScheduledAt:       scheduledAtByRecordId[record.RoutineRecordId],
+				RoutineTasks:      make([]cdurablejobroutinetasktypes.RoutineTaskAssignment, 0),
+			})
+		}
+		routineAssignments[routineAssignmentIndex].RoutineTasks = append(
+			routineAssignments[routineAssignmentIndex].RoutineTasks,
+			cdurablejobroutinetasktypes.RoutineTaskAssignment{
+				RoutineTaskId:       task.Id,
+				RoutineTaskRecordId: record.Id,
+				RoutineRecordId:     record.RoutineRecordId,
+				RoutineId:           routineIdByRecordId[record.RoutineRecordId],
+				ActorUserId:         task.ActorUserId,
+				ActorUserPublicId:   actorUserPublicIds[task.ActorUserId],
+				Title:               task.Title,
+				Purpose:             task.Purpose,
+				Payload:             json.RawMessage(task.Payload),
+				CostUnit:            task.CostUnit,
+				Priority:            task.Priority,
+				Attempt:             record.Attempts + 1,
+				ScheduledAt:         scheduledAtByRecordId[record.RoutineRecordId],
+				StartedAt:           now,
+				PatternValues:       patternValues,
+			},
+		)
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -519,9 +713,9 @@ func (c *Claimer) ClaimRoutineTasks(
 		return nil, cexceptions.New("FailedToCommitTransaction", "RoutineTask", "Claim", "Failed to commit the routine task claim transaction", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
-	return &cdurablejob.ClaimRoutineTasksResponseDto{
-		RequestId:   request.RequestId,
-		WorkerId:    request.WorkerId,
-		Assignments: assignments,
+	return &cdurablejob.ClaimRoutinesResponseDto{
+		RequestId:          request.RequestId,
+		WorkerId:           request.WorkerId,
+		RoutineAssignments: routineAssignments,
 	}, nil
 }

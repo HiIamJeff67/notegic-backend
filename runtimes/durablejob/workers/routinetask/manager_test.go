@@ -2,10 +2,10 @@ package routinetask
 
 import "testing"
 
-func TestNewManagerCreatesPreparationService(t *testing.T) {
+func TestNewManagerCreatesAssignmentPreparer(t *testing.T) {
 	manager := NewManager(1)
 
-	if manager.preparationService == nil {
-		t.Fatal("routine task preparation service is nil")
+	if manager.preparer == nil {
+		t.Fatal("routine task assignment preparer is nil")
 	}
 }

@@ -16,7 +16,7 @@ import (
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
-	routinetaskservice "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 )
 
 type Engine struct {
@@ -26,7 +26,7 @@ type Engine struct {
 	isHealthy          atomic.Bool
 	isManagingWork     atomic.Bool
 	claimer            *Claimer
-	recoveryService    routinetaskservice.RoutineTaskRecoveryServiceInterface
+	recoverer          routinetaskrecoverers.StaleRecordRecovererInterface
 	routineTaskManager Manager
 }
 
@@ -47,15 +47,18 @@ func NewEngine(
 		claimer:   claimer,
 	}
 	engine.routineTaskManager = NewManager(initialMaxWorkers, engine.workerId)
+	if claimer != nil {
+		engine.routineTaskManager.db = claimer.db
+	}
 	engine.isHealthy.Store(true)
 
 	return engine
 }
 
-func (e *Engine) SetRoutineTaskRecoveryService(
-	service routinetaskservice.RoutineTaskRecoveryServiceInterface,
+func (e *Engine) SetRoutineTaskRecoverer(
+	recoverer routinetaskrecoverers.StaleRecordRecovererInterface,
 ) {
-	e.recoveryService = service
+	e.recoverer = recoverer
 }
 
 func (e *Engine) SetResultWriter(writer ResultWriteFunc) {
@@ -68,23 +71,23 @@ func (e *Engine) SetRoutineTaskRunningPublisher(
 	e.routineTaskManager.SetRoutineTaskRunningPublisher(publisher)
 }
 
-func (e *Engine) GetClaimRoutineTasksRequest() (cdurablejob.ClaimRoutineTasksRequestDto, bool) {
+func (e *Engine) GetClaimRoutinesRequest() (cdurablejob.ClaimRoutinesRequestDto, bool) {
 	if e.isManagingWork.Load() {
-		return cdurablejob.ClaimRoutineTasksRequestDto{}, false
+		return cdurablejob.ClaimRoutinesRequestDto{}, false
 	}
 
-	return cdurablejob.ClaimRoutineTasksRequestDto{
+	return cdurablejob.ClaimRoutinesRequestDto{
 		RequestId: uuid.New(),
 		WorkerId:  e.workerId,
 		BatchSize: e.batchSize,
 	}, true
 }
 
-func (e *Engine) HandleRoutineTaskAssignments(
+func (e *Engine) HandleRoutineAssignments(
 	ctx context.Context,
-	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
+	routines []cdurablejobroutinetasktypes.RoutineAssignment,
 ) error {
-	if len(assignments) == 0 {
+	if len(routines) == 0 {
 		return nil
 	}
 	if !e.isManagingWork.CompareAndSwap(false, true) {
@@ -92,7 +95,7 @@ func (e *Engine) HandleRoutineTaskAssignments(
 	}
 	defer e.isManagingWork.Store(false)
 
-	if err := e.routineTaskManager.Manage(ctx, assignments); err != nil {
+	if err := e.routineTaskManager.Manage(ctx, routines); err != nil {
 		e.isHealthy.Store(false)
 		return err
 	}
@@ -113,8 +116,8 @@ func (e *Engine) Start(
 		defer e.Stop()
 
 		var recoveryErr error
-		if e.recoveryService != nil {
-			_, recoveryErr = e.recoveryService.RecoverStaleRoutineTaskRecords(
+		if e.recoverer != nil {
+			_, recoveryErr = e.recoverer.RecoverStaleRoutineTaskRecords(
 				workerCtx,
 				time.Now().UTC().Add(-sconstants.RoutineTaskExecutionLeaseTTL),
 			)
@@ -130,7 +133,7 @@ func (e *Engine) Start(
 			}
 		}
 		if recoveryErr == nil {
-			request, shouldRequest := e.GetClaimRoutineTasksRequest()
+			request, shouldRequest := e.GetClaimRoutinesRequest()
 			if shouldRequest {
 				if e.claimer == nil {
 					e.isHealthy.Store(false)
@@ -141,7 +144,7 @@ func (e *Engine) Start(
 							"Failed to claim and handle routine task assignments",
 						)
 					}
-				} else if response, exception := e.claimer.ClaimRoutineTasks(workerCtx, request); exception != nil {
+				} else if response, exception := e.claimer.ClaimRoutines(workerCtx, request); exception != nil {
 					e.isHealthy.Store(false)
 					if slogs.NotegicLogger != nil {
 						slogs.NotegicLogger.Error(
@@ -159,7 +162,7 @@ func (e *Engine) Start(
 							"Failed to claim and handle routine task assignments",
 						)
 					}
-				} else if err := e.HandleRoutineTaskAssignments(workerCtx, response.Assignments); err != nil {
+				} else if err := e.HandleRoutineAssignments(workerCtx, response.RoutineAssignments); err != nil {
 					e.isHealthy.Store(false)
 					if slogs.NotegicLogger != nil {
 						slogs.NotegicLogger.Error(
@@ -178,8 +181,8 @@ func (e *Engine) Start(
 			case <-workerCtx.Done():
 				return
 			case <-e.ticker.C:
-				if e.recoveryService != nil {
-					_, err := e.recoveryService.RecoverStaleRoutineTaskRecords(
+				if e.recoverer != nil {
+					_, err := e.recoverer.RecoverStaleRoutineTaskRecords(
 						workerCtx,
 						time.Now().UTC().Add(-sconstants.RoutineTaskExecutionLeaseTTL),
 					)
@@ -195,7 +198,7 @@ func (e *Engine) Start(
 						continue
 					}
 				}
-				request, shouldRequest := e.GetClaimRoutineTasksRequest()
+				request, shouldRequest := e.GetClaimRoutinesRequest()
 				if !shouldRequest {
 					continue
 				}
@@ -210,7 +213,7 @@ func (e *Engine) Start(
 					}
 					continue
 				}
-				response, exception := e.claimer.ClaimRoutineTasks(workerCtx, request)
+				response, exception := e.claimer.ClaimRoutines(workerCtx, request)
 				if exception != nil {
 					e.isHealthy.Store(false)
 					if slogs.NotegicLogger != nil {
@@ -233,7 +236,7 @@ func (e *Engine) Start(
 					}
 					continue
 				}
-				if err := e.HandleRoutineTaskAssignments(workerCtx, response.Assignments); err != nil {
+				if err := e.HandleRoutineAssignments(workerCtx, response.RoutineAssignments); err != nil {
 					e.isHealthy.Store(false)
 					if slogs.NotegicLogger != nil {
 						slogs.NotegicLogger.Error(

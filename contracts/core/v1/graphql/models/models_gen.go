@@ -98,6 +98,7 @@ type PrivateRoutine struct {
 	Title            string               `json:"title"`
 	Description      string               `json:"description"`
 	Status           enums.RoutineStatus  `json:"status"`
+	Phase            *enums.RoutinePhase  `json:"phase,omitempty"`
 	IsPinned         bool                 `json:"isPinned"`
 	ScheduledStartAt time.Time            `json:"scheduledStartAt"`
 	ScheduledEndAt   time.Time            `json:"scheduledEndAt"`
@@ -175,6 +176,7 @@ type PrivateSearchableRoutine struct {
 	StationID        uuid.UUID            `json:"stationId"`
 	Title            string               `json:"title"`
 	Status           enums.RoutineStatus  `json:"status"`
+	Phase            *enums.RoutinePhase  `json:"phase,omitempty"`
 	IsPinned         bool                 `json:"isPinned"`
 	ScheduledStartAt time.Time            `json:"scheduledStartAt"`
 	ScheduledEndAt   time.Time            `json:"scheduledEndAt"`

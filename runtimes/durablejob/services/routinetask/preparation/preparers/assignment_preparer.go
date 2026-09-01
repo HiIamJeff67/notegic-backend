@@ -1,4 +1,4 @@
-package routinetask
+package preparers
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 )
 
-type RoutineTaskPreparationService struct {
+type AssignmentPreparer struct {
 	validator *validator.Validate
 }
 
-func NewRoutineTaskPreparationService(
+func NewAssignmentPreparer(
 	validatorInstance *validator.Validate,
-) *RoutineTaskPreparationService {
-	return &RoutineTaskPreparationService{
+) *AssignmentPreparer {
+	return &AssignmentPreparer{
 		validator: validatorInstance,
 	}
 }
 
-func (s *RoutineTaskPreparationService) Prepare(
+func (p *AssignmentPreparer) Prepare(
 	_ context.Context,
 	assignment croutinetasktypes.RoutineTaskAssignment,
 ) (*croutinetasktypes.PreparedRoutineTask, error) {
@@ -83,8 +83,8 @@ func (s *RoutineTaskPreparationService) Prepare(
 	if err := json.Unmarshal(assignment.Payload, payload); err != nil {
 		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 	}
-	if s.validator != nil {
-		if err := s.validator.Struct(payload); err != nil {
+	if p.validator != nil {
+		if err := p.validator.Struct(payload); err != nil {
 			return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
 		}
 	}

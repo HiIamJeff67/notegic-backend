@@ -101,6 +101,7 @@ words = [
     "nginx",
     "dedupe",
     "storable",
+    "precreated",
 ]
 
 ignore_paths = [

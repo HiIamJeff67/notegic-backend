@@ -3183,6 +3183,20 @@
                 "null"
               ]
             },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Preparation",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "scheduledEndAt": {
               "format": "date-time",
               "type": "string"
@@ -4760,6 +4774,20 @@
               "null"
             ]
           },
+          "phase": {
+            "enum": [
+              "Claimed",
+              "Preparation",
+              "Plan",
+              "Execution",
+              "Recovery",
+              "Analysis"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "scheduledEndAt": {
             "format": "date-time",
             "type": "string"
@@ -5088,6 +5116,20 @@
                 "Daily",
                 "Weekly",
                 "Monthly"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Preparation",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
               ],
               "type": [
                 "string",
@@ -8159,6 +8201,20 @@
               "null"
             ]
           },
+          "phase": {
+            "enum": [
+              "Claimed",
+              "Preparation",
+              "Plan",
+              "Execution",
+              "Recovery",
+              "Analysis"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "scheduledEndAt": {
             "format": "date-time",
             "type": "string"
@@ -8313,6 +8369,20 @@
                 "Daily",
                 "Weekly",
                 "Monthly"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Preparation",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
               ],
               "type": [
                 "string",

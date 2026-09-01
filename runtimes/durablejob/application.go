@@ -18,8 +18,8 @@ import (
 	"gorm.io/gorm"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
-	routinetaskservice "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
-	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/realtimegateway/producers"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/status"
 	yjsworkertransport "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/yjsworker"
@@ -102,8 +102,8 @@ func (a *Application) initializeWorkers(
 	// Construct and start the durable-job workers that claim and execute tasks.
 	routineTaskClaimer := routinetaskworker.NewClaimer(db, validation.New())
 	routineTaskEngine := routinetaskworker.NewEngine(config, routineTaskClaimer)
-	routineTaskEngine.SetRoutineTaskRecoveryService(
-		routinetaskservice.NewRoutineTaskRecoveryService(db),
+	routineTaskEngine.SetRoutineTaskRecoverer(
+		routinetaskrecoverers.NewStaleRecordRecoverer(db),
 	)
 	a.routineTaskEngine = routineTaskEngine
 	routineTaskLifecycleProducer := realtimegatewayproducers.NewRoutineTaskLifecycleProducer(kafkaProducer)

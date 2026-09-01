@@ -131,6 +131,9 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 		if exception != nil {
 			continue
 		}
+		if _, err := payload.TargetSubShelfId.Resolve(nil); err != nil {
+			continue
+		}
 		candidateTaskIndexes = append(candidateTaskIndexes, taskIndex)
 		candidateTasks = append(candidateTasks, task)
 		candidateActorUserIds = append(candidateActorUserIds, actorUserId)
@@ -163,7 +166,14 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 			continue
 		}
 		patternValues := patternValuesByCandidate[candidateIndex]
+		parentSubShelfId, err := payload.TargetSubShelfId.Resolve(nil)
+		if err != nil {
+			continue
+		}
 		blockPackId := uuid.New()
+		if payload.Id != nil {
+			blockPackId = *payload.Id
+		}
 		name := s.templateBlockMatcher.MatchString(payload.Template.Name, patternValues)
 		var prevRootId *uuid.UUID
 		taskFailed := false
@@ -208,7 +218,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 		blockPackInputs = append(blockPackInputs, sinputs.BulkCreateBlockPackInput{
 			UserId:              candidateActorUserIds[candidateIndex],
 			Id:                  &blockPackId,
-			ParentSubShelfId:    payload.TargetSubShelfId,
+			ParentSubShelfId:    parentSubShelfId,
 			Name:                name,
 			Icon:                (*cenums.SupportedIcon)(payload.Template.Icon),
 			HeaderBackgroundURL: payload.Template.HeaderBackgroundURL,

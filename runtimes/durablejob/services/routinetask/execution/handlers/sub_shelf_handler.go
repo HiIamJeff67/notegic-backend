@@ -94,6 +94,7 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 	candidateActorUserIds := make([]uuid.UUID, 0, len(tasks))
 	candidatePayloads := make([]croutinetasktypes.CreateSubShelfRoutineTaskPayload, 0, len(tasks))
 	candidatePatterns := make([]croutinetasktypes.RoutineTaskPattern, 0, len(tasks))
+	candidatePrevSubShelfIds := make([]*uuid.UUID, 0, len(tasks))
 
 	for taskIndex, task := range tasks {
 		actorUserId, exists := taskIdToActorUserId[task.Id]
@@ -105,11 +106,20 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 		if exception != nil {
 			continue
 		}
+		var prevSubShelfId *uuid.UUID
+		if payload.PrevSubShelfId != nil {
+			resolvedId, err := payload.PrevSubShelfId.Resolve(nil)
+			if err != nil {
+				continue
+			}
+			prevSubShelfId = &resolvedId
+		}
 		candidateTaskIndexes = append(candidateTaskIndexes, taskIndex)
 		candidateTasks = append(candidateTasks, task)
 		candidateActorUserIds = append(candidateActorUserIds, actorUserId)
 		candidatePayloads = append(candidatePayloads, *payload)
 		candidatePatterns = append(candidatePatterns, payload.Pattern)
+		candidatePrevSubShelfIds = append(candidatePrevSubShelfIds, prevSubShelfId)
 	}
 	if len(candidateTasks) == 0 {
 		return successes, nil
@@ -135,11 +145,17 @@ func (s *SubShelfHandler) HandleCreateSubShelf(
 		}
 		patternValues := patternValuesByCandidate[candidateIndex]
 		name := s.templateBlockMatcher.MatchString(payload.Name, patternValues)
+		var path *stypes.UUIDArray
+		if payload.Path != nil {
+			pathValue := stypes.UUIDArray(payload.Path)
+			path = &pathValue
+		}
 		bulkInputs = append(bulkInputs, sinputs.BulkCreateSubShelfInput{
 			UserId:         candidateActorUserIds[candidateIndex],
 			Id:             payload.Id,
 			RootShelfId:    payload.RootShelfId,
-			PrevSubShelfId: payload.PrevSubShelfId,
+			PrevSubShelfId: candidatePrevSubShelfIds[candidateIndex],
+			Path:           path,
 			Name:           name,
 		})
 		taskIndexes = append(taskIndexes, candidateTaskIndexes[candidateIndex])
