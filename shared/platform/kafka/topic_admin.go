@@ -67,7 +67,7 @@ func (p *TopicProvisioner) EnsureTopics(ctx context.Context, specifications []ka
 		})
 		if specification.CreateDeadLetter {
 			deadLetter := specification
-			deadLetter.Name = DeadLetterTopic(specification.Name)
+			deadLetter.Name = GetDeadLetterTopic(specification.Name)
 			deadLetter.Retention = specification.DeadLetterRetention
 			deadLetter.CreateDeadLetter = false
 			deadLetter.DeadLetterRetention = 0

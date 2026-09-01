@@ -6,7 +6,9 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
+	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	metrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
+	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 )
 
 func RecordBrokerPing(ctx context.Context, duration time.Duration, err error) {
@@ -87,4 +89,27 @@ func RecordDeadLetter(ctx context.Context, topic string, consumerGroup string) {
 		attribute.String("messaging.destination.name", topic),
 		attribute.String("messaging.consumer.group.name", consumerGroup),
 	)
+}
+
+func RecordFailure(
+	ctx context.Context,
+	consumerGroup string,
+	topic string,
+	partition int32,
+	offset int64,
+	message string,
+	err error,
+) {
+	if traces.NotegicTracer != nil {
+		traces.NotegicTracer.RecordError(ctx, err)
+	}
+	if logs.NotegicLogger != nil {
+		logs.NotegicLogger.Error(ctx, err, message,
+			attribute.String("messaging.system", "kafka"),
+			attribute.String("messaging.destination.name", topic),
+			attribute.String("messaging.consumer.group.name", consumerGroup),
+			attribute.Int("messaging.kafka.partition", int(partition)),
+			attribute.Int64("messaging.kafka.offset", offset),
+		)
+	}
 }

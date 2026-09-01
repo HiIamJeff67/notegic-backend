@@ -108,6 +108,169 @@ func NewAuthService(
 	}
 }
 
+/* ============================== Auxiliary Functions ============================== */
+
+var loginCountToBlockDurationMap = map[int32]time.Duration{
+	3:  5 * time.Minute,
+	5:  15 * time.Minute,
+	7:  30 * time.Minute,
+	10: 1 * time.Hour,
+	15: 6 * time.Hour,
+	20: 24 * time.Hour,
+	30: 7 * 24 * time.Hour,
+}
+
+func (s *AuthService) generateRandomFakeDisplayName() string {
+	gofakeit.Seed(0)
+	return fmt.Sprintf("%s%s%d", gofakeit.AdjectiveDescriptive(), gofakeit.LastName(), gofakeit.Number(100000, 999999))
+}
+
+func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.Time, *cexceptions.Exception) {
+	if loginCount < 0 {
+		return nil, cexceptions.New("InvalidLoginCount", "Auth", "GetLoginBlockedUntil", "Login count is invalid", http.StatusInternalServerError, true)
+	}
+
+	var blockDuration *time.Duration
+	for count, duration := range loginCountToBlockDurationMap {
+		if loginCount >= count {
+			blockDuration = &duration
+		}
+	}
+	if blockDuration == nil {
+		return nil, nil
+	}
+	blockedUntil := time.Now().Add(*blockDuration)
+	return &blockedUntil, nil
+}
+
+func (s *AuthService) hashPassword(password string) (string, *cexceptions.Exception) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", cexceptions.New(
+			"FailedToGenerateHashValue",
+			"Auth",
+			"Hash",
+			"Failed to generate a hash value",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+	return string(bytes), nil
+}
+
+func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
+	token, err := sharedtokens.GenerateAccessToken(
+		userPublicId.String(),
+		sharedtokens.AccessTokenClaims{
+			Name:      name,
+			Email:     email,
+			UserAgent: userAgent,
+		},
+	)
+	if err != nil {
+		return nil, cexceptions.New(
+			"GenerationFailed",
+			"Token",
+			"GenerateAccessToken",
+			"Failed to generate the access token",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+
+	return token, nil
+}
+
+func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
+	token, err := sharedtokens.GenerateRefreshToken(
+		userPublicId.String(),
+		sharedtokens.RefreshTokenClaims{
+			Name:      name,
+			Email:     email,
+			UserAgent: userAgent,
+		},
+	)
+	if err != nil {
+		return nil, cexceptions.New(
+			"GenerationFailed",
+			"Token",
+			"GenerateRefreshToken",
+			"Failed to generate the refresh token",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+
+	return token, nil
+}
+
+func (s *AuthService) generateCSRFToken() (*string, *cexceptions.Exception) {
+	token, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
+		return nil, cexceptions.New(
+			"GenerationFailed",
+			"Token",
+			"GenerateCSRFToken",
+			"Failed to generate the CSRF token",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+
+	return token, nil
+}
+
+func (s *AuthService) enqueueWelcomeNotification(
+	tx *gorm.DB,
+	user *sschemas.User,
+) *cexceptions.Exception {
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
+		Title:   "Welcome to Notegic",
+		Summary: "Your Notegic account is ready.",
+		Body:    "Start organizing your notes, shelves, and routines in one place.",
+	})
+	if err != nil {
+		return cexceptions.New(
+			"FailedToMarshal",
+			"Notification",
+			"Request",
+			"Failed to encode the welcome notification payload",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+
+	if err := s.outboxRepository.EnqueueNotificationRequested(
+		tx,
+		uuid.NewString(),
+		coreevents.NotificationRequestedData{
+			RecipientUserPublicId: user.PublicId,
+			UserProjection: coreevents.UserProjection{
+				PublicId: user.PublicId,
+				Plan:     user.Plan,
+				Status:   user.Status,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "welcome:" + user.PublicId.String(),
+		},
+	); err != nil {
+		return cexceptions.New(
+			"FailedToCreate",
+			"Notification",
+			"Request",
+			"Failed to enqueue the welcome notification",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
+	}
+
+	return nil
+}
+
 func (s *AuthService) loginByGoogleUserInfo(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -299,169 +462,6 @@ func (s *AuthService) loginByGoogleUserInfo(
 		UpdatedAt:    updatedUser.UpdatedAt,
 		CreatedAt:    user.CreatedAt,
 	}, nil
-}
-
-/* ============================== Auxiliary Functions ============================== */
-
-var loginCountToBlockDurationMap = map[int32]time.Duration{
-	3:  5 * time.Minute,
-	5:  15 * time.Minute,
-	7:  30 * time.Minute,
-	10: 1 * time.Hour,
-	15: 6 * time.Hour,
-	20: 24 * time.Hour,
-	30: 7 * 24 * time.Hour,
-}
-
-func (s *AuthService) generateRandomFakeDisplayName() string {
-	gofakeit.Seed(0)
-	return fmt.Sprintf("%s%s%d", gofakeit.AdjectiveDescriptive(), gofakeit.LastName(), gofakeit.Number(100000, 999999))
-}
-
-func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.Time, *cexceptions.Exception) {
-	if loginCount < 0 {
-		return nil, cexceptions.New("InvalidLoginCount", "Auth", "GetLoginBlockedUntil", "Login count is invalid", http.StatusInternalServerError, true)
-	}
-
-	var blockDuration *time.Duration
-	for count, duration := range loginCountToBlockDurationMap {
-		if loginCount >= count {
-			blockDuration = &duration
-		}
-	}
-	if blockDuration == nil {
-		return nil, nil
-	}
-	blockedUntil := time.Now().Add(*blockDuration)
-	return &blockedUntil, nil
-}
-
-func (s *AuthService) hashPassword(password string) (string, *cexceptions.Exception) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", cexceptions.New(
-			"FailedToGenerateHashValue",
-			"Auth",
-			"Hash",
-			"Failed to generate a hash value",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-	return string(bytes), nil
-}
-
-func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateAccessToken(
-		userPublicId.String(),
-		sharedtokens.AccessTokenClaims{
-			Name:      name,
-			Email:     email,
-			UserAgent: userAgent,
-		},
-	)
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateAccessToken",
-			"Failed to generate the access token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateRefreshToken(
-		userPublicId.String(),
-		sharedtokens.RefreshTokenClaims{
-			Name:      name,
-			Email:     email,
-			UserAgent: userAgent,
-		},
-	)
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateRefreshToken",
-			"Failed to generate the refresh token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) generateCSRFToken() (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateCSRFToken",
-			"Failed to generate the CSRF token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) enqueueWelcomeNotification(
-	tx *gorm.DB,
-	user *sschemas.User,
-) *cexceptions.Exception {
-	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
-		Title:   "Welcome to Notegic",
-		Summary: "Your Notegic account is ready.",
-		Body:    "Start organizing your notes, shelves, and routines in one place.",
-	})
-	if err != nil {
-		return cexceptions.New(
-			"FailedToMarshal",
-			"Notification",
-			"Request",
-			"Failed to encode the welcome notification payload",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	if err := s.outboxRepository.EnqueueNotificationRequested(
-		tx,
-		uuid.NewString(),
-		coreevents.NotificationRequestedData{
-			RecipientUserPublicId: user.PublicId,
-			UserProjection: coreevents.UserProjection{
-				PublicId: user.PublicId,
-				Plan:     user.Plan,
-				Status:   user.Status,
-			},
-			Type:            coreevents.NotificationType_News,
-			Priority:        coreevents.NotificationPriority_Normal,
-			TemplateKey:     cnotificationtypes.TemplateKey_News,
-			TemplateVersion: 1,
-			Payload:         payload,
-			DedupeKey:       "welcome:" + user.PublicId.String(),
-		},
-	); err != nil {
-		return cexceptions.New(
-			"FailedToCreate",
-			"Notification",
-			"Request",
-			"Failed to enqueue the welcome notification",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return nil
 }
 
 /* ============================== Service Methods for Authentication ============================== */

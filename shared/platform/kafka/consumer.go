@@ -5,77 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	franzkgo "github.com/twmb/franz-go/pkg/kgo"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
-	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	traces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
 )
-
-type ErrorClassification string
-
-const (
-	ErrorClassification_Transient          ErrorClassification = "Transient"
-	ErrorClassification_PoisonMessage      ErrorClassification = "PoisonMessage"
-	ErrorClassification_SchemaIncompatible ErrorClassification = "SchemaIncompatible"
-)
-
-type ConsumerError struct {
-	Classification ErrorClassification
-	Origin         error
-}
-
-func (e *ConsumerError) Error() string {
-	if e == nil || e.Origin == nil {
-		return "Kafka consumer error"
-	}
-
-	return e.Origin.Error()
-}
-
-func (e *ConsumerError) Unwrap() error {
-	if e == nil {
-		return nil
-	}
-
-	return e.Origin
-}
-
-type ConsumerRecord struct {
-	Topic     string
-	Partition int32
-	Offset    int64
-	Key       string
-}
-
-type ConsumerHandler func(
-	ctx context.Context,
-	record ConsumerRecord,
-	envelope cevent.EventEnvelope[json.RawMessage],
-) error
-
-type DeadLetter struct {
-	SchemaVersion   string              `json:"schemaVersion"`
-	ConsumerGroup   string              `json:"consumerGroup"`
-	SourceTopic     string              `json:"sourceTopic"`
-	SourcePartition int32               `json:"sourcePartition"`
-	SourceOffset    int64               `json:"sourceOffset"`
-	Key             string              `json:"key"`
-	EventId         *uuid.UUID          `json:"eventId,omitempty"`
-	Classification  ErrorClassification `json:"classification"`
-	Attempts        int                 `json:"attempts"`
-	Error           string              `json:"error"`
-	Value           []byte              `json:"value"`
-	FailedAt        time.Time           `json:"failedAt"`
-}
 
 type Consumer struct {
 	client        *franzkgo.Client
@@ -125,7 +65,7 @@ func (c *Consumer) consumeFetches(
 ) {
 	fetches.EachPartition(func(fetchTopicPartition franzkgo.FetchTopicPartition) {
 		if fetchTopicPartition.Err != nil {
-			c.recordFailure(ctx, fetchTopicPartition.Topic, fetchTopicPartition.Partition, 0, "Kafka consumer partition fetch failed", fetchTopicPartition.Err)
+			RecordFailure(ctx, c.consumerGroup, fetchTopicPartition.Topic, fetchTopicPartition.Partition, 0, "Kafka consumer partition fetch failed", fetchTopicPartition.Err)
 			return
 		}
 
@@ -146,8 +86,9 @@ func (c *Consumer) consumeFetches(
 			return
 		}
 		if err := c.client.CommitRecords(ctx, recordsToCommit[len(recordsToCommit)-1]); err != nil {
-			c.recordFailure(
+			RecordFailure(
 				ctx,
+				c.consumerGroup,
 				fetchTopicPartition.Topic,
 				fetchTopicPartition.Partition,
 				recordsToCommit[len(recordsToCommit)-1].Offset,
@@ -165,7 +106,7 @@ func (c *Consumer) consumeRecord(
 ) bool {
 	var envelope cevent.EventEnvelope[json.RawMessage]
 	if err := json.Unmarshal(record.Value, &envelope); err != nil {
-		return c.deadLetter(
+		return c.publishDeadLetter(
 			ctx,
 			record,
 			nil,
@@ -175,7 +116,7 @@ func (c *Consumer) consumeRecord(
 		)
 	}
 	if envelope.SchemaVersion != cevent.Version {
-		return c.deadLetter(
+		return c.publishDeadLetter(
 			ctx,
 			record,
 			nil,
@@ -186,7 +127,7 @@ func (c *Consumer) consumeRecord(
 	}
 	if envelope.EventId == uuid.Nil || envelope.EventType == "" || envelope.AggregateType == "" ||
 		envelope.AggregateId == uuid.Nil || envelope.KafkaKey == "" {
-		return c.deadLetter(
+		return c.publishDeadLetter(
 			ctx,
 			record,
 			nil,
@@ -196,7 +137,7 @@ func (c *Consumer) consumeRecord(
 		)
 	}
 	if envelope.KafkaKey != envelope.AggregateId.String() || envelope.KafkaKey != string(record.Key) {
-		return c.deadLetter(
+		return c.publishDeadLetter(
 			ctx,
 			record,
 			nil,
@@ -241,14 +182,14 @@ func (c *Consumer) consumeRecord(
 			}
 		}
 		if classification != ErrorClassification_Transient {
-			return c.deadLetter(ctx, record, &envelope.EventId, classification, attempt, err)
+			return c.publishDeadLetter(ctx, record, &envelope.EventId, classification, attempt, err)
 		}
 		if attempt == c.config.MaximumAttempts {
-			return c.deadLetter(ctx, record, &envelope.EventId, classification, attempt, err)
+			return c.publishDeadLetter(ctx, record, &envelope.EventId, classification, attempt, err)
 		}
 
 		RecordRetry(ctx, record.Topic, c.consumerGroup)
-		c.recordFailure(ctx, record.Topic, record.Partition, record.Offset, "Retrying Kafka consumer event", err)
+		RecordFailure(ctx, c.consumerGroup, record.Topic, record.Partition, record.Offset, "Retrying Kafka consumer event", err)
 		backoff := c.config.InitialRetryBackoff
 		for index := 1; index < attempt && backoff < c.config.MaximumRetryBackoff; index++ {
 			backoff *= 2
@@ -264,81 +205,6 @@ func (c *Consumer) consumeRecord(
 	}
 
 	return false
-}
-
-func (c *Consumer) deadLetter(
-	ctx context.Context,
-	record *franzkgo.Record,
-	eventId *uuid.UUID,
-	classification ErrorClassification,
-	attempts int,
-	err error,
-) bool {
-	if traces.NotegicTracer != nil {
-		traces.NotegicTracer.RecordError(ctx, err)
-	}
-
-	deadLetter := DeadLetter{
-		SchemaVersion:   cevent.Version,
-		ConsumerGroup:   c.consumerGroup,
-		SourceTopic:     record.Topic,
-		SourcePartition: record.Partition,
-		SourceOffset:    record.Offset,
-		Key:             string(record.Key),
-		EventId:         eventId,
-		Classification:  classification,
-		Attempts:        attempts,
-		Error:           err.Error(),
-		Value:           record.Value,
-		FailedAt:        time.Now().UTC(),
-	}
-	payload, marshalErr := json.Marshal(deadLetter)
-	if marshalErr != nil {
-		c.recordFailure(ctx, record.Topic, record.Partition, record.Offset, "Failed to serialize Kafka dead-letter record", marshalErr)
-		return false
-	}
-
-	startedAt := time.Now()
-	result := c.client.ProduceSync(ctx, &franzkgo.Record{
-		Topic: DeadLetterTopic(record.Topic),
-		Key:   record.Key,
-		Value: payload,
-	})
-	if publishErr := result.FirstErr(); publishErr != nil {
-		RecordPublish(ctx, DeadLetterTopic(record.Topic), time.Since(startedAt), publishErr)
-		c.recordFailure(ctx, record.Topic, record.Partition, record.Offset, "Failed to publish Kafka dead-letter record", publishErr)
-		return false
-	}
-	RecordPublish(ctx, DeadLetterTopic(record.Topic), time.Since(startedAt), nil)
-	RecordDeadLetter(ctx, record.Topic, c.consumerGroup)
-	if logs.NotegicLogger != nil {
-		deadLetter.Value = nil
-		_ = logs.NotegicLogger.JSON(ctx, slog.LevelError, "Kafka event sent to dead-letter topic", deadLetter)
-	}
-
-	return true
-}
-
-func (c *Consumer) recordFailure(
-	ctx context.Context,
-	topic string,
-	partition int32,
-	offset int64,
-	message string,
-	err error,
-) {
-	if traces.NotegicTracer != nil {
-		traces.NotegicTracer.RecordError(ctx, err)
-	}
-	if logs.NotegicLogger != nil {
-		logs.NotegicLogger.Error(ctx, err, message,
-			attribute.String("messaging.system", "kafka"),
-			attribute.String("messaging.destination.name", topic),
-			attribute.String("messaging.consumer.group.name", c.consumerGroup),
-			attribute.Int("messaging.kafka.partition", int(partition)),
-			attribute.Int64("messaging.kafka.offset", offset),
-		)
-	}
 }
 
 /* ============================== Consumer Methods ============================== */
@@ -357,8 +223,9 @@ func (c *Consumer) Run(ctx context.Context, handler ConsumerHandler) error {
 			}
 
 			c.client.AllowRebalance()
-			c.recordFailure(
+			RecordFailure(
 				ctx,
+				c.consumerGroup,
 				"",
 				0,
 				0,
@@ -387,10 +254,4 @@ func (c *Consumer) Run(ctx context.Context, handler ConsumerHandler) error {
 
 func (c *Consumer) Close() {
 	c.client.Close()
-}
-
-/* ============================== Auxiliary Functions ============================== */
-
-func DeadLetterTopic(topic string) string {
-	return topic + ".dlq"
 }

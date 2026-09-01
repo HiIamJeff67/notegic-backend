@@ -18,8 +18,8 @@ func TestNewConsumerRejectsMissingGroupOrTopics(t *testing.T) {
 	}
 }
 
-func TestDeadLetterTopic(t *testing.T) {
-	if DeadLetterTopic("notegic.core.lifecycle.v1") != "notegic.core.lifecycle.v1.dlq" {
+func TestGetDeadLetterTopic(t *testing.T) {
+	if GetDeadLetterTopic("notegic.core.lifecycle.v1") != "notegic.core.lifecycle.v1.dlq" {
 		t.Fatal("unexpected Kafka dead-letter topic name")
 	}
 }

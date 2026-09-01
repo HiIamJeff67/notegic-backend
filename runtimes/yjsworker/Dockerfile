@@ -19,7 +19,7 @@ COPY runtimes/yjsworker/package.json runtimes/yjsworker/pnpm-lock.yaml runtimes/
 RUN pnpm install --frozen-lockfile
 
 COPY runtimes/yjsworker ./
-COPY contracts/yjs-worker/v1/package.json contracts/yjs-worker/v1/yjsworker_contract.ts /app/contracts/yjs-worker/v1/
+COPY contracts/yjs-worker/v1/package.json contracts/yjs-worker/v1/update_block_pack.ts contracts/yjs-worker/v1/yjsworker_contract.ts /app/contracts/yjs-worker/v1/
 RUN pnpm build
 
 FROM build AS dev
