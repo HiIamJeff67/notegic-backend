@@ -18,7 +18,7 @@ The generated APIGateway contract contains all %d currently emitted operations:
 - `+"`contracts/client-gateway/v1/public/`"+` documents the ClientGateway user/client boundary.
 - `+"`contracts/realtime-gateway/v1/public/`"+` documents RealtimeGateway HTTP and WebSocket output for realtime clients.
 
-APIGateway REST uses OpenAPI 3.1 for the nine enabled resource domains: RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, and RoutineTag. RealtimeGateway HTTP uses OpenAPI 3.1 and its multiplex WebSocket messages use AsyncAPI 3.0. Postman 2.1 collections and environments are committed as importable derived artifacts.
+APIGateway REST uses OpenAPI 3.1 for the nine enabled resource domains: RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, and RoutineTag. RoutineRecord is available through ClientGateway GraphQL search only. RealtimeGateway HTTP uses OpenAPI 3.1 and its multiplex WebSocket messages use AsyncAPI 3.0. Postman 2.1 collections and environments are committed as importable derived artifacts.
 
 ## Content boundary
 

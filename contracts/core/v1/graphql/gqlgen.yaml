@@ -286,6 +286,21 @@ models:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_Completed"
       RoutineStatus_OverDue:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineStatus_OverDue"
+  RoutineRecordStatus:
+    model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus"
+    enum_values:
+      RoutineRecordStatus_Pending:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Pending"
+      RoutineRecordStatus_Running:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Running"
+      RoutineRecordStatus_Success:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Success"
+      RoutineRecordStatus_Failed:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Failed"
+      RoutineRecordStatus_Blocked:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Blocked"
+      RoutineRecordStatus_Canceled:
+        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineRecordStatus_Canceled"
   RoutineTaskPurpose:
     model: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutineTaskPurpose"
     enum_values:

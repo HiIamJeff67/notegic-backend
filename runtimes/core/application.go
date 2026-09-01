@@ -201,6 +201,9 @@ func (a *Application) buildRouter(
 		db,
 		routineTagRepository,
 	)
+	routineRecordService := routineservices.NewRoutineRecordService(
+		db,
+	)
 	routineTaskRecordService := routineservices.NewRoutineTaskRecordService(
 		validator,
 		db,
@@ -286,6 +289,9 @@ func (a *Application) buildRouter(
 		Realtime: gatewayrouters.RealtimeRouterDependencies{Service: realtimeService, AuthMiddleware: authMiddleware},
 		RoutineTag: gatewayrouters.RoutineTagRouterDependencies{
 			Service: routineTagService, AuthMiddleware: authMiddleware, APIKeyMiddleware: apiKeyMiddleware,
+		},
+		RoutineRecord: gatewayrouters.RoutineRecordRouterDependencies{
+			Service: routineRecordService, AuthMiddleware: authMiddleware, APIKeyMiddleware: apiKeyMiddleware,
 		},
 		RoutineTaskRecord: gatewayrouters.RoutineTaskRecordRouterDependencies{Service: routineTaskRecordService, AuthMiddleware: authMiddleware},
 		SubShelf: gatewayrouters.SubShelfRouterDependencies{

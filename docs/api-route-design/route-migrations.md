@@ -173,6 +173,7 @@ bulk collection operation, and a named child path represents a state change.
 | `DELETE /routineTask/hardDeleteMyRoutineTasksByIds` | `DELETE /routine-tasks/batch/permanently` |
 | `GET /routineTask/visualizeMyRoutineTask*` | `GET /routine-tasks/visualizations/*` |
 | `GET /routineTaskRecord/getAllMyRoutineTaskRecordsByRoutineTaskId?routineTaskId={id}` | `GET /routine-task-records/routine-task/{routine-task-id}` |
+| `GET /routineRecord/getAllMyRoutineRecordsByRoutineId?routineId={id}` | Removed; use ClientGateway GraphQL `searchRoutineRecords` |
 | `GET /routineTaskRecord/visualizeMyRoutineTaskRecord*` | `GET /routine-task-records/visualizations/*` |
 
 ### Realtime

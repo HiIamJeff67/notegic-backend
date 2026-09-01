@@ -1,0 +1,17 @@
+fragment FragmentedPrivateRoutineRecord on PrivateRoutineRecord {
+  id
+  routineId
+  status
+  scheduledAt
+  actualStartedAt
+  actualEndedAt
+  totalTaskCount
+  successTaskCount
+  failedTaskCount
+  blockedTaskCount
+  runningTaskCount
+  waitingTaskCount
+  snapshot
+  updatedAt
+  createdAt
+}

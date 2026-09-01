@@ -111,6 +111,24 @@ type PrivateRoutine struct {
 	ItemIds          []uuid.UUID          `json:"itemIds"`
 }
 
+type PrivateRoutineRecord struct {
+	ID               uuid.UUID                 `json:"id"`
+	RoutineID        uuid.UUID                 `json:"routineId"`
+	Status           enums.RoutineRecordStatus `json:"status"`
+	ScheduledAt      time.Time                 `json:"scheduledAt"`
+	ActualStartedAt  *time.Time                `json:"actualStartedAt,omitempty"`
+	ActualEndedAt    *time.Time                `json:"actualEndedAt,omitempty"`
+	TotalTaskCount   int32                     `json:"totalTaskCount"`
+	SuccessTaskCount int32                     `json:"successTaskCount"`
+	FailedTaskCount  int32                     `json:"failedTaskCount"`
+	BlockedTaskCount int32                     `json:"blockedTaskCount"`
+	RunningTaskCount int32                     `json:"runningTaskCount"`
+	WaitingTaskCount int32                     `json:"waitingTaskCount"`
+	Snapshot         json.RawMessage           `json:"snapshot"`
+	UpdatedAt        time.Time                 `json:"updatedAt"`
+	CreatedAt        time.Time                 `json:"createdAt"`
+}
+
 type PrivateRoutineTag struct {
 	ID        uuid.UUID            `json:"id"`
 	Name      string               `json:"name"`
@@ -501,6 +519,41 @@ type SearchRoutineInput struct {
 	First       *int32               `json:"first,omitempty"`
 	SortBy      *SearchRoutineSortBy `json:"sortBy,omitempty"`
 	SortOrder   *SearchSortOrder     `json:"sortOrder,omitempty"`
+}
+
+type SearchRoutineRecordConnection struct {
+	SearchEdges    []*SearchRoutineRecordEdge `json:"searchEdges"`
+	SearchPageInfo *SearchPageInfo            `json:"searchPageInfo"`
+	TotalCount     int32                      `json:"totalCount"`
+	SearchTime     float64                    `json:"searchTime"`
+}
+
+func (SearchRoutineRecordConnection) IsSearchConnection() {}
+func (this SearchRoutineRecordConnection) GetSearchPageInfo() *SearchPageInfo {
+	return this.SearchPageInfo
+}
+func (this SearchRoutineRecordConnection) GetTotalCount() int32   { return this.TotalCount }
+func (this SearchRoutineRecordConnection) GetSearchTime() float64 { return this.SearchTime }
+
+type SearchRoutineRecordCursorFields struct {
+	ID uuid.UUID `json:"id"`
+}
+
+type SearchRoutineRecordEdge struct {
+	EncodedSearchCursor string                `json:"encodedSearchCursor"`
+	Node                *PrivateRoutineRecord `json:"node"`
+}
+
+func (SearchRoutineRecordEdge) IsSearchEdge()                       {}
+func (this SearchRoutineRecordEdge) GetEncodedSearchCursor() string { return this.EncodedSearchCursor }
+
+type SearchRoutineRecordInput struct {
+	RoutineIds []uuid.UUID                `json:"routineIds"`
+	Query      string                     `json:"query"`
+	After      *string                    `json:"after,omitempty"`
+	First      *int32                     `json:"first,omitempty"`
+	SortBy     *SearchRoutineRecordSortBy `json:"sortBy,omitempty"`
+	SortOrder  *SearchSortOrder           `json:"sortOrder,omitempty"`
 }
 
 type SearchRoutineTagConnection struct {
@@ -1113,6 +1166,71 @@ func (e *SearchRootShelfSortBy) UnmarshalJSON(b []byte) error {
 }
 
 func (e SearchRootShelfSortBy) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SearchRoutineRecordSortBy string
+
+const (
+	SearchRoutineRecordSortByRelevance       SearchRoutineRecordSortBy = "RELEVANCE"
+	SearchRoutineRecordSortByStatus          SearchRoutineRecordSortBy = "STATUS"
+	SearchRoutineRecordSortByScheduledAt     SearchRoutineRecordSortBy = "SCHEDULED_AT"
+	SearchRoutineRecordSortByActualStartedAt SearchRoutineRecordSortBy = "ACTUAL_STARTED_AT"
+	SearchRoutineRecordSortByActualEndedAt   SearchRoutineRecordSortBy = "ACTUAL_ENDED_AT"
+	SearchRoutineRecordSortByLastUpdate      SearchRoutineRecordSortBy = "LAST_UPDATE"
+	SearchRoutineRecordSortByCreatedAt       SearchRoutineRecordSortBy = "CREATED_AT"
+)
+
+var AllSearchRoutineRecordSortBy = []SearchRoutineRecordSortBy{
+	SearchRoutineRecordSortByRelevance,
+	SearchRoutineRecordSortByStatus,
+	SearchRoutineRecordSortByScheduledAt,
+	SearchRoutineRecordSortByActualStartedAt,
+	SearchRoutineRecordSortByActualEndedAt,
+	SearchRoutineRecordSortByLastUpdate,
+	SearchRoutineRecordSortByCreatedAt,
+}
+
+func (e SearchRoutineRecordSortBy) IsValid() bool {
+	switch e {
+	case SearchRoutineRecordSortByRelevance, SearchRoutineRecordSortByStatus, SearchRoutineRecordSortByScheduledAt, SearchRoutineRecordSortByActualStartedAt, SearchRoutineRecordSortByActualEndedAt, SearchRoutineRecordSortByLastUpdate, SearchRoutineRecordSortByCreatedAt:
+		return true
+	}
+	return false
+}
+
+func (e SearchRoutineRecordSortBy) String() string {
+	return string(e)
+}
+
+func (e *SearchRoutineRecordSortBy) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SearchRoutineRecordSortBy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SearchRoutineRecordSortBy", str)
+	}
+	return nil
+}
+
+func (e SearchRoutineRecordSortBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SearchRoutineRecordSortBy) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SearchRoutineRecordSortBy) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

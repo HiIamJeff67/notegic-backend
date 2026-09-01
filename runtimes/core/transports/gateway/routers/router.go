@@ -22,6 +22,7 @@ type RouterDependencies struct {
 	Block             BlockRouterDependencies
 	Realtime          RealtimeRouterDependencies
 	RoutineTag        RoutineTagRouterDependencies
+	RoutineRecord     RoutineRecordRouterDependencies
 	RoutineTaskRecord RoutineTaskRecordRouterDependencies
 	SubShelf          SubShelfRouterDependencies
 	BlockPack         BlockPackRouterDependencies
@@ -53,6 +54,7 @@ func NewRouter(deps RouterDependencies) *gin.Engine {
 	configureBlockRoutes(secureCoreRouterGroup, deps.Block)
 	configureRealtimeRoutes(secureCoreRouterGroup, deps.Realtime)
 	configureRoutineTagRoutes(secureCoreRouterGroup, deps.RoutineTag)
+	configureRoutineRecordRoutes(secureCoreRouterGroup, deps.RoutineRecord)
 	configureRoutineTaskRecordRoutes(secureCoreRouterGroup, deps.RoutineTaskRecord)
 	configureSubShelfRoutes(secureCoreRouterGroup, deps.SubShelf)
 	configureBlockPackRoutes(secureCoreRouterGroup, deps.BlockPack)

@@ -12,6 +12,7 @@ import (
 	citems "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/items"
 	cmaterials "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
 	crootshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
+	croutinerecords "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-records"
 	croutinetags "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
 	croutinetaskrecords "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
 	croutinetasks "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
@@ -307,6 +308,30 @@ func (r *queryResolver) SearchRoutineTasks(ctx context.Context, input cgqlmodels
 		&input,
 		croutinetasks.SearchRoutineTasksOperation,
 		"/core/v1/routine-tasks/graphql/search",
+	)
+	if exception != nil {
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
+	}
+
+	return &response.Data, nil
+}
+
+// SearchRoutineRecords is the resolver for the searchRoutineRecords field.
+func (r *queryResolver) SearchRoutineRecords(ctx context.Context, input cgqlmodels.SearchRoutineRecordInput) (*cgqlmodels.SearchRoutineRecordConnection, error) {
+	ginContext, exception := gatewaycontexts.GetAndConvertContextToGinContext(ctx)
+	if exception != nil {
+		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)
+	}
+
+	response, exception := coreadapters.CallSecurly[
+		croutinerecords.SearchRoutineRecordsRequestDto,
+		croutinerecords.SearchRoutineRecordsResponseDto,
+	](
+		ginContext,
+		r.coreAdapter,
+		&input,
+		croutinerecords.SearchRoutineRecordsOperation,
+		"/core/v1/routine-records/graphql/search",
 	)
 	if exception != nil {
 		return nil, sexceptionwriter.ToGraphQLError(exception, ctx)

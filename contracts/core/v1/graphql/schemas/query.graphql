@@ -11,6 +11,7 @@ type Query {
   searchRoutines(input: SearchRoutineInput!): SearchRoutineConnection!
   searchRoutineTags(input: SearchRoutineTagInput!): SearchRoutineTagConnection!
   searchRoutineTasks(input: SearchRoutineTaskInput!): SearchRoutineTaskConnection!
+  searchRoutineRecords(input: SearchRoutineRecordInput!): SearchRoutineRecordConnection!
   searchRoutineTaskRecords(input: SearchRoutineTaskRecordInput!): SearchRoutineTaskRecordConnection!
 }
 

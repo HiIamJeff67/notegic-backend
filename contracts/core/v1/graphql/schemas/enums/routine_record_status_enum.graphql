@@ -1,0 +1,8 @@
+enum RoutineRecordStatus {
+  RoutineRecordStatus_Pending
+  RoutineRecordStatus_Running
+  RoutineRecordStatus_Success
+  RoutineRecordStatus_Failed
+  RoutineRecordStatus_Blocked
+  RoutineRecordStatus_Canceled
+}

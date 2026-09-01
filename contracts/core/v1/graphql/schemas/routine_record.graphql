@@ -1,0 +1,17 @@
+type PrivateRoutineRecord {
+  id: UUID!
+  routineId: UUID!
+  status: RoutineRecordStatus!
+  scheduledAt: Time!
+  actualStartedAt: Time
+  actualEndedAt: Time
+  totalTaskCount: Int!
+  successTaskCount: Int!
+  failedTaskCount: Int!
+  blockedTaskCount: Int!
+  runningTaskCount: Int!
+  waitingTaskCount: Int!
+  snapshot: RawJSON!
+  updatedAt: Time!
+  createdAt: Time!
+}

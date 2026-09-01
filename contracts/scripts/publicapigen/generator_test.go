@@ -26,7 +26,7 @@ func TestFilterPublicEndpointsUsesResourceAllowlist(t *testing.T) {
 		t.Fatalf("filterPublicEndpoints() returned %d endpoints, want 9", len(filtered))
 	}
 	for _, endpoint := range filtered {
-		if endpoint.Tag == "auth" || endpoint.Tag == "users" || endpoint.Tag == "notifications" || endpoint.Tag == "realtime" || endpoint.Tag == "graphql" || endpoint.Tag == "static" {
+		if endpoint.Tag == "auth" || endpoint.Tag == "users" || endpoint.Tag == "notifications" || endpoint.Tag == "realtime" || endpoint.Tag == "graphql" || endpoint.Tag == "static" || endpoint.Tag == "routine-records" {
 			t.Fatalf("filterPublicEndpoints() retained client-only tag %q", endpoint.Tag)
 		}
 	}

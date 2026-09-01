@@ -150,6 +150,16 @@ enum RoutineStatus {
   RoutineStatus_OverDue
 }
 
+# Source: enums/routine_record_status_enum.graphql
+enum RoutineRecordStatus {
+  RoutineRecordStatus_Pending
+  RoutineRecordStatus_Running
+  RoutineRecordStatus_Success
+  RoutineRecordStatus_Failed
+  RoutineRecordStatus_Blocked
+  RoutineRecordStatus_Canceled
+}
+
 # Source: enums/routine_task_purpose_enum.graphql
 enum RoutineTaskPurpose {
   RoutineTaskPurpose_GetSubShelf
@@ -334,6 +344,7 @@ type Query {
   searchRoutines(input: SearchRoutineInput!): SearchRoutineConnection!
   searchRoutineTags(input: SearchRoutineTagInput!): SearchRoutineTagConnection!
   searchRoutineTasks(input: SearchRoutineTaskInput!): SearchRoutineTaskConnection!
+  searchRoutineRecords(input: SearchRoutineRecordInput!): SearchRoutineRecordConnection!
   searchRoutineTaskRecords(input: SearchRoutineTaskRecordInput!): SearchRoutineTaskRecordConnection!
 }
 
@@ -422,6 +433,25 @@ type PrivateRoutineTask {
   priority: Int32!
   maxAttempts: Int32!
   previousRoutineTaskIds: [UUID!]!
+  updatedAt: Time!
+  createdAt: Time!
+}
+
+# Source: routine_record.graphql
+type PrivateRoutineRecord {
+  id: UUID!
+  routineId: UUID!
+  status: RoutineRecordStatus!
+  scheduledAt: Time!
+  actualStartedAt: Time
+  actualEndedAt: Time
+  totalTaskCount: Int!
+  successTaskCount: Int!
+  failedTaskCount: Int!
+  blockedTaskCount: Int!
+  runningTaskCount: Int!
+  waitingTaskCount: Int!
+  snapshot: RawJSON!
   updatedAt: Time!
   createdAt: Time!
 }
@@ -738,6 +768,48 @@ type SearchRoutineTagEdge implements SearchEdge {
 
 type SearchRoutineTagConnection implements SearchConnection {
   searchEdges: [SearchRoutineTagEdge!]!
+  searchPageInfo: SearchPageInfo!
+  totalCount: Int!
+  searchTime: Float!
+}
+
+# Source: search_routine_records.graphql
+# =============== Search SortBy & Input =============== #
+
+enum SearchRoutineRecordSortBy {
+  RELEVANCE
+  STATUS
+  SCHEDULED_AT
+  ACTUAL_STARTED_AT
+  ACTUAL_ENDED_AT
+  LAST_UPDATE
+  CREATED_AT
+}
+
+input SearchRoutineRecordInput {
+  routineIds: [UUID!]!
+  query: String!
+  after: String
+  first: Int = 10
+  sortBy: SearchRoutineRecordSortBy = RELEVANCE
+  sortOrder: SearchSortOrder = DESC
+}
+
+# =============== Search Cursor Fields =============== #
+
+input SearchRoutineRecordCursorFields {
+  id: UUID!
+}
+
+# =============== Search Edge & Connection =============== #
+
+type SearchRoutineRecordEdge implements SearchEdge {
+  encodedSearchCursor: String!
+  node: PrivateRoutineRecord!
+}
+
+type SearchRoutineRecordConnection implements SearchConnection {
+  searchEdges: [SearchRoutineRecordEdge!]!
   searchPageInfo: SearchPageInfo!
   totalCount: Int!
   searchTime: Float!
