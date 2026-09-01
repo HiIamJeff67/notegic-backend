@@ -216,9 +216,6 @@ func (s *BlockService) Apply(
 	requestDto capi.ApplyBlockProjectionRequestDto,
 ) (*capi.ApplyBlockProjectionResponseDto, error) {
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, fmt.Errorf("begin block projection transaction: %w", tx.Error)
-	}
 
 	responseDto, err := s.ApplyWithTransaction(ctx, tx, blockPackId, requestDto)
 	if err != nil {

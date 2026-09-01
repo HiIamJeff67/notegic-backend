@@ -1,4 +1,4 @@
-package repositories
+package repositories_test
 
 import (
 	"context"
@@ -19,6 +19,7 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	repositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	inputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
@@ -79,7 +80,7 @@ func TestAutomationBulkPermissionChecksPostgresIntegration(t *testing.T) {
 				for index, id := range ids {
 					bulkInputs[index] = inputs.BulkCheckSubShelfPermissionInput{Id: id, UserId: userId}
 				}
-				successes, _, exception := NewSubShelfBulkRepositoryWithDB(db, scopes.NewSubShelfScope()).BulkCheckPermissionsAndGetManyByIds(
+				successes, _, exception := repositories.NewBulkSubShelfRepository(db, scopes.NewSubShelfScope()).BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.SubShelfRelation{},
 					[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
@@ -97,7 +98,7 @@ func TestAutomationBulkPermissionChecksPostgresIntegration(t *testing.T) {
 				for index, id := range ids {
 					bulkInputs[index] = inputs.BulkCheckRoutinePermissionInput{Id: id, UserId: userId}
 				}
-				successes, _, exception := NewRoutineBulkRepositoryWithDB(db, scopes.NewRoutineScope()).BulkCheckPermissionsAndGetManyByIds(
+				successes, _, exception := repositories.NewBulkRoutineRepository(db, scopes.NewRoutineScope()).BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.RoutineRelation{},
 					[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
@@ -115,7 +116,7 @@ func TestAutomationBulkPermissionChecksPostgresIntegration(t *testing.T) {
 				for index, id := range ids {
 					bulkInputs[index] = inputs.BulkCheckBlockPackPermissionInput{Id: id, UserId: userId}
 				}
-				successes, _, exception := NewBlockPackBulkRepositoryWithDB(db, scopes.NewBlockPackScope()).BulkCheckPermissionsAndGetManyByIds(
+				successes, _, exception := repositories.NewBulkBlockPackRepository(db, scopes.NewBlockPackScope()).BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.BlockPackRelation{},
 					[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
@@ -133,7 +134,7 @@ func TestAutomationBulkPermissionChecksPostgresIntegration(t *testing.T) {
 				for index, id := range ids {
 					bulkInputs[index] = inputs.BulkCheckMaterialPermissionInput{Id: id, UserId: userId}
 				}
-				successes, _, exception := NewMaterialBulkRepositoryWithDB(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
+				successes, _, exception := repositories.NewBulkMaterialRepository(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.MaterialRelation{},
 					[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
@@ -214,7 +215,7 @@ func TestAutomationBulkPermissionChecksAreConcurrentSafe(t *testing.T) {
 			for index, id := range materialIds {
 				bulkInputs[index] = inputs.BulkCheckMaterialPermissionInput{Id: id, UserId: userId}
 			}
-			successes, _, exception := NewMaterialBulkRepositoryWithDB(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
+			successes, _, exception := repositories.NewBulkMaterialRepository(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
 				bulkInputs,
 				[]schemas.MaterialRelation{},
 				[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
@@ -250,34 +251,28 @@ func TestAutomationBulkPermissionChecksRespectPostgresRowLocks(t *testing.T) {
 
 	bulkInputs := []inputs.BulkCheckMaterialPermissionInput{{Id: materialIds[0], UserId: userId}}
 	firstTransaction := db.Begin()
-	if firstTransaction.Error != nil {
-		t.Fatalf("begin first lock transaction: %v", firstTransaction.Error)
-	}
 	defer firstTransaction.Rollback()
 
-	if _, _, exception := NewMaterialBulkRepositoryWithDB(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
+	if _, _, exception := repositories.NewBulkMaterialRepository(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
 		bulkInputs,
 		[]schemas.MaterialRelation{},
 		[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
-		WithTransactionDB(firstTransaction),
-		WithLockingStrength(LockingStrengthUpdate),
+		repositories.WithTransactionDB(firstTransaction),
+		repositories.WithLockingStrength(repositories.LockingStrengthUpdate),
 	); exception != nil {
 		t.Fatalf("acquire first row lock: %v", exception)
 	}
 
 	secondTransaction := db.Begin()
-	if secondTransaction.Error != nil {
-		t.Fatalf("begin second lock transaction: %v", secondTransaction.Error)
-	}
 	defer secondTransaction.Rollback()
 	secondResult := make(chan error, 1)
 	go func() {
-		_, _, exception := NewMaterialBulkRepositoryWithDB(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
+		_, _, exception := repositories.NewBulkMaterialRepository(db, scopes.NewMaterialScope()).BulkCheckPermissionsAndGetManyByIds(
 			bulkInputs,
 			[]schemas.MaterialRelation{},
 			[]cenums.AccessControlPermission{cenums.AccessControlPermission_Read},
-			WithTransactionDB(secondTransaction),
-			WithLockingStrength(LockingStrengthUpdate),
+			repositories.WithTransactionDB(secondTransaction),
+			repositories.WithLockingStrength(repositories.LockingStrengthUpdate),
 		)
 		if exception != nil {
 			secondResult <- exception

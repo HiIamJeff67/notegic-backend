@@ -31,6 +31,7 @@ var DatabaseMigrationManifest = spostgres.MigrationManifest{
 		new(cenums.UserSettingStartSurface).Name():    cenums.AllUserSettingStartSurfaceStrings,
 		new(cenums.MaterialContentType).Name():        cenums.AllMaterialContentTypeStrings,
 		new(cenums.RoutinePeriod).Name():              cenums.AllRoutinePeriodStrings,
+		new(cenums.RoutinePhase).Name():               cenums.AllRoutinePhaseStrings,
 		new(cenums.RoutineRecordStatus).Name():        cenums.AllRoutineRecordStatusStrings,
 		new(cenums.RoutineStatus).Name():              cenums.AllRoutineStatusStrings,
 		new(cenums.RoutineTaskPurpose).Name():         cenums.AllRoutineTaskPurposeStrings,

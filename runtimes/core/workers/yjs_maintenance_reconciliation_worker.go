@@ -102,9 +102,6 @@ func (w *YjsMaintenanceReconciliationWorker) Reconcile(ctx context.Context) erro
 	}
 
 	tx := w.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("begin Yjs maintenance reconciliation transaction: %w", tx.Error)
-	}
 	blockPackIds := make([]uuid.UUID, len(documents))
 	for index, document := range documents {
 		blockPackIds[index] = document.BlockPackId

@@ -25,6 +25,13 @@ Before committing, the pre-commit hook verifies that today's devlog is staged an
 The recent snapshot index is maintained in the generated Development log
 section at the bottom of the repository [README](../../README.md).
 
+## Commit policy
+
+Never create a commit whose only purpose is to update a devlog. Run `make devlog`
+while preparing a meaningful code or documentation change, then stage the
+generated devlog together with that change in the same commit. If there is no
+meaningful repository change, do not create a devlog-only commit.
+
 Recommended workflow:
 
 ```bash

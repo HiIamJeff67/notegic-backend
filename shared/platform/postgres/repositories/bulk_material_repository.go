@@ -20,44 +20,133 @@ import (
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
-type MaterialBulkRepositoryInterface interface {
+type BulkMaterialRepositoryInterface interface {
 	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckMaterialPermissionInput, preloads []schemas.MaterialRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Material, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkDeleteMany(inputs []inputs.BulkDeleteMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
-type MaterialBulkRepository struct {
+type BulkMaterialRepository struct {
 	db            *gorm.DB
 	materialScope scopes.MaterialScopeInterface
 	exceptions    exceptions.MaterialException
 }
 
-func NewMaterialBulkRepository(
-	materialScope scopes.MaterialScopeInterface,
-	repositoryExceptions ...exceptions.MaterialException,
-) *MaterialBulkRepository {
-	return NewMaterialBulkRepositoryWithDB(nil, materialScope, repositoryExceptions...)
-}
-
-func NewMaterialBulkRepositoryWithDB(
+func NewBulkMaterialRepository(
 	db *gorm.DB,
 	materialScope scopes.MaterialScopeInterface,
 	repositoryExceptions ...exceptions.MaterialException,
-) *MaterialBulkRepository {
+) *BulkMaterialRepository {
 	repositoryException := exceptions.NewMaterialException()
 	if len(repositoryExceptions) > 0 {
 		repositoryException = repositoryExceptions[0]
 	}
 
-	return &MaterialBulkRepository{
+	return &BulkMaterialRepository{
 		db:            db,
 		materialScope: materialScope,
 		exceptions:    repositoryException,
 	}
 }
 
-func (r *MaterialBulkRepository) BulkCreateMany(
+func (r *BulkMaterialRepository) BulkCheckPermissionsAndGetManyByIds(
+	inputs []inputs.BulkCheckMaterialPermissionInput,
+	preloads []schemas.MaterialRelation,
+	allowedPermissions []cenums.AccessControlPermission,
+	opts ...RepositoryOptions,
+) ([]bool, []schemas.Material, *cexceptions.Exception) {
+	if len(inputs) == 0 {
+		return []bool{}, []schemas.Material{}, nil
+	}
+
+	parsedOptions := ParseRepositoryOptions(
+		append([]RepositoryOptions{
+			WithDB(r.db),
+		}, opts...)...,
+	)
+
+	successes := make([]bool, len(inputs))
+	ids := make([]uuid.UUID, 0, len(inputs))
+	userIds := make([]uuid.UUID, 0, len(inputs))
+	for _, in := range inputs {
+		ids = append(ids, in.Id)
+		userIds = append(userIds, in.UserId)
+	}
+
+	validIdSet := make(map[uuid.UUID]bool, len(ids))
+	validTargetByUserId := make(map[[2]uuid.UUID]bool)
+	if allowedPermissions != nil {
+		var validTargets []struct {
+			Id     uuid.UUID `gorm:"column:id"`
+			UserId uuid.UUID `gorm:"column:user_id"`
+		}
+		result := parsedOptions.DB.Model(&schemas.Material{}).
+			Select(`"MaterialTable".id, uts.user_id`).
+			Joins(`INNER JOIN "SubShelfTable" AS ss ON ss.id = "MaterialTable".parent_sub_shelf_id`).
+			Joins(`INNER JOIN "UsersToShelvesTable" AS uts ON uts.root_shelf_id = ss.root_shelf_id`).
+			Where(`"MaterialTable".id IN ? AND uts.user_id IN ? AND uts.permission IN ?`, ids, userIds, allowedPermissions).
+			Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
+			Scan(&validTargets)
+		if result.Error != nil {
+			return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
+		}
+
+		for _, validTarget := range validTargets {
+			validTargetByUserId[[2]uuid.UUID{validTarget.Id, validTarget.UserId}] = true
+			validIdSet[validTarget.Id] = true
+		}
+	} else {
+		var validIds []uuid.UUID
+		result := parsedOptions.DB.Model(&schemas.Material{}).
+			Select(`"MaterialTable".id`).
+			Where(`"MaterialTable".id IN ?`, ids).
+			Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
+			Scan(&validIds)
+		if result.Error != nil {
+			return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
+		}
+
+		for _, validId := range validIds {
+			validIdSet[validId] = true
+		}
+	}
+
+	validIds := make([]uuid.UUID, 0, len(validIdSet))
+	for validId := range validIdSet {
+		validIds = append(validIds, validId)
+	}
+	if len(validIds) == 0 {
+		return successes, []schemas.Material{}, nil
+	}
+
+	var materials []schemas.Material
+	result := parsedOptions.DB.Model(&schemas.Material{}).
+		Where(`"MaterialTable".id IN ?`, validIds).
+		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
+		Scopes(r.materialScope.IncludePreloads(preloads)).
+		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
+		Find(&materials)
+	if result.Error != nil {
+		return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
+	}
+
+	foundIdSet := make(map[uuid.UUID]bool, len(materials))
+	for _, material := range materials {
+		foundIdSet[material.Id] = true
+	}
+	for index, in := range inputs {
+		if validIdSet[in.Id] &&
+			foundIdSet[in.Id] &&
+			(allowedPermissions == nil || validTargetByUserId[[2]uuid.UUID{in.Id, in.UserId}]) {
+			successes[index] = true
+		}
+	}
+
+	return successes, materials, nil
+}
+
+func (r *BulkMaterialRepository) BulkCreateMany(
 	bulkInputs []inputs.BulkCreateMaterialInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -166,7 +255,7 @@ func (r *MaterialBulkRepository) BulkCreateMany(
 	return successes, nil
 }
 
-func (r *MaterialBulkRepository) BulkUpdateMany(
+func (r *BulkMaterialRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateMaterialInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -319,103 +408,7 @@ func (r *MaterialBulkRepository) BulkUpdateMany(
 	return successes, nil
 }
 
-func (r *MaterialBulkRepository) BulkCheckPermissionsAndGetManyByIds(
-	inputs []inputs.BulkCheckMaterialPermissionInput,
-	preloads []schemas.MaterialRelation,
-	allowedPermissions []cenums.AccessControlPermission,
-	opts ...RepositoryOptions,
-) ([]bool, []schemas.Material, *cexceptions.Exception) {
-	if len(inputs) == 0 {
-		return []bool{}, []schemas.Material{}, nil
-	}
-
-	parsedOptions := ParseRepositoryOptions(
-		append([]RepositoryOptions{
-			WithDB(r.db),
-		}, opts...)...,
-	)
-
-	successes := make([]bool, len(inputs))
-	ids := make([]uuid.UUID, 0, len(inputs))
-	userIds := make([]uuid.UUID, 0, len(inputs))
-	for _, in := range inputs {
-		ids = append(ids, in.Id)
-		userIds = append(userIds, in.UserId)
-	}
-
-	validIdSet := make(map[uuid.UUID]bool, len(ids))
-	validTargetByUserId := make(map[[2]uuid.UUID]bool)
-	if allowedPermissions != nil {
-		var validTargets []struct {
-			Id     uuid.UUID `gorm:"column:id"`
-			UserId uuid.UUID `gorm:"column:user_id"`
-		}
-		result := parsedOptions.DB.Model(&schemas.Material{}).
-			Select(`"MaterialTable".id, uts.user_id`).
-			Joins(`INNER JOIN "SubShelfTable" AS ss ON ss.id = "MaterialTable".parent_sub_shelf_id`).
-			Joins(`INNER JOIN "UsersToShelvesTable" AS uts ON uts.root_shelf_id = ss.root_shelf_id`).
-			Where(`"MaterialTable".id IN ? AND uts.user_id IN ? AND uts.permission IN ?`, ids, userIds, allowedPermissions).
-			Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
-			Scan(&validTargets)
-		if result.Error != nil {
-			return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
-		}
-
-		for _, validTarget := range validTargets {
-			validTargetByUserId[[2]uuid.UUID{validTarget.Id, validTarget.UserId}] = true
-			validIdSet[validTarget.Id] = true
-		}
-	} else {
-		var validIds []uuid.UUID
-		result := parsedOptions.DB.Model(&schemas.Material{}).
-			Select(`"MaterialTable".id`).
-			Where(`"MaterialTable".id IN ?`, ids).
-			Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
-			Scan(&validIds)
-		if result.Error != nil {
-			return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
-		}
-
-		for _, validId := range validIds {
-			validIdSet[validId] = true
-		}
-	}
-
-	validIds := make([]uuid.UUID, 0, len(validIdSet))
-	for validId := range validIdSet {
-		validIds = append(validIds, validId)
-	}
-	if len(validIds) == 0 {
-		return successes, []schemas.Material{}, nil
-	}
-
-	var materials []schemas.Material
-	result := parsedOptions.DB.Model(&schemas.Material{}).
-		Where(`"MaterialTable".id IN ?`, validIds).
-		Scopes(r.materialScope.FilterOnlyDeleted(parsedOptions.OnlyDeleted)).
-		Scopes(r.materialScope.IncludePreloads(preloads)).
-		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
-		Find(&materials)
-	if result.Error != nil {
-		return nil, nil, r.exceptions.NotFound().WithOrigin(result.Error)
-	}
-
-	foundIdSet := make(map[uuid.UUID]bool, len(materials))
-	for _, material := range materials {
-		foundIdSet[material.Id] = true
-	}
-	for index, in := range inputs {
-		if validIdSet[in.Id] &&
-			foundIdSet[in.Id] &&
-			(allowedPermissions == nil || validTargetByUserId[[2]uuid.UUID{in.Id, in.UserId}]) {
-			successes[index] = true
-		}
-	}
-
-	return successes, materials, nil
-}
-
-func (r *MaterialBulkRepository) BulkDeleteMany(
+func (r *BulkMaterialRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteMaterialInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {

@@ -1,8 +1,9 @@
-package postgres
+package postgres_test
 
 import (
 	"database/sql"
 	"os"
+	"strings"
 	"testing"
 
 	_ "github.com/lib/pq"
@@ -10,6 +11,7 @@ import (
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	logs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 )
 
 type migrationPermissionProbe struct {
@@ -28,16 +30,16 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 	admin := integrationPostgresConfig(t, "POSTGRES_PERMISSION_ADMIN")
 	core := integrationPostgresConfig(t, "POSTGRES_PERMISSION_CORE")
 	durableJob := integrationPostgresConfig(t, "POSTGRES_PERMISSION_DURABLEJOB")
-	adminDB, err := Connect(admin)
+	adminDB, err := platformpostgres.Connect(admin)
 	if err != nil {
 		t.Fatalf("connect admin database: %v", err)
 	}
-	defer Disconnect(adminDB)
+	defer platformpostgres.Disconnect(adminDB)
 
-	if err := EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, core.Password); err != nil {
+	if err := platformpostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, core.Password); err != nil {
 		t.Fatalf("ensure Core role: %v", err)
 	}
-	if err := EnsureRuntimeRole(adminDB, ctypes.Runtime_DurableJob, durableJob.Password); err != nil {
+	if err := platformpostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_DurableJob, durableJob.Password); err != nil {
 		t.Fatalf("ensure DurableJob role: %v", err)
 	}
 	const parentRoleName = "permission_integration_parent"
@@ -62,7 +64,7 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 	if err := adminDB.Exec("GRANT " + quoteIdentifier(ctypes.Runtime_Core.RoleName()) + " TO " + quoteIdentifier(memberRoleName)).Error; err != nil {
 		t.Fatalf("grant Core role to membership probe role: %v", err)
 	}
-	if err := EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, core.Password); err != nil {
+	if err := platformpostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Core, core.Password); err != nil {
 		t.Fatalf("re-harden Core role: %v", err)
 	}
 
@@ -157,7 +159,7 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 		t.Fatalf("clean up migration probe table: %v", err)
 	}
 	defer adminDB.Exec("DROP TABLE IF EXISTS permission_migration_probe")
-	if err := Migrate(adminDB, ctypes.Runtime_Core, MigrationManifest{
+	if err := platformpostgres.Migrate(adminDB, ctypes.Runtime_Core, platformpostgres.MigrationManifest{
 		Runtime: ctypes.Runtime_Core,
 		Tables:  []any{&migrationPermissionProbe{}},
 	}); err != nil {
@@ -175,7 +177,7 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 	if migrationProbeOwner != ctypes.Runtime_Core.RoleName() {
 		t.Fatalf("migration probe owner = %q, want %q", migrationProbeOwner, ctypes.Runtime_Core.RoleName())
 	}
-	if err := Migrate(adminDB, ctypes.Runtime_Core, MigrationManifest{
+	if err := platformpostgres.Migrate(adminDB, ctypes.Runtime_Core, platformpostgres.MigrationManifest{
 		Runtime: ctypes.Runtime_Core,
 		Views:   []string{"SELECT FROM"},
 	}); err == nil {
@@ -205,57 +207,57 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 	}
 	defer adminDB.Exec("DROP FUNCTION IF EXISTS " + quoteIdentifier(functionName) + "()")
 
-	manifest := PermissionManifest{
+	manifest := platformpostgres.PermissionManifest{
 		Runtime: ctypes.Runtime_Core,
-		Objects: []PermissionObject{
+		Objects: []platformpostgres.PermissionObject{
 			{
-				Type: PermissionObjectType_Database,
-				Grants: []PermissionGrant{
-					{Runtime: ctypes.Runtime_Core, Privileges: []PermissionPrivilege{PermissionPrivilege_Connect}},
-					{Runtime: ctypes.Runtime_DurableJob, Privileges: []PermissionPrivilege{PermissionPrivilege_Connect}},
+				Type: platformpostgres.PermissionObjectType_Database,
+				Grants: []platformpostgres.PermissionGrant{
+					{Runtime: ctypes.Runtime_Core, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Connect}},
+					{Runtime: ctypes.Runtime_DurableJob, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Connect}},
 				},
 			},
 			{
-				Type: PermissionObjectType_Schema,
+				Type: platformpostgres.PermissionObjectType_Schema,
 				Name: "public",
-				Grants: []PermissionGrant{
-					{Runtime: ctypes.Runtime_Core, Privileges: []PermissionPrivilege{PermissionPrivilege_Usage}},
-					{Runtime: ctypes.Runtime_DurableJob, Privileges: []PermissionPrivilege{PermissionPrivilege_Usage}},
+				Grants: []platformpostgres.PermissionGrant{
+					{Runtime: ctypes.Runtime_Core, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Usage}},
+					{Runtime: ctypes.Runtime_DurableJob, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Usage}},
 				},
 			},
 			{
-				Type: PermissionObjectType_DefaultFunction,
+				Type: platformpostgres.PermissionObjectType_DefaultFunction,
 				Name: "public",
 			},
 			{
-				Type: PermissionObjectType_Function,
+				Type: platformpostgres.PermissionObjectType_Function,
 				Name: functionName,
 			},
 			{
-				Type: PermissionObjectType_Table,
+				Type: platformpostgres.PermissionObjectType_Table,
 				Name: tableName,
-				Grants: []PermissionGrant{
+				Grants: []platformpostgres.PermissionGrant{
 					{
 						Runtime: ctypes.Runtime_Core,
-						Privileges: []PermissionPrivilege{
-							PermissionPrivilege_Select,
-							PermissionPrivilege_Insert,
-							PermissionPrivilege_Update,
-							PermissionPrivilege_Delete,
+						Privileges: []platformpostgres.PermissionPrivilege{
+							platformpostgres.PermissionPrivilege_Select,
+							platformpostgres.PermissionPrivilege_Insert,
+							platformpostgres.PermissionPrivilege_Update,
+							platformpostgres.PermissionPrivilege_Delete,
 						},
 					},
 					{
 						Runtime:    ctypes.Runtime_DurableJob,
-						Privileges: []PermissionPrivilege{PermissionPrivilege_Select},
+						Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Select},
 					},
 				},
 			},
 		},
 	}
-	if err := ApplyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
+	if err := platformpostgres.ApplyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
 		t.Fatalf("apply permission manifest: %v", err)
 	}
-	if err := VerifyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
+	if err := platformpostgres.VerifyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
 		t.Fatalf("verify permission manifest: %v", err)
 	}
 	if err := adminDB.Exec("GRANT INSERT ON TABLE " + quoteIdentifier(tableName) + " TO " + quoteIdentifier(ctypes.Runtime_DurableJob.RoleName())).Error; err != nil {
@@ -270,10 +272,10 @@ func TestRuntimePermissionsIntegration(t *testing.T) {
 	if err := adminDB.Exec("ALTER DEFAULT PRIVILEGES FOR ROLE " + quoteIdentifier(ctypes.Runtime_Core.RoleName()) + " IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO PUBLIC").Error; err != nil {
 		t.Fatalf("introduce stale PUBLIC function default grant: %v", err)
 	}
-	if err := ApplyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
+	if err := platformpostgres.ApplyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
 		t.Fatalf("reconcile stale permissions: %v", err)
 	}
-	if err := VerifyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
+	if err := platformpostgres.VerifyPermissions(adminDB, ctypes.Runtime_Core, manifest); err != nil {
 		t.Fatalf("verify reconciled permissions: %v", err)
 	}
 
@@ -363,13 +365,13 @@ func TestNotificationRuntimePermissionsIntegration(t *testing.T) {
 		t.Fatal("notification permission integration database must differ from the main database")
 	}
 
-	adminDB, err := Connect(notificationAdmin)
+	adminDB, err := platformpostgres.Connect(notificationAdmin)
 	if err != nil {
 		t.Fatalf("connect Notification admin database: %v", err)
 	}
-	defer Disconnect(adminDB)
+	defer platformpostgres.Disconnect(adminDB)
 
-	if err := EnsureRuntimeRole(adminDB, ctypes.Runtime_Notification, notification.Password); err != nil {
+	if err := platformpostgres.EnsureRuntimeRole(adminDB, ctypes.Runtime_Notification, notification.Password); err != nil {
 		t.Fatalf("ensure Notification role: %v", err)
 	}
 
@@ -382,43 +384,43 @@ func TestNotificationRuntimePermissionsIntegration(t *testing.T) {
 		t.Fatalf("create Notification probe table: %v", err)
 	}
 
-	manifest := PermissionManifest{
+	manifest := platformpostgres.PermissionManifest{
 		Runtime: ctypes.Runtime_Notification,
-		Objects: []PermissionObject{
+		Objects: []platformpostgres.PermissionObject{
 			{
-				Type: PermissionObjectType_Database,
-				Grants: []PermissionGrant{
-					{Runtime: ctypes.Runtime_Notification, Privileges: []PermissionPrivilege{PermissionPrivilege_Connect}},
+				Type: platformpostgres.PermissionObjectType_Database,
+				Grants: []platformpostgres.PermissionGrant{
+					{Runtime: ctypes.Runtime_Notification, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Connect}},
 				},
 			},
 			{
-				Type: PermissionObjectType_Schema,
+				Type: platformpostgres.PermissionObjectType_Schema,
 				Name: "public",
-				Grants: []PermissionGrant{
-					{Runtime: ctypes.Runtime_Notification, Privileges: []PermissionPrivilege{PermissionPrivilege_Usage}},
+				Grants: []platformpostgres.PermissionGrant{
+					{Runtime: ctypes.Runtime_Notification, Privileges: []platformpostgres.PermissionPrivilege{platformpostgres.PermissionPrivilege_Usage}},
 				},
 			},
 			{
-				Type: PermissionObjectType_Table,
+				Type: platformpostgres.PermissionObjectType_Table,
 				Name: tableName,
-				Grants: []PermissionGrant{
+				Grants: []platformpostgres.PermissionGrant{
 					{
 						Runtime: ctypes.Runtime_Notification,
-						Privileges: []PermissionPrivilege{
-							PermissionPrivilege_Select,
-							PermissionPrivilege_Insert,
-							PermissionPrivilege_Update,
-							PermissionPrivilege_Delete,
+						Privileges: []platformpostgres.PermissionPrivilege{
+							platformpostgres.PermissionPrivilege_Select,
+							platformpostgres.PermissionPrivilege_Insert,
+							platformpostgres.PermissionPrivilege_Update,
+							platformpostgres.PermissionPrivilege_Delete,
 						},
 					},
 				},
 			},
 		},
 	}
-	if err := ApplyPermissions(adminDB, ctypes.Runtime_Notification, manifest); err != nil {
+	if err := platformpostgres.ApplyPermissions(adminDB, ctypes.Runtime_Notification, manifest); err != nil {
 		t.Fatalf("apply Notification permission manifest: %v", err)
 	}
-	if err := VerifyPermissions(adminDB, ctypes.Runtime_Notification, manifest); err != nil {
+	if err := platformpostgres.VerifyPermissions(adminDB, ctypes.Runtime_Notification, manifest); err != nil {
 		t.Fatalf("verify Notification permission manifest: %v", err)
 	}
 
@@ -432,10 +434,10 @@ func TestNotificationRuntimePermissionsIntegration(t *testing.T) {
 	}
 }
 
-func integrationPostgresConfig(t *testing.T, prefix string) Config {
+func integrationPostgresConfig(t *testing.T, prefix string) platformpostgres.Config {
 	t.Helper()
 
-	config, err := LoadConfig(
+	config, err := platformpostgres.LoadConfig(
 		os.Getenv(prefix+"_HOST"),
 		os.Getenv(prefix+"_USER"),
 		os.Getenv(prefix+"_PASSWORD"),
@@ -448,10 +450,10 @@ func integrationPostgresConfig(t *testing.T, prefix string) Config {
 	return config
 }
 
-func integrationSQLDB(t *testing.T, config Config) *sql.DB {
+func integrationSQLDB(t *testing.T, config platformpostgres.Config) *sql.DB {
 	t.Helper()
 
-	db, err := sql.Open("postgres", ConnectionString(config))
+	db, err := sql.Open("postgres", platformpostgres.ConnectionString(config))
 	if err != nil {
 		t.Fatalf("open %s database: %v", config.User, err)
 	}
@@ -460,4 +462,12 @@ func integrationSQLDB(t *testing.T, config Config) *sql.DB {
 		t.Fatalf("ping %s database: %v", config.User, err)
 	}
 	return db
+}
+
+func quoteIdentifier(value string) string {
+	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
+}
+
+func quoteLiteral(value string) string {
+	return `'` + strings.ReplaceAll(value, `'`, `''`) + `'`
 }

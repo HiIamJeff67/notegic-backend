@@ -245,6 +245,15 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 				http.StatusBadRequest,
 			).WithOrigin(err)
 		}
+		if err := parsedPayload.ParentSubShelfId.Validate(); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
 		return nil
 	case cenums.RoutineTaskPurpose_UpdateMaterial:
 		var parsedPayload croutinetasktypes.UpdateMaterialRoutineTaskPayload
@@ -320,6 +329,26 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 				http.StatusBadRequest,
 			).WithOrigin(err)
 		}
+		if err := parsedPayload.FakeId.Validate(); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if parsedPayload.PrevSubShelfId != nil {
+			if err := parsedPayload.PrevSubShelfId.Validate(); err != nil {
+				return cexceptions.New(
+					"InvalidRoutineTaskPayload",
+					"RoutineTask",
+					"Parse",
+					"Routine task payload is invalid",
+					http.StatusBadRequest,
+				).WithOrigin(err)
+			}
+		}
 		return nil
 
 	case cenums.RoutineTaskPurpose_UpdateSubShelf:
@@ -356,6 +385,15 @@ func (s *RoutineTaskPayloadParser) ValidateRoutineTaskPayload(
 			).WithOrigin(err)
 		}
 		if err := s.validator.Struct(&parsedPayload); err != nil {
+			return cexceptions.New(
+				"InvalidRoutineTaskPayload",
+				"RoutineTask",
+				"Parse",
+				"Routine task payload is invalid",
+				http.StatusBadRequest,
+			).WithOrigin(err)
+		}
+		if err := parsedPayload.TargetSubShelfId.Validate(); err != nil {
 			return cexceptions.New(
 				"InvalidRoutineTaskPayload",
 				"RoutineTask",

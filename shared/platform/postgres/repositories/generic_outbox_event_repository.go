@@ -192,9 +192,6 @@ func (r *GenericOutboxEventRepository) ClaimAvailable(
 	now := time.Now()
 	expiredAt := now.Add(-claimTimeout)
 	tx := parsedOptions.DB.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New("TransactionBeginFailed", "Outbox", "Claim", "Failed to begin the outbox claim transaction", http.StatusInternalServerError, true).WithOrigin(tx.Error)
-	}
 
 	var events []schemas.OutboxEvent
 	result := tx.

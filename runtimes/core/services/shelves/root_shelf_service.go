@@ -11,7 +11,6 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
@@ -108,16 +107,6 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 		return nil, exception
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"SaveMyRootShelfPermission",
-			"Failed to begin the root shelf permission transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	rootShelf, actorPermission, exception := s.rootShelfRepository.CheckPermissionAndGetOneById(
 		rootShelfId,
@@ -778,16 +767,6 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"DeleteMyRootShelvesByIds",
-			"Failed to begin the root shelf transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		requestDto.Body.RootShelfIds,
 		srepositories.WithTransactionDB(tx),
@@ -1024,16 +1003,6 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"Manage",
-			"Failed to begin the root shelf transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	rootShelf, actorPermission, exception := s.rootShelfRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.RootShelfId,
@@ -1234,16 +1203,6 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 		return nil, exception
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"TransferMyRootShelfOwnership",
-			"Failed to begin the root shelf ownership transfer transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	rootShelf, permission, exception := s.rootShelfRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.RootShelfId,
 		actorUserId,
@@ -1323,9 +1282,10 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 		)
 	}
 
+	lockingStrength := srepositories.LockingStrengthUpdate
 	var accounts []sschemas.UserAccount
 	result := tx.
-		Clauses(clause.Locking{Strength: srepositories.LockingStrengthUpdate}).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("user_id IN ?", []uuid.UUID{actorUserId, targetUser.Id}).
 		Order("user_id").
 		Find(&accounts)
@@ -1681,16 +1641,6 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"Manage",
-			"Failed to begin the root shelf transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	rootShelf, actorPermission, exception := s.rootShelfRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.RootShelfId,
@@ -1871,16 +1821,6 @@ func (s *RootShelfService) LeaveMyRootShelf(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"LeaveMyRootShelf",
-			"Failed to begin the root shelf leave transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		[]uuid.UUID{requestDto.Param.RootShelfId},
 		srepositories.WithTransactionDB(tx),
@@ -2003,16 +1943,6 @@ func (s *RootShelfService) LeaveMyRootShelves(
 		rootShelfIds[index] = rootShelfRequestDto.RootShelfId
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"TransactionBeginFailed",
-			"RootShelf",
-			"LeaveMyRootShelves",
-			"Failed to begin the root shelf leave transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	blockPacks, exception := s.blockPackRepository.GetManyByRootShelfIds(
 		rootShelfIds,
 		srepositories.WithTransactionDB(tx),

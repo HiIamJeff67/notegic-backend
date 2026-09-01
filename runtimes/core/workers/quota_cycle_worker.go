@@ -74,9 +74,6 @@ func (w *QuotaCycleWorker) Reconcile(ctx context.Context) error {
 
 	now := time.Now().UTC()
 	tx := w.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("begin user quota cycle reconciliation transaction: %w", tx.Error)
-	}
 
 	if exception := w.userQuotaRepository.InitializeMissing(
 		ctx,

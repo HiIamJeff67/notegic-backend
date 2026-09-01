@@ -464,9 +464,6 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, apiexceptions.NewBlockPackException().FailedToUpdate().WithOrigin(tx.Error)
-	}
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
 	if exception != nil {
 		tx.Rollback()
@@ -522,9 +519,6 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, apiexceptions.NewBlockPackException().FailedToUpdate().WithOrigin(tx.Error)
-	}
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
 	if exception != nil {
 		tx.Rollback()
@@ -598,16 +592,6 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"BlockPack",
-			"MoveMyBlockPackByParentSubShelfId",
-			"Failed to begin the block pack transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	_, exception = s.blockPackRepository.UpdateOneById(
 		requestDto.Body.BlockPackId,
 		actorUserId,
@@ -701,16 +685,6 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		}
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"BlockPack",
-			"MoveMyBlockPacksByParentSubShelfId",
-			"Failed to begin the block pack transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	exception = s.blockPackRepository.UpdateManyByIds(
 		actorUserId,
 		input,
@@ -801,16 +775,6 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"BlockPack",
-			"MoveMyBlockPacksByParentSubShelfIds",
-			"Failed to begin the block pack transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	if exception = s.blockPackRepository.UpdateManyByIds(
 		actorUserId,
 		input,
@@ -960,16 +924,6 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"BlockPack",
-			"DeleteMyBlockPackById",
-			"Failed to begin the block pack transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	if exception = s.blockPackRepository.SoftDeleteOneById(
 		requestDto.Param.BlockPackId,
 		actorUserId,
@@ -1045,16 +999,6 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"BlockPack",
-			"DeleteMyBlockPacksByIds",
-			"Failed to begin the block pack transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	if exception = s.blockPackRepository.SoftDeleteManyByIds(
 		requestDto.Body.BlockPackIds,
 		actorUserId,

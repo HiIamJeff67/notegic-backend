@@ -10,7 +10,6 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
@@ -113,16 +112,6 @@ func (s *StationService) saveMyStationPermission(
 		return nil, exception
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	station, actorPermission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		stationId,
 		actorUserId,
@@ -1249,16 +1238,6 @@ func (s *StationService) UpsertMyStationPermissions(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	station, actorPermission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.StationId,
@@ -1465,16 +1444,6 @@ func (s *StationService) TransferMyStationOwnership(
 		return nil, exception
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	station, permission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.StationId,
 		actorUserId,
@@ -1554,9 +1523,10 @@ func (s *StationService) TransferMyStationOwnership(
 		)
 	}
 
+	lockingStrength := srepositories.LockingStrengthUpdate
 	var accounts []sschemas.UserAccount
 	result := tx.
-		Clauses(clause.Locking{Strength: srepositories.LockingStrengthUpdate}).
+		Scopes(sscopes.Locking(&lockingStrength)).
 		Where("user_id IN ?", []uuid.UUID{actorUserId, targetUser.Id}).
 		Order("user_id").
 		Find(&accounts)
@@ -1668,16 +1638,6 @@ func (s *StationService) DeleteMyStationPermission(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	station, actorPermission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.StationId,
@@ -1805,16 +1765,6 @@ func (s *StationService) DeleteMyStationPermissions(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	station, actorPermission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.StationId,
@@ -1955,16 +1905,6 @@ func (s *StationService) LeaveMyStation(
 		return exception
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	station, permission, exception := s.stationRepository.CheckPermissionAndGetOneById(
 		requestDto.Param.StationId,
 		actorUserId,
@@ -2042,16 +1982,6 @@ func (s *StationService) LeaveMyStations(
 		stationIds[index] = stationRequestDto.StationId
 	}
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"TransactionBeginFailed",
-			"Station",
-			"Manage",
-			"Failed to begin the station transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	relations, exception := s.usersToStationsRepository.GetManyByStationIdsAndUserId(
 		stationIds,
 		actorUserId,

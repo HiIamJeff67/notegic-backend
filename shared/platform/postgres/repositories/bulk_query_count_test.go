@@ -58,7 +58,7 @@ func TestAutomationBulkPermissionChecksDoNotScaleQueriesWithInputSize(t *testing
 						UserId: uuid.New(),
 					}
 				}
-				repository := NewSubShelfBulkRepositoryWithDB(db, scopes.NewSubShelfScope())
+				repository := NewBulkSubShelfRepository(db, scopes.NewSubShelfScope())
 				_, _, _ = repository.BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.SubShelfRelation{},
@@ -76,7 +76,7 @@ func TestAutomationBulkPermissionChecksDoNotScaleQueriesWithInputSize(t *testing
 						UserId: uuid.New(),
 					}
 				}
-				repository := NewRoutineBulkRepositoryWithDB(db, scopes.NewRoutineScope())
+				repository := NewBulkRoutineRepository(db, scopes.NewRoutineScope())
 				_, _, _ = repository.BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.RoutineRelation{},
@@ -94,7 +94,7 @@ func TestAutomationBulkPermissionChecksDoNotScaleQueriesWithInputSize(t *testing
 						UserId: uuid.New(),
 					}
 				}
-				repository := NewBlockPackBulkRepositoryWithDB(db, scopes.NewBlockPackScope())
+				repository := NewBulkBlockPackRepository(db, scopes.NewBlockPackScope())
 				_, _, _ = repository.BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.BlockPackRelation{},
@@ -112,7 +112,7 @@ func TestAutomationBulkPermissionChecksDoNotScaleQueriesWithInputSize(t *testing
 						UserId: uuid.New(),
 					}
 				}
-				repository := NewMaterialBulkRepositoryWithDB(db, scopes.NewMaterialScope())
+				repository := NewBulkMaterialRepository(db, scopes.NewMaterialScope())
 				_, _, _ = repository.BulkCheckPermissionsAndGetManyByIds(
 					bulkInputs,
 					[]schemas.MaterialRelation{},

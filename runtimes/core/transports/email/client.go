@@ -90,16 +90,6 @@ func enqueue[D any](
 		Data:          requestDto,
 	}
 	tx := c.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return cexceptions.New(
-			"EmailServiceUnavailable",
-			"Email",
-			"Publish",
-			"Failed to start the email event transaction",
-			http.StatusServiceUnavailable,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	if err := srepositories.EnqueueOutboxEvents(
 		tx,
 		cemailevents.CoreEmailRequestTopic,

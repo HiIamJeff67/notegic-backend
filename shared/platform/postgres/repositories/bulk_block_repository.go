@@ -19,43 +19,36 @@ import (
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
-type BlockBulkRepositoryInterface interface {
+type BulkBlockRepositoryInterface interface {
 	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPermissionInput, preloads []schemas.BlockRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Block, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateBlockPackContentInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateBlockInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
-type BlockBulkRepository struct {
+type BulkBlockRepository struct {
 	db         *gorm.DB
 	blockScope scopes.BlockScopeInterface
 	exceptions exceptions.BlockException
 }
 
-func NewBlockBulkRepository(
-	blockScope scopes.BlockScopeInterface,
-	repositoryExceptions ...exceptions.BlockException,
-) *BlockBulkRepository {
-	return NewBlockBulkRepositoryWithDB(nil, blockScope, repositoryExceptions...)
-}
-
-func NewBlockBulkRepositoryWithDB(
+func NewBulkBlockRepository(
 	db *gorm.DB,
 	blockScope scopes.BlockScopeInterface,
 	repositoryExceptions ...exceptions.BlockException,
-) *BlockBulkRepository {
+) *BulkBlockRepository {
 	repositoryException := exceptions.NewBlockException()
 	if len(repositoryExceptions) > 0 {
 		repositoryException = repositoryExceptions[0]
 	}
 
-	return &BlockBulkRepository{
+	return &BulkBlockRepository{
 		db:         db,
 		blockScope: blockScope,
 		exceptions: repositoryException,
 	}
 }
 
-func (r *BlockBulkRepository) BulkCheckPermissionsAndGetManyByIds(
+func (r *BulkBlockRepository) BulkCheckPermissionsAndGetManyByIds(
 	bulkInputs []inputs.BulkCheckBlockPermissionInput,
 	preloads []schemas.BlockRelation,
 	allowedPermissions []cenums.AccessControlPermission,
@@ -139,7 +132,7 @@ func (r *BlockBulkRepository) BulkCheckPermissionsAndGetManyByIds(
 	return successes, blocks, nil
 }
 
-func (r *BlockBulkRepository) BulkCreateMany(
+func (r *BulkBlockRepository) BulkCreateMany(
 	bulkInputs []inputs.BulkCreateBlockPackContentInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -169,7 +162,7 @@ func (r *BlockBulkRepository) BulkCreateMany(
 		}
 	}
 
-	blockPackRepository := NewBlockPackBulkRepositoryWithDB(r.db, scopes.NewBlockPackScope())
+	blockPackRepository := NewBulkBlockPackRepository(r.db, scopes.NewBlockPackScope())
 	checkOptions := append(opts, WithTransactionDB(parsedOptions.DB))
 	checkOptions = append(checkOptions, WithOnlyDeleted(types.Ternary_Negative))
 	checkOptions = append(checkOptions, WithLockingStrength(LockingStrengthNoKeyUpdate))
@@ -234,7 +227,7 @@ func (r *BlockBulkRepository) BulkCreateMany(
 	return successes, nil
 }
 
-func (r *BlockBulkRepository) BulkUpdateMany(
+func (r *BulkBlockRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateBlockInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {

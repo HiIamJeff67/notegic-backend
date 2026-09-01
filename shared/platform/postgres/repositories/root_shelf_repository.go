@@ -50,7 +50,7 @@ type RootShelfRepositoryInterface interface {
 
 type RootShelfRepository struct {
 	db *gorm.DB
-	RootShelfBulkRepository
+	BulkRootShelfRepository
 	rootShelfScope scopes.RootShelfScopeInterface
 	exceptions     exceptions.ShelfException
 }
@@ -61,7 +61,7 @@ func NewRootShelfRepository(
 ) RootShelfRepositoryInterface {
 	return &RootShelfRepository{
 		db:                      db,
-		RootShelfBulkRepository: *NewRootShelfBulkRepositoryWithDB(db, rootShelfScope),
+		BulkRootShelfRepository: *NewBulkRootShelfRepository(db, rootShelfScope),
 		rootShelfScope:          rootShelfScope,
 		exceptions:              exceptions.NewShelfException(),
 	}

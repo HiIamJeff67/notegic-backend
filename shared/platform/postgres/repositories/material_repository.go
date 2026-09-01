@@ -46,7 +46,7 @@ type MaterialRepositoryInterface interface {
 
 type MaterialRepository struct {
 	db *gorm.DB
-	MaterialBulkRepository
+	BulkMaterialRepository
 	materialScope scopes.MaterialScopeInterface
 	exceptions    exceptions.MaterialException
 }
@@ -57,7 +57,7 @@ func NewMaterialRepository(
 ) MaterialRepositoryInterface {
 	return &MaterialRepository{
 		db:                     db,
-		MaterialBulkRepository: *NewMaterialBulkRepositoryWithDB(db, materialScope),
+		BulkMaterialRepository: *NewBulkMaterialRepository(db, materialScope),
 		materialScope:          materialScope,
 		exceptions:             exceptions.NewMaterialException(),
 	}

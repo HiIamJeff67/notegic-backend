@@ -20,13 +20,37 @@ import (
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
-type RoutineBulkRepositoryInterface interface {
+type BulkRoutineRepositoryInterface interface {
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRoutinePermissionInput, preloads []schemas.RoutineRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Routine, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkDeleteMany(inputs []inputs.BulkDeleteRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
-func (r *RoutineBulkRepository) BulkCheckPermissionsAndGetManyByIds(
+type BulkRoutineRepository struct {
+	db           *gorm.DB
+	routineScope scopes.RoutineScopeInterface
+	exceptions   exceptions.RoutineException
+}
+
+func NewBulkRoutineRepository(
+	db *gorm.DB,
+	routineScope scopes.RoutineScopeInterface,
+	repositoryExceptions ...exceptions.RoutineException,
+) *BulkRoutineRepository {
+	repositoryException := exceptions.NewRoutineException()
+	if len(repositoryExceptions) > 0 {
+		repositoryException = repositoryExceptions[0]
+	}
+
+	return &BulkRoutineRepository{
+		db:           db,
+		routineScope: routineScope,
+		exceptions:   repositoryException,
+	}
+}
+
+func (r *BulkRoutineRepository) BulkCheckPermissionsAndGetManyByIds(
 	inputs []inputs.BulkCheckRoutinePermissionInput,
 	preloads []schemas.RoutineRelation,
 	allowedPermissions []cenums.AccessControlPermission,
@@ -109,37 +133,7 @@ func (r *RoutineBulkRepository) BulkCheckPermissionsAndGetManyByIds(
 	return successes, routines, nil
 }
 
-type RoutineBulkRepository struct {
-	db           *gorm.DB
-	routineScope scopes.RoutineScopeInterface
-	exceptions   exceptions.RoutineException
-}
-
-func NewRoutineBulkRepository(
-	routineScope scopes.RoutineScopeInterface,
-	repositoryExceptions ...exceptions.RoutineException,
-) *RoutineBulkRepository {
-	return NewRoutineBulkRepositoryWithDB(nil, routineScope, repositoryExceptions...)
-}
-
-func NewRoutineBulkRepositoryWithDB(
-	db *gorm.DB,
-	routineScope scopes.RoutineScopeInterface,
-	repositoryExceptions ...exceptions.RoutineException,
-) *RoutineBulkRepository {
-	repositoryException := exceptions.NewRoutineException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
-	return &RoutineBulkRepository{
-		db:           db,
-		routineScope: routineScope,
-		exceptions:   repositoryException,
-	}
-}
-
-func (r *RoutineBulkRepository) BulkCreateMany(
+func (r *BulkRoutineRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateRoutineInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -272,7 +266,7 @@ func (r *RoutineBulkRepository) BulkCreateMany(
 	return successes, nil
 }
 
-func (r *RoutineBulkRepository) BulkUpdateMany(
+func (r *BulkRoutineRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateRoutineInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -450,7 +444,7 @@ func (r *RoutineBulkRepository) BulkUpdateMany(
 	return successes, nil
 }
 
-func (r *RoutineBulkRepository) BulkDeleteMany(
+func (r *BulkRoutineRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteRoutineInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {

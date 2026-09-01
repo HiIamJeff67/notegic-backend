@@ -30,7 +30,7 @@ type BlockRepositoryInterface interface {
 
 type BlockRepository struct {
 	db *gorm.DB
-	BlockBulkRepository
+	BulkBlockRepository
 	blockScope scopes.BlockScopeInterface
 	exceptions exceptions.BlockException
 }
@@ -41,7 +41,7 @@ func NewBlockRepository(
 ) BlockRepositoryInterface {
 	return &BlockRepository{
 		db:                  db,
-		BlockBulkRepository: *NewBlockBulkRepositoryWithDB(db, blockScope),
+		BulkBlockRepository: *NewBulkBlockRepository(db, blockScope),
 		blockScope:          blockScope,
 		exceptions:          exceptions.NewBlockException(),
 	}

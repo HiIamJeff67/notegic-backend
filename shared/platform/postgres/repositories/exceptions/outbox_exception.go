@@ -14,16 +14,6 @@ func NewOutboxException() OutboxException {
 	return OutboxException{RepositoryException: NewRepositoryException("Outbox")}
 }
 
-func (e OutboxException) FailedToBeginClaimTransaction() *cexceptions.Exception {
-	return e.New(
-		"TransactionBeginFailed",
-		"Claim",
-		"Failed to begin the outbox claim transaction",
-		http.StatusInternalServerError,
-		true,
-	)
-}
-
 func (e OutboxException) FailedToClaim() *cexceptions.Exception {
 	return e.New(
 		"FailedToGet",

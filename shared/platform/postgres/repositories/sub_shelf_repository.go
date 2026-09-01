@@ -51,7 +51,7 @@ type SubShelfRepositoryInterface interface {
 
 type SubShelfRepository struct {
 	db *gorm.DB
-	SubShelfBulkRepository
+	BulkSubShelfRepository
 	subShelfScope scopes.SubShelfScopeInterface
 	exceptions    exceptions.ShelfException
 }
@@ -62,7 +62,7 @@ func NewSubShelfRepository(
 ) SubShelfRepositoryInterface {
 	return &SubShelfRepository{
 		db:                     db,
-		SubShelfBulkRepository: *NewSubShelfBulkRepositoryWithDB(db, subShelfScope),
+		BulkSubShelfRepository: *NewBulkSubShelfRepository(db, subShelfScope),
 		subShelfScope:          subShelfScope,
 		exceptions:             exceptions.NewShelfException(),
 	}

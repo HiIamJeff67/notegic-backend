@@ -80,13 +80,10 @@ Short, single DB operations may stay on one line; do not split a simple `tx.Mode
 
 When multiple reads and writes must succeed or fail together, the service opens the transaction and is solely responsible for `Commit`/`Rollback`. Every repository call uses the same `tx` and `options.WithTransactionDB(tx)`; that option carries the DB and marks the transaction as started so the repository does not open a nested transaction because `IsTransactionStarted` is false.
 
-Create `tx` as an independent block. If `Begin()` returns an error, there is no transaction to roll back, so return immediately. After the transaction starts, every failure's rollback and return form one adjacent error-closing block with no blank line or other code between them.
+Create `tx` as an independent block. After `Begin()`, do not add a routine `tx.Error` check: a valid workflow DB/session is assumed to provide a transaction handle, and the normal query or commit error path is the meaningful failure boundary. Do not add special handling for a nil DB instance or unavailable connection unless the method's explicit contract requires it. After the transaction starts, every failure's rollback and return form one adjacent error-closing block with no blank line or other code between them.
 
 ```go
 tx := s.db.WithContext(ctx).Begin()
-if err := tx.Error; err != nil {
-	return nil, apiexceptions.Shelf.FailedToCommitTransaction("failed to begin transaction").WithOrigin(err)
-}
 
 rootShelf, exception := s.rootShelfRepository.CheckPermissionAndGetOneById(
 	request.Body.RootShelfId,

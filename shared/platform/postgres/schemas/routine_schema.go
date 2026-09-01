@@ -12,19 +12,21 @@ import (
 )
 
 type Routine struct {
-	Id               uuid.UUID             `json:"id" gorm:"column:id; type:uuid; primaryKey; default:gen_random_uuid(); uniqueIndex:routine_idx_id_station_id;"`
-	StationId        uuid.UUID             `json:"stationId" gorm:"column:station_id; type:uuid; not null; uniqueIndex:routine_idx_id_station_id;"`
-	Title            string                `json:"title" gorm:"column:title; size: 128; not null; default:'undefined';"`
-	Description      string                `json:"description" gorm:"column:description; size:1024; not null; default:'';"`
-	Status           cenums.RoutineStatus  `json:"status" gorm:"column:status; type:\"RoutineStatus\"; not null; default:'Scheduled';"`
-	IsPinned         bool                  `json:"isPinned" gorm:"column:is_pinned; type:boolean; not null; default:false;"`
-	ScheduledStartAt time.Time             `json:"scheduledStartAt" gorm:"column:scheduled_start_at; type:timestamptz; not null; default:NOW();"`                 // check: routine_check_scheduled_start_minute_precision and routine_check_scheduled_time_in_period
-	ScheduledEndAt   time.Time             `json:"scheduledEndAt" gorm:"column:scheduled_end_at; type:timestamptz; not null; default:NOW() + INTERVAL '1 hour';"` // check: routine_check_scheduled_end_minute_precision and routine_check_scheduled_time_in_period
-	Period           *cenums.RoutinePeriod `json:"period" gorm:"column:period; type:\"RoutinePeriod\"; default:null;"`                                            // check: routine_check_scheduled_time_in_period
-	Timezone         string                `json:"timezone" gorm:"column:timezone; size:64; not null; default:'UTC';"`                                            // validate by validation package with time.LoadLocation
-	DeletedAt        *time.Time            `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
-	UpdatedAt        time.Time             `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
-	CreatedAt        time.Time             `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
+	Id                uuid.UUID             `json:"id" gorm:"column:id; type:uuid; primaryKey; default:gen_random_uuid(); uniqueIndex:routine_idx_id_station_id;"`
+	StationId         uuid.UUID             `json:"stationId" gorm:"column:station_id; type:uuid; not null; uniqueIndex:routine_idx_id_station_id;"`
+	Title             string                `json:"title" gorm:"column:title; size: 128; not null; default:'undefined';"`
+	Description       string                `json:"description" gorm:"column:description; size:1024; not null; default:'';"`
+	Status            cenums.RoutineStatus  `json:"status" gorm:"column:status; type:\"RoutineStatus\"; not null; default:'Scheduled';"`
+	Phase             *cenums.RoutinePhase  `json:"phase" gorm:"column:phase; type:\"RoutinePhase\"; default:null;"`
+	DefinitionVersion int64                 `json:"-" gorm:"column:definition_version; type:bigint; not null; default:1; check:routine_definition_version_positive,definition_version > 0;"`
+	IsPinned          bool                  `json:"isPinned" gorm:"column:is_pinned; type:boolean; not null; default:false;"`
+	ScheduledStartAt  time.Time             `json:"scheduledStartAt" gorm:"column:scheduled_start_at; type:timestamptz; not null; default:NOW();"`                 // check: routine_check_scheduled_start_minute_precision and routine_check_scheduled_time_in_period
+	ScheduledEndAt    time.Time             `json:"scheduledEndAt" gorm:"column:scheduled_end_at; type:timestamptz; not null; default:NOW() + INTERVAL '1 hour';"` // check: routine_check_scheduled_end_minute_precision and routine_check_scheduled_time_in_period
+	Period            *cenums.RoutinePeriod `json:"period" gorm:"column:period; type:\"RoutinePeriod\"; default:null;"`                                            // check: routine_check_scheduled_time_in_period
+	Timezone          string                `json:"timezone" gorm:"column:timezone; size:64; not null; default:'UTC';"`                                            // validate by validation package with time.LoadLocation
+	DeletedAt         *time.Time            `json:"deletedAt" gorm:"column:deleted_at; type:timestamptz; default:null;"`
+	UpdatedAt         time.Time             `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
+	CreatedAt         time.Time             `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
 	// relations
 	Station         Station           `json:"station" gorm:"foreignKey:StationId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
@@ -72,6 +74,7 @@ func (r *Routine) ToPrivateRoutine() *cgqlmodels.PrivateRoutine {
 		Title:            r.Title,
 		Description:      r.Description,
 		Status:           r.Status,
+		Phase:            r.Phase,
 		IsPinned:         r.IsPinned,
 		ScheduledStartAt: r.ScheduledStartAt,
 		ScheduledEndAt:   r.ScheduledEndAt,
@@ -107,6 +110,7 @@ func (r *Routine) ToPrivateSearchableRoutine() *cgqlmodels.PrivateSearchableRout
 		StationID:        r.StationId,
 		Title:            r.Title,
 		Status:           r.Status,
+		Phase:            r.Phase,
 		IsPinned:         r.IsPinned,
 		ScheduledStartAt: r.ScheduledStartAt,
 		ScheduledEndAt:   r.ScheduledEndAt,

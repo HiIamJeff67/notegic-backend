@@ -1170,16 +1170,6 @@ func (s *AuthService) Logout(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Auth",
-			"Logout",
-			"Failed to begin the logout transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	offlineStatus := cenums.UserStatus_Offline
 	emptyString := ""
@@ -1595,16 +1585,6 @@ func (s *AuthService) DeleteMe(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"Auth",
-			"DeleteMe",
-			"Failed to begin the delete account transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 
 	deleteResult := tx.Exec(authsql.DeleteMeSQL, actorUserId, reqDto.Body.AuthCode)
 	if deleteResult.Error != nil {

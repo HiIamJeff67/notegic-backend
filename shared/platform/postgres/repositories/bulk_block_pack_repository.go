@@ -21,44 +21,37 @@ import (
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
-type BlockPackBulkRepositoryInterface interface {
+type BulkBlockPackRepositoryInterface interface {
 	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPackPermissionInput, preloads []schemas.BlockPackRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.BlockPack, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkDeleteMany(inputs []inputs.BulkDeleteBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
-type BlockPackBulkRepository struct {
+type BulkBlockPackRepository struct {
 	db             *gorm.DB
 	blockPackScope scopes.BlockPackScopeInterface
 	exceptions     exceptions.BlockPackException
 }
 
-func NewBlockPackBulkRepository(
-	blockPackScope scopes.BlockPackScopeInterface,
-	repositoryExceptions ...exceptions.BlockPackException,
-) *BlockPackBulkRepository {
-	return NewBlockPackBulkRepositoryWithDB(nil, blockPackScope, repositoryExceptions...)
-}
-
-func NewBlockPackBulkRepositoryWithDB(
+func NewBulkBlockPackRepository(
 	db *gorm.DB,
 	blockPackScope scopes.BlockPackScopeInterface,
 	repositoryExceptions ...exceptions.BlockPackException,
-) *BlockPackBulkRepository {
+) *BulkBlockPackRepository {
 	repositoryException := exceptions.NewBlockPackException()
 	if len(repositoryExceptions) > 0 {
 		repositoryException = repositoryExceptions[0]
 	}
 
-	return &BlockPackBulkRepository{
+	return &BulkBlockPackRepository{
 		db:             db,
 		blockPackScope: blockPackScope,
 		exceptions:     repositoryException,
 	}
 }
 
-func (r *BlockPackBulkRepository) BulkCheckPermissionsAndGetManyByIds(
+func (r *BulkBlockPackRepository) BulkCheckPermissionsAndGetManyByIds(
 	inputs []inputs.BulkCheckBlockPackPermissionInput,
 	preloads []schemas.BlockPackRelation,
 	allowedPermissions []cenums.AccessControlPermission,
@@ -159,7 +152,7 @@ func (r *BlockPackBulkRepository) BulkCheckPermissionsAndGetManyByIds(
 	return successes, blockPacks, nil
 }
 
-func (r *BlockPackBulkRepository) BulkCreateMany(
+func (r *BulkBlockPackRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateBlockPackInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -256,7 +249,7 @@ func (r *BlockPackBulkRepository) BulkCreateMany(
 	return successes, nil
 }
 
-func (r *BlockPackBulkRepository) BulkUpdateMany(
+func (r *BulkBlockPackRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateBlockPackInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -422,7 +415,7 @@ func (r *BlockPackBulkRepository) BulkUpdateMany(
 	return successes, nil
 }
 
-func (r *BlockPackBulkRepository) BulkDeleteMany(
+func (r *BulkBlockPackRepository) BulkDeleteMany(
 	bulkInputs []inputs.BulkDeleteBlockPackInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {

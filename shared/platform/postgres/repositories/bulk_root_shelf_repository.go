@@ -18,12 +18,36 @@ import (
 	types "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
-type RootShelfBulkRepositoryInterface interface {
+type BulkRootShelfRepositoryInterface interface {
+	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRootShelfPermissionInput, preloads []schemas.RootShelfRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.RootShelf, *cexceptions.Exception)
 	BulkCreateMany(inputs []inputs.BulkCreateRootShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 	BulkUpdateMany(inputs []inputs.BulkUpdateRootShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
 }
 
-func (r *RootShelfBulkRepository) BulkCheckPermissionsAndGetManyByIds(
+type BulkRootShelfRepository struct {
+	db             *gorm.DB
+	rootShelfScope scopes.RootShelfScopeInterface
+	exceptions     exceptions.ShelfException
+}
+
+func NewBulkRootShelfRepository(
+	db *gorm.DB,
+	rootShelfScope scopes.RootShelfScopeInterface,
+	repositoryExceptions ...exceptions.ShelfException,
+) *BulkRootShelfRepository {
+	repositoryException := exceptions.NewShelfException()
+	if len(repositoryExceptions) > 0 {
+		repositoryException = repositoryExceptions[0]
+	}
+
+	return &BulkRootShelfRepository{
+		db:             db,
+		rootShelfScope: rootShelfScope,
+		exceptions:     repositoryException,
+	}
+}
+
+func (r *BulkRootShelfRepository) BulkCheckPermissionsAndGetManyByIds(
 	inputs []inputs.BulkCheckRootShelfPermissionInput,
 	preloads []schemas.RootShelfRelation,
 	allowedPermissions []cenums.AccessControlPermission,
@@ -118,37 +142,7 @@ func (r *RootShelfBulkRepository) BulkCheckPermissionsAndGetManyByIds(
 	return successes, rootShelves, nil
 }
 
-type RootShelfBulkRepository struct {
-	db             *gorm.DB
-	rootShelfScope scopes.RootShelfScopeInterface
-	exceptions     exceptions.ShelfException
-}
-
-func NewRootShelfBulkRepository(
-	rootShelfScope scopes.RootShelfScopeInterface,
-	repositoryExceptions ...exceptions.ShelfException,
-) *RootShelfBulkRepository {
-	return NewRootShelfBulkRepositoryWithDB(nil, rootShelfScope, repositoryExceptions...)
-}
-
-func NewRootShelfBulkRepositoryWithDB(
-	db *gorm.DB,
-	rootShelfScope scopes.RootShelfScopeInterface,
-	repositoryExceptions ...exceptions.ShelfException,
-) *RootShelfBulkRepository {
-	repositoryException := exceptions.NewShelfException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
-	return &RootShelfBulkRepository{
-		db:             db,
-		rootShelfScope: rootShelfScope,
-		exceptions:     repositoryException,
-	}
-}
-
-func (r *RootShelfBulkRepository) BulkCreateMany(
+func (r *BulkRootShelfRepository) BulkCreateMany(
 	inputs []inputs.BulkCreateRootShelfInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {
@@ -221,7 +215,7 @@ func (r *RootShelfBulkRepository) BulkCreateMany(
 	return successes, nil
 }
 
-func (r *RootShelfBulkRepository) BulkUpdateMany(
+func (r *BulkRootShelfRepository) BulkUpdateMany(
 	bulkInputs []inputs.BulkUpdateRootShelfInput,
 	opts ...RepositoryOptions,
 ) ([]bool, *cexceptions.Exception) {

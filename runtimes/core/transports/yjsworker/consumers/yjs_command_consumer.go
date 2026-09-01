@@ -53,9 +53,6 @@ func (c *YjsCommandConsumer) writeReply(
 	exception *cyjsworker.Error,
 ) error {
 	tx := c.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("begin invalid YjsWorker command transaction: %w", tx.Error)
-	}
 	if err := c.enqueueReply(tx, command, data, exception); err != nil {
 		tx.Rollback()
 
@@ -142,9 +139,6 @@ func (c *YjsCommandConsumer) consume(
 	}
 
 	tx := c.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("begin YjsWorker command transaction: %w", tx.Error)
-	}
 
 	var data json.RawMessage
 	var exception *cyjsworker.Error

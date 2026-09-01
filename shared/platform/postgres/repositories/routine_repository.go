@@ -52,7 +52,7 @@ type RoutineRepositoryInterface interface {
 
 type RoutineRepository struct {
 	db *gorm.DB
-	RoutineBulkRepository
+	BulkRoutineRepository
 	routineScope scopes.RoutineScopeInterface
 	exceptions   exceptions.RoutineException
 }
@@ -63,7 +63,7 @@ func NewRoutineRepository(
 ) RoutineRepositoryInterface {
 	return &RoutineRepository{
 		db:                    db,
-		RoutineBulkRepository: *NewRoutineBulkRepositoryWithDB(db, routineScope),
+		BulkRoutineRepository: *NewBulkRoutineRepository(db, routineScope),
 		routineScope:          routineScope,
 		exceptions:            exceptions.NewRoutineException(),
 	}
@@ -363,12 +363,13 @@ func (r *RoutineRepository) CreateOneByStationId(
 
 	startAt := time.Now().Truncate(time.Minute)
 	newRoutine := schemas.Routine{
-		Id:               uuid.New(),
-		StationId:        stationId,
-		Status:           cenums.RoutineStatus_Scheduled,
-		ScheduledStartAt: startAt,
-		ScheduledEndAt:   startAt.Add(time.Hour),
-		Timezone:         "UTC",
+		Id:                uuid.New(),
+		StationId:         stationId,
+		Status:            cenums.RoutineStatus_Scheduled,
+		DefinitionVersion: 1,
+		ScheduledStartAt:  startAt,
+		ScheduledEndAt:    startAt.Add(time.Hour),
+		Timezone:          "UTC",
 	}
 	if err := copier.Copy(&newRoutine, &input); err != nil {
 		parsedOptions.DB.Rollback()
@@ -447,12 +448,13 @@ func (r *RoutineRepository) CreateManyByStationIds(
 		}
 		startAt := time.Now().Truncate(time.Minute)
 		newRoutine := schemas.Routine{
-			Id:               uuid.New(),
-			StationId:        in.StationId,
-			Status:           cenums.RoutineStatus_Scheduled,
-			ScheduledStartAt: startAt,
-			ScheduledEndAt:   startAt.Add(time.Hour),
-			Timezone:         "UTC",
+			Id:                uuid.New(),
+			StationId:         in.StationId,
+			Status:            cenums.RoutineStatus_Scheduled,
+			DefinitionVersion: 1,
+			ScheduledStartAt:  startAt,
+			ScheduledEndAt:    startAt.Add(time.Hour),
+			Timezone:          "UTC",
 		}
 		if err := copier.Copy(&newRoutine, &in); err != nil {
 			parsedOptions.DB.Rollback()
@@ -475,7 +477,6 @@ func (r *RoutineRepository) CreateManyByStationIds(
 		parsedOptions.DB.Rollback()
 		return nil, exception
 	}
-
 	newRoutineIds := make([]uuid.UUID, len(newRoutines))
 	for index, newRoutine := range newRoutines {
 		newRoutineIds[index] = newRoutine.Id
@@ -559,6 +560,17 @@ func (r *RoutineRepository) UpdateOneById(
 	}); exception != nil {
 		parsedOptions.DB.Rollback()
 		return nil, exception
+	}
+	result = parsedOptions.DB.Model(&schemas.Routine{}).
+		Where(`"RoutineTable".id = ? AND "RoutineTable".deleted_at IS NULL`, id).
+		Updates(map[string]interface{}{
+			"definition_version": gorm.Expr("definition_version + 1"),
+			"status":             gorm.Expr("CASE WHEN status IN (?, ?) THEN ? ELSE status END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_OverDue, cenums.RoutineStatus_Scheduled),
+			"updated_at":         time.Now().UTC(),
+		})
+	if result.Error != nil {
+		parsedOptions.DB.Rollback()
+		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 
 	if shouldStartTransaction {
@@ -695,6 +707,8 @@ func (r *RoutineRepository) UpdateManyByIds(
 				ELSE COALESCE(v.period::"RoutinePeriod", r.period)
 			END,
 			timezone = COALESCE(v.timezone::text, r.timezone),
+			definition_version = r.definition_version + 1,
+			status = CASE WHEN r.status IN ('Completed'::"RoutineStatus", 'OverDue'::"RoutineStatus") THEN 'Scheduled'::"RoutineStatus" ELSE r.status END,
 			updated_at = NOW()
 		FROM (VALUES %s) AS v(id, station_id, title, description, status, is_pinned, scheduled_start_at, scheduled_end_at, period, timezone, set_period_null)
 		WHERE r.id = v.id::uuid AND r.deleted_at IS NULL

@@ -56,7 +56,7 @@ type BlockPackRepositoryInterface interface {
 
 type BlockPackRepository struct {
 	db *gorm.DB
-	BlockPackBulkRepository
+	BulkBlockPackRepository
 	blockPackScope scopes.BlockPackScopeInterface
 	exceptions     exceptions.BlockPackException
 }
@@ -67,7 +67,7 @@ func NewBlockPackRepository(
 ) BlockPackRepositoryInterface {
 	return &BlockPackRepository{
 		db:                      db,
-		BlockPackBulkRepository: *NewBlockPackBulkRepositoryWithDB(db, blockPackScope),
+		BulkBlockPackRepository: *NewBulkBlockPackRepository(db, blockPackScope),
 		blockPackScope:          blockPackScope,
 		exceptions:              exceptions.NewBlockPackException(),
 	}

@@ -1136,16 +1136,6 @@ func (s *SubShelfService) DeleteMySubShelfById(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"SubShelf",
-			"DeleteMySubShelfById",
-			"Failed to begin the sub shelf transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
 	if exception != nil {
 		return nil, exception
@@ -1216,16 +1206,6 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, cexceptions.New(
-			"TransactionBeginFailed",
-			"SubShelf",
-			"DeleteMySubShelvesByIds",
-			"Failed to begin the sub shelf transaction",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(tx.Error)
-	}
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
 	if exception != nil {
 		return nil, exception

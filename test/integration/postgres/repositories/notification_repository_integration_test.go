@@ -1,4 +1,4 @@
-package repositories
+package repositories_test
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
+	repositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
@@ -28,7 +29,7 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 		t.Fatalf("create test database tables: %v", err)
 	}
 
-	repository := NewNotificationRepository(db)
+	repository := repositories.NewNotificationRepository(db)
 	userPublicId := uuid.New()
 	firstEvent := newNotificationRequestEvent(t, userPublicId, "first")
 	if err := repository.CreateFromRequest(context.Background(), firstEvent); err != nil {
@@ -68,7 +69,7 @@ func TestNotificationRepositoryListUsesCompositeCursor(t *testing.T) {
 		t.Fatalf("create test database tables: %v", err)
 	}
 
-	repository := NewNotificationRepository(db)
+	repository := repositories.NewNotificationRepository(db)
 	userPublicId := uuid.New()
 	createdAt := time.Now().UTC().Truncate(time.Microsecond)
 	for index := 0; index < 3; index++ {

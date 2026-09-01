@@ -9,7 +9,6 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
@@ -53,54 +52,95 @@ func NewRoutineTaskRepository(db *gorm.DB,
 	}
 }
 
-func (r *RoutineTaskRepository) replaceDependencies(
+func (r *RoutineTaskRepository) incrementRoutineDefinitionVersions(
 	db *gorm.DB,
+	routineIds []uuid.UUID,
+) *cexceptions.Exception {
+	if len(routineIds) == 0 {
+		return nil
+	}
+
+	result := db.Model(&schemas.Routine{}).
+		Where("id IN ?", routineIds).
+		Updates(map[string]interface{}{
+			"definition_version": gorm.Expr("definition_version + 1"),
+			"status":             gorm.Expr("CASE WHEN status IN (?, ?) THEN ? ELSE status END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_OverDue, cenums.RoutineStatus_Scheduled),
+		})
+	if result.Error != nil {
+		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+	}
+
+	return nil
+}
+
+func (r *RoutineTaskRepository) replaceDependencies(
 	routineTaskId uuid.UUID,
 	routineId uuid.UUID,
 	previousRoutineTaskIds []uuid.UUID,
-	batchSize int,
+	opts ...RepositoryOptions,
 ) *cexceptions.Exception {
 	if routineTaskId == uuid.Nil || routineId == uuid.Nil {
 		return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("routine task and routine ids are required"))
 	}
+	parsedOptions := ParseRepositoryOptions(
+		append([]RepositoryOptions{
+			WithDB(r.db),
+		}, opts...)...,
+	)
+	shouldStartTransaction := !parsedOptions.IsTransactionStarted
+	if shouldStartTransaction {
+		parsedOptions.DB = parsedOptions.DB.Begin()
+	}
 
+	lockingStrength := LockingStrengthUpdate
 	var routineTaskIds []uuid.UUID
-	result := db.Model(&schemas.RoutineTask{}).
+	result := parsedOptions.DB.Model(&schemas.RoutineTask{}).
 		Where("routine_id = ?", routineId).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Scopes(scopes.Locking(&lockingStrength)).
 		Pluck("id", &routineTaskIds)
 	if result.Error != nil {
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+	}
+	routineTaskIdSet := make(map[uuid.UUID]struct{}, len(routineTaskIds))
+	for _, id := range routineTaskIds {
+		routineTaskIdSet[id] = struct{}{}
 	}
 
 	seenPreviousRoutineTaskIds := make(map[uuid.UUID]struct{}, len(previousRoutineTaskIds))
 	for _, previousRoutineTaskId := range previousRoutineTaskIds {
 		if previousRoutineTaskId == uuid.Nil {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("previous routine task id is required"))
 		}
 		if previousRoutineTaskId == routineTaskId {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("a routine task cannot depend on itself"))
 		}
 		if _, exists := seenPreviousRoutineTaskIds[previousRoutineTaskId]; exists {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("duplicate previous routine task id"))
+		}
+		if _, exists := routineTaskIdSet[previousRoutineTaskId]; !exists {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
+			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("previous routine tasks must belong to the same routine"))
 		}
 		seenPreviousRoutineTaskIds[previousRoutineTaskId] = struct{}{}
 	}
 
 	if len(previousRoutineTaskIds) > 0 {
-		var validPreviousRoutineTaskCount int64
-		result = db.Model(&schemas.RoutineTask{}).
-			Where("routine_id = ? AND id IN ?", routineId, previousRoutineTaskIds).
-			Count(&validPreviousRoutineTaskCount)
-		if result.Error != nil {
-			return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
-		}
-		if validPreviousRoutineTaskCount != int64(len(previousRoutineTaskIds)) {
-			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("previous routine tasks must belong to the same routine"))
-		}
-
 		var createsCycle bool
-		result = db.Raw(`
+		result = parsedOptions.DB.Raw(`
 			WITH RECURSIVE previous_tasks(id) AS (
 				SELECT unnest(?::uuid[])
 				UNION
@@ -114,18 +154,33 @@ func (r *RoutineTaskRepository) replaceDependencies(
 			)
 		`, pq.Array(previousRoutineTaskIds), routineTaskId).Scan(&createsCycle)
 		if result.Error != nil {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 		}
 		if createsCycle {
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("routine task dependencies cannot contain a cycle"))
 		}
 	}
 
-	result = db.Where("routine_task_id = ?", routineTaskId).Delete(&schemas.RoutineTaskDependency{})
+	result = parsedOptions.DB.Where("routine_task_id = ?", routineTaskId).Delete(&schemas.RoutineTaskDependency{})
 	if result.Error != nil {
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 	if len(previousRoutineTaskIds) == 0 {
+		if shouldStartTransaction {
+			if err := parsedOptions.DB.Commit().Error; err != nil {
+				parsedOptions.DB.Rollback()
+				return r.exceptions.FailedToUpdate().WithOrigin(err)
+			}
+		}
 		return nil
 	}
 
@@ -136,8 +191,17 @@ func (r *RoutineTaskRepository) replaceDependencies(
 			PreviousRoutineTaskId: previousRoutineTaskId,
 		}
 	}
-	if result = db.CreateInBatches(&dependencies, batchSize); result.Error != nil {
+	if result = parsedOptions.DB.CreateInBatches(&dependencies, parsedOptions.BatchSize); result.Error != nil {
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+	}
+	if shouldStartTransaction {
+		if err := parsedOptions.DB.Commit().Error; err != nil {
+			parsedOptions.DB.Rollback()
+			return r.exceptions.FailedToUpdate().WithOrigin(err)
+		}
 	}
 
 	return nil
@@ -394,12 +458,15 @@ func (r *RoutineTaskRepository) CreateOneByRoutineId(
 		return nil, exception
 	}
 	if exception := r.replaceDependencies(
-		parsedOptions.DB,
 		newRoutineTask.Id,
 		routineId,
 		input.PreviousRoutineTaskIds,
-		parsedOptions.BatchSize,
+		opts...,
 	); exception != nil {
+		parsedOptions.DB.Rollback()
+		return nil, exception
+	}
+	if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, []uuid.UUID{routineId}); exception != nil {
 		parsedOptions.DB.Rollback()
 		return nil, exception
 	}
@@ -495,6 +562,10 @@ func (r *RoutineTaskRepository) CreateManyByRoutineIds(
 	for index, newRoutineTask := range newRoutineTasks {
 		newRoutineTaskIds[index] = newRoutineTask.Id
 	}
+	if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, routineIds); exception != nil {
+		parsedOptions.DB.Rollback()
+		return nil, exception
+	}
 
 	if shouldStartTransaction {
 		if err := parsedOptions.DB.Commit().Error; err != nil {
@@ -536,6 +607,23 @@ func (r *RoutineTaskRepository) UpdateOneById(
 			parsedOptions.DB.Rollback()
 			return nil, r.exceptions.NoPermission("move a routine task to this routine")
 		}
+		if *input.Values.RoutineId != existingRoutineTask.RoutineId {
+			var dependentTaskCount int64
+			result := parsedOptions.DB.
+				Model(&schemas.RoutineTaskDependency{}).
+				Where("previous_routine_task_id = ?", id).
+				Count(&dependentTaskCount)
+			if result.Error != nil {
+				parsedOptions.DB.Rollback()
+				return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+			}
+			if dependentTaskCount > 0 {
+				parsedOptions.DB.Rollback()
+				return nil, r.exceptions.InvalidInput().WithOrigin(fmt.Errorf(
+					"routine task with dependent tasks cannot be moved to another routine",
+				))
+			}
+		}
 	}
 	previousRoutineTaskIds := input.Values.PreviousRoutineTaskIds
 	input.Values.PreviousRoutineTaskIds = nil
@@ -576,15 +664,22 @@ func (r *RoutineTaskRepository) UpdateOneById(
 			dependencyIds = *previousRoutineTaskIds
 		}
 		if exception := r.replaceDependencies(
-			parsedOptions.DB,
 			id,
 			routineId,
 			dependencyIds,
-			parsedOptions.BatchSize,
+			opts...,
 		); exception != nil {
 			parsedOptions.DB.Rollback()
 			return nil, exception
 		}
+	}
+	routineIdsToUpdate := []uuid.UUID{existingRoutineTask.RoutineId}
+	if input.Values.RoutineId != nil && *input.Values.RoutineId != existingRoutineTask.RoutineId {
+		routineIdsToUpdate = append(routineIdsToUpdate, *input.Values.RoutineId)
+	}
+	if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, routineIdsToUpdate); exception != nil {
+		parsedOptions.DB.Rollback()
+		return nil, exception
 	}
 
 	if shouldStartTransaction {
@@ -630,8 +725,12 @@ func (r *RoutineTaskRepository) UpdateManyByIds(
 	}
 
 	isRoutineTaskValid := make(map[uuid.UUID]bool, len(validRoutineTasks))
+	routineIdByTaskId := make(map[uuid.UUID]uuid.UUID, len(validRoutineTasks))
+	routineIdsToUpdate := make(map[uuid.UUID]struct{}, len(validRoutineTasks)+len(input))
 	for _, validRoutineTask := range validRoutineTasks {
 		isRoutineTaskValid[validRoutineTask.Id] = true
+		routineIdByTaskId[validRoutineTask.Id] = validRoutineTask.RoutineId
+		routineIdsToUpdate[validRoutineTask.RoutineId] = struct{}{}
 	}
 
 	targetRoutineIdSet := make(map[uuid.UUID]bool)
@@ -646,6 +745,7 @@ func (r *RoutineTaskRepository) UpdateManyByIds(
 			continue
 		}
 		targetRoutineIdSet[*in.PartialUpdateInput.Values.RoutineId] = true
+		routineIdsToUpdate[*in.PartialUpdateInput.Values.RoutineId] = struct{}{}
 	}
 	if len(targetRoutineIdSet) > 0 {
 		targetRoutineIds := make([]uuid.UUID, 0, len(targetRoutineIdSet))
@@ -656,6 +756,32 @@ func (r *RoutineTaskRepository) UpdateManyByIds(
 		if !routineRepository.HavePermissions(targetRoutineIds, userId, parsedOptions.AllowedPermissions, opts...) {
 			parsedOptions.DB.Rollback()
 			return r.exceptions.NoPermission("move these routine tasks to the given routines")
+		}
+	}
+	movingTaskIds := make([]uuid.UUID, 0, len(input))
+	for _, in := range input {
+		if !isRoutineTaskValid[in.Id] || in.PartialUpdateInput.Values.RoutineId == nil ||
+			partialupdate.CheckSetNull(in.PartialUpdateInput.SetNull, "RoutineId") ||
+			*in.PartialUpdateInput.Values.RoutineId == routineIdByTaskId[in.Id] {
+			continue
+		}
+		movingTaskIds = append(movingTaskIds, in.Id)
+	}
+	if len(movingTaskIds) > 0 {
+		var dependentTaskCount int64
+		result := parsedOptions.DB.
+			Model(&schemas.RoutineTaskDependency{}).
+			Where("previous_routine_task_id IN ?", movingTaskIds).
+			Count(&dependentTaskCount)
+		if result.Error != nil {
+			parsedOptions.DB.Rollback()
+			return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+		}
+		if dependentTaskCount > 0 {
+			parsedOptions.DB.Rollback()
+			return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf(
+				"routine task with dependent tasks cannot be moved to another routine",
+			))
 		}
 	}
 
@@ -704,6 +830,14 @@ func (r *RoutineTaskRepository) UpdateManyByIds(
 		parsedOptions.DB.Rollback()
 		return exception
 	}
+	routineIds := make([]uuid.UUID, 0, len(routineIdsToUpdate))
+	for routineId := range routineIdsToUpdate {
+		routineIds = append(routineIds, routineId)
+	}
+	if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, routineIds); exception != nil {
+		parsedOptions.DB.Rollback()
+		return exception
+	}
 
 	if shouldStartTransaction {
 		if err := parsedOptions.DB.Commit().Error; err != nil {
@@ -725,8 +859,18 @@ func (r *RoutineTaskRepository) HardDeleteOneById(
 			WithDB(r.db),
 		}, opts...)...,
 	)
-
+	var routineId uuid.UUID
 	result := parsedOptions.DB.
+		Model(&schemas.RoutineTask{}).
+		Select("routine_id").
+		Scopes(r.routineTaskScope.PassPermissionCheck(id, userId, parsedOptions.AllowedPermissions)).
+		Where(`"RoutineTaskTable".id = ?`, id).
+		Scan(&routineId)
+	if result.Error != nil {
+		return r.exceptions.FailedToDelete().WithOrigin(result.Error)
+	}
+
+	result = parsedOptions.DB.
 		Model(&schemas.RoutineTask{}).
 		Scopes(r.routineTaskScope.PassPermissionCheck(id, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskTable".id = ?`, id).
@@ -736,6 +880,11 @@ func (r *RoutineTaskRepository) HardDeleteOneById(
 		{First: result.RowsAffected == 0, Second: r.exceptions.NoChanges()},
 	}); exception != nil {
 		return exception
+	}
+	if result.RowsAffected > 0 {
+		if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, []uuid.UUID{routineId}); exception != nil {
+			return exception
+		}
 	}
 
 	return nil
@@ -755,8 +904,18 @@ func (r *RoutineTaskRepository) HardDeleteManyByIds(
 			WithDB(r.db),
 		}, opts...)...,
 	)
-
+	var routineIds []uuid.UUID
 	result := parsedOptions.DB.
+		Model(&schemas.RoutineTask{}).
+		Select("DISTINCT routine_id").
+		Scopes(r.routineTaskScope.PassPermissionChecks(ids, userId, parsedOptions.AllowedPermissions)).
+		Where(`"RoutineTaskTable".id IN ?`, ids).
+		Find(&routineIds)
+	if result.Error != nil {
+		return r.exceptions.FailedToDelete().WithOrigin(result.Error)
+	}
+
+	result = parsedOptions.DB.
 		Model(&schemas.RoutineTask{}).
 		Scopes(r.routineTaskScope.PassPermissionChecks(ids, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskTable".id IN ?`, ids).
@@ -766,6 +925,11 @@ func (r *RoutineTaskRepository) HardDeleteManyByIds(
 		{First: result.RowsAffected == 0, Second: r.exceptions.NoChanges()},
 	}); exception != nil {
 		return exception
+	}
+	if result.RowsAffected > 0 {
+		if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, routineIds); exception != nil {
+			return exception
+		}
 	}
 
 	return nil
