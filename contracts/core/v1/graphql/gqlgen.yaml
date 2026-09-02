@@ -291,8 +291,6 @@ models:
     enum_values:
       RoutinePhase_Claimed:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Claimed"
-      RoutinePhase_Preparation:
-        value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Preparation"
       RoutinePhase_Plan:
         value: "github.com/HiIamJeff67/notegic-backend/contracts/types/enums.RoutinePhase_Plan"
       RoutinePhase_Execution:

@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type SearchException struct {
-	Exception
+	CoreException
 }
 
 func NewSearchException() SearchException {
-	return SearchException{Exception: NewException("Search")}
+	return SearchException{
+		CoreException: CoreException{
+			Domain: "Search",
+		},
+	}
 }
 
 func (SearchException) FailedToDecode() *cexceptions.Exception {

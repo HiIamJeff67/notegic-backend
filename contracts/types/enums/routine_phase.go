@@ -10,17 +10,15 @@ import (
 type RoutinePhase string
 
 const (
-	RoutinePhase_Claimed     RoutinePhase = "Claimed"
-	RoutinePhase_Preparation RoutinePhase = "Preparation"
-	RoutinePhase_Plan        RoutinePhase = "Plan"
-	RoutinePhase_Execution   RoutinePhase = "Execution"
-	RoutinePhase_Recovery    RoutinePhase = "Recovery"
-	RoutinePhase_Analysis    RoutinePhase = "Analysis"
+	RoutinePhase_Claimed   RoutinePhase = "Claimed"
+	RoutinePhase_Plan      RoutinePhase = "Plan"
+	RoutinePhase_Execution RoutinePhase = "Execution"
+	RoutinePhase_Recovery  RoutinePhase = "Recovery"
+	RoutinePhase_Analysis  RoutinePhase = "Analysis"
 )
 
 var AllRoutinePhases = []RoutinePhase{
 	RoutinePhase_Claimed,
-	RoutinePhase_Preparation,
 	RoutinePhase_Plan,
 	RoutinePhase_Execution,
 	RoutinePhase_Recovery,
@@ -29,7 +27,6 @@ var AllRoutinePhases = []RoutinePhase{
 
 var AllRoutinePhaseStrings = []string{
 	string(RoutinePhase_Claimed),
-	string(RoutinePhase_Preparation),
 	string(RoutinePhase_Plan),
 	string(RoutinePhase_Execution),
 	string(RoutinePhase_Recovery),

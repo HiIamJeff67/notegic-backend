@@ -11,7 +11,11 @@ type RequestException struct {
 }
 
 func NewRequestException(domain string) RequestException {
-	return RequestException{NotificationException: NewNotificationException(domain)}
+	return RequestException{
+		NotificationException: NotificationException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e RequestException) RecipientRequired() *cexceptions.Exception {

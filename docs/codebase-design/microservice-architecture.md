@@ -59,11 +59,11 @@ runtimes/
     services/
       routines/
         parsers/             # RoutineTask payload validation
+        routine_task_dependency_service.go # RoutineTaskDependency lifecycle APIs
     workers/                # Core-owned long-lived reconciliation and background loops
   durablejob/               # independent runtime; direct shared PostgreSQL access
     data/postgres/           # DurableJob repository composition, and migration manifest
     services/routinetask/    # RoutineTask components
-      dependencies/          # Pure dependency-graph validation shared by preparation and plan
       preparation/           # Assignment payload preparation and interpolation
         preparers/            # Assignment preparation components
       plan/                  # DAG validation and deterministic object planning
@@ -256,6 +256,11 @@ the earliest phase that executes it; pure phase-independent contracts and
 dependency-graph validation may belong outside the phase directories when they
 are intentionally shared by multiple phases. Phase orchestration services remain
 directly under `services/routinetask/`.
+
+Core owns RoutineTaskDependency relation CRUD and validates task membership,
+duplicate edges, self-edges, cross-Routine edges, and cycles before persistence.
+DurableJob consumes the persisted dependency relations while executing a
+Routine; it does not expose an entire-graph replacement write path.
 
 RealtimeGateway owns socket admission, tickets, leases, connection state, and
 worker forwarding. Core owns authorization, durable Yjs state, and block

@@ -11,7 +11,11 @@ type EventException struct {
 }
 
 func NewEventException(domain string) EventException {
-	return EventException{NotificationException: NewNotificationException(domain)}
+	return EventException{
+		NotificationException: NotificationException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e EventException) UnsupportedEventType() *cexceptions.Exception {

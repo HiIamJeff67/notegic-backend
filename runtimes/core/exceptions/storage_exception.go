@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -8,11 +8,15 @@ import (
 )
 
 type StorageException struct {
-	Exception
+	CoreException
 }
 
 func NewStorageException() StorageException {
-	return StorageException{Exception: NewException("Storage")}
+	return StorageException{
+		CoreException: CoreException{
+			Domain: "Storage",
+		},
+	}
 }
 
 func (StorageException) FailedToReadObjectBytes() *cexceptions.Exception {

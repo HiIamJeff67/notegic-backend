@@ -1,9 +1,13 @@
-package apiexceptions
+package exceptions
 
 type RoutineTaskRecordException struct {
-	Exception
+	CoreException
 }
 
 func NewRoutineTaskRecordException() RoutineTaskRecordException {
-	return RoutineTaskRecordException{Exception: NewException("RoutineTaskRecord")}
+	return RoutineTaskRecordException{
+		CoreException: CoreException{
+			Domain: "RoutineTaskRecord",
+		},
+	}
 }

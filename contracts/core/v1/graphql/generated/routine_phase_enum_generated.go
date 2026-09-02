@@ -61,20 +61,18 @@ func (ec *executionContext) marshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67�
 
 var (
 	unmarshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePhase = map[string]enums.RoutinePhase{
-		"RoutinePhase_Claimed":     enums.RoutinePhase_Claimed,
-		"RoutinePhase_Preparation": enums.RoutinePhase_Preparation,
-		"RoutinePhase_Plan":        enums.RoutinePhase_Plan,
-		"RoutinePhase_Execution":   enums.RoutinePhase_Execution,
-		"RoutinePhase_Recovery":    enums.RoutinePhase_Recovery,
-		"RoutinePhase_Analysis":    enums.RoutinePhase_Analysis,
+		"RoutinePhase_Claimed":   enums.RoutinePhase_Claimed,
+		"RoutinePhase_Plan":      enums.RoutinePhase_Plan,
+		"RoutinePhase_Execution": enums.RoutinePhase_Execution,
+		"RoutinePhase_Recovery":  enums.RoutinePhase_Recovery,
+		"RoutinePhase_Analysis":  enums.RoutinePhase_Analysis,
 	}
 	marshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePhase = map[enums.RoutinePhase]string{
-		enums.RoutinePhase_Claimed:     "RoutinePhase_Claimed",
-		enums.RoutinePhase_Preparation: "RoutinePhase_Preparation",
-		enums.RoutinePhase_Plan:        "RoutinePhase_Plan",
-		enums.RoutinePhase_Execution:   "RoutinePhase_Execution",
-		enums.RoutinePhase_Recovery:    "RoutinePhase_Recovery",
-		enums.RoutinePhase_Analysis:    "RoutinePhase_Analysis",
+		enums.RoutinePhase_Claimed:   "RoutinePhase_Claimed",
+		enums.RoutinePhase_Plan:      "RoutinePhase_Plan",
+		enums.RoutinePhase_Execution: "RoutinePhase_Execution",
+		enums.RoutinePhase_Recovery:  "RoutinePhase_Recovery",
+		enums.RoutinePhase_Analysis:  "RoutinePhase_Analysis",
 	}
 )
 

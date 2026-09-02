@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type BadgeException struct {
-	Exception
+	CoreException
 }
 
 func NewBadgeException() BadgeException {
-	return BadgeException{Exception: NewException("Badge")}
+	return BadgeException{
+		CoreException: CoreException{
+			Domain: "Badge",
+		},
+	}
 }
 
 func (BadgeException) NotFound() *cexceptions.Exception {

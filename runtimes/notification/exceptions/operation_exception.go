@@ -11,7 +11,11 @@ type OperationException struct {
 }
 
 func NewOperationException(domain string) OperationException {
-	return OperationException{NotificationException: NewNotificationException(domain)}
+	return OperationException{
+		NotificationException: NotificationException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e OperationException) CreateFailed(cause error) *cexceptions.Exception {

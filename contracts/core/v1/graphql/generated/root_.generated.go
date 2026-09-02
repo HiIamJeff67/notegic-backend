@@ -2884,7 +2884,6 @@ var sources = []*ast.Source{
 `, BuiltIn: false},
 	{Name: "../schemas/enums/routine_phase_enum.graphql", Input: `enum RoutinePhase {
   RoutinePhase_Claimed
-  RoutinePhase_Preparation
   RoutinePhase_Plan
   RoutinePhase_Execution
   RoutinePhase_Recovery

@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type UserAccountException struct {
-	Exception
+	CoreException
 }
 
 func NewUserAccountException() UserAccountException {
-	return UserAccountException{Exception: NewException("UserAccount")}
+	return UserAccountException{
+		CoreException: CoreException{
+			Domain: "UserAccount",
+		},
+	}
 }
 
 func (UserAccountException) NotFound() *cexceptions.Exception {

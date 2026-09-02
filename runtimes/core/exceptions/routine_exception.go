@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -9,12 +9,14 @@ import (
 )
 
 type RoutineException struct {
-	Exception
+	CoreException
 }
 
 func NewRoutineException() RoutineException {
 	return RoutineException{
-		Exception: NewException("Routine"),
+		CoreException: CoreException{
+			Domain: "Routine",
+		},
 	}
 }
 

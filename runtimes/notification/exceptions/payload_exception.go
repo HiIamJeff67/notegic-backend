@@ -11,7 +11,11 @@ type PayloadException struct {
 }
 
 func NewPayloadException(domain string) PayloadException {
-	return PayloadException{NotificationException: NewNotificationException(domain)}
+	return PayloadException{
+		NotificationException: NotificationException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e PayloadException) PayloadDecodeFailed(cause error) *cexceptions.Exception {

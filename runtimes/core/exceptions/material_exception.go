@@ -1,11 +1,13 @@
-package apiexceptions
+package exceptions
 
 type MaterialException struct {
-	Exception
+	CoreException
 }
 
 func NewMaterialException() MaterialException {
 	return MaterialException{
-		Exception: NewException("Material"),
+		CoreException: CoreException{
+			Domain: "Material",
+		},
 	}
 }

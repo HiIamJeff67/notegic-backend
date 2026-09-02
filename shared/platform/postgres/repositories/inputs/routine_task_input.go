@@ -8,13 +8,12 @@ import (
 )
 
 type CreateRoutineTaskInput struct {
-	ActorUserId            uuid.UUID                 `json:"actorUserId" gorm:"column:actor_user_id;"`
-	Title                  string                    `json:"title" gorm:"column:title;"`
-	Purpose                cenums.RoutineTaskPurpose `json:"purpose" gorm:"column:purpose;"`
-	Payload                datatypes.JSON            `json:"payload" gorm:"column:payload;"`
-	Priority               int32                     `json:"priority" gorm:"column:priority;"`
-	MaxAttempts            int32                     `json:"maxAttempts" gorm:"column:max_attempts;"`
-	PreviousRoutineTaskIds []uuid.UUID               `json:"previousRoutineTaskIds" gorm:"-;"`
+	ActorUserId uuid.UUID                 `json:"actorUserId" gorm:"column:actor_user_id;"`
+	Title       string                    `json:"title" gorm:"column:title;"`
+	Purpose     cenums.RoutineTaskPurpose `json:"purpose" gorm:"column:purpose;"`
+	Payload     datatypes.JSON            `json:"payload" gorm:"column:payload;"`
+	Priority    int32                     `json:"priority" gorm:"column:priority;"`
+	MaxAttempts int32                     `json:"maxAttempts" gorm:"column:max_attempts;"`
 }
 
 type CreateRoutineTaskByRoutineIdInput struct {
@@ -28,13 +27,12 @@ type CreateRoutineTaskByRoutineIdInput struct {
 }
 
 type UpdateRoutineTaskInput struct {
-	RoutineId              *uuid.UUID                 `json:"routineId" gorm:"column:routine_id;"`
-	Title                  *string                    `json:"title" gorm:"column:title;"`
-	Purpose                *cenums.RoutineTaskPurpose `json:"purpose" gorm:"column:purpose;"`
-	Payload                *datatypes.JSON            `json:"payload" gorm:"column:payload;"`
-	Priority               *int32                     `json:"priority" gorm:"column:priority;"`
-	MaxAttempts            *int32                     `json:"maxAttempts" gorm:"column:max_attempts;"`
-	PreviousRoutineTaskIds *[]uuid.UUID               `json:"previousRoutineTaskIds" gorm:"-;"`
+	RoutineId   *uuid.UUID                 `json:"routineId" gorm:"column:routine_id;"`
+	Title       *string                    `json:"title" gorm:"column:title;"`
+	Purpose     *cenums.RoutineTaskPurpose `json:"purpose" gorm:"column:purpose;"`
+	Payload     *datatypes.JSON            `json:"payload" gorm:"column:payload;"`
+	Priority    *int32                     `json:"priority" gorm:"column:priority;"`
+	MaxAttempts *int32                     `json:"maxAttempts" gorm:"column:max_attempts;"`
 }
 
 type PartialUpdateRoutineTaskInput = PartialUpdateInput[UpdateRoutineTaskInput]

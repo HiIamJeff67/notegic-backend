@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -8,11 +8,15 @@ import (
 )
 
 type UserException struct {
-	Exception
+	CoreException
 }
 
 func NewUserException() UserException {
-	return UserException{Exception: NewException("User")}
+	return UserException{
+		CoreException: CoreException{
+			Domain: "User",
+		},
+	}
 }
 
 func (UserException) NotFound() *cexceptions.Exception {

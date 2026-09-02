@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type ThemeException struct {
-	Exception
+	CoreException
 }
 
 func NewThemeException() ThemeException {
-	return ThemeException{Exception: NewException("Theme")}
+	return ThemeException{
+		CoreException: CoreException{
+			Domain: "Theme",
+		},
+	}
 }
 
 func (ThemeException) NotFound() *cexceptions.Exception {

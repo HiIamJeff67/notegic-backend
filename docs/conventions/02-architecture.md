@@ -179,7 +179,10 @@ runtimes/core/services/
 ```
 
 Core's RoutineTask service owns task lifecycle APIs and validates the versioned
-payload before persisting a task. It does not contain RoutineTask execution
+payload before persisting a task. Core's RoutineTaskDependency service owns
+single-relation and batch CRUD for dependency edges, including same-Routine and
+cycle validation. Dependency mutations are persisted incrementally; replacing
+an entire graph is not a public write operation. It does not contain RoutineTask execution
 handlers, mutation dispatch, pattern resolvers, or completion application logic.
 DurableJob owns assignment claiming, payload interpolation, permission checks,
 CRUD execution for the four supported objects, per-item execution results, task

@@ -11,7 +11,11 @@ type RendererException struct {
 }
 
 func NewRendererException(domain string) RendererException {
-	return RendererException{EmailException: NewEmailException(domain)}
+	return RendererException{
+		EmailException: EmailException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e RendererException) InvalidContentType() *cexceptions.Exception {

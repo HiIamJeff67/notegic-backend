@@ -214,8 +214,6 @@ func (s *RoutineService) visualizeMyRoutineTimeCount(
 
 /* ============================== Service Methods for Routine ============================== */
 
-/* ============================== Main Methods ============================== */
-
 func (s *RoutineService) GetMyRoutineById(
 	ctx context.Context, reqDto *capi.GetMyRoutineByIdRequestDto,
 ) (*capi.GetMyRoutineByIdResponseDto, *cexceptions.Exception) {
@@ -532,7 +530,6 @@ func (s *RoutineService) CreateRoutineByStationId(
 			Id:               reqDto.Body.Id,
 			Title:            reqDto.Body.Title,
 			Description:      reqDto.Body.Description,
-			Status:           reqDto.Body.Status,
 			IsPinned:         reqDto.Body.IsPinned,
 			ScheduledStartAt: reqDto.Body.ScheduledStartAt,
 			ScheduledEndAt:   reqDto.Body.ScheduledEndAt,
@@ -576,7 +573,6 @@ func (s *RoutineService) CreateRoutinesByStationIds(
 			StationId:        createdRoutine.StationId,
 			Title:            createdRoutine.Title,
 			Description:      createdRoutine.Description,
-			Status:           createdRoutine.Status,
 			IsPinned:         createdRoutine.IsPinned,
 			ScheduledStartAt: createdRoutine.ScheduledStartAt,
 			ScheduledEndAt:   createdRoutine.ScheduledEndAt,
@@ -625,7 +621,6 @@ func (s *RoutineService) UpdateMyRoutineById(
 				StationId:        reqDto.Body.Values.StationId,
 				Title:            reqDto.Body.Values.Title,
 				Description:      reqDto.Body.Values.Description,
-				Status:           reqDto.Body.Values.Status,
 				IsPinned:         reqDto.Body.Values.IsPinned,
 				ScheduledStartAt: reqDto.Body.Values.ScheduledStartAt,
 				ScheduledEndAt:   reqDto.Body.Values.ScheduledEndAt,
@@ -672,7 +667,6 @@ func (s *RoutineService) UpdateMyRoutinesByIds(
 					StationId:        updatedRoutine.Values.StationId,
 					Title:            updatedRoutine.Values.Title,
 					Description:      updatedRoutine.Values.Description,
-					Status:           updatedRoutine.Values.Status,
 					IsPinned:         updatedRoutine.Values.IsPinned,
 					ScheduledStartAt: updatedRoutine.Values.ScheduledStartAt,
 					ScheduledEndAt:   updatedRoutine.Values.ScheduledEndAt,

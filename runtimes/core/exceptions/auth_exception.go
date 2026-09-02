@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -9,12 +9,14 @@ import (
 )
 
 type AuthException struct {
-	Exception
+	CoreException
 }
 
 func NewAuthException() AuthException {
 	return AuthException{
-		Exception: NewException("Auth"),
+		CoreException: CoreException{
+			Domain: "Auth",
+		},
 	}
 }
 

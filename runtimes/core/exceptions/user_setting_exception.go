@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type UserSettingException struct {
-	Exception
+	CoreException
 }
 
 func NewUserSettingException() UserSettingException {
-	return UserSettingException{Exception: NewException("UserSetting")}
+	return UserSettingException{
+		CoreException: CoreException{
+			Domain: "UserSetting",
+		},
+	}
 }
 
 func (UserSettingException) NotFound() *cexceptions.Exception {

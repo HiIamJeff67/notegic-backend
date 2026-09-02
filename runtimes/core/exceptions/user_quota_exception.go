@@ -1,9 +1,13 @@
-package apiexceptions
+package exceptions
 
 type UserQuotaException struct {
-	Exception
+	CoreException
 }
 
 func NewUserQuotaException() UserQuotaException {
-	return UserQuotaException{Exception: NewException("UserQuota")}
+	return UserQuotaException{
+		CoreException: CoreException{
+			Domain: "UserQuota",
+		},
+	}
 }

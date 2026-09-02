@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -8,12 +8,14 @@ import (
 )
 
 type ShelfException struct {
-	Exception
+	CoreException
 }
 
 func NewShelfException() ShelfException {
 	return ShelfException{
-		Exception: NewException("Shelf"),
+		CoreException: CoreException{
+			Domain: "Shelf",
+		},
 	}
 }
 

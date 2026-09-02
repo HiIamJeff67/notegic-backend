@@ -18,13 +18,20 @@
 - Runtime-local exception packages follow the Core shape: one file per owned
   domain, an `exception.go` base helper type, and categorized operation files
   when the domain has multiple concerns. Each package exposes an exported
-  runtime-specific helper type and a `New<Domain>Exception()` factory. The
-  package-local base is created with `NewException(domain)`. Named helper methods such as
+  runtime-specific helper type and a `New<Domain>Exception()` factory. Named helper methods such as
   `PayloadDecodeFailed` or `InvalidPayload` must return
   `*contracts/types/exceptions.Exception`; the runtime-specific type is never
   the service or transport return type. Do not create a package-level domain
   instance, expose a generic `New(reason, ...)` factory, or add a catch-all
   `errors.go`.
+- Every runtime-owned `exceptions/` directory declares the package as
+  `exceptions`, including Core. Its `exception.go` defines the runtime root as
+  `<Runtime>Exception` and exposes exactly one root constructor:
+  `New<Runtime>Exception()` with no domain parameter. Do not add generic
+  `NewException()`, `New()`, `NewForDomain()`, or a domain-parameterized runtime
+  root constructor. Domain-specific exception factories such as
+  `NewRoutineException()` remain valid and initialize their runtime root with
+  the appropriate domain directly.
 - Runtime-wide exception packages may be used by that runtime's services,
   workers, and handlers. If an exception is used by only one component, keep
   it at that component boundary instead of promoting it into a shared or
@@ -32,13 +39,18 @@
 - Every exception implementation file has its own matching unit-test file:
   `renderer_exception.go` is tested by `renderer_exception_test.go`, and so on.
 - Core's `runtimes/core/exceptions/exception.go` and DurableJob's equivalent
-  define their own runtime-local `Exception` helper, which composes the
-  contract `exceptions.Exception` and stores the domain. PostgreSQL repositories
-  use the separate `RepositoryException` under
+  define `CoreException` and `DurableJobException`, respectively. Each composes
+  the contract `exceptions.Exception` and stores the domain. PostgreSQL
+  repositories use the separate `RepositoryException` under
   `shared/platform/postgres/repositories/exceptions/`; runtime exception
   packages must not import it. Each `*_exception.go` defines an exported domain
   exception type and a `New<Domain>Exception()` factory. Runtimes must not
   expose global domain values such as `Auth` or `Shelf`.
+- `contracts/types/exceptions.New()` remains the low-level application-envelope
+  constructor. `RepositoryException` and `NewRepositoryException()` remain the
+  persistence-layer boundary defined under `shared/platform/postgres`; these
+  are not runtime exception roots and are not replaced by the runtime naming
+  rule.
 - Runtime-local services, repositories and workers return ordinary `error` or
   the shared `*contracts/types/exceptions.Exception` produced by their local
   helper. They must not return the runtime-specific helper type itself. The

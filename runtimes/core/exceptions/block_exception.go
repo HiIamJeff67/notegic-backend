@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type BlockException struct {
-	Exception
+	CoreException
 }
 
 func NewBlockException() BlockException {
-	return BlockException{Exception: NewException("Block")}
+	return BlockException{
+		CoreException: CoreException{
+			Domain: "Block",
+		},
+	}
 }
 
 func (BlockException) NotFound() *cexceptions.Exception {

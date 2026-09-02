@@ -1,11 +1,13 @@
-package apiexceptions
+package exceptions
 
 type RoutineTagException struct {
-	Exception
+	CoreException
 }
 
 func NewRoutineTagException() RoutineTagException {
 	return RoutineTagException{
-		Exception: NewException("RoutineTag"),
+		CoreException: CoreException{
+			Domain: "RoutineTag",
+		},
 	}
 }

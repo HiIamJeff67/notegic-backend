@@ -11,7 +11,11 @@ type CacheException struct {
 }
 
 func NewCacheException(domain string) CacheException {
-	return CacheException{RealtimeGatewayException: NewRealtimeGatewayException(domain)}
+	return CacheException{
+		RealtimeGatewayException: RealtimeGatewayException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e CacheException) Unavailable(cause error) *cexceptions.Exception {

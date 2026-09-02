@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"net/http"
@@ -7,11 +7,15 @@ import (
 )
 
 type ItemException struct {
-	Exception
+	CoreException
 }
 
 func NewItemException() ItemException {
-	return ItemException{Exception: NewException("Item")}
+	return ItemException{
+		CoreException: CoreException{
+			Domain: "Item",
+		},
+	}
 }
 
 func (ItemException) NotFound() *cexceptions.Exception {

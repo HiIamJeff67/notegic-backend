@@ -13,7 +13,6 @@ type CreatableRoutine struct {
 	StationId        uuid.UUID             `json:"stationId" validate:"required"`
 	Title            string                `json:"title" validate:"required,min=1,max=128"`
 	Description      string                `json:"description" validate:"max=1024"`
-	Status           *cenums.RoutineStatus `json:"status" validate:"omitnil,isroutinestatus"`
 	IsPinned         *bool                 `json:"isPinned" validate:"omitnil"`
 	ScheduledStartAt *time.Time            `json:"scheduledStartAt" validate:"omitnil"`
 	ScheduledEndAt   *time.Time            `json:"scheduledEndAt" validate:"omitnil"`

@@ -4,6 +4,8 @@ type NotificationException struct {
 	Domain string
 }
 
-func NewNotificationException(domain string) NotificationException {
-	return NotificationException{Domain: domain}
+func NewNotificationException() NotificationException {
+	return NotificationException{
+		Domain: "Notification",
+	}
 }

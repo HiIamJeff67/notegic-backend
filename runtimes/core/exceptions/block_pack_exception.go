@@ -1,4 +1,4 @@
-package apiexceptions
+package exceptions
 
 import (
 	"fmt"
@@ -10,12 +10,14 @@ import (
 )
 
 type BlockPackException struct {
-	Exception
+	CoreException
 }
 
 func NewBlockPackException() BlockPackException {
 	return BlockPackException{
-		Exception: NewException("BlockPack"),
+		CoreException: CoreException{
+			Domain: "BlockPack",
+		},
 	}
 }
 

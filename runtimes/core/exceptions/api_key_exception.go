@@ -1,9 +1,13 @@
-package apiexceptions
+package exceptions
 
 type APIKeyException struct {
-	Exception
+	CoreException
 }
 
 func NewAPIKeyException() APIKeyException {
-	return APIKeyException{Exception: NewException("APIKey")}
+	return APIKeyException{
+		CoreException: CoreException{
+			Domain: "APIKey",
+		},
+	}
 }

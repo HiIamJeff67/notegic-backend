@@ -1,11 +1,13 @@
-package apiexceptions
+package exceptions
 
 type StationException struct {
-	Exception
+	CoreException
 }
 
 func NewStationException() StationException {
 	return StationException{
-		Exception: NewException("Station"),
+		CoreException: CoreException{
+			Domain: "Station",
+		},
 	}
 }

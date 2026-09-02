@@ -1,6 +1,13 @@
-package apiexceptions
+package exceptions
 
 import "testing"
+
+func TestNewCoreExceptionKeepsRuntimeDomain(t *testing.T) {
+	exception := NewCoreException()
+	if exception.Domain != "Core" {
+		t.Fatalf("domain = %q, want Core", exception.Domain)
+	}
+}
 
 func TestNewAuthExceptionKeepsDomain(t *testing.T) {
 	exception := NewAuthException()

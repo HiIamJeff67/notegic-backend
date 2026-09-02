@@ -11,7 +11,11 @@ type DeliveryException struct {
 }
 
 func NewDeliveryException(domain string) DeliveryException {
-	return DeliveryException{EmailException: NewEmailException(domain)}
+	return DeliveryException{
+		EmailException: EmailException{
+			Domain: domain,
+		},
+	}
 }
 
 func (e DeliveryException) DeliveryFailed(cause error) *cexceptions.Exception {
