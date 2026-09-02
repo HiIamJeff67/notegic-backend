@@ -15,8 +15,7 @@ import (
 	routinetaskdependencies "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/dependencies"
 )
 
-type DeterministicPlanBuilder struct {
-}
+type DeterministicPlanBuilder struct{}
 
 func (b *DeterministicPlanBuilder) Build(
 	routineId uuid.UUID,

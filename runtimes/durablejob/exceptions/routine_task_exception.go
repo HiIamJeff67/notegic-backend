@@ -8,11 +8,15 @@ import (
 )
 
 type RoutineTaskException struct {
-	Exception
+	DurableJobException
 }
 
 func NewRoutineTaskException() RoutineTaskException {
-	return RoutineTaskException{Exception: NewException("RoutineTask")}
+	return RoutineTaskException{
+		DurableJobException: DurableJobException{
+			Domain: "RoutineTask",
+		},
+	}
 }
 
 func (e RoutineTaskException) InvalidPayload(cause error) *cexceptions.Exception {

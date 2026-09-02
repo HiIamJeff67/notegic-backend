@@ -32,9 +32,14 @@ func (p *AssignmentPreparer) Prepare(
 	_ context.Context,
 	assignment croutinetasktypes.RoutineTaskAssignment,
 ) (*croutinetasktypes.PreparedRoutineTask, error) {
-	if assignment.RoutineTaskId == uuid.Nil || assignment.RoutineTaskRecordId == uuid.Nil || assignment.RoutineRecordId == uuid.Nil ||
-		assignment.RoutineId == uuid.Nil || assignment.ActorUserId == uuid.Nil || assignment.ActorUserPublicId == uuid.Nil ||
-		assignment.Purpose == "" || len(assignment.Payload) == 0 {
+	if assignment.RoutineTaskId == uuid.Nil ||
+		assignment.RoutineTaskRecordId == uuid.Nil ||
+		assignment.RoutineRecordId == uuid.Nil ||
+		assignment.RoutineId == uuid.Nil ||
+		assignment.ActorUserId == uuid.Nil ||
+		assignment.ActorUserPublicId == uuid.Nil ||
+		assignment.Purpose == "" ||
+		len(assignment.Payload) == 0 {
 		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
 			fmt.Errorf("routine task assignment is incomplete"),
 		)

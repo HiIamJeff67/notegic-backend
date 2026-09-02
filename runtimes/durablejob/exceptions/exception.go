@@ -10,16 +10,18 @@ import (
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 )
 
-// Exception contains exception builders owned by this runtime's services, workers, and handlers.
-type Exception struct {
+// DurableJobException contains exception builders owned by this runtime's services, workers, and handlers.
+type DurableJobException struct {
 	Domain string
 }
 
-func NewException(domain string) Exception {
-	return Exception{Domain: domain}
+func NewDurableJobException() DurableJobException {
+	return DurableJobException{
+		Domain: "DurableJob",
+	}
 }
 
-func (e Exception) New(
+func (e DurableJobException) New(
 	reason string,
 	operation string,
 	message string,
@@ -29,18 +31,7 @@ func (e Exception) New(
 	return cexceptions.New(reason, e.Domain, operation, message, status, retryable...)
 }
 
-func (e Exception) NewForDomain(
-	reason string,
-	domain string,
-	operation string,
-	message string,
-	status int,
-	retryable ...bool,
-) *cexceptions.Exception {
-	return cexceptions.New(reason, domain, operation, message, status, retryable...)
-}
-
-func (e Exception) NotFound(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) NotFound(optionalMessage ...string) *cexceptions.Exception {
 	message := e.Domain + " was not found"
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -49,7 +40,7 @@ func (e Exception) NotFound(optionalMessage ...string) *cexceptions.Exception {
 	return e.New("NotFound", "Repository", message, http.StatusNotFound)
 }
 
-func (e Exception) FailedToGet(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) FailedToGet(optionalMessage ...string) *cexceptions.Exception {
 	message := "Failed to get " + e.Domain
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -58,7 +49,7 @@ func (e Exception) FailedToGet(optionalMessage ...string) *cexceptions.Exception
 	return e.New("FailedToGet", "Repository", message, http.StatusInternalServerError, true)
 }
 
-func (e Exception) FailedToCreate(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) FailedToCreate(optionalMessage ...string) *cexceptions.Exception {
 	message := "Failed to create " + e.Domain
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -67,7 +58,7 @@ func (e Exception) FailedToCreate(optionalMessage ...string) *cexceptions.Except
 	return e.New("FailedToCreate", "Repository", message, http.StatusInternalServerError, true)
 }
 
-func (e Exception) FailedToUpdate(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) FailedToUpdate(optionalMessage ...string) *cexceptions.Exception {
 	message := "Failed to update " + e.Domain
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -76,7 +67,7 @@ func (e Exception) FailedToUpdate(optionalMessage ...string) *cexceptions.Except
 	return e.New("FailedToUpdate", "Repository", message, http.StatusInternalServerError, true)
 }
 
-func (e Exception) FailedToDelete(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) FailedToDelete(optionalMessage ...string) *cexceptions.Exception {
 	message := "Failed to delete " + e.Domain
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -85,7 +76,7 @@ func (e Exception) FailedToDelete(optionalMessage ...string) *cexceptions.Except
 	return e.New("FailedToDelete", "Repository", message, http.StatusInternalServerError, true)
 }
 
-func (e Exception) NoChanges() *cexceptions.Exception {
+func (e DurableJobException) NoChanges() *cexceptions.Exception {
 	return e.New(
 		"NoChanges",
 		"Repository",
@@ -94,7 +85,7 @@ func (e Exception) NoChanges() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) FailedToCommitTransaction() *cexceptions.Exception {
+func (e DurableJobException) FailedToCommitTransaction() *cexceptions.Exception {
 	return e.New(
 		"FailedToCommitTransaction",
 		"Transaction",
@@ -104,7 +95,7 @@ func (e Exception) FailedToCommitTransaction() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) NoPermission(action string) *cexceptions.Exception {
+func (e DurableJobException) NoPermission(action string) *cexceptions.Exception {
 	return e.New(
 		"PermissionDenied",
 		"Authorize",
@@ -113,7 +104,7 @@ func (e Exception) NoPermission(action string) *cexceptions.Exception {
 	)
 }
 
-func (e Exception) InvalidInput(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) InvalidInput(optionalMessage ...string) *cexceptions.Exception {
 	message := "Invalid " + e.Domain + " input"
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -122,7 +113,7 @@ func (e Exception) InvalidInput(optionalMessage ...string) *cexceptions.Exceptio
 	return e.New("InvalidInput", "Validate", message, http.StatusBadRequest)
 }
 
-func (e Exception) InvalidDto(optionalMessage ...string) *cexceptions.Exception {
+func (e DurableJobException) InvalidDto(optionalMessage ...string) *cexceptions.Exception {
 	message := "Invalid " + e.Domain + " DTO"
 	if len(optionalMessage) > 0 && strings.TrimSpace(optionalMessage[0]) != "" {
 		message = optionalMessage[0]
@@ -131,7 +122,7 @@ func (e Exception) InvalidDto(optionalMessage ...string) *cexceptions.Exception 
 	return e.New("InvalidDto", "Validate", message, http.StatusBadRequest)
 }
 
-func (e Exception) InvalidType(value any) *cexceptions.Exception {
+func (e DurableJobException) InvalidType(value any) *cexceptions.Exception {
 	return e.New(
 		"InvalidType",
 		"Validate",
@@ -144,7 +135,7 @@ func (e Exception) InvalidType(value any) *cexceptions.Exception {
 	})
 }
 
-func (e Exception) FailedToCompileRegularExpression() *cexceptions.Exception {
+func (e DurableJobException) FailedToCompileRegularExpression() *cexceptions.Exception {
 	return e.New(
 		"FailedToCompileRegularExpression",
 		"Validate",
@@ -154,7 +145,7 @@ func (e Exception) FailedToCompileRegularExpression() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) CannotGetFileObjects() *cexceptions.Exception {
+func (e DurableJobException) CannotGetFileObjects() *cexceptions.Exception {
 	return e.New(
 		"CannotGetFileObjects",
 		"File",
@@ -164,7 +155,7 @@ func (e Exception) CannotGetFileObjects() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) FailedToMarshalData(data any) *cexceptions.Exception {
+func (e DurableJobException) FailedToMarshalData(data any) *cexceptions.Exception {
 	return e.New(
 		"FailedToMarshal",
 		"Marshal",
@@ -174,7 +165,7 @@ func (e Exception) FailedToMarshalData(data any) *cexceptions.Exception {
 	)
 }
 
-func (e Exception) DatabaseUnavailable() *cexceptions.Exception {
+func (e DurableJobException) DatabaseUnavailable() *cexceptions.Exception {
 	return e.New(
 		"DatabaseUnavailable",
 		"Repository",
@@ -184,7 +175,7 @@ func (e Exception) DatabaseUnavailable() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) TransactionRequired() *cexceptions.Exception {
+func (e DurableJobException) TransactionRequired() *cexceptions.Exception {
 	return e.New(
 		"TransactionRequired",
 		"Create",
@@ -193,7 +184,7 @@ func (e Exception) TransactionRequired() *cexceptions.Exception {
 	)
 }
 
-func (e Exception) DuplicateName(name string) *cexceptions.Exception {
+func (e DurableJobException) DuplicateName(name string) *cexceptions.Exception {
 	return e.New(
 		"DuplicateName",
 		"Create",
@@ -202,7 +193,7 @@ func (e Exception) DuplicateName(name string) *cexceptions.Exception {
 	)
 }
 
-func (e Exception) DuplicateEmail(email string) *cexceptions.Exception {
+func (e DurableJobException) DuplicateEmail(email string) *cexceptions.Exception {
 	return e.New(
 		"DuplicateEmail",
 		"Create",
@@ -211,7 +202,7 @@ func (e Exception) DuplicateEmail(email string) *cexceptions.Exception {
 	)
 }
 
-func (e Exception) NoRootBlockInBlockPack(blockPackId uuid.UUID) *cexceptions.Exception {
+func (e DurableJobException) NoRootBlockInBlockPack(blockPackId uuid.UUID) *cexceptions.Exception {
 	return e.New(
 		"NoRootBlockInBlockPack",
 		"Project",

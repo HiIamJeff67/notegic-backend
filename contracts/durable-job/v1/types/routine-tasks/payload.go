@@ -3,7 +3,23 @@ package routinetasktypes
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+type ResultKind string
+
+const (
+	ResultKind_Completed ResultKind = "completed"
+	ResultKind_Failed    ResultKind = "failed"
+)
+
+type Result struct {
+	Kind          ResultKind `json:"kind" validate:"required"`
+	WorkerId      uuid.UUID  `json:"workerId" validate:"required"`
+	CorrelationId string     `json:"correlationId" validate:"required"`
+	Data          any        `json:"data" validate:"required"`
+}
 
 type ExecutionItemStatus string
 

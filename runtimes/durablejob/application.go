@@ -101,11 +101,6 @@ func (a *Application) initializeWorkers(
 
 	// Construct and start the durable-job workers that claim and execute tasks.
 	routineTaskClaimer := routinetaskworker.NewClaimer(db, validation.New())
-	routineTaskEngine := routinetaskworker.NewEngine(config, routineTaskClaimer)
-	routineTaskEngine.SetRoutineTaskRecoverer(
-		routinetaskrecoverers.NewStaleRecordRecoverer(db),
-	)
-	a.routineTaskEngine = routineTaskEngine
 	routineTaskLifecycleProducer := realtimegatewayproducers.NewRoutineTaskLifecycleProducer(kafkaProducer)
 	routineTaskCompletionProducer := realtimegatewayproducers.NewRoutineTaskCompletionProducer(kafkaProducer)
 	routineTaskExecutionService := routineexecution.NewRoutineTaskExecutionService(
@@ -114,14 +109,19 @@ func (a *Application) initializeWorkers(
 		yjsworkertransport.NewDocumentInitializationClient(config.YjsDocumentInitialization),
 		yjsworkertransport.NewBlockPackUpdateClient(config.YjsDocumentInitialization),
 	)
-	routineTaskResultWriter := routinetaskworker.NewResultWriter(
+	routineTaskPlanService := routineexecution.NewPlanService(db, validation.New())
+	routineTaskEngine := routinetaskworker.NewEngine(
+		config,
+		routineTaskClaimer,
+		routineTaskPlanService,
 		routineTaskExecutionService,
-		routineTaskCompletionProducer.ProduceRoutineTaskCompleted,
+		routineTaskLifecycleProducer,
+		routineTaskCompletionProducer,
 	)
-	routineTaskEngine.SetResultWriter(routineTaskResultWriter.Write)
-	routineTaskEngine.SetRoutineTaskRunningPublisher(
-		routineTaskLifecycleProducer.ProduceRoutineTaskRunning,
+	routineTaskEngine.SetRoutineTaskRecoverer(
+		routinetaskrecoverers.NewStaleRecordRecoverer(db),
 	)
+	a.routineTaskEngine = routineTaskEngine
 	shutdownRoutineTaskEngine := routineTaskEngine.Start(context.Background())
 
 	return func() {

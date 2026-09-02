@@ -10,12 +10,14 @@ import (
 )
 
 type BlockPackException struct {
-	Exception
+	DurableJobException
 }
 
 func NewBlockPackException() BlockPackException {
 	return BlockPackException{
-		Exception: NewException("BlockPack"),
+		DurableJobException: DurableJobException{
+			Domain: "BlockPack",
+		},
 	}
 }
 

@@ -7,11 +7,15 @@ import (
 )
 
 type BlockException struct {
-	Exception
+	DurableJobException
 }
 
 func NewBlockException() BlockException {
-	return BlockException{Exception: NewException("Block")}
+	return BlockException{
+		DurableJobException: DurableJobException{
+			Domain: "Block",
+		},
+	}
 }
 
 func (BlockException) NotFound() *cexceptions.Exception {

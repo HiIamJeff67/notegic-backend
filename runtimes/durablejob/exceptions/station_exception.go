@@ -1,11 +1,13 @@
 package exceptions
 
 type StationException struct {
-	Exception
+	DurableJobException
 }
 
 func NewStationException() StationException {
 	return StationException{
-		Exception: NewException("Station"),
+		DurableJobException: DurableJobException{
+			Domain: "Station",
+		},
 	}
 }

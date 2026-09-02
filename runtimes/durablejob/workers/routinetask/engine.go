@@ -16,7 +16,9 @@ import (
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
 	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
+	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/realtimegateway/producers"
 )
 
 type Engine struct {
@@ -33,6 +35,10 @@ type Engine struct {
 func NewEngine(
 	_ durablejobconfig.Config,
 	claimer *Claimer,
+	planService *routineexecution.PlanService,
+	executionService routineexecution.RoutineTaskExecutionServiceInterface,
+	runningPublisher *realtimegatewayproducers.RoutineTaskLifecycleProducer,
+	completionPublisher *realtimegatewayproducers.RoutineTaskCompletionProducer,
 	maxWorkers ...int,
 ) *Engine {
 	initialMaxWorkers := sconstants.RoutineTaskEngineMaxWorkers
@@ -46,7 +52,13 @@ func NewEngine(
 		batchSize: initialMaxWorkers,
 		claimer:   claimer,
 	}
-	engine.routineTaskManager = NewManager(initialMaxWorkers, engine.workerId)
+	engine.routineTaskManager = NewManager(
+		planService,
+		executionService,
+		runningPublisher,
+		completionPublisher,
+		engine.workerId,
+	)
 	if claimer != nil {
 		engine.routineTaskManager.db = claimer.db
 	}
@@ -59,16 +71,6 @@ func (e *Engine) SetRoutineTaskRecoverer(
 	recoverer routinetaskrecoverers.StaleRecordRecovererInterface,
 ) {
 	e.recoverer = recoverer
-}
-
-func (e *Engine) SetResultWriter(writer ResultWriteFunc) {
-	e.routineTaskManager.SetResultWriter(writer)
-}
-
-func (e *Engine) SetRoutineTaskRunningPublisher(
-	publisher RoutineTaskRunningPublisher,
-) {
-	e.routineTaskManager.SetRoutineTaskRunningPublisher(publisher)
 }
 
 func (e *Engine) GetClaimRoutinesRequest() (cdurablejob.ClaimRoutinesRequestDto, bool) {

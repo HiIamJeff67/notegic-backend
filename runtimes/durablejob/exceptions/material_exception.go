@@ -1,11 +1,13 @@
 package exceptions
 
 type MaterialException struct {
-	Exception
+	DurableJobException
 }
 
 func NewMaterialException() MaterialException {
 	return MaterialException{
-		Exception: NewException("Material"),
+		DurableJobException: DurableJobException{
+			Domain: "Material",
+		},
 	}
 }

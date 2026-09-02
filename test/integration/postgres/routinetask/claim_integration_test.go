@@ -19,12 +19,15 @@ import (
 	"gorm.io/gorm/logger"
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
+	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
 	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 	routinetaskworker "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/workers/routinetask"
 )
@@ -32,6 +35,32 @@ import (
 type queryCounterLogger struct {
 	logger.Interface
 	count atomic.Int64
+}
+
+type noopRoutineTaskExecutionService struct{}
+
+func (noopRoutineTaskExecutionService) ApplyPreparedRoutineTasks(
+	context.Context,
+	uuid.UUID,
+	*cdurablejob.MarkCompletedRoutineTasksRequestDto,
+) *cexceptions.Exception {
+	return nil
+}
+
+func (noopRoutineTaskExecutionService) ApplyFailedRoutineTasks(
+	context.Context,
+	uuid.UUID,
+	*cdurablejob.MarkFailedRoutineTasksRequestDto,
+) *cexceptions.Exception {
+	return nil
+}
+
+func (noopRoutineTaskExecutionService) ApplyResult(
+	context.Context,
+	uuid.UUID,
+	cdurablejobroutinetasktypes.Result,
+) *cexceptions.Exception {
+	return nil
 }
 
 func (l *queryCounterLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
@@ -93,11 +122,16 @@ func TestRoutineTaskPipelineUsesBoundedQueriesAcrossPhases(t *testing.T) {
 		t.Fatalf("claimed full pipeline routines = %#v, want one routine with 90 tasks", response)
 	}
 
-	engine := routinetaskworker.NewEngine(durablejobconfig.Config{}, claimer, 90)
+	engine := routinetaskworker.NewEngine(
+		durablejobconfig.Config{},
+		claimer,
+		routineexecution.NewPlanService(db, nil),
+		noopRoutineTaskExecutionService{},
+		nil,
+		nil,
+		90,
+	)
 	defer engine.Stop()
-	engine.SetResultWriter(func(context.Context, routinetaskworker.Result) error {
-		return nil
-	})
 	if err := engine.HandleRoutineAssignments(t.Context(), response.RoutineAssignments); err != nil {
 		t.Fatalf("handle full routine task pipeline: %v", err)
 	}
@@ -450,11 +484,15 @@ func TestHandleRoutineAssignmentsAdvancesRoutineThroughPhasePipeline(t *testing.
 		t.Fatalf("claimed phase pipeline routines = %#v, want one routine with one task", response)
 	}
 
-	engine := routinetaskworker.NewEngine(durablejobconfig.Config{}, claimer)
+	engine := routinetaskworker.NewEngine(
+		durablejobconfig.Config{},
+		claimer,
+		routineexecution.NewPlanService(db, nil),
+		noopRoutineTaskExecutionService{},
+		nil,
+		nil,
+	)
 	defer engine.Stop()
-	engine.SetResultWriter(func(context.Context, routinetaskworker.Result) error {
-		return nil
-	})
 	if err := engine.HandleRoutineAssignments(t.Context(), response.RoutineAssignments); err != nil {
 		t.Fatalf("handle routine phase pipeline: %v", err)
 	}
@@ -602,7 +640,14 @@ func TestClaimRoutinesRetriesTerminalPlanOnlyAfterDefinitionRevision(t *testing.
 	if firstResponse == nil || len(firstResponse.RoutineAssignments) != 1 || len(firstResponse.RoutineAssignments[0].RoutineTasks) != 0 {
 		t.Fatalf("invalid plan response = %#v, want one routine without ready tasks", firstResponse)
 	}
-	engine := routinetaskworker.NewEngine(durablejobconfig.Config{}, claimer)
+	engine := routinetaskworker.NewEngine(
+		durablejobconfig.Config{},
+		claimer,
+		routineexecution.NewPlanService(db, nil),
+		noopRoutineTaskExecutionService{},
+		nil,
+		nil,
+	)
 	defer engine.Stop()
 	if err := engine.HandleRoutineAssignments(t.Context(), firstResponse.RoutineAssignments); err != nil {
 		t.Fatalf("handle invalid routine plan: %v", err)
@@ -634,8 +679,8 @@ func TestClaimRoutinesRetriesTerminalPlanOnlyAfterDefinitionRevision(t *testing.
 	var routinePhase string
 	if result := db.Table(`"RoutineTable"`).Select("phase").Where("id = ?", routineId).Scan(&routinePhase); result.Error != nil {
 		t.Fatalf("read terminal routine phase: %v", result.Error)
-	} else if routinePhase != string(cenums.RoutinePhase_Preparation) {
-		t.Fatalf("terminal routine phase = %s, want %s", routinePhase, cenums.RoutinePhase_Preparation)
+	} else if routinePhase != string(cenums.RoutinePhase_Plan) {
+		t.Fatalf("terminal routine phase = %s, want %s", routinePhase, cenums.RoutinePhase_Plan)
 	}
 
 	secondResponse, secondException := claimer.ClaimRoutines(

@@ -1,11 +1,16 @@
 package routinetask
 
-import "testing"
+import (
+	"testing"
 
-func TestNewManagerCreatesAssignmentPreparer(t *testing.T) {
-	manager := NewManager(1)
+	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+)
 
-	if manager.preparer == nil {
-		t.Fatal("routine task assignment preparer is nil")
+func TestNewManagerInjectsPlanService(t *testing.T) {
+	planService := routineexecution.NewPlanService(nil, nil)
+	manager := NewManager(planService, nil, nil, nil)
+
+	if manager.planService != planService {
+		t.Fatal("routine task plan service was not injected")
 	}
 }

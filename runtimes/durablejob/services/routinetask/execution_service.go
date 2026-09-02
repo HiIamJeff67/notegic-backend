@@ -30,6 +30,11 @@ import (
 )
 
 type RoutineTaskExecutionServiceInterface interface {
+	ApplyResult(
+		ctx context.Context,
+		eventId uuid.UUID,
+		result croutinetasktypes.Result,
+	) *cexceptions.Exception
 	ApplyPreparedRoutineTasks(
 		ctx context.Context,
 		eventId uuid.UUID,
@@ -99,6 +104,47 @@ func NewRoutineTaskExecutionService(
 		),
 	}
 	return service
+}
+
+func (s *RoutineTaskExecutionService) ApplyResult(
+	ctx context.Context,
+	eventId uuid.UUID,
+	result croutinetasktypes.Result,
+) *cexceptions.Exception {
+	switch result.Kind {
+	case croutinetasktypes.ResultKind_Completed:
+		request, ok := result.Data.(cdurablejob.MarkCompletedRoutineTasksRequestDto)
+		if !ok {
+			return cexceptions.New(
+				"InvalidDto",
+				"RoutineTask",
+				"ApplyResult",
+				fmt.Sprintf("The completed routine task result payload is invalid: %T", result.Data),
+				http.StatusBadRequest,
+			)
+		}
+		return s.ApplyPreparedRoutineTasks(ctx, eventId, &request)
+	case croutinetasktypes.ResultKind_Failed:
+		request, ok := result.Data.(cdurablejob.MarkFailedRoutineTasksRequestDto)
+		if !ok {
+			return cexceptions.New(
+				"InvalidDto",
+				"RoutineTask",
+				"ApplyResult",
+				fmt.Sprintf("The failed routine task result payload is invalid: %T", result.Data),
+				http.StatusBadRequest,
+			)
+		}
+		return s.ApplyFailedRoutineTasks(ctx, eventId, &request)
+	default:
+		return cexceptions.New(
+			"InvalidDto",
+			"RoutineTask",
+			"ApplyResult",
+			fmt.Sprintf("The routine task result kind %q is unsupported", result.Kind),
+			http.StatusBadRequest,
+		)
+	}
 }
 
 func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
@@ -196,7 +242,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		Where("id IN ?", recordIds).
 		Find(&storedRecords).Error; err != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToRead", "RoutineTaskRecord", "ApplyPreparedRoutineTasks", "Failed to read routine task records for execution", http.StatusInternalServerError, true).WithOrigin(err)
+		return cexceptions.New(
+			"FailedToRead",
+			"RoutineTaskRecord",
+			"ApplyPreparedRoutineTasks",
+			"Failed to read routine task records for execution",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
 	}
 	recordById := make(map[uuid.UUID]sschemas.RoutineTaskRecord, len(storedRecords))
 	for _, record := range storedRecords {
@@ -205,7 +258,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	var routineRecords []sschemas.RoutineRecord
 	if err := tx.WithContext(ctx).Where("id IN ?", routineRecordIds).Find(&routineRecords).Error; err != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToRead", "RoutineRecord", "ApplyPreparedRoutineTasks", "Failed to read routine records for execution", http.StatusInternalServerError, true).WithOrigin(err)
+		return cexceptions.New(
+			"FailedToRead",
+			"RoutineRecord",
+			"ApplyPreparedRoutineTasks",
+			"Failed to read routine records for execution",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(err)
 	}
 	routineRecordById := make(map[uuid.UUID]sschemas.RoutineRecord, len(routineRecords))
 	routineTaskPlanByRecordId := make(map[uuid.UUID]*croutinetasktypes.RoutineTaskPlan, len(routineRecords))
@@ -281,19 +341,37 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			var createPayload croutinetasktypes.CreateSubShelfRoutineTaskPayload
 			if err := json.Unmarshal(payload, &createPayload); err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf payload is invalid", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create sub shelf payload is invalid",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 			precreatedSubShelf, exists := plan.PrecreatedSubShelves[string(createPayload.FakeId)]
 			if !exists {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf fake id is not in the persisted plan", http.StatusConflict)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create sub shelf fake id is not in the persisted plan",
+					http.StatusConflict,
+				)
 			}
 			createPayload.Id = &precreatedSubShelf.RealId
 			if createPayload.PrevSubShelfId != nil {
 				resolvedId, err := createPayload.PrevSubShelfId.Resolve(facts)
 				if err != nil {
 					tx.Rollback()
-					return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+					return cexceptions.New(
+						"InvalidRoutinePlan",
+						"Routine",
+						"ApplyPreparedRoutineTasks",
+						"The create sub shelf parent cannot be resolved",
+						http.StatusConflict,
+					).WithOrigin(err)
 				}
 				resolvedReference := croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
 				createPayload.PrevSubShelfId = &resolvedReference
@@ -305,18 +383,36 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			payload, err = json.Marshal(createPayload)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create sub shelf payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create sub shelf payload cannot be normalized",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 		case cenums.RoutineTaskPurpose_CreateBlockPack:
 			var createPayload croutinetasktypes.CreateBlockPackRoutineTaskPayload
 			if err := json.Unmarshal(payload, &createPayload); err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack payload is invalid", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create block pack payload is invalid",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 			resolvedId, err := createPayload.TargetSubShelfId.Resolve(facts)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create block pack parent cannot be resolved",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 			createPayload.TargetSubShelfId = croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
 			if plan != nil {
@@ -327,18 +423,36 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			payload, err = json.Marshal(createPayload)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create block pack payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create block pack payload cannot be normalized",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 		case cenums.RoutineTaskPurpose_CreateMaterial:
 			var createPayload croutinetasktypes.CreateMaterialRoutineTaskPayload
 			if err := json.Unmarshal(payload, &createPayload); err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material payload is invalid", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create material payload is invalid",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 			resolvedId, err := createPayload.ParentSubShelfId.Resolve(facts)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material parent cannot be resolved", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create material parent cannot be resolved",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 			createPayload.ParentSubShelfId = croutinetasktypes.RoutineTaskObjectReference(resolvedId.String())
 			if plan != nil {
@@ -349,7 +463,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			payload, err = json.Marshal(createPayload)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("InvalidRoutinePlan", "Routine", "ApplyPreparedRoutineTasks", "The create material payload cannot be normalized", http.StatusConflict).WithOrigin(err)
+				return cexceptions.New(
+					"InvalidRoutinePlan",
+					"Routine",
+					"ApplyPreparedRoutineTasks",
+					"The create material payload cannot be normalized",
+					http.StatusConflict,
+				).WithOrigin(err)
 			}
 		}
 		storedTask.Payload = datatypes.JSON(payload)
@@ -401,7 +521,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 				cenums.AccessControlPermission_Read,
 			}
 			if detailedHandler, ok := s.subShelfHandler.(handlers.SubShelfDetailedExecutionHandlerInterface); ok {
-				successes, executionResults, exception = detailedHandler.HandleGetSubShelfWithResults(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
+				successes, executionResults, exception = detailedHandler.HandleGetSubShelfWithResults(
+					ctx,
+					tx,
+					tasks,
+					actorsByTaskId[purpose],
+					allowedPermissions,
+				)
 			} else {
 				successes, exception = s.subShelfHandler.HandleGetSubShelf(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
 			}
@@ -431,7 +557,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 				cenums.AccessControlPermission_Read,
 			}
 			if detailedHandler, ok := s.blockPackHandler.(handlers.BlockPackGetDetailedExecutionHandlerInterface); ok {
-				successes, executionResults, exception = detailedHandler.HandleGetBlockPackWithResults(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
+				successes, executionResults, exception = detailedHandler.HandleGetBlockPackWithResults(
+					ctx,
+					tx,
+					tasks,
+					actorsByTaskId[purpose],
+					allowedPermissions,
+				)
 			} else {
 				successes, exception = s.blockPackHandler.HandleGetBlockPack(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
 			}
@@ -449,7 +581,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 				cenums.AccessControlPermission_Write,
 			}
 			if detailedHandler, ok := s.blockPackHandler.(handlers.BlockPackDetailedExecutionHandlerInterface); ok {
-				successes, executionResults, exception = detailedHandler.HandleUpdateBlockPackWithResults(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
+				successes, executionResults, exception = detailedHandler.HandleUpdateBlockPackWithResults(
+					ctx,
+					tx,
+					tasks,
+					actorsByTaskId[purpose],
+					allowedPermissions,
+				)
 			} else {
 				successes, exception = s.blockPackHandler.HandleUpdateBlockPack(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
 			}
@@ -468,7 +606,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 				cenums.AccessControlPermission_Read,
 			}
 			if detailedHandler, ok := s.routineHandler.(handlers.RoutineDetailedExecutionHandlerInterface); ok {
-				successes, executionResults, exception = detailedHandler.HandleGetRoutineWithResults(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
+				successes, executionResults, exception = detailedHandler.HandleGetRoutineWithResults(
+					ctx,
+					tx,
+					tasks,
+					actorsByTaskId[purpose],
+					allowedPermissions,
+				)
 			} else {
 				successes, exception = s.routineHandler.HandleGetRoutine(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
 			}
@@ -501,7 +645,13 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 				cenums.AccessControlPermission_Read,
 			}
 			if detailedHandler, ok := s.materialHandler.(handlers.MaterialDetailedExecutionHandlerInterface); ok {
-				successes, executionResults, exception = detailedHandler.HandleGetMaterialWithResults(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
+				successes, executionResults, exception = detailedHandler.HandleGetMaterialWithResults(
+					ctx,
+					tx,
+					tasks,
+					actorsByTaskId[purpose],
+					allowedPermissions,
+				)
 			} else {
 				successes, exception = s.materialHandler.HandleGetMaterial(ctx, tx, tasks, actorsByTaskId[purpose], allowedPermissions)
 			}
@@ -617,7 +767,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 			encodedSnapshot, err := json.Marshal(task.ExecutionResult)
 			if err != nil {
 				tx.Rollback()
-				return cexceptions.New("FailedToEncode", "RoutineTaskRecord", "MarkCompletedRoutineTasks", "Failed to encode the routine task execution result", http.StatusInternalServerError, true).WithOrigin(err)
+				return cexceptions.New(
+					"FailedToEncode",
+					"RoutineTaskRecord",
+					"MarkCompletedRoutineTasks",
+					"Failed to encode the routine task execution result",
+					http.StatusInternalServerError,
+					true,
+				).WithOrigin(err)
 			}
 			snapshot = encodedSnapshot
 		}
@@ -625,10 +782,22 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		resultSnapshotArgs = append(resultSnapshotArgs, task.RoutineTaskRecordId, snapshot)
 	}
 	if len(resultSnapshotPlaceholders) > 0 {
-		result = tx.Exec(fmt.Sprintf(routinetasksql.UpdateRoutineTaskRecordResultSnapshotSQL, strings.Join(resultSnapshotPlaceholders, ",")), append([]any{now}, resultSnapshotArgs...)...)
+		query := fmt.Sprintf(
+			routinetasksql.UpdateRoutineTaskRecordResultSnapshotSQL,
+			strings.Join(resultSnapshotPlaceholders, ","),
+		)
+		args := append([]any{now}, resultSnapshotArgs...)
+		result = tx.Exec(query, args...)
 		if result.Error != nil {
 			tx.Rollback()
-			return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "MarkCompletedRoutineTasks", "Failed to store routine task execution results", http.StatusInternalServerError, true).WithOrigin(result.Error)
+			return cexceptions.New(
+				"FailedToUpdate",
+				"RoutineTaskRecord",
+				"MarkCompletedRoutineTasks",
+				"Failed to store routine task execution results",
+				http.StatusInternalServerError,
+				true,
+			).WithOrigin(result.Error)
 		}
 	}
 	result = tx.Model(&sschemas.RoutineTaskRecord{}).
@@ -648,7 +817,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		})
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "MarkCompletedRoutineTasks", "Failed to release dependent routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"RoutineTaskRecord",
+			"MarkCompletedRoutineTasks",
+			"Failed to release dependent routine tasks",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	result = tx.Exec(
 		routinetasksql.UpdateRoutineRecordAggregateSQL,
@@ -662,7 +838,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	)
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "RoutineRecord", "MarkCompletedRoutineTasks", "Failed to update routine record aggregates", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"RoutineRecord",
+			"MarkCompletedRoutineTasks",
+			"Failed to update routine record aggregates",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
 		Select("routine_id").
@@ -679,7 +862,14 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 		})
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "Routine", "MarkCompletedRoutineTasks", "Failed to finalize routine schedule", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"Routine",
+			"MarkCompletedRoutineTasks",
+			"Failed to finalize routine schedule",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
@@ -727,10 +917,22 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	seenRecordIds := make(map[uuid.UUID]struct{}, len(request.Tasks))
 	for _, task := range request.Tasks {
 		if _, exists := seenTaskIds[task.RoutineTaskId]; exists {
-			return cexceptions.New("InvalidDto", "RoutineTask", "ApplyFailedRoutineTasks", "The failed routine task result contains duplicate routine task ids", http.StatusBadRequest)
+			return cexceptions.New(
+				"InvalidDto",
+				"RoutineTask",
+				"ApplyFailedRoutineTasks",
+				"The failed routine task result contains duplicate routine task ids",
+				http.StatusBadRequest,
+			)
 		}
 		if _, exists := seenRecordIds[task.RoutineTaskRecordId]; exists {
-			return cexceptions.New("InvalidDto", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "The failed routine task result contains duplicate routine task record ids", http.StatusBadRequest)
+			return cexceptions.New(
+				"InvalidDto",
+				"RoutineTaskRecord",
+				"ApplyFailedRoutineTasks",
+				"The failed routine task result contains duplicate routine task record ids",
+				http.StatusBadRequest,
+			)
 		}
 		seenTaskIds[task.RoutineTaskId] = struct{}{}
 		seenRecordIds[task.RoutineTaskRecordId] = struct{}{}
@@ -752,7 +954,14 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 		Where("id IN ?", recordIds).
 		Find(&runningRecords); result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToRead", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "Failed to read routine task records for failure finalization", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToRead",
+			"RoutineTaskRecord",
+			"ApplyFailedRoutineTasks",
+			"Failed to read routine task records for failure finalization",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	runningRecordById := make(map[uuid.UUID]sschemas.RoutineTaskRecord, len(runningRecords))
 	for _, record := range runningRecords {
@@ -763,7 +972,14 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 		if !exists || record.RoutineTaskId != task.RoutineTaskId || record.RoutineRecordId != task.RoutineRecordId ||
 			(record.Status != cenums.RoutineTaskRecordStatus_Running && record.Status != cenums.RoutineTaskRecordStatus_Failed) {
 			tx.Rollback()
-			return cexceptions.New("ResultStateMismatch", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "The failed routine task does not match the running task record", http.StatusConflict, true)
+			return cexceptions.New(
+				"ResultStateMismatch",
+				"RoutineTaskRecord",
+				"ApplyFailedRoutineTasks",
+				"The failed routine task does not match the running task record",
+				http.StatusConflict,
+				true,
+			)
 		}
 	}
 
@@ -813,7 +1029,14 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	)
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "Failed to block dependent routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"RoutineTaskRecord",
+			"ApplyFailedRoutineTasks",
+			"Failed to block dependent routine tasks",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	routineRecordIdsQuery := tx.Model(&sschemas.RoutineTaskRecord{}).
 		Select("routine_record_id").
@@ -829,17 +1052,30 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 			FROM "RoutineTaskRecordTable" barrier_record
 			INNER JOIN "RoutineTaskTable" barrier_task
 				ON barrier_task.id = barrier_record.routine_task_id
-			WHERE barrier_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
-				AND barrier_task.purpose IN (?, ?, ?)
-				AND barrier_record.status IN (?, ?)
-		)`, cenums.RoutineTaskPurpose_CreateSubShelf, cenums.RoutineTaskPurpose_CreateBlockPack, cenums.RoutineTaskPurpose_CreateMaterial, cenums.RoutineTaskRecordStatus_Failed, cenums.RoutineTaskRecordStatus_Blocked).
+				WHERE barrier_record.routine_record_id = "RoutineTaskRecordTable".routine_record_id
+					AND barrier_task.purpose IN (?, ?, ?)
+					AND barrier_record.status IN (?, ?)
+		)`,
+			cenums.RoutineTaskPurpose_CreateSubShelf,
+			cenums.RoutineTaskPurpose_CreateBlockPack,
+			cenums.RoutineTaskPurpose_CreateMaterial,
+			cenums.RoutineTaskRecordStatus_Failed,
+			cenums.RoutineTaskRecordStatus_Blocked,
+		).
 		Updates(map[string]any{
 			"status":     cenums.RoutineTaskRecordStatus_Blocked,
 			"updated_at": now,
 		})
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "RoutineTaskRecord", "ApplyFailedRoutineTasks", "Failed to block tasks behind deterministic creation failure", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"RoutineTaskRecord",
+			"ApplyFailedRoutineTasks",
+			"Failed to block tasks behind deterministic creation failure",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	result = tx.Exec(
 		routinetasksql.UpdateRoutineRecordAggregateSQL,
@@ -853,7 +1089,14 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	)
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "RoutineRecord", "ApplyFailedRoutineTasks", "Failed to update routine record aggregates", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"RoutineRecord",
+			"ApplyFailedRoutineTasks",
+			"Failed to update routine record aggregates",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 	routineIdsToFinalize := tx.Model(&sschemas.RoutineRecord{}).
 		Select("routine_id").
@@ -870,7 +1113,14 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 		})
 	if result.Error != nil {
 		tx.Rollback()
-		return cexceptions.New("FailedToUpdate", "Routine", "ApplyFailedRoutineTasks", "Failed to finalize routine schedule", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		return cexceptions.New(
+			"FailedToUpdate",
+			"Routine",
+			"ApplyFailedRoutineTasks",
+			"Failed to finalize routine schedule",
+			http.StatusInternalServerError,
+			true,
+		).WithOrigin(result.Error)
 	}
 
 	if err := tx.Commit().Error; err != nil {

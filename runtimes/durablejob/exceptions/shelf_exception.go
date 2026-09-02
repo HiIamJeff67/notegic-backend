@@ -8,12 +8,14 @@ import (
 )
 
 type ShelfException struct {
-	Exception
+	DurableJobException
 }
 
 func NewShelfException() ShelfException {
 	return ShelfException{
-		Exception: NewException("Shelf"),
+		DurableJobException: DurableJobException{
+			Domain: "Shelf",
+		},
 	}
 }
 

@@ -24,7 +24,7 @@ Routine, with that Routine's claimed `RoutineTaskAssignment` values nested under
 
 RoutineTask dependencies must form an acyclic graph. Core rejects invalid
 dependency changes at the API persistence boundary, and DurableJob validates
-the claimed Routine snapshot again during Preparation. A failed validation
+the claimed Routine snapshot again during Plan. A failed validation
 terminally blocks the current RoutineRecord and all unfinished
 RoutineTaskRecords; it is eligible again only after the Routine definition is
 changed.

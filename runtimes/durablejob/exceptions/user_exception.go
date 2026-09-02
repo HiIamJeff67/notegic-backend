@@ -8,11 +8,15 @@ import (
 )
 
 type UserException struct {
-	Exception
+	DurableJobException
 }
 
 func NewUserException() UserException {
-	return UserException{Exception: NewException("User")}
+	return UserException{
+		DurableJobException: DurableJobException{
+			Domain: "User",
+		},
+	}
 }
 
 func (UserException) NotFound() *cexceptions.Exception {

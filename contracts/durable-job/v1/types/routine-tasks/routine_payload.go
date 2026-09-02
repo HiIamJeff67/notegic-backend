@@ -22,7 +22,6 @@ type CreateRoutineRoutineTaskPayload struct {
 	Title            string                `json:"title" validate:"required,min=1,max=128"`
 	Pattern          RoutineTaskPattern    `json:"pattern" validate:"omitempty,dive"`
 	Description      string                `json:"description" validate:"max=1024"`
-	Status           *cenums.RoutineStatus `json:"status" validate:"omitnil,isroutinestatus"`
 	IsPinned         *bool                 `json:"isPinned" validate:"omitnil"`
 	ScheduledStartAt *time.Time            `json:"scheduledStartAt" validate:"omitnil"`
 	ScheduledEndAt   *time.Time            `json:"scheduledEndAt" validate:"omitnil"`
@@ -35,7 +34,6 @@ type UpdateRoutineRoutineTaskPayload struct {
 	Title            *string               `json:"title" validate:"omitnil,min=1,max=128"`
 	Pattern          RoutineTaskPattern    `json:"pattern" validate:"omitempty,dive"`
 	Description      *string               `json:"description" validate:"omitnil,max=1024"`
-	Status           *cenums.RoutineStatus `json:"status" validate:"omitnil,isroutinestatus"`
 	IsPinned         *bool                 `json:"isPinned" validate:"omitnil"`
 	ScheduledStartAt *time.Time            `json:"scheduledStartAt" validate:"omitnil"`
 	ScheduledEndAt   *time.Time            `json:"scheduledEndAt" validate:"omitnil"`

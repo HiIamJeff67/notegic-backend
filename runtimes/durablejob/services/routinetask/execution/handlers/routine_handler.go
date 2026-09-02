@@ -138,7 +138,6 @@ func (s *RoutineHandler) HandleCreateRoutine(
 			StationId:        payload.StationId,
 			Title:            title,
 			Description:      description,
-			Status:           (*cenums.RoutineStatus)(payload.Status),
 			IsPinned:         payload.IsPinned,
 			ScheduledStartAt: payload.ScheduledStartAt,
 			ScheduledEndAt:   payload.ScheduledEndAt,
@@ -239,7 +238,6 @@ func (s *RoutineHandler) HandleUpdateRoutine(
 				Values: sinputs.UpdateRoutineInput{
 					Title:            title,
 					Description:      description,
-					Status:           (*cenums.RoutineStatus)(payload.Status),
 					IsPinned:         payload.IsPinned,
 					ScheduledStartAt: payload.ScheduledStartAt,
 					ScheduledEndAt:   payload.ScheduledEndAt,
@@ -291,7 +289,10 @@ func (s *RoutineHandler) HandleDeleteRoutine(
 		if exception != nil {
 			continue
 		}
-		deleteInputs = append(deleteInputs, sinputs.BulkDeleteRoutineInput{Id: payload.RoutineId, UserId: actorUserId})
+		deleteInputs = append(deleteInputs, sinputs.BulkDeleteRoutineInput{
+			Id:     payload.RoutineId,
+			UserId: actorUserId,
+		})
 		taskIndexes = append(taskIndexes, index)
 	}
 	if len(deleteInputs) == 0 {
@@ -332,7 +333,10 @@ func (s *RoutineHandler) HandleGetRoutineWithResults(
 		if exception != nil {
 			continue
 		}
-		checkInputs = append(checkInputs, sinputs.BulkCheckRoutinePermissionInput{Id: payload.RoutineId, UserId: actorUserId})
+		checkInputs = append(checkInputs, sinputs.BulkCheckRoutinePermissionInput{
+			Id:     payload.RoutineId,
+			UserId: actorUserId,
+		})
 		taskIndexes = append(taskIndexes, index)
 		taskObjectIds = append(taskObjectIds, payload.RoutineId)
 	}

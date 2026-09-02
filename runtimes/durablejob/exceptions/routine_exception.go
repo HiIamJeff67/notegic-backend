@@ -9,12 +9,14 @@ import (
 )
 
 type RoutineException struct {
-	Exception
+	DurableJobException
 }
 
 func NewRoutineException() RoutineException {
 	return RoutineException{
-		Exception: NewException("Routine"),
+		DurableJobException: DurableJobException{
+			Domain: "Routine",
+		},
 	}
 }
 

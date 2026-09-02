@@ -7,11 +7,15 @@ import (
 )
 
 type ItemException struct {
-	Exception
+	DurableJobException
 }
 
 func NewItemException() ItemException {
-	return ItemException{Exception: NewException("Item")}
+	return ItemException{
+		DurableJobException: DurableJobException{
+			Domain: "Item",
+		},
+	}
 }
 
 func (ItemException) NotFound() *cexceptions.Exception {
