@@ -483,7 +483,7 @@ func writeGatewayRules(base string, endpointCount int) {
 
 This directory contains the machine-readable and human-readable contract for all %d versioned routes currently exposed by APIGateway v1.
 
-The published domains are RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, and RoutineTag. RoutineRecord is available through ClientGateway GraphQL search only. Client-only auth, user/account, notification, realtime, GraphQL, and static routes are intentionally excluded.
+The published domains are RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, RoutineTaskDependency, and RoutineTag. RoutineRecord is available through ClientGateway GraphQL search only. Client-only auth, user/account, notification, realtime, GraphQL, and static routes are intentionally excluded.
 
 - **Canonical contract:** `+"`openapi/openapi.json`"+` (OpenAPI 3.1)
 - **Rules:** `+"`rules/`"+`
@@ -579,7 +579,7 @@ Only APIGateway v1 is currently published, so there is no second public contract
 | Capability | v1 Beta |
 | --- | --- |
 | HTTP contract | OpenAPI 3.1 |
-| Public domains | RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, RoutineTag |
+| Public domains | RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, RoutineTaskDependency, RoutineTag |
 | Authentication | User-owned `+"`X-API-Key`"+` header |
 | API keys | Required for every published operation |
 | Importable client | Postman Collection 2.1 |

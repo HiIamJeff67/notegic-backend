@@ -687,18 +687,6 @@
             "format": "uuid",
             "type": "string"
           },
-          "status": {
-            "enum": [
-              "Scheduled",
-              "InProgress",
-              "Completed",
-              "OverDue"
-            ],
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "timezone": {
             "type": [
               "string",
@@ -967,13 +955,6 @@
             "additionalProperties": true,
             "type": "object"
           },
-          "previousRoutineTaskIds": {
-            "items": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "type": "array"
-          },
           "priority": {
             "format": "int32",
             "maximum": 100,
@@ -1014,8 +995,7 @@
         "required": [
           "routineId",
           "title",
-          "purpose",
-          "previousRoutineTaskIds"
+          "purpose"
         ],
         "type": "object"
       },
@@ -1040,6 +1020,222 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CreateRoutineTaskByRoutineIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "CreateRoutineTaskDependenciesByRoutineIdRequestBody": {
+        "properties": {
+          "dependencies": {
+            "items": {
+              "properties": {
+                "description": {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                "previousRoutineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "progress": {
+                  "format": "int32",
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "routineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "routineTaskId",
+                "previousRoutineTaskId"
+              ],
+              "type": "object"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "dependencies"
+        ],
+        "type": "object"
+      },
+      "CreateRoutineTaskDependenciesByRoutineIdResponseData": {
+        "items": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "previousRoutineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "progress": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "routineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "routineTaskId",
+            "previousRoutineTaskId",
+            "description",
+            "progress",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "CreateRoutineTaskDependenciesByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateRoutineTaskDependenciesByRoutineIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "CreateRoutineTaskDependencyByRoutineIdRequestBody": {
+        "properties": {
+          "description": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "previousRoutineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "progress": {
+            "format": "int32",
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "routineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routineTaskId",
+          "previousRoutineTaskId"
+        ],
+        "type": "object"
+      },
+      "CreateRoutineTaskDependencyByRoutineIdResponseData": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "previousRoutineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "progress": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "routineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routineTaskId",
+          "previousRoutineTaskId",
+          "description",
+          "progress",
+          "updatedAt",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CreateRoutineTaskDependencyByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateRoutineTaskDependencyByRoutineIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -1123,18 +1319,6 @@
                 "stationId": {
                   "format": "uuid",
                   "type": "string"
-                },
-                "status": {
-                  "enum": [
-                    "Scheduled",
-                    "InProgress",
-                    "Completed",
-                    "OverDue"
-                  ],
-                  "type": [
-                    "string",
-                    "null"
-                  ]
                 },
                 "timezone": {
                   "type": [
@@ -2533,6 +2717,151 @@
         ],
         "type": "object"
       },
+      "DeleteRoutineTaskDependenciesByRoutineIdRequestBody": {
+        "properties": {
+          "dependencies": {
+            "items": {
+              "properties": {
+                "previousRoutineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "routineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "routineTaskId",
+                "previousRoutineTaskId"
+              ],
+              "type": "object"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "dependencies"
+        ],
+        "type": "object"
+      },
+      "DeleteRoutineTaskDependenciesByRoutineIdResponseData": {
+        "properties": {
+          "deletedCount": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deletedCount"
+        ],
+        "type": "object"
+      },
+      "DeleteRoutineTaskDependenciesByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeleteRoutineTaskDependenciesByRoutineIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "DeleteRoutineTaskDependencyByRoutineIdRequestBody": {
+        "properties": {
+          "previousRoutineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "routineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routineTaskId",
+          "previousRoutineTaskId"
+        ],
+        "type": "object"
+      },
+      "DeleteRoutineTaskDependencyByRoutineIdResponseData": {
+        "properties": {
+          "deletedCount": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deletedCount"
+        ],
+        "type": "object"
+      },
+      "DeleteRoutineTaskDependencyByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeleteRoutineTaskDependencyByRoutineIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
       "ErrorResponse": {
         "properties": {
           "data": {
@@ -3186,7 +3515,6 @@
             "phase": {
               "enum": [
                 "Claimed",
-                "Preparation",
                 "Plan",
                 "Execution",
                 "Recovery",
@@ -4777,7 +5105,6 @@
           "phase": {
             "enum": [
               "Claimed",
-              "Preparation",
               "Plan",
               "Execution",
               "Recovery",
@@ -5125,7 +5452,6 @@
             "phase": {
               "enum": [
                 "Claimed",
-                "Preparation",
                 "Plan",
                 "Execution",
                 "Recovery",
@@ -5785,6 +6111,82 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetMySubShelvesByPrevSubShelfIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "GetRoutineTaskDependenciesByRoutineIdResponseData": {
+        "items": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "previousRoutineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "progress": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "routineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "routineTaskId",
+            "previousRoutineTaskId",
+            "description",
+            "progress",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetRoutineTaskDependenciesByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetRoutineTaskDependenciesByRoutineIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -8204,7 +8606,6 @@
           "phase": {
             "enum": [
               "Claimed",
-              "Preparation",
               "Plan",
               "Execution",
               "Recovery",
@@ -8378,7 +8779,6 @@
             "phase": {
               "enum": [
                 "Claimed",
-                "Preparation",
                 "Plan",
                 "Execution",
                 "Recovery",
@@ -9714,18 +10114,6 @@
                   "null"
                 ]
               },
-              "status": {
-                "enum": [
-                  "Scheduled",
-                  "InProgress",
-                  "Completed",
-                  "OverDue"
-                ],
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
               "timezone": {
                 "type": [
                   "string",
@@ -10021,16 +10409,6 @@
                   "null"
                 ]
               },
-              "previousRoutineTaskIds": {
-                "items": {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
               "priority": {
                 "format": "int32",
                 "type": [
@@ -10076,9 +10454,6 @@
                 ]
               }
             },
-            "required": [
-              "previousRoutineTaskIds"
-            ],
             "type": "object"
           }
         },
@@ -10195,18 +10570,6 @@
                     },
                     "stationId": {
                       "format": "uuid",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "status": {
-                      "enum": [
-                        "Scheduled",
-                        "InProgress",
-                        "Completed",
-                        "OverDue"
-                      ],
                       "type": [
                         "string",
                         "null"
@@ -10698,6 +11061,228 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/UpdateMySubShelvesByIdsResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "UpdateRoutineTaskDependenciesByRoutineIdRequestBody": {
+        "properties": {
+          "dependencies": {
+            "items": {
+              "properties": {
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "previousRoutineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "progress": {
+                  "format": "int32",
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "routineTaskId": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "routineTaskId",
+                "previousRoutineTaskId"
+              ],
+              "type": "object"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "dependencies"
+        ],
+        "type": "object"
+      },
+      "UpdateRoutineTaskDependenciesByRoutineIdResponseData": {
+        "items": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "previousRoutineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "progress": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "routineTaskId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "routineTaskId",
+            "previousRoutineTaskId",
+            "description",
+            "progress",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "UpdateRoutineTaskDependenciesByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UpdateRoutineTaskDependenciesByRoutineIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "UpdateRoutineTaskDependencyByRoutineIdRequestBody": {
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "previousRoutineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "progress": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "routineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routineTaskId",
+          "previousRoutineTaskId"
+        ],
+        "type": "object"
+      },
+      "UpdateRoutineTaskDependencyByRoutineIdResponseData": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "previousRoutineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "progress": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "routineTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "routineTaskId",
+          "previousRoutineTaskId",
+          "description",
+          "progress",
+          "updatedAt",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "UpdateRoutineTaskDependencyByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UpdateRoutineTaskDependencyByRoutineIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -19427,6 +20012,1003 @@
         "x-go-response-dto": "HardDeleteMyRoutineTagByIdResponseDto"
       }
     },
+    "/routine-task-dependencies/routine/{routine-id}": {
+      "delete": {
+        "operationId": "deleteRoutineTaskDependencyByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                "routineTaskId": "00000000-0000-4000-8000-000000000001"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/DeleteRoutineTaskDependencyByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteRoutineTaskDependencyByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Routine Task Dependency By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "DeleteRoutineTaskDependencyByRoutineIdRequestDto",
+        "x-go-response-dto": "DeleteRoutineTaskDependencyByRoutineIdResponseDto"
+      },
+      "get": {
+        "operationId": "getRoutineTaskDependenciesByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutineTaskDependenciesByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Get Routine Task Dependencies By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "GetRoutineTaskDependenciesByRoutineIdRequestDto",
+        "x-go-response-dto": "GetRoutineTaskDependenciesByRoutineIdResponseDto"
+      },
+      "post": {
+        "operationId": "createRoutineTaskDependencyByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "description": "example",
+                "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                "progress": 1,
+                "routineTaskId": "00000000-0000-4000-8000-000000000001"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoutineTaskDependencyByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoutineTaskDependencyByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create Routine Task Dependency By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "CreateRoutineTaskDependencyByRoutineIdRequestDto",
+        "x-go-response-dto": "CreateRoutineTaskDependencyByRoutineIdResponseDto"
+      },
+      "put": {
+        "operationId": "updateRoutineTaskDependencyByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "description": "example",
+                "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                "progress": 1,
+                "routineTaskId": "00000000-0000-4000-8000-000000000001"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoutineTaskDependencyByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoutineTaskDependencyByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Update Routine Task Dependency By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "UpdateRoutineTaskDependencyByRoutineIdRequestDto",
+        "x-go-response-dto": "UpdateRoutineTaskDependencyByRoutineIdResponseDto"
+      }
+    },
+    "/routine-task-dependencies/routine/{routine-id}/batch": {
+      "delete": {
+        "operationId": "deleteRoutineTaskDependenciesByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "dependencies": [
+                  {
+                    "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                    "routineTaskId": "00000000-0000-4000-8000-000000000001"
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/DeleteRoutineTaskDependenciesByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteRoutineTaskDependenciesByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Routine Task Dependencies By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "DeleteRoutineTaskDependenciesByRoutineIdRequestDto",
+        "x-go-response-dto": "DeleteRoutineTaskDependenciesByRoutineIdResponseDto"
+      },
+      "post": {
+        "operationId": "createRoutineTaskDependenciesByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "dependencies": [
+                  {
+                    "description": "example",
+                    "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                    "progress": 1,
+                    "routineTaskId": "00000000-0000-4000-8000-000000000001"
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoutineTaskDependenciesByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoutineTaskDependenciesByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create Routine Task Dependencies By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "CreateRoutineTaskDependenciesByRoutineIdRequestDto",
+        "x-go-response-dto": "CreateRoutineTaskDependenciesByRoutineIdResponseDto"
+      },
+      "put": {
+        "operationId": "updateRoutineTaskDependenciesByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "dependencies": [
+                  {
+                    "description": "example",
+                    "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+                    "progress": 1,
+                    "routineTaskId": "00000000-0000-4000-8000-000000000001"
+                  }
+                ]
+              },
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoutineTaskDependenciesByRoutineIdRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoutineTaskDependenciesByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Update Routine Task Dependencies By Routine Id",
+        "tags": [
+          "routine-task-dependencies"
+        ],
+        "x-go-request-dto": "UpdateRoutineTaskDependenciesByRoutineIdRequestDto",
+        "x-go-response-dto": "UpdateRoutineTaskDependenciesByRoutineIdResponseDto"
+      }
+    },
     "/routine-tasks": {
       "get": {
         "operationId": "getAllMyRoutineTasks",
@@ -19722,9 +21304,6 @@
               "example": {
                 "maxAttempts": 1,
                 "payload": {},
-                "previousRoutineTaskIds": [
-                  "00000000-0000-4000-8000-000000000001"
-                ],
                 "priority": 1,
                 "purpose": "GetSubShelf",
                 "routineId": "00000000-0000-4000-8000-000000000001",
@@ -20296,9 +21875,6 @@
                 "values": {
                   "maxAttempts": 1,
                   "payload": {},
-                  "previousRoutineTaskIds": [
-                    "00000000-0000-4000-8000-000000000001"
-                  ],
                   "priority": 1,
                   "purpose": "GetSubShelf",
                   "routineId": "00000000-0000-4000-8000-000000000001",
@@ -20886,7 +22462,6 @@
                     "scheduledEndAt": "2026-01-01T00:00:00Z",
                     "scheduledStartAt": "2026-01-01T00:00:00Z",
                     "stationId": "00000000-0000-4000-8000-000000000001",
-                    "status": "Scheduled",
                     "timezone": "example",
                     "title": "example"
                   }
@@ -21031,7 +22606,6 @@
                       "scheduledEndAt": "2026-01-01T00:00:00Z",
                       "scheduledStartAt": "2026-01-01T00:00:00Z",
                       "stationId": "00000000-0000-4000-8000-000000000001",
-                      "status": "Scheduled",
                       "timezone": "example",
                       "title": "example"
                     }
@@ -21705,7 +23279,6 @@
                 "scheduledEndAt": "2026-01-01T00:00:00Z",
                 "scheduledStartAt": "2026-01-01T00:00:00Z",
                 "stationId": "00000000-0000-4000-8000-000000000001",
-                "status": "Scheduled",
                 "timezone": "example",
                 "title": "example"
               },
@@ -22790,7 +24363,6 @@
                   "scheduledEndAt": "2026-01-01T00:00:00Z",
                   "scheduledStartAt": "2026-01-01T00:00:00Z",
                   "stationId": "00000000-0000-4000-8000-000000000001",
-                  "status": "Scheduled",
                   "timezone": "example",
                   "title": "example"
                 }
@@ -28745,6 +30317,9 @@
     },
     {
       "name": "routine-tags"
+    },
+    {
+      "name": "routine-task-dependencies"
     },
     {
       "name": "routine-tasks"

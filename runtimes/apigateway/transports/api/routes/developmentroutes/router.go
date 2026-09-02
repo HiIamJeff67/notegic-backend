@@ -48,6 +48,7 @@ func NewRouter(deps APIRouteDependencies) *gin.Engine {
 	configureDevelopmentRoutineRoutes(DevelopmentAPIRouterGroup, RoutineRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
 	configureDevelopmentRoutineTagRoutes(DevelopmentAPIRouterGroup, RoutineTagRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
 	configureDevelopmentRoutineTaskRoutes(DevelopmentAPIRouterGroup, RoutineTaskRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
+	configureDevelopmentRoutineTaskDependencyRoutes(DevelopmentAPIRouterGroup, RoutineTaskDependencyRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
 	configureDevelopmentRootShelfRoutes(DevelopmentAPIRouterGroup, RootShelfRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
 	configureDevelopmentSubShelfRoutes(DevelopmentAPIRouterGroup, SubShelfRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})
 	configureDevelopmentMaterialRoutes(DevelopmentAPIRouterGroup, MaterialRouteDependencies{CoreAdapter: coreAdapter, RateLimiters: rateLimiters})

@@ -4,7 +4,7 @@
 
 The external integration API contract belongs to APIGateway. Each runtime also owns a public, runtime-specific contract:
 
-The generated APIGateway contract contains all 125 currently emitted operations:
+The generated APIGateway contract contains all 132 currently emitted operations:
 
 - `contracts/api-gateway/v1/public/` is the only externally advertised v1 contract.
 - `contracts/client-gateway/v1/public/` documents the ClientGateway user/client boundary.

@@ -11,27 +11,28 @@ import (
 )
 
 type RouterDependencies struct {
-	Auth              AuthRouterDependencies
-	APIKey            APIKeyRouterDependencies
-	RootShelf         RootShelfRouterDependencies
-	Station           StationRouterDependencies
-	UserSetting       UserSettingRouterDependencies
-	UserInfo          UserInfoRouterDependencies
-	UserAccount       UserAccountRouterDependencies
-	User              UserRouterDependencies
-	Block             BlockRouterDependencies
-	Realtime          RealtimeRouterDependencies
-	RoutineTag        RoutineTagRouterDependencies
-	RoutineRecord     RoutineRecordRouterDependencies
-	RoutineTaskRecord RoutineTaskRecordRouterDependencies
-	SubShelf          SubShelfRouterDependencies
-	BlockPack         BlockPackRouterDependencies
-	Material          MaterialRouterDependencies
-	Routine           RoutineRouterDependencies
-	RoutineTask       RoutineTaskRouterDependencies
-	Theme             ThemeRouterDependencies
-	Item              ItemRouterDependencies
-	Badge             BadgeRouterDependencies
+	Auth                  AuthRouterDependencies
+	APIKey                APIKeyRouterDependencies
+	RootShelf             RootShelfRouterDependencies
+	Station               StationRouterDependencies
+	UserSetting           UserSettingRouterDependencies
+	UserInfo              UserInfoRouterDependencies
+	UserAccount           UserAccountRouterDependencies
+	User                  UserRouterDependencies
+	Block                 BlockRouterDependencies
+	Realtime              RealtimeRouterDependencies
+	RoutineTag            RoutineTagRouterDependencies
+	RoutineRecord         RoutineRecordRouterDependencies
+	RoutineTaskRecord     RoutineTaskRecordRouterDependencies
+	SubShelf              SubShelfRouterDependencies
+	BlockPack             BlockPackRouterDependencies
+	Material              MaterialRouterDependencies
+	Routine               RoutineRouterDependencies
+	RoutineTask           RoutineTaskRouterDependencies
+	RoutineTaskDependency RoutineTaskDependencyRouterDependencies
+	Theme                 ThemeRouterDependencies
+	Item                  ItemRouterDependencies
+	Badge                 BadgeRouterDependencies
 }
 
 func NewRouter(deps RouterDependencies) *gin.Engine {
@@ -61,6 +62,7 @@ func NewRouter(deps RouterDependencies) *gin.Engine {
 	configureMaterialRoutes(secureCoreRouterGroup, deps.Material)
 	configureRoutineRoutes(secureCoreRouterGroup, deps.Routine)
 	configureRoutineTaskRoutes(secureCoreRouterGroup, deps.RoutineTask)
+	configureRoutineTaskDependencyRoutes(secureCoreRouterGroup, deps.RoutineTaskDependency)
 	configureThemeRoutes(anonymousCoreRouterGroup, deps.Theme)
 	configureItemRoutes(secureCoreRouterGroup, deps.Item)
 	configureBadgeRoutes(secureCoreRouterGroup, deps.Badge)

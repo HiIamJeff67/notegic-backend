@@ -25,15 +25,16 @@ func (g *ArtifactGenerator) Generate(endpoints []endpoint) {
 func filterPublicEndpoints(endpoints []endpoint) []endpoint {
 	publicEndpoints := make([]endpoint, 0, len(endpoints))
 	allowedTags := map[string]bool{
-		"root-shelves":  true,
-		"sub-shelves":   true,
-		"materials":     true,
-		"block-packs":   true,
-		"blocks":        true,
-		"stations":      true,
-		"routines":      true,
-		"routine-tasks": true,
-		"routine-tags":  true,
+		"root-shelves":              true,
+		"sub-shelves":               true,
+		"materials":                 true,
+		"block-packs":               true,
+		"blocks":                    true,
+		"stations":                  true,
+		"routines":                  true,
+		"routine-tasks":             true,
+		"routine-task-dependencies": true,
+		"routine-tags":              true,
 	}
 	for _, endpoint := range endpoints {
 		// Only stable resource domains are public in the first API release.

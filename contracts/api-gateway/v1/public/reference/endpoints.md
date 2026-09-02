@@ -62,6 +62,13 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `GET` | `/routine-tags/{routine-tag-id}` | `getMyRoutineTagById` | `GetMyRoutineTagByIdRequestDto` | `GetMyRoutineTagByIdResponseDto` |
 | `PUT` | `/routine-tags/{routine-tag-id}` | `updateMyRoutineTagById` | `UpdateMyRoutineTagByIdRequestDto` | `UpdateMyRoutineTagByIdResponseDto` |
 | `DELETE` | `/routine-tags/{routine-tag-id}/permanently` | `hardDeleteMyRoutineTagById` | `HardDeleteMyRoutineTagByIdRequestDto` | `HardDeleteMyRoutineTagByIdResponseDto` |
+| `DELETE` | `/routine-task-dependencies/routine/{routine-id}` | `deleteRoutineTaskDependencyByRoutineId` | `DeleteRoutineTaskDependencyByRoutineIdRequestDto` | `DeleteRoutineTaskDependencyByRoutineIdResponseDto` |
+| `GET` | `/routine-task-dependencies/routine/{routine-id}` | `getRoutineTaskDependenciesByRoutineId` | `GetRoutineTaskDependenciesByRoutineIdRequestDto` | `GetRoutineTaskDependenciesByRoutineIdResponseDto` |
+| `POST` | `/routine-task-dependencies/routine/{routine-id}` | `createRoutineTaskDependencyByRoutineId` | `CreateRoutineTaskDependencyByRoutineIdRequestDto` | `CreateRoutineTaskDependencyByRoutineIdResponseDto` |
+| `PUT` | `/routine-task-dependencies/routine/{routine-id}` | `updateRoutineTaskDependencyByRoutineId` | `UpdateRoutineTaskDependencyByRoutineIdRequestDto` | `UpdateRoutineTaskDependencyByRoutineIdResponseDto` |
+| `DELETE` | `/routine-task-dependencies/routine/{routine-id}/batch` | `deleteRoutineTaskDependenciesByRoutineId` | `DeleteRoutineTaskDependenciesByRoutineIdRequestDto` | `DeleteRoutineTaskDependenciesByRoutineIdResponseDto` |
+| `POST` | `/routine-task-dependencies/routine/{routine-id}/batch` | `createRoutineTaskDependenciesByRoutineId` | `CreateRoutineTaskDependenciesByRoutineIdRequestDto` | `CreateRoutineTaskDependenciesByRoutineIdResponseDto` |
+| `PUT` | `/routine-task-dependencies/routine/{routine-id}/batch` | `updateRoutineTaskDependenciesByRoutineId` | `UpdateRoutineTaskDependenciesByRoutineIdRequestDto` | `UpdateRoutineTaskDependenciesByRoutineIdResponseDto` |
 | `GET` | `/routine-tasks` | `getAllMyRoutineTasks` | `GetAllMyRoutineTasksRequestDto` | `GetAllMyRoutineTasksResponseDto` |
 | `DELETE` | `/routine-tasks/batch/permanently` | `hardDeleteMyRoutineTasksByIds` | `HardDeleteMyRoutineTasksByIdsRequestDto` | `HardDeleteMyRoutineTasksByIdsResponseDto` |
 | `POST` | `/routine-tasks/routine/{routine-id}` | `createRoutineTaskByRoutineId` | `CreateRoutineTaskByRoutineIdRequestDto` | `CreateRoutineTaskByRoutineIdResponseDto` |

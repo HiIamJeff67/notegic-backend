@@ -2714,6 +2714,347 @@
               }
             }
           ],
+          "name": "[DESTRUCTIVE] delete-routine-task-dependency-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n}"
+            },
+            "description": "Delete Routine Task Dependency By Routine Id. Go DTO: `DeleteRoutineTaskDependencyByRoutineIdRequestDto`; response DTO: `DeleteRoutineTaskDependencyByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "get-routine-task-dependencies-by-routine-id",
+          "request": {
+            "description": "Get Routine Task Dependencies By Routine Id. Go DTO: `GetRoutineTaskDependenciesByRoutineIdRequestDto`; response DTO: `GetRoutineTaskDependenciesByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "create-routine-task-dependency-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"description\": \"example\",\n  \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"progress\": 1,\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n}"
+            },
+            "description": "Create Routine Task Dependency By Routine Id. Go DTO: `CreateRoutineTaskDependencyByRoutineIdRequestDto`; response DTO: `CreateRoutineTaskDependencyByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "update-routine-task-dependency-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"description\": \"example\",\n  \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"progress\": 1,\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n}"
+            },
+            "description": "Update Routine Task Dependency By Routine Id. Go DTO: `UpdateRoutineTaskDependencyByRoutineIdRequestDto`; response DTO: `UpdateRoutineTaskDependencyByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "[DESTRUCTIVE] delete-routine-task-dependencies-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"dependencies\": [\n    {\n      \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n      \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n    }\n  ]\n}"
+            },
+            "description": "Delete Routine Task Dependencies By Routine Id. Go DTO: `DeleteRoutineTaskDependenciesByRoutineIdRequestDto`; response DTO: `DeleteRoutineTaskDependenciesByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "create-routine-task-dependencies-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"dependencies\": [\n    {\n      \"description\": \"example\",\n      \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n      \"progress\": 1,\n      \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n    }\n  ]\n}"
+            },
+            "description": "Create Routine Task Dependencies By Routine Id. Go DTO: `CreateRoutineTaskDependenciesByRoutineIdRequestDto`; response DTO: `CreateRoutineTaskDependenciesByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "update-routine-task-dependencies-by-routine-id",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"dependencies\": [\n    {\n      \"description\": \"example\",\n      \"previousRoutineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n      \"progress\": 1,\n      \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\"\n    }\n  ]\n}"
+            },
+            "description": "Update Routine Task Dependencies By Routine Id. Go DTO: `UpdateRoutineTaskDependenciesByRoutineIdRequestDto`; response DTO: `UpdateRoutineTaskDependenciesByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch"
+            }
+          }
+        }
+      ],
+      "name": "routine-task-dependencies"
+    },
+    {
+      "item": [
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "name": "get-all-my-routine-tasks",
           "request": {
             "description": "Get All My Routine Tasks. Go DTO: `GetAllMyRoutineTasksRequestDto`; response DTO: `GetAllMyRoutineTasksResponseDto`.",
@@ -2815,7 +3156,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"maxAttempts\": 1,\n  \"payload\": {},\n  \"previousRoutineTaskIds\": [\n    \"00000000-0000-4000-8000-000000000001\"\n  ],\n  \"priority\": 1,\n  \"purpose\": \"GetSubShelf\",\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"title\": \"example\"\n}"
+              "raw": "{\n  \"maxAttempts\": 1,\n  \"payload\": {},\n  \"priority\": 1,\n  \"purpose\": \"GetSubShelf\",\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"title\": \"example\"\n}"
             },
             "description": "Create Routine Task By Routine Id. Go DTO: `CreateRoutineTaskByRoutineIdRequestDto`; response DTO: `CreateRoutineTaskByRoutineIdResponseDto`.",
             "header": [
@@ -2995,7 +3336,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"maxAttempts\": 1,\n    \"payload\": {},\n    \"previousRoutineTaskIds\": [\n      \"00000000-0000-4000-8000-000000000001\"\n    ],\n    \"priority\": 1,\n    \"purpose\": \"GetSubShelf\",\n    \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n    \"title\": \"example\"\n  }\n}"
+              "raw": "{\n  \"routineTaskId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"maxAttempts\": 1,\n    \"payload\": {},\n    \"priority\": 1,\n    \"purpose\": \"GetSubShelf\",\n    \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n    \"title\": \"example\"\n  }\n}"
             },
             "description": "Update My Routine Task By Id. Go DTO: `UpdateMyRoutineTaskByIdRequestDto`; response DTO: `UpdateMyRoutineTaskByIdResponseDto`.",
             "header": [
@@ -3204,7 +3545,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"createdRoutines\": [\n    {\n      \"description\": \"example\",\n      \"id\": \"00000000-0000-4000-8000-000000000001\",\n      \"isPinned\": true,\n      \"period\": \"Daily\",\n      \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n      \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n      \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n      \"status\": \"Scheduled\",\n      \"timezone\": \"example\",\n      \"title\": \"example\"\n    }\n  ]\n}"
+              "raw": "{\n  \"createdRoutines\": [\n    {\n      \"description\": \"example\",\n      \"id\": \"00000000-0000-4000-8000-000000000001\",\n      \"isPinned\": true,\n      \"period\": \"Daily\",\n      \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n      \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n      \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n      \"timezone\": \"example\",\n      \"title\": \"example\"\n    }\n  ]\n}"
             },
             "description": "Create Routines By Station Ids. Go DTO: `CreateRoutinesByStationIdsRequestDto`; response DTO: `CreateRoutinesByStationIdsResponseDto`.",
             "header": [
@@ -3254,7 +3595,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"updatedRoutines\": [\n    {\n      \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n      \"setNull\": {},\n      \"values\": {\n        \"description\": \"example\",\n        \"isPinned\": true,\n        \"period\": \"Daily\",\n        \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n        \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n        \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n        \"status\": \"Scheduled\",\n        \"timezone\": \"example\",\n        \"title\": \"example\"\n      }\n    }\n  ]\n}"
+              "raw": "{\n  \"updatedRoutines\": [\n    {\n      \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n      \"setNull\": {},\n      \"values\": {\n        \"description\": \"example\",\n        \"isPinned\": true,\n        \"period\": \"Daily\",\n        \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n        \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n        \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n        \"timezone\": \"example\",\n        \"title\": \"example\"\n      }\n    }\n  ]\n}"
             },
             "description": "Update My Routines By Ids. Go DTO: `UpdateMyRoutinesByIdsRequestDto`; response DTO: `UpdateMyRoutinesByIdsResponseDto`.",
             "header": [
@@ -3487,7 +3828,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"description\": \"example\",\n  \"id\": \"00000000-0000-4000-8000-000000000001\",\n  \"isPinned\": true,\n  \"period\": \"Daily\",\n  \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n  \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n  \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n  \"status\": \"Scheduled\",\n  \"timezone\": \"example\",\n  \"title\": \"example\"\n}"
+              "raw": "{\n  \"description\": \"example\",\n  \"id\": \"00000000-0000-4000-8000-000000000001\",\n  \"isPinned\": true,\n  \"period\": \"Daily\",\n  \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n  \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n  \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n  \"timezone\": \"example\",\n  \"title\": \"example\"\n}"
             },
             "description": "Create Routine By Station Id. Go DTO: `CreateRoutineByStationIdRequestDto`; response DTO: `CreateRoutineByStationIdResponseDto`.",
             "header": [
@@ -3847,7 +4188,7 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"description\": \"example\",\n    \"isPinned\": true,\n    \"period\": \"Daily\",\n    \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n    \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n    \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n    \"status\": \"Scheduled\",\n    \"timezone\": \"example\",\n    \"title\": \"example\"\n  }\n}"
+              "raw": "{\n  \"routineId\": \"00000000-0000-4000-8000-000000000001\",\n  \"setNull\": {},\n  \"values\": {\n    \"description\": \"example\",\n    \"isPinned\": true,\n    \"period\": \"Daily\",\n    \"scheduledEndAt\": \"2026-01-01T00:00:00Z\",\n    \"scheduledStartAt\": \"2026-01-01T00:00:00Z\",\n    \"stationId\": \"00000000-0000-4000-8000-000000000001\",\n    \"timezone\": \"example\",\n    \"title\": \"example\"\n  }\n}"
             },
             "description": "Update My Routine By Id. Go DTO: `UpdateMyRoutineByIdRequestDto`; response DTO: `UpdateMyRoutineByIdResponseDto`.",
             "header": [

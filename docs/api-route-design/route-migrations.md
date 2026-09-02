@@ -172,6 +172,18 @@ bulk collection operation, and a named child path represents a state change.
 | `DELETE /routineTask/hardDeleteMyRoutineTaskById` | `DELETE /routine-tasks/{routine-task-id}/permanently` |
 | `DELETE /routineTask/hardDeleteMyRoutineTasksByIds` | `DELETE /routine-tasks/batch/permanently` |
 | `GET /routineTask/visualizeMyRoutineTask*` | `GET /routine-tasks/visualizations/*` |
+| `GET /routineTaskDependency/getRoutineTaskDependenciesByRoutineId` | `GET /routine-task-dependencies/routine/{routine-id}` |
+| `POST /routineTaskDependency/createRoutineTaskDependencyByRoutineId` | `POST /routine-task-dependencies/routine/{routine-id}` |
+| `POST /routineTaskDependency/createRoutineTaskDependenciesByRoutineId` | `POST /routine-task-dependencies/routine/{routine-id}/batch` |
+| `PUT /routineTaskDependency/updateRoutineTaskDependencyByRoutineId` | `PUT /routine-task-dependencies/routine/{routine-id}` |
+| `PUT /routineTaskDependency/updateRoutineTaskDependenciesByRoutineId` | `PUT /routine-task-dependencies/routine/{routine-id}/batch` |
+| `DELETE /routineTaskDependency/deleteRoutineTaskDependencyByRoutineId` | `DELETE /routine-task-dependencies/routine/{routine-id}` |
+| `DELETE /routineTaskDependency/deleteRoutineTaskDependenciesByRoutineId` | `DELETE /routine-task-dependencies/routine/{routine-id}/batch` |
+
+RoutineTask create and update contracts no longer accept
+`previousRoutineTaskIds`. Dependency edges are an independent resource and
+must be changed through the dependency CRUD routes above. RoutineTask read
+responses may still expose their resolved predecessor IDs for graph rendering.
 | `GET /routineTaskRecord/getAllMyRoutineTaskRecordsByRoutineTaskId?routineTaskId={id}` | `GET /routine-task-records/routine-task/{routine-task-id}` |
 | `GET /routineRecord/getAllMyRoutineRecordsByRoutineId?routineId={id}` | Removed; use ClientGateway GraphQL `searchRoutineRecords` |
 | `GET /routineTaskRecord/visualizeMyRoutineTaskRecord*` | `GET /routine-task-records/visualizations/*` |

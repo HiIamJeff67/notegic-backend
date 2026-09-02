@@ -504,6 +504,67 @@ hardDeleteMyRoutineTagById() {
     "$api_gateway_base_url/routine-tags/${routineTagId}/permanently"
 }
 
+deleteRoutineTaskDependencyByRoutineId() {
+  curl --fail-with-body --silent --show-error -X DELETE \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}"
+}
+
+getRoutineTaskDependenciesByRoutineId() {
+  curl --fail-with-body --silent --show-error -X GET \
+    -H "User-Agent: $user_agent" \
+    -H "X-API-Key: $api_key" \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}"
+}
+
+createRoutineTaskDependencyByRoutineId() {
+  curl --fail-with-body --silent --show-error -X POST \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"description":"example","previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","progress":1,"routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}"
+}
+
+updateRoutineTaskDependencyByRoutineId() {
+  curl --fail-with-body --silent --show-error -X PUT \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"description":"example","previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","progress":1,"routineTaskId":"00000000-0000-4000-8000-000000000001"}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}"
+}
+
+deleteRoutineTaskDependenciesByRoutineId() {
+  curl --fail-with-body --silent --show-error -X DELETE \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"dependencies":[{"previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","routineTaskId":"00000000-0000-4000-8000-000000000001"}]}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}/batch"
+}
+
+createRoutineTaskDependenciesByRoutineId() {
+  curl --fail-with-body --silent --show-error -X POST \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"dependencies":[{"description":"example","previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","progress":1,"routineTaskId":"00000000-0000-4000-8000-000000000001"}]}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}/batch"
+}
+
+updateRoutineTaskDependenciesByRoutineId() {
+  curl --fail-with-body --silent --show-error -X PUT \
+    -H "User-Agent: $user_agent" \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: $api_key" \
+    --data '{"dependencies":[{"description":"example","previousRoutineTaskId":"00000000-0000-4000-8000-000000000001","progress":1,"routineTaskId":"00000000-0000-4000-8000-000000000001"}]}' \
+    "$api_gateway_base_url/routine-task-dependencies/routine/${routineId}/batch"
+}
+
 getAllMyRoutineTasks() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
@@ -525,7 +586,7 @@ createRoutineTaskByRoutineId() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"maxAttempts":1,"payload":{},"previousRoutineTaskIds":["00000000-0000-4000-8000-000000000001"],"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}' \
+    --data '{"maxAttempts":1,"payload":{},"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}' \
     "$api_gateway_base_url/routine-tasks/routine/${routineId}"
 }
 
@@ -555,7 +616,7 @@ updateMyRoutineTaskById() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"maxAttempts":1,"payload":{},"previousRoutineTaskIds":["00000000-0000-4000-8000-000000000001"],"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}}' \
+    --data '{"routineTaskId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"maxAttempts":1,"payload":{},"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}}' \
     "$api_gateway_base_url/routine-tasks/${routineTaskId}"
 }
 
@@ -589,7 +650,7 @@ createRoutinesByStationIds() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"createdRoutines":[{"description":"example","id":"00000000-0000-4000-8000-000000000001","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","status":"Scheduled","timezone":"example","title":"example"}]}' \
+    --data '{"createdRoutines":[{"description":"example","id":"00000000-0000-4000-8000-000000000001","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","timezone":"example","title":"example"}]}' \
     "$api_gateway_base_url/routines/batch"
 }
 
@@ -598,7 +659,7 @@ updateMyRoutinesByIds() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"updatedRoutines":[{"routineId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"description":"example","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","status":"Scheduled","timezone":"example","title":"example"}}]}' \
+    --data '{"updatedRoutines":[{"routineId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"description":"example","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","timezone":"example","title":"example"}}]}' \
     "$api_gateway_base_url/routines/batch"
 }
 
@@ -640,7 +701,7 @@ createRoutineByStationId() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"description":"example","id":"00000000-0000-4000-8000-000000000001","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","status":"Scheduled","timezone":"example","title":"example"}' \
+    --data '{"description":"example","id":"00000000-0000-4000-8000-000000000001","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","timezone":"example","title":"example"}' \
     "$api_gateway_base_url/routines/station/${stationId}"
 }
 
@@ -702,7 +763,7 @@ updateMyRoutineById() {
     -H "User-Agent: $user_agent" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $api_key" \
-    --data '{"routineId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"description":"example","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","status":"Scheduled","timezone":"example","title":"example"}}' \
+    --data '{"routineId":"00000000-0000-4000-8000-000000000001","setNull":{},"values":{"description":"example","isPinned":true,"period":"Daily","scheduledEndAt":"2026-01-01T00:00:00Z","scheduledStartAt":"2026-01-01T00:00:00Z","stationId":"00000000-0000-4000-8000-000000000001","timezone":"example","title":"example"}}' \
     "$api_gateway_base_url/routines/${routineId}"
 }
 

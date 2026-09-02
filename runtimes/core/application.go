@@ -118,6 +118,7 @@ func (a *Application) buildRouter(
 	routineRepository := srepositories.NewRoutineRepository(db, routineScope)
 	routineTagRepository := srepositories.NewRoutineTagRepository(db, routineTagScope)
 	routineTaskRepository := srepositories.NewRoutineTaskRepository(db, routineTaskScope)
+	routineTaskDependencyRepository := srepositories.NewRoutineTaskDependencyRepository(db)
 	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(db, routineTaskRecordScope)
 	itemRepository := srepositories.NewItemRepository(db, itemScope)
 	outboxEventRepository := srepositories.NewOutboxEventRepository(db)
@@ -251,6 +252,13 @@ func (a *Application) buildRouter(
 		routineTaskScope,
 		routineTaskRepository,
 	)
+	routineTaskDependencyService := routineservices.NewRoutineTaskDependencyService(
+		validator,
+		db,
+		routineRepository,
+		routineTaskRepository,
+		routineTaskDependencyRepository,
+	)
 	themeService := otherservices.NewThemeService(db)
 	itemService := shelfservices.NewItemService(db, itemScope)
 	badgeService := otherservices.NewBadgeService(db)
@@ -308,6 +316,9 @@ func (a *Application) buildRouter(
 		},
 		RoutineTask: gatewayrouters.RoutineTaskRouterDependencies{
 			Service: routineTaskService, AuthMiddleware: authMiddleware, APIKeyMiddleware: apiKeyMiddleware,
+		},
+		RoutineTaskDependency: gatewayrouters.RoutineTaskDependencyRouterDependencies{
+			Service: routineTaskDependencyService, AuthMiddleware: authMiddleware, APIKeyMiddleware: apiKeyMiddleware,
 		},
 		Theme: gatewayrouters.ThemeRouterDependencies{Service: themeService},
 		Item:  gatewayrouters.ItemRouterDependencies{Service: itemService, AuthMiddleware: authMiddleware},

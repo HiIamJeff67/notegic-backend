@@ -600,6 +600,97 @@ User-Agent: {{userAgent}}
 Content-Type: application/json
 X-API-Key: {{apiKey}}
 
+### DELETE Delete Routine Task Dependency By Routine Id
+DELETE {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+  "routineTaskId": "00000000-0000-4000-8000-000000000001"
+}
+
+### GET Get Routine Task Dependencies By Routine Id
+GET {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}
+User-Agent: {{userAgent}}
+X-API-Key: {{apiKey}}
+
+### POST Create Routine Task Dependency By Routine Id
+POST {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "description": "example",
+  "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+  "progress": 1,
+  "routineTaskId": "00000000-0000-4000-8000-000000000001"
+}
+
+### PUT Update Routine Task Dependency By Routine Id
+PUT {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "description": "example",
+  "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+  "progress": 1,
+  "routineTaskId": "00000000-0000-4000-8000-000000000001"
+}
+
+### DELETE Delete Routine Task Dependencies By Routine Id
+DELETE {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "dependencies": [
+    {
+      "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+      "routineTaskId": "00000000-0000-4000-8000-000000000001"
+    }
+  ]
+}
+
+### POST Create Routine Task Dependencies By Routine Id
+POST {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "dependencies": [
+    {
+      "description": "example",
+      "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+      "progress": 1,
+      "routineTaskId": "00000000-0000-4000-8000-000000000001"
+    }
+  ]
+}
+
+### PUT Update Routine Task Dependencies By Routine Id
+PUT {{apiGatewayBaseUrl}}/routine-task-dependencies/routine/{{routineId}}/batch
+User-Agent: {{userAgent}}
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "dependencies": [
+    {
+      "description": "example",
+      "previousRoutineTaskId": "00000000-0000-4000-8000-000000000001",
+      "progress": 1,
+      "routineTaskId": "00000000-0000-4000-8000-000000000001"
+    }
+  ]
+}
+
 ### GET Get All My Routine Tasks
 GET {{apiGatewayBaseUrl}}/routine-tasks?areDeleted=true
 User-Agent: {{userAgent}}
@@ -626,9 +717,6 @@ X-API-Key: {{apiKey}}
 {
   "maxAttempts": 1,
   "payload": {},
-  "previousRoutineTaskIds": [
-    "00000000-0000-4000-8000-000000000001"
-  ],
   "priority": 1,
   "purpose": "GetSubShelf",
   "routineId": "00000000-0000-4000-8000-000000000001",
@@ -662,9 +750,6 @@ X-API-Key: {{apiKey}}
   "values": {
     "maxAttempts": 1,
     "payload": {},
-    "previousRoutineTaskIds": [
-      "00000000-0000-4000-8000-000000000001"
-    ],
     "priority": 1,
     "purpose": "GetSubShelf",
     "routineId": "00000000-0000-4000-8000-000000000001",
@@ -715,7 +800,6 @@ X-API-Key: {{apiKey}}
       "scheduledEndAt": "2026-01-01T00:00:00Z",
       "scheduledStartAt": "2026-01-01T00:00:00Z",
       "stationId": "00000000-0000-4000-8000-000000000001",
-      "status": "Scheduled",
       "timezone": "example",
       "title": "example"
     }
@@ -740,7 +824,6 @@ X-API-Key: {{apiKey}}
         "scheduledEndAt": "2026-01-01T00:00:00Z",
         "scheduledStartAt": "2026-01-01T00:00:00Z",
         "stationId": "00000000-0000-4000-8000-000000000001",
-        "status": "Scheduled",
         "timezone": "example",
         "title": "example"
       }
@@ -802,7 +885,6 @@ X-API-Key: {{apiKey}}
   "scheduledEndAt": "2026-01-01T00:00:00Z",
   "scheduledStartAt": "2026-01-01T00:00:00Z",
   "stationId": "00000000-0000-4000-8000-000000000001",
-  "status": "Scheduled",
   "timezone": "example",
   "title": "example"
 }
@@ -874,7 +956,6 @@ X-API-Key: {{apiKey}}
     "scheduledEndAt": "2026-01-01T00:00:00Z",
     "scheduledStartAt": "2026-01-01T00:00:00Z",
     "stationId": "00000000-0000-4000-8000-000000000001",
-    "status": "Scheduled",
     "timezone": "example",
     "title": "example"
   }

@@ -1,8 +1,8 @@
 # Notegic APIGateway v1 public API
 
-This directory contains the machine-readable and human-readable contract for all 125 versioned routes currently exposed by APIGateway v1.
+This directory contains the machine-readable and human-readable contract for all 132 versioned routes currently exposed by APIGateway v1.
 
-The published domains are RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, and RoutineTag. RoutineRecord is available through ClientGateway GraphQL search only. Client-only auth, user/account, notification, realtime, GraphQL, and static routes are intentionally excluded.
+The published domains are RootShelf, SubShelf, Material, BlockPack, Block, Station, Routine, RoutineTask, RoutineTaskDependency, and RoutineTag. RoutineRecord is available through ClientGateway GraphQL search only. Client-only auth, user/account, notification, realtime, GraphQL, and static routes are intentionally excluded.
 
 - **Canonical contract:** `openapi/openapi.json` (OpenAPI 3.1)
 - **Rules:** `rules/`
