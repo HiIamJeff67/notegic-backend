@@ -20,6 +20,7 @@ var testModules = []string{
 	"runtimes/apigateway",
 	"runtimes/durablejob",
 	"runtimes/email",
+	"runtimes/notification",
 	"runtimes/realtimegateway",
 	"test",
 }

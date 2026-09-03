@@ -72,15 +72,17 @@ func (r *RoutineTaskDependencyRepository) incrementRoutineDefinitionVersion(
 	result := db.
 		Model(&schemas.Routine{}).
 		Where("id = ?", routineId).
-		Updates(map[string]interface{}{
-			"definition_version": gorm.Expr("definition_version + 1"),
-			"status": gorm.Expr(
-				`CASE WHEN status IN (?::"RoutineStatus", ?::"RoutineStatus") THEN ?::"RoutineStatus" ELSE status END`,
-				cenums.RoutineStatus_Completed,
-				cenums.RoutineStatus_OverDue,
-				cenums.RoutineStatus_Scheduled,
-			),
-		})
+		UpdateColumn("definition_version", gorm.Expr("definition_version + ?", 1))
+	if result.Error != nil {
+		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+	}
+	result = db.
+		Model(&schemas.Routine{}).
+		Where("id = ? AND status IN ?", routineId, []cenums.RoutineStatus{
+			cenums.RoutineStatus_Completed,
+			cenums.RoutineStatus_OverDue,
+		}).
+		Update("status", cenums.RoutineStatus_Scheduled)
 	if result.Error != nil {
 		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
