@@ -337,6 +337,25 @@ receives, but it must not recreate the services or conceal their dependencies in
 module wrapper. Constructor parameters, struct dependency fields, and constructor
 assignments use the same order.
 
+Every runtime-owned component receives its operational dependencies through its
+constructor. This includes repositories, scopes, clients, generators, hashers,
+and the component's runtime/domain exception instance. Do not call
+`New...Repository()`, `New...Exception()`, or another dependency constructor
+inside a service or operation method. Construct the dependency once in the
+composition root, pass it to `New...Service()`/`New...Component()`, and store it
+on the concrete struct. A component may construct a value that it owns directly
+(for example, an immutable parser configuration), but it must not instantiate a
+shared repository or a dependency owned by another package at the point of use.
+
+Exception factories are also dependencies: a service that returns a domain
+exception keeps its injected domain exception on the struct and uses that
+instance throughout its methods. Distinct domains used by one service are
+injected as distinct dependencies. Constructors do not silently replace a nil
+dependency with a newly constructed shared repository or exception; the
+composition root is responsible for providing the complete graph. Optional
+dependencies must have an explicit no-op or nil contract documented by the
+component.
+
 Do not create a module, interface, adapter, or helper for a single anticipated
 future use. A concrete boundary with a real caller is enough.
 
@@ -380,10 +399,10 @@ optional GraphQL/system-only methods
 - Extract a helper only when two or more methods reuse the same named concept, or
   the inline logic would hide the primary workflow. One-call parsing, mapping,
   validation, temporary type, and wrapper variable stay inline.
-- Use `sep30` only when a file has two or more independently navigable method
-  families. Auxiliary helpers, visualization/chart methods, and GraphQL/system-only
-  methods use `sep30` when they coexist with another family. Do not use it between
-  ordinary methods or above a file's only method family.
+- Use `sep30` only for GraphQL, system-only, and visualization method families.
+  The separator must appear in both the service interface and the matching
+  implementation, using the same semantic group. Do not use it for ordinary
+  service methods, main methods, CRUD methods, permission methods, or helpers.
 - Local struct/type declarations require a concrete domain name and repeated use
   within a complex query/result mapping. Do not create `Data`, `Result`, or
   `Params` wrappers for one handoff.

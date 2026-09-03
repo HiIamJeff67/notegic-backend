@@ -14,7 +14,11 @@ A service method should read as adjacent statements within one semantic block, w
 - Put the validation guard at the top of the method; after the guard, leave one blank line before the next independent stage. The blank line may be omitted only when validation is immediately followed by a precondition in the same semantic stage.
 - `db := s.db.WithContext(ctx)` or `tx := s.db.WithContext(ctx).Begin()` is the workflow execution environment and should form its own block, separated by one blank line from the previous stage and the first query/workflow after it.
 - Derived values, input assembly, query-result-to-DTO mapping, and loop processing each form a continuous block; separate a change of work with one blank line. Do not insert blank lines for visual effect within one block.
-- Ordinary methods use blank lines to express stages. Use `sep30` only when one file contains two or more clearly separate and complex method families (for example helper, HTTP service, chart service, or GraphQL service). When a file contains only main service methods, do not add a `Services for Something` separator above them:
+- Ordinary methods use blank lines to express stages. Use `sep30` only for
+  GraphQL, system-only, and visualization method families. The separator must
+  appear in both the service interface and the matching implementation, using
+  the same semantic group. Do not use it for ordinary service methods, main
+  methods, CRUD methods, permission methods, or helpers:
 
   ```go
   /* ============================== Service Methods for GraphQL Station ============================== */

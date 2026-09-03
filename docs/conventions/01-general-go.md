@@ -83,6 +83,41 @@ func (s *StationService) UpdateMyStationById(
 - Never swallow errors. Map expected business/infrastructure failures to `*exceptions.Exception` and preserve the cause with `WithOrigin(err)`.
 - Prefer direct, readable code; do not use generics, reflection, global state, or a new dependency to solve a single feature.
 
+## Helper and Constructor Rules
+
+- A helper must have a responsibility that is meaningful at its owning layer. Do
+  not create a constructor-like helper for a DTO, response DTO, database model,
+  or another type that is not owned by the enclosing component. Map that value
+  inline at the call site unless the mapping is a real, repeated domain
+  operation owned by a dedicated component.
+- Do not keep a helper that only wraps a return value, immediately returns a
+  delegated call, performs a shallow pointer conversion, or adds a simple
+  `if err != nil` before returning. Keep that code inline so the owning public
+  workflow and its status/error behaviour remain visible.
+- A helper whose first statement is `return` is presumed to be an unnecessary
+  wrapper. It may remain only when it is a meaningful global method of a
+  reusable package or component and has multiple external callers.
+- A helper that does more work may still be unnecessary when it only adapts an
+  externally supplied object into another method on the same component's own
+  properties. Use the owned property directly. Keep a helper only when it
+  contains a substantial algorithm, hides complexity from the primary
+  workflow, or is reused by at least two methods for the same named concept.
+- Helpers must be declared immediately after the constructor and before the
+  main methods. If a file has no constructor, declare them before all main
+  methods. Do not place a private helper between public methods or after the
+  method that calls it.
+- The allowed exception is a meaningful global method on a reusable package or
+  component that is composed by multiple external callers or embedded as a
+  property by another component. Context packages are an example: their
+  methods provide a complete, clean package boundary rather than saving a few
+  lines. Large shared visualization logic may likewise use a global
+  `visualize...()` method when multiple visualization service methods delegate
+  to it.
+- Do not add a helper merely to make a singular method call a one-item private
+  implementation of its plural counterpart. When the workflows are genuinely
+  equivalent, the singular public method may call the plural public method with
+  one item; otherwise keep each workflow explicit.
+
 ## Batch Database Operations (Mandatory)
 
 **Per-row database operations are strictly forbidden.** A `for` loop may only normalize input, build sets/maps, assemble batch inputs/placeholders, or construct a response; it must not perform any database operation, including:
