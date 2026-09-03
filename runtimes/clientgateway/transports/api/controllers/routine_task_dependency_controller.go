@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-dependencies"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -48,7 +51,13 @@ func (c *RoutineTaskDependencyController) GetRoutineTaskDependenciesByRoutineId(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) CreateRoutineTaskDependencyByRoutineId(
@@ -69,7 +78,13 @@ func (c *RoutineTaskDependencyController) CreateRoutineTaskDependencyByRoutineId
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) CreateRoutineTaskDependenciesByRoutineId(
@@ -90,7 +105,13 @@ func (c *RoutineTaskDependencyController) CreateRoutineTaskDependenciesByRoutine
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependencyByRoutineId(
@@ -111,7 +132,13 @@ func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependencyByRoutineId
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependenciesByRoutineId(
@@ -132,7 +159,13 @@ func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependenciesByRoutine
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependencyByRoutineId(
@@ -153,7 +186,13 @@ func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependencyByRoutineId
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependenciesByRoutineId(
@@ -174,5 +213,11 @@ func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependenciesByRoutine
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

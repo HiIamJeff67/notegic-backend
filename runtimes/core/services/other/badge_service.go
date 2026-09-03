@@ -14,7 +14,7 @@ import (
 )
 
 type BadgeServiceInterface interface {
-	// services for public badges
+	/* ============================== GraphQL Methods ============================== */
 	GetPublicBadgeByPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicBadge, *cexceptions.Exception)
 	GetPublicBadgeByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicBadge, *cexceptions.Exception)
 	GetPublicBadgesByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicBadge, *cexceptions.Exception)
@@ -28,9 +28,7 @@ func NewBadgeService(db *gorm.DB) BadgeServiceInterface {
 	return &BadgeService{db: db}
 }
 
-/* ============================== Service Methods for Badge ============================== */
-
-/* ============================== Services for GraphQL Badge ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *BadgeService) GetPublicBadgeByPublicId(
 	ctx context.Context, publicId uuid.UUID,

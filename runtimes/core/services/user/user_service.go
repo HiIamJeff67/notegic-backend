@@ -32,7 +32,7 @@ type UserServiceInterface interface {
 	GetMe(ctx context.Context, requestDto *capi.GetMeRequestDto) (*capi.GetMeResponseDto, *cexceptions.Exception)
 	UpdateMe(ctx context.Context, requestDto *capi.UpdateMeRequestDto) (*capi.UpdateMeResponseDto, *cexceptions.Exception)
 
-	// services for graphql users
+	/* ============================== GraphQL Methods ============================== */
 	GetPublicUserByPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUser, *cexceptions.Exception)
 	GetPublicAuthorByThemePublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicUser, *cexceptions.Exception)
 	SearchPublicUsers(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchUserInput) (*cgqlmodels.SearchUserConnection, *cexceptions.Exception)
@@ -58,8 +58,6 @@ func NewUserService(
 		userDataCacheClient: userDataCacheClient,
 	}
 }
-
-/* ============================== Service Methods for Users ============================== */
 
 func (s *UserService) GetUserData(
 	ctx context.Context, requestDto *capi.GetUserDataRequestDto,
@@ -212,7 +210,7 @@ func (s *UserService) UpdateMe(
 	return &capi.UpdateMeResponseDto{UpdatedAt: updatedUser.UpdatedAt}, nil
 }
 
-/* ============================== Service Methods for Public User (Only available in GraphQL) ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *UserService) GetPublicUserByPublicId(
 	ctx context.Context, publicId uuid.UUID,

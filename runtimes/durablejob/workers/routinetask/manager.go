@@ -21,8 +21,6 @@ import (
 type Manager struct {
 	workerId            uuid.UUID
 	db                  *gorm.DB
-	failed              []cdurablejobroutinetasktypes.FailedRoutineTask
-	success             []cdurablejobroutinetasktypes.CompletedRoutineTask
 	planService         *routineexecution.PlanService
 	executionService    routineexecution.RoutineTaskExecutionServiceInterface
 	runningPublisher    *realtimegatewayproducers.RoutineTaskLifecycleProducer
@@ -30,6 +28,7 @@ type Manager struct {
 }
 
 func NewManager(
+	db *gorm.DB,
 	planService *routineexecution.PlanService,
 	executionService routineexecution.RoutineTaskExecutionServiceInterface,
 	runningPublisher *realtimegatewayproducers.RoutineTaskLifecycleProducer,
@@ -43,6 +42,7 @@ func NewManager(
 
 	return Manager{
 		workerId:            workerId,
+		db:                  db,
 		planService:         planService,
 		executionService:    executionService,
 		runningPublisher:    runningPublisher,
@@ -55,8 +55,11 @@ func (hm *Manager) setRoutinePhase(
 	routineIds []uuid.UUID,
 	phase cenums.RoutinePhase,
 ) error {
-	if db == nil || len(routineIds) == 0 {
+	if len(routineIds) == 0 {
 		return nil
+	}
+	if db == nil {
+		return fmt.Errorf("DurableJob routine phase database is not configured")
 	}
 	return db.
 		Model(&sschemas.Routine{}).
@@ -92,27 +95,25 @@ func (hm *Manager) Manage(
 		routineIds = append(routineIds, assignment.RoutineId)
 	}
 	// Build and persist the deterministic plan, including assignment planning.
-	var invalidReasons map[uuid.UUID]string
-	var err error
-	hm.success, hm.failed, invalidReasons, err = hm.planService.BuildRoutineTaskPlans(ctx, assignments)
+	success, failed, invalidReasons, err := hm.planService.BuildRoutineTaskPlans(ctx, assignments)
 	if err != nil {
 		return err
 	}
 	if len(invalidReasons) > 0 {
-		filteredSuccesses := hm.success[:0]
-		for _, success := range hm.success {
-			if _, invalid := invalidReasons[success.RoutineRecordId]; !invalid {
-				filteredSuccesses = append(filteredSuccesses, success)
+		filteredSuccesses := success[:0]
+		for _, completedTask := range success {
+			if _, invalid := invalidReasons[completedTask.RoutineRecordId]; !invalid {
+				filteredSuccesses = append(filteredSuccesses, completedTask)
 			}
 		}
-		hm.success = filteredSuccesses
-		filteredFailures := hm.failed[:0]
-		for _, failure := range hm.failed {
-			if _, invalid := invalidReasons[failure.RoutineRecordId]; !invalid {
-				filteredFailures = append(filteredFailures, failure)
+		success = filteredSuccesses
+		filteredFailures := failed[:0]
+		for _, failedTask := range failed {
+			if _, invalid := invalidReasons[failedTask.RoutineRecordId]; !invalid {
+				filteredFailures = append(filteredFailures, failedTask)
 			}
 		}
-		hm.failed = filteredFailures
+		failed = filteredFailures
 	}
 	invalidRoutineIds := make(map[uuid.UUID]struct{})
 	for _, assignment := range assignments {
@@ -150,19 +151,19 @@ func (hm *Manager) Manage(
 	if err := hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Execution); err != nil {
 		return err
 	}
-	if len(hm.success) > 0 || len(hm.failed) > 0 {
+	if len(success) > 0 || len(failed) > 0 {
 		if hm.executionService == nil {
 			return fmt.Errorf("DurableJob routine task execution service is not configured")
 		}
 	}
-	if len(hm.success) > 0 {
+	if len(success) > 0 {
 		result := cdurablejobroutinetasktypes.Result{
 			Kind:          cdurablejobroutinetasktypes.ResultKind_Completed,
 			WorkerId:      hm.workerId,
 			CorrelationId: uuid.New().String(),
 			Data: cdurablejob.MarkCompletedRoutineTasksRequestDto{
 				WorkerId: hm.workerId,
-				Tasks:    hm.success,
+				Tasks:    success,
 			},
 		}
 		if exception := hm.executionService.ApplyResult(ctx, uuid.New(), result); exception != nil {
@@ -172,7 +173,7 @@ func (hm *Manager) Manage(
 		if hm.completionPublisher != nil {
 			err := hm.completionPublisher.ProduceRoutineTaskCompleted(
 				ctx,
-				hm.success,
+				success,
 				hm.workerId,
 			)
 			if err != nil {
@@ -181,7 +182,7 @@ func (hm *Manager) Manage(
 			}
 		}
 	}
-	if len(hm.failed) > 0 {
+	if len(failed) > 0 {
 		if err := hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Recovery); err != nil {
 			return err
 		}
@@ -191,7 +192,7 @@ func (hm *Manager) Manage(
 			CorrelationId: uuid.New().String(),
 			Data: cdurablejob.MarkFailedRoutineTasksRequestDto{
 				WorkerId: hm.workerId,
-				Tasks:    hm.failed,
+				Tasks:    failed,
 			},
 		}
 		if exception := hm.executionService.ApplyResult(ctx, uuid.New(), result); exception != nil {

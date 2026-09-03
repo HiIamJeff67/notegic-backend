@@ -18,6 +18,7 @@ import (
 )
 
 type ThemeServiceInterface interface {
+	/* ============================== GraphQL Methods ============================== */
 	GetPublicThemeByPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicTheme, *cexceptions.Exception)
 
 	SearchPublicThemes(ctx context.Context, gqlInput cgqlmodels.SearchThemeInput) (*cgqlmodels.SearchThemeConnection, *cexceptions.Exception)
@@ -33,12 +34,10 @@ func NewThemeService(db *gorm.DB) ThemeServiceInterface {
 	}
 }
 
-/* ============================== Service Methods for Theme ============================== */
-
 // get the theme which are created by the current user
 func (s *ThemeService) GetMyThemeById() {}
 
-/* ============================== Service Methods for Public Theme ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *ThemeService) GetPublicThemeByPublicId(
 	ctx context.Context, publicId uuid.UUID,

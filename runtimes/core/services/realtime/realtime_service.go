@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/realtime"
@@ -48,34 +47,6 @@ func NewRealtimeService(
 	}
 }
 
-/* ============================== Auxiliary Functions ============================== */
-
-func (s *RealtimeService) getActorUserPublicId(ctx context.Context) (uuid.UUID, *cexceptions.Exception) {
-	actorUserId, exception := contexts.GetActorUserId(ctx)
-	if exception != nil {
-		return uuid.Nil, exception
-	}
-	var user sschemas.User
-	result := s.db.WithContext(ctx).
-		Model(&sschemas.User{}).
-		Select("public_id").
-		Where("id = ?", actorUserId).
-		First(&user)
-	if result.Error != nil {
-		return uuid.Nil, cexceptions.New(
-			"NotFound",
-			"User",
-			"ResolveActor",
-			"User was not found",
-			http.StatusNotFound,
-		).WithOrigin(result.Error)
-	}
-
-	return user.PublicId, nil
-}
-
-/* ============================== Service Methods for Realtime ============================== */
-
 func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 	ctx context.Context,
 	requestDto *capi.CreateMyRealtimeConnectionTicketRequestDto,
@@ -90,7 +61,7 @@ func (s *RealtimeService) CreateMyRealtimeConnectionTicket(
 		).WithOrigin(err)
 	}
 
-	userPublicId, exception := s.getActorUserPublicId(ctx)
+	userPublicId, exception := contexts.GetActorUserPublicId(ctx)
 	if exception != nil {
 		return nil, exception
 	}
@@ -155,7 +126,7 @@ func (s *RealtimeService) CreateMyBlockPackChannelTicket(
 	if exception != nil {
 		return nil, exception
 	}
-	userPublicId, exception := s.getActorUserPublicId(ctx)
+	userPublicId, exception := contexts.GetActorUserPublicId(ctx)
 	if exception != nil {
 		return nil, exception
 	}

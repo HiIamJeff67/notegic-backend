@@ -28,6 +28,7 @@ type YjsCommandConsumer struct {
 	yjsPersistenceService  blockservices.YjsPersistenceServiceInterface
 	blockService           blockservices.BlockServiceInterface
 	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface
+	outboxRepository       srepositories.OutboxEventRepositoryInterface
 	kafkaConfig            skafka.ConsumerConfig
 }
 
@@ -35,13 +36,16 @@ func NewYjsCommandConsumer(
 	db *gorm.DB,
 	yjsPersistenceService blockservices.YjsPersistenceServiceInterface,
 	blockService blockservices.BlockServiceInterface,
+	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface,
+	outboxRepository srepositories.OutboxEventRepositoryInterface,
 	kafkaConfig skafka.ConsumerConfig,
 ) *YjsCommandConsumer {
 	return &YjsCommandConsumer{
 		db:                     db,
 		yjsPersistenceService:  yjsPersistenceService,
 		blockService:           blockService,
-		blockPackYjsRepository: srepositories.NewBlockPackYjsRepository(db),
+		blockPackYjsRepository: blockPackYjsRepository,
+		outboxRepository:       outboxRepository,
 		kafkaConfig:            kafkaConfig,
 	}
 }
@@ -214,7 +218,7 @@ func (c *YjsCommandConsumer) consume(
 
 			return fmt.Errorf("append Yjs update: %w", err)
 		}
-		if err := srepositories.NewOutboxEventRepository().EnqueueYjsMaintenanceHint(
+		if err := c.outboxRepository.EnqueueYjsMaintenanceHint(
 			tx,
 			command.CorrelationId,
 			command.BlockPackId,

@@ -29,10 +29,13 @@ type YjsPersistenceService struct {
 	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface
 }
 
-func NewYjsPersistenceService(db *gorm.DB) YjsPersistenceServiceInterface {
+func NewYjsPersistenceService(
+	db *gorm.DB,
+	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface,
+) YjsPersistenceServiceInterface {
 	return &YjsPersistenceService{
 		db:                     db,
-		blockPackYjsRepository: srepositories.NewBlockPackYjsRepository(db),
+		blockPackYjsRepository: blockPackYjsRepository,
 	}
 }
 

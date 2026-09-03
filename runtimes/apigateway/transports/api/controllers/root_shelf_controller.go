@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/root-shelves"
@@ -63,7 +65,13 @@ func (c *RootShelfController) GetMyRootShelfById(ctx *gin.Context, request *capi
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) CreateRootShelf(ctx *gin.Context, request *capi.CreateRootShelfRequestDto) {
@@ -82,7 +90,13 @@ func (c *RootShelfController) CreateRootShelf(ctx *gin.Context, request *capi.Cr
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) CreateRootShelves(ctx *gin.Context, request *capi.CreateRootShelvesRequestDto) {
@@ -101,7 +115,13 @@ func (c *RootShelfController) CreateRootShelves(ctx *gin.Context, request *capi.
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) UpdateMyRootShelfById(ctx *gin.Context, request *capi.UpdateMyRootShelfByIdRequestDto) {
@@ -120,7 +140,13 @@ func (c *RootShelfController) UpdateMyRootShelfById(ctx *gin.Context, request *c
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) UpdateMyRootShelvesByIds(ctx *gin.Context, requestDto *capi.UpdateMyRootShelvesByIdsRequestDto) {
@@ -139,7 +165,13 @@ func (c *RootShelfController) UpdateMyRootShelvesByIds(ctx *gin.Context, request
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) RestoreMyRootShelfById(ctx *gin.Context, requestDto *capi.RestoreMyRootShelfByIdRequestDto) {
@@ -158,7 +190,13 @@ func (c *RootShelfController) RestoreMyRootShelfById(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) RestoreMyRootShelvesByIds(ctx *gin.Context, requestDto *capi.RestoreMyRootShelvesByIdsRequestDto) {
@@ -177,7 +215,13 @@ func (c *RootShelfController) RestoreMyRootShelvesByIds(ctx *gin.Context, reques
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) DeleteMyRootShelfById(ctx *gin.Context, requestDto *capi.DeleteMyRootShelfByIdRequestDto) {
@@ -196,7 +240,13 @@ func (c *RootShelfController) DeleteMyRootShelfById(ctx *gin.Context, requestDto
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) DeleteMyRootShelvesByIds(ctx *gin.Context, requestDto *capi.DeleteMyRootShelvesByIdsRequestDto) {
@@ -215,7 +265,13 @@ func (c *RootShelfController) DeleteMyRootShelvesByIds(ctx *gin.Context, request
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) GetMyRootShelfPermission(ctx *gin.Context, requestDto *capi.GetMyRootShelfPermissionRequestDto) {
@@ -225,7 +281,13 @@ func (c *RootShelfController) GetMyRootShelfPermission(ctx *gin.Context, request
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) CreateMyRootShelfPermission(ctx *gin.Context, requestDto *capi.CreateMyRootShelfPermissionRequestDto) {
@@ -235,7 +297,13 @@ func (c *RootShelfController) CreateMyRootShelfPermission(ctx *gin.Context, requ
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) UpsertMyRootShelfPermission(
@@ -247,7 +315,13 @@ func (c *RootShelfController) UpsertMyRootShelfPermission(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) UpsertMyRootShelfPermissions(
@@ -268,7 +342,13 @@ func (c *RootShelfController) UpsertMyRootShelfPermissions(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) UpdateMyRootShelfPermission(ctx *gin.Context, requestDto *capi.UpdateMyRootShelfPermissionRequestDto) {
@@ -278,7 +358,13 @@ func (c *RootShelfController) UpdateMyRootShelfPermission(ctx *gin.Context, requ
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) TransferMyRootShelfOwnership(
@@ -299,7 +385,13 @@ func (c *RootShelfController) TransferMyRootShelfOwnership(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RootShelfController) DeleteMyRootShelfPermission(

@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
@@ -25,8 +24,10 @@ import (
 
 	platformpostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	postgrescopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
+	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
 	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 	routinetaskworker "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/workers/routinetask"
@@ -125,7 +126,7 @@ func TestRoutineTaskPipelineUsesBoundedQueriesAcrossPhases(t *testing.T) {
 	engine := routinetaskworker.NewEngine(
 		durablejobconfig.Config{},
 		claimer,
-		routineexecution.NewPlanService(db, nil),
+		routineexecution.NewPlanService(db, nil, durablejobexceptions.NewRoutineTaskException()),
 		noopRoutineTaskExecutionService{},
 		nil,
 		nil,
@@ -147,10 +148,11 @@ func TestClaimRoutinesSkipsLockedRoutineWithoutWaiting(t *testing.T) {
 	seedRoutineWithManyTasks(t, db, actorUserId, routineId, 1)
 
 	tx := db.Begin()
+	lockingStrength := "UPDATE"
 	var routine sschemas.Routine
 	if result := tx.Model(&sschemas.Routine{}).
 		Where("id = ?", routineId).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Scopes(postgrescopes.Locking(&lockingStrength)).
 		First(&routine); result.Error != nil {
 		tx.Rollback()
 		t.Fatalf("lock routine for claim: %v", result.Error)
@@ -487,7 +489,7 @@ func TestHandleRoutineAssignmentsAdvancesRoutineThroughPhasePipeline(t *testing.
 	engine := routinetaskworker.NewEngine(
 		durablejobconfig.Config{},
 		claimer,
-		routineexecution.NewPlanService(db, nil),
+		routineexecution.NewPlanService(db, nil, durablejobexceptions.NewRoutineTaskException()),
 		noopRoutineTaskExecutionService{},
 		nil,
 		nil,
@@ -643,7 +645,7 @@ func TestClaimRoutinesRetriesTerminalPlanOnlyAfterDefinitionRevision(t *testing.
 	engine := routinetaskworker.NewEngine(
 		durablejobconfig.Config{},
 		claimer,
-		routineexecution.NewPlanService(db, nil),
+		routineexecution.NewPlanService(db, nil, durablejobexceptions.NewRoutineTaskException()),
 		noopRoutineTaskExecutionService{},
 		nil,
 		nil,

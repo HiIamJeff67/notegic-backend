@@ -35,6 +35,40 @@ func NewRoutineTaskDependencyEndpoint(
 	}
 }
 
+func writeRoutineTaskDependencySuccess[D any](
+	ctx *gin.Context,
+	requestId string,
+	data D,
+) {
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.Response[D]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
+				RequestId:   requestId,
+				RespondedAt: time.Now(),
+			},
+			Data: data,
+		},
+	)
+}
+
+func writeRoutineTaskDependencyException(ctx *gin.Context, requestId string, exception *cexceptions.Exception) {
+	publicException := exception.ToPublic()
+	ctx.JSON(
+		publicException.HTTPStatusCode(),
+		cgateway.Response[struct{}]{
+			Version: cgateway.Version,
+			Metadata: cgateway.ResponseMetadata{
+				RequestId:   requestId,
+				RespondedAt: time.Now(),
+			},
+			Data:      struct{}{},
+			Exception: publicException,
+		},
+	)
+}
+
 func (t *RoutineTaskDependencyEndpoint) GetRoutineTaskDependenciesByRoutineId(ctx *gin.Context) {
 	request := &cgateway.Request[capi.GetRoutineTaskDependenciesByRoutineIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
@@ -158,39 +192,5 @@ func (t *RoutineTaskDependencyEndpoint) DeleteRoutineTaskDependenciesByRoutineId
 		ctx,
 		request.Metadata.RequestId,
 		*responseDto,
-	)
-}
-
-func writeRoutineTaskDependencySuccess[D any](
-	ctx *gin.Context,
-	requestId string,
-	data D,
-) {
-	ctx.JSON(
-		http.StatusOK,
-		cgateway.Response[D]{
-			Version: cgateway.Version,
-			Metadata: cgateway.ResponseMetadata{
-				RequestId:   requestId,
-				RespondedAt: time.Now(),
-			},
-			Data: data,
-		},
-	)
-}
-
-func writeRoutineTaskDependencyException(ctx *gin.Context, requestId string, exception *cexceptions.Exception) {
-	publicException := exception.ToPublic()
-	ctx.JSON(
-		publicException.HTTPStatusCode(),
-		cgateway.Response[struct{}]{
-			Version: cgateway.Version,
-			Metadata: cgateway.ResponseMetadata{
-				RequestId:   requestId,
-				RespondedAt: time.Now(),
-			},
-			Data:      struct{}{},
-			Exception: publicException,
-		},
 	)
 }

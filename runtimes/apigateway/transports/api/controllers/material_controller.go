@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"net/http"
+
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/materials"
@@ -52,7 +55,13 @@ func (c *MaterialController) GetMyMaterialById(ctx *gin.Context, requestDto *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) GetMyMaterialAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyMaterialAndItsParentByIdRequestDto) {
@@ -71,7 +80,13 @@ func (c *MaterialController) GetMyMaterialAndItsParentById(ctx *gin.Context, req
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) GetMyMaterialsByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyMaterialsByParentSubShelfIdRequestDto) {
@@ -90,7 +105,13 @@ func (c *MaterialController) GetMyMaterialsByParentSubShelfId(ctx *gin.Context, 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) GetAllMyMaterialsByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyMaterialsByRootShelfIdRequestDto) {
@@ -109,7 +130,13 @@ func (c *MaterialController) GetAllMyMaterialsByRootShelfId(ctx *gin.Context, re
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) CreateMyMaterial(ctx *gin.Context, requestDto *capi.CreateMyMaterialRequestDto) {
@@ -128,7 +155,13 @@ func (c *MaterialController) CreateMyMaterial(ctx *gin.Context, requestDto *capi
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) UpdateMyMaterialById(ctx *gin.Context, requestDto *capi.UpdateMyMaterialByIdRequestDto) {
@@ -147,7 +180,13 @@ func (c *MaterialController) UpdateMyMaterialById(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) SaveMyMaterialById(ctx *gin.Context, requestDto *capi.SaveMyMaterialByIdRequestDto) {
@@ -166,7 +205,13 @@ func (c *MaterialController) SaveMyMaterialById(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) MoveMyMaterialById(ctx *gin.Context, requestDto *capi.MoveMyMaterialByIdRequestDto) {
@@ -185,7 +230,13 @@ func (c *MaterialController) MoveMyMaterialById(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) MoveMyMaterialsByIds(ctx *gin.Context, requestDto *capi.MoveMyMaterialsByIdsRequestDto) {
@@ -204,7 +255,13 @@ func (c *MaterialController) MoveMyMaterialsByIds(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) RestoreMyMaterialById(ctx *gin.Context, requestDto *capi.RestoreMyMaterialByIdRequestDto) {
@@ -223,7 +280,13 @@ func (c *MaterialController) RestoreMyMaterialById(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) RestoreMyMaterialsByIds(ctx *gin.Context, requestDto *capi.RestoreMyMaterialsByIdsRequestDto) {
@@ -242,7 +305,13 @@ func (c *MaterialController) RestoreMyMaterialsByIds(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) DeleteMyMaterialById(ctx *gin.Context, requestDto *capi.DeleteMyMaterialByIdRequestDto) {
@@ -261,7 +330,13 @@ func (c *MaterialController) DeleteMyMaterialById(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *MaterialController) DeleteMyMaterialsByIds(ctx *gin.Context, requestDto *capi.DeleteMyMaterialsByIdsRequestDto) {
@@ -280,5 +355,11 @@ func (c *MaterialController) DeleteMyMaterialsByIds(ctx *gin.Context, requestDto
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

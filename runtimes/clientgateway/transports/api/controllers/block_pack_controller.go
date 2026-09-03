@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -54,7 +57,13 @@ func (c *BlockPackController) GetMyBlockPackById(ctx *gin.Context, requestDto *c
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto) {
@@ -73,7 +82,13 @@ func (c *BlockPackController) GetMyBlockPackAndItsParentById(ctx *gin.Context, r
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto) {
@@ -92,7 +107,13 @@ func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto) {
@@ -111,7 +132,13 @@ func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *capi.CreateBlockPackRequestDto) {
@@ -130,7 +157,13 @@ func (c *BlockPackController) CreateBlockPack(ctx *gin.Context, requestDto *capi
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *capi.CreateBlockPacksRequestDto) {
@@ -149,7 +182,13 @@ func (c *BlockPackController) CreateBlockPacks(ctx *gin.Context, requestDto *cap
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto) {
@@ -168,7 +207,13 @@ func (c *BlockPackController) UpdateMyBlockPackById(ctx *gin.Context, requestDto
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.UpdateMyBlockPacksByIdsRequestDto) {
@@ -187,7 +232,13 @@ func (c *BlockPackController) UpdateMyBlockPacksByIds(ctx *gin.Context, requestD
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPackByParentSubShelfIdRequestDto) {
@@ -206,7 +257,13 @@ func (c *BlockPackController) MoveMyBlockPackByParentSubShelfId(ctx *gin.Context
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdRequestDto) {
@@ -225,7 +282,13 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfId(ctx *gin.Contex
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Context, requestDto *capi.MoveMyBlockPacksByParentSubShelfIdsRequestDto) {
@@ -244,7 +307,13 @@ func (c *BlockPackController) MoveMyBlockPacksByParentSubShelfIds(ctx *gin.Conte
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDto *capi.RestoreMyBlockPackByIdRequestDto) {
@@ -263,7 +332,13 @@ func (c *BlockPackController) RestoreMyBlockPackById(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.RestoreMyBlockPacksByIdsRequestDto) {
@@ -282,7 +357,13 @@ func (c *BlockPackController) RestoreMyBlockPacksByIds(ctx *gin.Context, request
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto *capi.DeleteMyBlockPackByIdRequestDto) {
@@ -301,7 +382,13 @@ func (c *BlockPackController) DeleteMyBlockPackById(ctx *gin.Context, requestDto
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockPackController) DeleteMyBlockPacksByIds(ctx *gin.Context, requestDto *capi.DeleteMyBlockPacksByIdsRequestDto) {
@@ -320,5 +407,11 @@ func (c *BlockPackController) DeleteMyBlockPacksByIds(ctx *gin.Context, requestD
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

@@ -41,6 +41,7 @@ type StationServiceInterface interface {
 	HardDeleteMyStationById(ctx context.Context, requestDto *capi.HardDeleteMyStationByIdRequestDto) (*capi.HardDeleteMyStationByIdResponseDto, *cexceptions.Exception)
 	HardDeleteMyStationsByIds(ctx context.Context, requestDto *capi.HardDeleteMyStationsByIdsRequestDto) (*capi.HardDeleteMyStationsByIdsResponseDto, *cexceptions.Exception)
 
+	/* ============================== Visualization Methods ============================== */
 	VisualizeMyTotalCount(ctx context.Context, requestDto *capi.VisualizeMyTotalCountRequestDto) (*capi.VisualizeMyTotalCountResponseDto, *cexceptions.Exception)
 
 	GetMyStationPermission(ctx context.Context, requestDto *capi.GetMyStationPermissionRequestDto) (*capi.GetMyStationPermissionResponseDto, *cexceptions.Exception)
@@ -54,6 +55,7 @@ type StationServiceInterface interface {
 	LeaveMyStation(ctx context.Context, requestDto *capi.LeaveMyStationRequestDto) *cexceptions.Exception
 	LeaveMyStations(ctx context.Context, requestDto *capi.LeaveMyStationsRequestDto) *cexceptions.Exception
 
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateStations(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchStationInput) (*cgqlmodels.SearchStationConnection, *cexceptions.Exception)
 }
 
@@ -80,8 +82,6 @@ func NewStationService(
 		usersToStationsRepository: usersToStationsRepository,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
 
 type stationPermissionValues struct {
 	UserPublicId uuid.UUID
@@ -218,8 +218,6 @@ func (s *StationService) saveMyStationPermission(
 		CreatedAt:    relation.CreatedAt,
 	}, nil
 }
-
-/* ============================== Service Methods for Station ============================== */
 
 func (s *StationService) GetMyStationById(
 	ctx context.Context,
@@ -885,7 +883,7 @@ func (s *StationService) HardDeleteMyStationsByIds(
 	}, nil
 }
 
-/* ============================== Service Methods for Visualization ============================== */
+/* ============================== Visualization Methods ============================== */
 
 func (s *StationService) VisualizeMyTotalCount(
 	ctx context.Context, requestDto *capi.VisualizeMyTotalCountRequestDto,
@@ -1041,8 +1039,6 @@ func (s *StationService) VisualizeMyTotalCount(
 		},
 	}, nil
 }
-
-/* ============================== Service Methods for Station Permissions ============================== */
 
 func (s *StationService) GetMyStationPermission(
 	ctx context.Context, requestDto *capi.GetMyStationPermissionRequestDto,
@@ -2037,7 +2033,7 @@ func (s *StationService) LeaveMyStations(
 	return nil
 }
 
-/* ============================== Service Methods for GraphQL Station ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *StationService) SearchPrivateStations(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchStationInput,

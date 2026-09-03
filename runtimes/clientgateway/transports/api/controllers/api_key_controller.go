@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/api-keys"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -30,7 +33,13 @@ func (c *APIKeyController) CreateMyAPIKey(ctx *gin.Context, request *capi.Create
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *capi.ListMyAPIKeysRequestDto) {
@@ -39,7 +48,13 @@ func (c *APIKeyController) ListMyAPIKeys(ctx *gin.Context, request *capi.ListMyA
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *APIKeyController) RevokeMyAPIKey(ctx *gin.Context, request *capi.RevokeMyAPIKeyRequestDto) {
@@ -48,5 +63,11 @@ func (c *APIKeyController) RevokeMyAPIKey(ctx *gin.Context, request *capi.Revoke
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

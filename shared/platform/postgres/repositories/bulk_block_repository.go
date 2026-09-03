@@ -20,31 +20,39 @@ import (
 )
 
 type BulkBlockRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPermissionInput, preloads []schemas.BlockRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Block, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateBlockPackContentInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateBlockInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckBlockPermissionInput,
+		preloads []schemas.BlockRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.Block, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateBlockPackContentInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateBlockInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkBlockRepository struct {
-	db         *gorm.DB
-	blockScope scopes.BlockScopeInterface
-	exceptions exceptions.BlockException
+	db                  *gorm.DB
+	blockScope          scopes.BlockScopeInterface
+	blockPackRepository *BulkBlockPackRepository
+	exceptions          exceptions.BlockException
 }
 
 func NewBulkBlockRepository(
 	db *gorm.DB,
 	blockScope scopes.BlockScopeInterface,
-	repositoryExceptions ...exceptions.BlockException,
+	blockPackRepository *BulkBlockPackRepository,
 ) *BulkBlockRepository {
-	repositoryException := exceptions.NewBlockException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkBlockRepository{
-		db:         db,
-		blockScope: blockScope,
-		exceptions: repositoryException,
+		db:                  db,
+		blockScope:          blockScope,
+		blockPackRepository: blockPackRepository,
+		exceptions:          exceptions.NewBlockException(),
 	}
 }
 
@@ -162,19 +170,20 @@ func (r *BulkBlockRepository) BulkCreateMany(
 		}
 	}
 
-	blockPackRepository := NewBulkBlockPackRepository(r.db, scopes.NewBlockPackScope())
 	checkOptions := append(opts, WithTransactionDB(parsedOptions.DB))
 	checkOptions = append(checkOptions, WithOnlyDeleted(types.Ternary_Negative))
 	checkOptions = append(checkOptions, WithLockingStrength(LockingStrengthNoKeyUpdate))
 	checkOptions = append(checkOptions, WithAllowedPermissions(parsedOptions.AllowedPermissions))
-	successes, _, exception := blockPackRepository.BulkCheckPermissionsAndGetManyByIds(
+	successes, _, exception := r.blockPackRepository.BulkCheckPermissionsAndGetManyByIds(
 		checkInputs,
 		nil,
 		parsedOptions.AllowedPermissions,
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 
 		return nil, exception
 	}
@@ -211,7 +220,9 @@ func (r *BulkBlockRepository) BulkCreateMany(
 		Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}}).
 		CreateInBatches(&newBlocks, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
@@ -263,7 +274,9 @@ func (r *BulkBlockRepository) BulkUpdateMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 
 		return nil, exception
 	}
@@ -344,7 +357,9 @@ func (r *BulkBlockRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}

@@ -20,10 +20,24 @@ import (
 )
 
 type BulkSubShelfRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckSubShelfPermissionInput, preloads []schemas.SubShelfRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.SubShelf, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateSubShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateSubShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteSubShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckSubShelfPermissionInput,
+		preloads []schemas.SubShelfRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.SubShelf, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateSubShelfInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateSubShelfInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(
+		inputs []inputs.BulkDeleteSubShelfInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkSubShelfRepository struct {
@@ -35,17 +49,11 @@ type BulkSubShelfRepository struct {
 func NewBulkSubShelfRepository(
 	db *gorm.DB,
 	subShelfScope scopes.SubShelfScopeInterface,
-	repositoryExceptions ...exceptions.ShelfException,
 ) *BulkSubShelfRepository {
-	repositoryException := exceptions.NewShelfException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkSubShelfRepository{
 		db:            db,
 		subShelfScope: subShelfScope,
-		exceptions:    repositoryException,
+		exceptions:    exceptions.NewShelfException(),
 	}
 }
 
@@ -181,7 +189,9 @@ func (r *BulkSubShelfRepository) BulkCreateMany(
 		Where("root_shelf_id IN ? AND user_id IN ? AND permission IN ?", rootShelfIds, userIds, parsedOptions.AllowedPermissions).
 		Find(&usersToShelves)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -197,7 +207,9 @@ func (r *BulkSubShelfRepository) BulkCreateMany(
 			Where("id IN ? AND deleted_at IS NULL", prevSubShelfIds).
 			Find(&prevSubShelves)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 		}
 		for _, prevSubShelf := range prevSubShelves {
@@ -249,7 +261,9 @@ func (r *BulkSubShelfRepository) BulkCreateMany(
 	result = parsedOptions.DB.Model(&schemas.SubShelf{}).
 		CreateInBatches(&newSubShelves, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -303,7 +317,9 @@ func (r *BulkSubShelfRepository) BulkUpdateMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -352,7 +368,9 @@ func (r *BulkSubShelfRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 
@@ -409,7 +427,9 @@ func (r *BulkSubShelfRepository) BulkDeleteMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -432,7 +452,9 @@ func (r *BulkSubShelfRepository) BulkDeleteMany(
 		Where("id IN ? AND deleted_at IS NULL", validIds).
 		Updates(map[string]interface{}{"deleted_at": time.Now(), "updated_at": time.Now()})
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToDelete().WithOrigin(result.Error)
 	}
 

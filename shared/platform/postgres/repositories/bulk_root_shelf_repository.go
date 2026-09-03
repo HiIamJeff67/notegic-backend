@@ -19,9 +19,20 @@ import (
 )
 
 type BulkRootShelfRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRootShelfPermissionInput, preloads []schemas.RootShelfRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.RootShelf, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateRootShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateRootShelfInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckRootShelfPermissionInput,
+		preloads []schemas.RootShelfRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.RootShelf, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateRootShelfInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateRootShelfInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkRootShelfRepository struct {
@@ -33,17 +44,11 @@ type BulkRootShelfRepository struct {
 func NewBulkRootShelfRepository(
 	db *gorm.DB,
 	rootShelfScope scopes.RootShelfScopeInterface,
-	repositoryExceptions ...exceptions.ShelfException,
 ) *BulkRootShelfRepository {
-	repositoryException := exceptions.NewShelfException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkRootShelfRepository{
 		db:             db,
 		rootShelfScope: rootShelfScope,
-		exceptions:     repositoryException,
+		exceptions:     exceptions.NewShelfException(),
 	}
 }
 
@@ -189,14 +194,18 @@ func (r *BulkRootShelfRepository) BulkCreateMany(
 	result := parsedOptions.DB.Model(&schemas.RootShelf{}).
 		CreateInBatches(&newRootShelves, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
 	result = parsedOptions.DB.Model(&schemas.UsersToShelves{}).
 		CreateInBatches(&newUsersToShelves, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -251,7 +260,9 @@ func (r *BulkRootShelfRepository) BulkUpdateMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -306,7 +317,9 @@ func (r *BulkRootShelfRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 

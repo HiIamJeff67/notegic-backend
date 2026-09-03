@@ -23,6 +23,7 @@ import (
 	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
 	configs "github.com/HiIamJeff67/notegic-backend/runtimes/notification/configs"
+	notificationexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/notification/exceptions"
 	services "github.com/HiIamJeff67/notegic-backend/runtimes/notification/services"
 	consumers "github.com/HiIamJeff67/notegic-backend/runtimes/notification/transports/core/consumers"
 	endpoints "github.com/HiIamJeff67/notegic-backend/runtimes/notification/transports/gateway/endpoints"
@@ -81,7 +82,11 @@ func (a *Application) initializeDatabase(
 }
 
 func (a *Application) initializeService(db *gorm.DB) services.NotificationServiceInterface {
-	repository := srepositories.NewNotificationRepository(db)
+	repository := srepositories.NewNotificationRepository(
+		db,
+		srepositories.NewUserProjectionRepository(db),
+		srepositories.NewInboxEventRepository(),
+	)
 	notificationValidator := validator.New()
 	svalidations.RegisterStringsValidation(notificationValidator)
 	svalidations.RegisterTimesValidation(notificationValidator)
@@ -89,7 +94,14 @@ func (a *Application) initializeService(db *gorm.DB) services.NotificationServic
 	validations.RegisterNewsValidation(notificationValidator)
 	validations.RegisterWarningValidation(notificationValidator)
 	validations.RegisterImportantValidation(notificationValidator)
-	return services.NewNotificationService(repository, notificationValidator)
+	return services.NewNotificationService(
+		repository,
+		notificationValidator,
+		notificationexceptions.NewEventException("Notification"),
+		notificationexceptions.NewRequestException("Notification"),
+		notificationexceptions.NewOperationException("Notification"),
+		notificationexceptions.NewPayloadException("Notification"),
+	)
 }
 
 func (a *Application) initializeWorkers(

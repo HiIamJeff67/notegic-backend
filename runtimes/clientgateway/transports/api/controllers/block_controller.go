@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -42,7 +45,13 @@ func (c *BlockController) GetMyBlockById(ctx *gin.Context, requestDto *capi.GetM
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockController) GetMyBlocksByIds(ctx *gin.Context, requestDto *capi.GetMyBlocksByIdsRequestDto) {
@@ -61,7 +70,13 @@ func (c *BlockController) GetMyBlocksByIds(ctx *gin.Context, requestDto *capi.Ge
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *BlockController) GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto) {
@@ -80,5 +95,11 @@ func (c *BlockController) GetMyBlocksByBlockPackId(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

@@ -23,6 +23,7 @@ import (
 	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	usersql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/user"
 	routinetaskdependencies "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/dependencies"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type Claimer struct {
@@ -53,6 +54,7 @@ func (c *Claimer) ClaimRoutines(
 	}
 
 	tx := c.db.WithContext(ctx).Begin()
+	lockingStrength := "UPDATE"
 
 	now := time.Now().UTC()
 	var dueRoutines []sschemas.Routine
@@ -62,7 +64,7 @@ func (c *Claimer) ClaimRoutines(
 		Where("status = ?", cenums.RoutineStatus_Scheduled).
 		Where("scheduled_start_at <= ?", now).
 		Order("scheduled_start_at ASC, id ASC").
-		Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+		Scopes(sscopes.Locking(&lockingStrength, "SKIP LOCKED")).
 		Limit(request.BatchSize).
 		Find(&dueRoutines)
 	if result.Error != nil {
@@ -299,7 +301,11 @@ func (c *Claimer) ClaimRoutines(
 		result = tx.Model(&sschemas.Routine{}).
 			Where("id IN (?)", routineIdsToFinalize).
 			Updates(map[string]any{
-				"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+				"status": gorm.Expr(
+					`CASE WHEN period IS NULL THEN ?::"RoutineStatus" ELSE ?::"RoutineStatus" END`,
+					cenums.RoutineStatus_Completed,
+					cenums.RoutineStatus_Scheduled,
+				),
 				"updated_at": now,
 			})
 		if result.Error != nil {
@@ -368,7 +374,7 @@ func (c *Claimer) ClaimRoutines(
 			cenums.RoutineTaskRecordStatus_Success,
 		).
 		Order(`"RoutineRecordTable".created_at ASC, "RoutineRecordTable".id ASC`).
-		Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+		Scopes(sscopes.Locking(&lockingStrength, "SKIP LOCKED")).
 		Limit(request.BatchSize).
 		Find(&claimableRoutineRecords)
 	if result.Error != nil {
@@ -432,7 +438,7 @@ func (c *Claimer) ClaimRoutines(
 				cenums.RoutineTaskRecordStatus_Success,
 			).
 			Order(`routine_task.priority DESC, "RoutineTaskRecordTable".created_at ASC, "RoutineTaskRecordTable".id ASC`).
-			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Scopes(sscopes.Locking(&lockingStrength, "SKIP LOCKED")).
 			Find(&readyRecords)
 		if result.Error != nil {
 			tx.Rollback()

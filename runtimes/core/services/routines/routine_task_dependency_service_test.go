@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	coretypes "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/types/routine-task-dependencies"
+	apiexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/core/exceptions"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
@@ -32,7 +33,7 @@ func TestValidateRoutineTaskDependencyBatchRejectsCycleAcrossNewEdges(t *testing
 		},
 	}
 
-	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil); exception == nil {
+	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil, apiexceptions.NewRoutineTaskDependencyException()); exception == nil {
 		t.Fatal("expected cycle validation to fail")
 	}
 }
@@ -57,6 +58,7 @@ func TestValidateRoutineTaskDependencyBatchRejectsDuplicateDependency(t *testing
 		routineTasks,
 		[]coretypes.CreatableRoutineTaskDependency{input, input},
 		nil,
+		apiexceptions.NewRoutineTaskDependencyException(),
 	)
 	if exception == nil {
 		t.Fatal("expected duplicate validation to fail")
@@ -92,13 +94,13 @@ func TestValidateRoutineTaskDependencyBatchAllowsIndependentEdges(t *testing.T) 
 		},
 	}
 
-	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil); exception != nil {
+	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil, apiexceptions.NewRoutineTaskDependencyException()); exception != nil {
 		t.Fatalf("expected independent edges to be valid: %v", exception)
 	}
 }
 
 func TestValidateRoutineTaskDependencyBatchAllowsEmptyGraph(t *testing.T) {
-	if exception := validateRoutineTaskDependencyBatch(nil, nil, nil); exception != nil {
+	if exception := validateRoutineTaskDependencyBatch(nil, nil, nil, apiexceptions.NewRoutineTaskDependencyException()); exception != nil {
 		t.Fatalf("empty dependency graph must be valid: %v", exception)
 	}
 }
@@ -137,7 +139,7 @@ func TestValidateRoutineTaskDependencyBatchAllowsMultipleRootsAndBranches(t *tes
 		},
 	}
 
-	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil); exception != nil {
+	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, nil, apiexceptions.NewRoutineTaskDependencyException()); exception != nil {
 		t.Fatalf("multiple roots and branches should be valid: %v", exception)
 	}
 }
@@ -156,6 +158,7 @@ func TestValidateRoutineTaskDependencyBatchRejectsSelfEdgeAndCrossRoutineTask(t 
 			},
 		},
 		nil,
+		apiexceptions.NewRoutineTaskDependencyException(),
 	)
 	if selfEdgeException == nil || selfEdgeException.Reason != "InvalidInput" {
 		t.Fatalf("self-edge exception = %v, want InvalidInput", selfEdgeException)
@@ -170,6 +173,7 @@ func TestValidateRoutineTaskDependencyBatchRejectsSelfEdgeAndCrossRoutineTask(t 
 			},
 		},
 		nil,
+		apiexceptions.NewRoutineTaskDependencyException(),
 	)
 	if crossRoutineException == nil || crossRoutineException.Reason != "InvalidInput" {
 		t.Fatalf("cross-routine exception = %v, want InvalidInput", crossRoutineException)

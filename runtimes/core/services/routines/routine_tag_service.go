@@ -34,6 +34,7 @@ type RoutineTagServiceInterface interface {
 	HardDeleteMyRoutineTagById(ctx context.Context, requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto) (*capi.HardDeleteMyRoutineTagByIdResponseDto, *cexceptions.Exception)
 	HardDeleteMyRoutineTagsByIds(ctx context.Context, requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto) (*capi.HardDeleteMyRoutineTagsByIdsResponseDto, *cexceptions.Exception)
 
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateRoutineTags(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTagInput) (*cgqlmodels.SearchRoutineTagConnection, *cexceptions.Exception)
 }
 
@@ -41,61 +42,35 @@ type RoutineTagService struct {
 	validator            *validator.Validate
 	db                   *gorm.DB
 	routineTagRepository srepositories.RoutineTagRepositoryInterface
+	routineTagException  apiexceptions.RoutineTagException
+	searchException      apiexceptions.SearchException
 }
 
 func NewRoutineTagService(
 	validator *validator.Validate,
 	db *gorm.DB,
 	routineTagRepository srepositories.RoutineTagRepositoryInterface,
+	routineTagException apiexceptions.RoutineTagException,
+	searchException apiexceptions.SearchException,
 ) RoutineTagServiceInterface {
 	return &RoutineTagService{
 		validator:            validator,
 		db:                   db,
 		routineTagRepository: routineTagRepository,
+		routineTagException:  routineTagException,
+		searchException:      searchException,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
-
-func convertRoutineTagIcon(icon *string) (*cenums.SupportedIcon, *cexceptions.Exception) {
-	if icon == nil {
-		return nil, nil
-	}
-	convertedIcon, err := cenums.ConvertStringToSupportedIcon(*icon)
-	if err != nil {
-		return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
-	}
-
-	return convertedIcon, nil
-}
-
-func newRoutineTagResponseDto(routineTag sschemas.RoutineTag) capi.RoutineTagResponseDto {
-	var icon *string
-	if routineTag.Icon != nil {
-		iconValue := routineTag.Icon.String()
-		icon = &iconValue
-	}
-	return capi.RoutineTagResponseDto{
-		Id:        routineTag.Id,
-		Name:      routineTag.Name,
-		Color:     routineTag.Color,
-		Icon:      icon,
-		UpdatedAt: routineTag.UpdatedAt,
-		CreatedAt: routineTag.CreatedAt,
-	}
-}
-
-/* ============================== Service Methods for RoutineTag ============================== */
 
 func (s *RoutineTagService) GetMyRoutineTagById(
 	ctx context.Context,
 	requestDto *capi.GetMyRoutineTagByIdRequestDto,
 ) (*capi.GetMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 	if requestDto.Param.IsDeleted != nil && *requestDto.Param.IsDeleted {
-		return nil, apiexceptions.NewRoutineTagException().NotFound()
+		return nil, s.routineTagException.NotFound()
 	}
 
 	db := s.db.WithContext(ctx)
@@ -114,8 +89,19 @@ func (s *RoutineTagService) GetMyRoutineTagById(
 		return nil, exception
 	}
 
-	responseDto := newRoutineTagResponseDto(*routineTag)
-	return &responseDto, nil
+	var icon *string
+	if routineTag.Icon != nil {
+		iconValue := routineTag.Icon.String()
+		icon = &iconValue
+	}
+	return &capi.RoutineTagResponseDto{
+		Id:        routineTag.Id,
+		Name:      routineTag.Name,
+		Color:     routineTag.Color,
+		Icon:      icon,
+		UpdatedAt: routineTag.UpdatedAt,
+		CreatedAt: routineTag.CreatedAt,
+	}, nil
 }
 
 func (s *RoutineTagService) GetAllMyRoutineTags(
@@ -123,11 +109,10 @@ func (s *RoutineTagService) GetAllMyRoutineTags(
 	requestDto *capi.GetAllMyRoutineTagsRequestDto,
 ) (*capi.GetAllMyRoutineTagsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 	if requestDto.Param.AreDeleted != nil && *requestDto.Param.AreDeleted {
-		responseDto := capi.GetAllMyRoutineTagsResponseDto{}
-		return &responseDto, nil
+		return &capi.GetAllMyRoutineTagsResponseDto{}, nil
 	}
 
 	db := s.db.WithContext(ctx)
@@ -147,7 +132,19 @@ func (s *RoutineTagService) GetAllMyRoutineTags(
 
 	responseDto := make(capi.GetAllMyRoutineTagsResponseDto, len(routineTags))
 	for index, routineTag := range routineTags {
-		responseDto[index] = newRoutineTagResponseDto(routineTag)
+		var icon *string
+		if routineTag.Icon != nil {
+			iconValue := routineTag.Icon.String()
+			icon = &iconValue
+		}
+		responseDto[index] = capi.RoutineTagResponseDto{
+			Id:        routineTag.Id,
+			Name:      routineTag.Name,
+			Color:     routineTag.Color,
+			Icon:      icon,
+			UpdatedAt: routineTag.UpdatedAt,
+			CreatedAt: routineTag.CreatedAt,
+		}
 	}
 
 	return &responseDto, nil
@@ -158,7 +155,7 @@ func (s *RoutineTagService) CreateRoutineTag(
 	requestDto *capi.CreateRoutineTagRequestDto,
 ) (*capi.CreateRoutineTagResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -166,9 +163,13 @@ func (s *RoutineTagService) CreateRoutineTag(
 	if exception != nil {
 		return nil, exception
 	}
-	icon, exception := convertRoutineTagIcon(requestDto.Body.Icon)
-	if exception != nil {
-		return nil, exception
+	var icon *cenums.SupportedIcon
+	if requestDto.Body.Icon != nil {
+		convertedIcon, err := cenums.ConvertStringToSupportedIcon(*requestDto.Body.Icon)
+		if err != nil {
+			return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
+		}
+		icon = convertedIcon
 	}
 
 	newRoutineTagId, exception := s.routineTagRepository.CreateOne(
@@ -196,7 +197,7 @@ func (s *RoutineTagService) CreateRoutineTags(
 	requestDto *capi.CreateRoutineTagsRequestDto,
 ) (*capi.CreateRoutineTagsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -207,9 +208,13 @@ func (s *RoutineTagService) CreateRoutineTags(
 
 	input := make([]sinputs.CreateRoutineTagInput, len(requestDto.Body.CreatedRoutineTags))
 	for index, createdRoutineTag := range requestDto.Body.CreatedRoutineTags {
-		icon, exception := convertRoutineTagIcon(createdRoutineTag.Icon)
-		if exception != nil {
-			return nil, exception
+		var icon *cenums.SupportedIcon
+		if createdRoutineTag.Icon != nil {
+			convertedIcon, err := cenums.ConvertStringToSupportedIcon(*createdRoutineTag.Icon)
+			if err != nil {
+				return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
+			}
+			icon = convertedIcon
 		}
 		input[index] = sinputs.CreateRoutineTagInput{
 			Id:    createdRoutineTag.Id,
@@ -238,7 +243,7 @@ func (s *RoutineTagService) UpdateMyRoutineTagById(
 	requestDto *capi.UpdateMyRoutineTagByIdRequestDto,
 ) (*capi.UpdateMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -246,9 +251,13 @@ func (s *RoutineTagService) UpdateMyRoutineTagById(
 	if exception != nil {
 		return nil, exception
 	}
-	icon, exception := convertRoutineTagIcon(requestDto.Body.Values.Icon)
-	if exception != nil {
-		return nil, exception
+	var icon *cenums.SupportedIcon
+	if requestDto.Body.Values.Icon != nil {
+		convertedIcon, err := cenums.ConvertStringToSupportedIcon(*requestDto.Body.Values.Icon)
+		if err != nil {
+			return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
+		}
+		icon = convertedIcon
 	}
 
 	updatedRoutineTag, exception := s.routineTagRepository.UpdateOneById(
@@ -278,7 +287,7 @@ func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 	requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto,
 ) (*capi.UpdateMyRoutineTagsByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -289,9 +298,13 @@ func (s *RoutineTagService) UpdateMyRoutineTagsByIds(
 
 	input := make([]sinputs.UpdateRoutineTagByIdInput, len(requestDto.Body.UpdatedRoutineTags))
 	for index, updatedRoutineTag := range requestDto.Body.UpdatedRoutineTags {
-		icon, exception := convertRoutineTagIcon(updatedRoutineTag.Values.Icon)
-		if exception != nil {
-			return nil, exception
+		var icon *cenums.SupportedIcon
+		if updatedRoutineTag.Values.Icon != nil {
+			convertedIcon, err := cenums.ConvertStringToSupportedIcon(*updatedRoutineTag.Values.Icon)
+			if err != nil {
+				return nil, cexceptions.InvalidInput("RoutineTag").WithOrigin(err)
+			}
+			icon = convertedIcon
 		}
 		input[index] = sinputs.UpdateRoutineTagByIdInput{
 			Id: updatedRoutineTag.RoutineTagId,
@@ -324,7 +337,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagById(
 	requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto,
 ) (*capi.HardDeleteMyRoutineTagByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -352,7 +365,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 	requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto,
 ) (*capi.HardDeleteMyRoutineTagsByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewRoutineTagException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTagException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -375,7 +388,7 @@ func (s *RoutineTagService) HardDeleteMyRoutineTagsByIds(
 	}, nil
 }
 
-/* ============================== Service Methods for GraphQL RoutineTag ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *RoutineTagService) SearchPrivateRoutineTags(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTagInput,
@@ -396,7 +409,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
 		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineTagCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
+			return nil, s.searchException.FailedToDecode().WithOrigin(err)
 		}
 
 		query = query.Where("id > ?", searchCursor.Fields.ID)
@@ -437,7 +450,7 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 
 	var routineTags []sschemas.RoutineTag
 	if err := query.Find(&routineTags).Error; err != nil {
-		return nil, apiexceptions.NewRoutineTagException().NotFound().WithOrigin(err)
+		return nil, s.routineTagException.NotFound().WithOrigin(err)
 	}
 
 	hasNextPage := len(routineTags) > limit
@@ -451,10 +464,10 @@ func (s *RoutineTagService) SearchPrivateRoutineTags(
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
+			return nil, s.searchException.FailedToEncode().WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
+			return nil, s.searchException.FailedToUnmarshalSearchCursor()
 		}
 
 		searchEdges[index] = &cgqlmodels.SearchRoutineTagEdge{

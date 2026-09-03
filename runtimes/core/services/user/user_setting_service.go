@@ -40,8 +40,6 @@ func NewUserSettingService(
 	}
 }
 
-/* ============================== Service Methods for UserSetting ============================== */
-
 func (s *UserSettingService) GetMySetting(
 	ctx context.Context,
 	requestDto *capi.GetMySettingRequestDto,

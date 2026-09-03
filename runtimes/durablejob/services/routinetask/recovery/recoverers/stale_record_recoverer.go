@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
 	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type StaleRecordRecovererInterface interface {
@@ -36,6 +36,7 @@ func (r *StaleRecordRecoverer) RecoverStaleRoutineTaskRecords(
 	}
 
 	tx := r.db.WithContext(ctx).Begin()
+	lockingStrength := "UPDATE"
 
 	var staleRecords []struct {
 		Id              uuid.UUID `gorm:"column:id"`
@@ -50,7 +51,7 @@ func (r *StaleRecordRecoverer) RecoverStaleRoutineTaskRecords(
 		Where(`"RoutineTaskRecordTable".status = ?`, cenums.RoutineTaskRecordStatus_Running).
 		Where(`"RoutineTaskRecordTable".actual_started_at IS NOT NULL`).
 		Where(`"RoutineTaskRecordTable".actual_started_at <= ?`, staleBefore).
-		Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+		Scopes(sscopes.Locking(&lockingStrength, "SKIP LOCKED")).
 		Find(&staleRecords)
 	if result.Error != nil {
 		tx.Rollback()
@@ -173,7 +174,11 @@ func (r *StaleRecordRecoverer) RecoverStaleRoutineTaskRecords(
 	result = tx.Model(&sschemas.Routine{}).
 		Where("id IN (?)", routineIdsToFinalize).
 		Updates(map[string]any{
-			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"status": gorm.Expr(
+				`CASE WHEN period IS NULL THEN ?::"RoutineStatus" ELSE ?::"RoutineStatus" END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_Scheduled,
+			),
 			"updated_at": now,
 		})
 	if result.Error != nil {

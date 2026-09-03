@@ -49,6 +49,7 @@ type SubShelfServiceInterface interface {
 	DeleteMySubShelfById(ctx context.Context, requestDto *csubshelves.DeleteMySubShelfByIdRequestDto) (*csubshelves.DeleteMySubShelfByIdResponseDto, *cexceptions.Exception)
 	DeleteMySubShelvesByIds(ctx context.Context, requestDto *csubshelves.DeleteMySubShelvesByIdsRequestDto) (*csubshelves.DeleteMySubShelvesByIdsResponseDto, *cexceptions.Exception)
 
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateSubShelves(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchSubShelfInput) (*cgqlmodels.SearchSubShelfConnection, *cexceptions.Exception)
 }
 
@@ -61,6 +62,12 @@ type SubShelfService struct {
 	rootShelfRepository srepositories.RootShelfRepositoryInterface
 	materialRepository  srepositories.MaterialRepositoryInterface
 	blockPackRepository srepositories.BlockPackRepositoryInterface
+	outboxRepository    srepositories.OutboxEventRepositoryInterface
+	shelfException      apiexceptions.ShelfException
+	blockPackException  apiexceptions.BlockPackException
+	materialException   apiexceptions.MaterialException
+	storageException    apiexceptions.StorageException
+	searchException     apiexceptions.SearchException
 }
 
 func NewSubShelfService(
@@ -72,6 +79,12 @@ func NewSubShelfService(
 	rootShelfRepository srepositories.RootShelfRepositoryInterface,
 	materialRepository srepositories.MaterialRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	shelfException apiexceptions.ShelfException,
+	blockPackException apiexceptions.BlockPackException,
+	materialException apiexceptions.MaterialException,
+	storageException apiexceptions.StorageException,
+	searchException apiexceptions.SearchException,
 ) SubShelfServiceInterface {
 	return &SubShelfService{
 		validator:           validator,
@@ -82,31 +95,20 @@ func NewSubShelfService(
 		rootShelfRepository: rootShelfRepository,
 		materialRepository:  materialRepository,
 		blockPackRepository: blockPackRepository,
+		outboxRepository:    outboxRepository,
+		shelfException:      shelfException,
+		blockPackException:  blockPackException,
+		materialException:   materialException,
+		storageException:    storageException,
+		searchException:     searchException,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
-
-func newSubShelfResponseDto(subShelf sschemas.SubShelf) csubshelves.SubShelfResponseDto {
-	return csubshelves.SubShelfResponseDto{
-		Id:             subShelf.Id,
-		Name:           subShelf.Name,
-		RootShelfId:    subShelf.RootShelfId,
-		PrevSubShelfId: subShelf.PrevSubShelfId,
-		Path:           []uuid.UUID(subShelf.Path),
-		DeletedAt:      subShelf.DeletedAt,
-		UpdatedAt:      subShelf.UpdatedAt,
-		CreatedAt:      subShelf.CreatedAt,
-	}
-}
-
-/* ============================== Service Methods for SubShelf ============================== */
 
 func (s *SubShelfService) GetMySubShelfById(
 	ctx context.Context, requestDto *csubshelves.GetMySubShelfByIdRequestDto,
 ) (*csubshelves.GetMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -140,15 +142,23 @@ func (s *SubShelfService) GetMySubShelfById(
 		return nil, exception
 	}
 
-	responseDto := newSubShelfResponseDto(*subShelf)
-	return &responseDto, nil
+	return &csubshelves.SubShelfResponseDto{
+		Id:             subShelf.Id,
+		Name:           subShelf.Name,
+		RootShelfId:    subShelf.RootShelfId,
+		PrevSubShelfId: subShelf.PrevSubShelfId,
+		Path:           []uuid.UUID(subShelf.Path),
+		DeletedAt:      subShelf.DeletedAt,
+		UpdatedAt:      subShelf.UpdatedAt,
+		CreatedAt:      subShelf.CreatedAt,
+	}, nil
 }
 
 func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 	ctx context.Context, requestDto *csubshelves.GetMySubShelvesByPrevSubShelfIdRequestDto,
 ) (*csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -185,10 +195,19 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
 	if err := result.Error; err != nil {
-		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
+		return nil, s.shelfException.NotFound().WithOrigin(err)
 	}
 	for _, subShelf := range subShelves {
-		responseDto = append(responseDto, newSubShelfResponseDto(subShelf))
+		responseDto = append(responseDto, csubshelves.SubShelfResponseDto{
+			Id:             subShelf.Id,
+			Name:           subShelf.Name,
+			RootShelfId:    subShelf.RootShelfId,
+			PrevSubShelfId: subShelf.PrevSubShelfId,
+			Path:           []uuid.UUID(subShelf.Path),
+			DeletedAt:      subShelf.DeletedAt,
+			UpdatedAt:      subShelf.UpdatedAt,
+			CreatedAt:      subShelf.CreatedAt,
+		})
 	}
 	return &responseDto, nil
 }
@@ -197,7 +216,7 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 	ctx context.Context, requestDto *csubshelves.GetAllMySubShelvesByRootShelfIdRequestDto,
 ) (*csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -234,12 +253,21 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
 	if err := result.Error; err != nil {
-		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
+		return nil, s.shelfException.NotFound().WithOrigin(err)
 	}
 
 	responseDto := make(csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, 0, len(subShelves))
 	for _, subShelf := range subShelves {
-		responseDto = append(responseDto, newSubShelfResponseDto(subShelf))
+		responseDto = append(responseDto, csubshelves.SubShelfResponseDto{
+			Id:             subShelf.Id,
+			Name:           subShelf.Name,
+			RootShelfId:    subShelf.RootShelfId,
+			PrevSubShelfId: subShelf.PrevSubShelfId,
+			Path:           []uuid.UUID(subShelf.Path),
+			DeletedAt:      subShelf.DeletedAt,
+			UpdatedAt:      subShelf.UpdatedAt,
+			CreatedAt:      subShelf.CreatedAt,
+		})
 	}
 	return &responseDto, nil
 }
@@ -248,7 +276,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 	ctx context.Context, requestDto *csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto,
 ) (*csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -287,10 +315,19 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		Limit(int(data.MaxSubShelvesOfSubShelf)).
 		Find(&subShelves)
 	if err := resultOfGettingSubShelves.Error; err != nil {
-		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
+		return nil, s.shelfException.NotFound().WithOrigin(err)
 	}
 	for _, subShelf := range subShelves {
-		resDto.SubShelves = append(resDto.SubShelves, newSubShelfResponseDto(subShelf))
+		resDto.SubShelves = append(resDto.SubShelves, csubshelves.SubShelfResponseDto{
+			Id:             subShelf.Id,
+			Name:           subShelf.Name,
+			RootShelfId:    subShelf.RootShelfId,
+			PrevSubShelfId: subShelf.PrevSubShelfId,
+			Path:           []uuid.UUID(subShelf.Path),
+			DeletedAt:      subShelf.DeletedAt,
+			UpdatedAt:      subShelf.UpdatedAt,
+			CreatedAt:      subShelf.CreatedAt,
+		})
 	}
 
 	materials := []sschemas.Material{}
@@ -306,13 +343,13 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		Limit(int(data.MaxMaterialsOfSubShelf)).
 		Find(&materials)
 	if err := resultOfGettingMaterials.Error; err != nil {
-		return nil, apiexceptions.NewMaterialException().NotFound().WithOrigin(err)
+		return nil, s.materialException.NotFound().WithOrigin(err)
 	}
 
 	for _, material := range materials {
 		downloadURL, err := s.storage.PresignGetObjectByKey(ctx, material.ContentKey, nil)
 		if err != nil {
-			return nil, apiexceptions.NewStorageException().FailedToPresignedGetObject(material.ContentKey).WithOrigin(err)
+			return nil, s.storageException.FailedToPresignedGetObject(material.ContentKey).WithOrigin(err)
 		}
 		resDto.Materials = append(resDto.Materials, csubshelves.SubShelfMaterialResponseDto{
 			Id:               material.Id,
@@ -341,7 +378,7 @@ func (s *SubShelfService) GetMySubShelvesAndItemsByPrevSubShelfId(
 		Limit(int(data.MaxBlockPackOfSubShelf)).
 		Scan(&blockPacks)
 	if err := resultOfGettingBlockPacks.Error; err != nil {
-		return nil, apiexceptions.NewBlockPackException().NotFound().WithOrigin(err)
+		return nil, s.blockPackException.NotFound().WithOrigin(err)
 	}
 
 	for _, blockPack := range blockPacks {
@@ -374,7 +411,7 @@ func (s *SubShelfService) CreateSubShelfByRootShelfId(
 	ctx context.Context, requestDto *csubshelves.CreateSubShelfByRootShelfIdRequestDto,
 ) (*csubshelves.CreateSubShelfByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
@@ -411,7 +448,7 @@ func (s *SubShelfService) CreateSubShelvesByRootShelfIds(
 	ctx context.Context, requestDto *csubshelves.CreateSubShelvesByRootShelfIdsRequestDto,
 ) (*csubshelves.CreateSubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -453,7 +490,7 @@ func (s *SubShelfService) UpdateMySubShelfById(
 	ctx context.Context, requestDto *csubshelves.UpdateMySubShelfByIdRequestDto,
 ) (*csubshelves.UpdateMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -491,7 +528,7 @@ func (s *SubShelfService) UpdateMySubShelvesByIds(
 	ctx context.Context, requestDto *csubshelves.UpdateMySubShelvesByIdsRequestDto,
 ) (*csubshelves.UpdateMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -535,11 +572,11 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 	ctx context.Context, requestDto *csubshelves.MoveMySubShelfByRootShelfIdRequestDto,
 ) (*csubshelves.MoveMySubShelfByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	if requestDto.Body.DestinationSubShelfId != nil &&
 		requestDto.Body.SourceSubShelfId == *requestDto.Body.DestinationSubShelfId {
-		return nil, apiexceptions.NewShelfException().NoChanges()
+		return nil, s.shelfException.NoChanges()
 	}
 
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
@@ -564,7 +601,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	)
 	if exception = cexceptions.Cover(exception, []cexceptions.Pair{
-		{First: from.RootShelfId != requestDto.Body.SourceRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
+		{First: from.RootShelfId != requestDto.Body.SourceRootShelfId, Second: s.shelfException.NotFound()},
 	}); exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -591,10 +628,10 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
-			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
+			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: s.shelfException.NotFound()},
 			{
 				First: len(from.Path)+len(to.Path) > int(data.MaxSubShelvesOfRootShelf),
-				Second: apiexceptions.NewShelfException().MaximumDepthExceeded(
+				Second: s.shelfException.MaximumDepthExceeded(
 					int32(len(from.Path)+len(to.Path)),
 					data.MaxSubShelvesOfRootShelf,
 				),
@@ -608,7 +645,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		for _, parent := range to.Path {
 			if parent == requestDto.Body.SourceSubShelfId {
 				tx.Rollback()
-				return nil, apiexceptions.NewShelfException().InsertParentIntoItsChildren(
+				return nil, s.shelfException.InsertParentIntoItsChildren(
 					requestDto.Body.DestinationSubShelfId,
 					requestDto.Body.SourceSubShelfId,
 				)
@@ -625,7 +662,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		)
 		if err := result.Error; err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
+			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	} else {
 		result := tx.Exec(`
@@ -636,10 +673,10 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 		)
 		if err := result.Error; err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
+			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Body.SourceSubShelfId.String(),
 		blockPackIds,
@@ -659,7 +696,7 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.shelfException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &csubshelves.MoveMySubShelfByRootShelfIdResponseDto{
@@ -671,7 +708,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 	ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdRequestDto,
 ) (*csubshelves.MoveMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
@@ -702,7 +739,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 	for _, from := range froms {
 		if from.RootShelfId != requestDto.Body.SourceRootShelfId {
 			tx.Rollback()
-			return nil, apiexceptions.NewShelfException().NotFound()
+			return nil, s.shelfException.NotFound()
 		}
 	}
 	sourceSubShelfIds := make([]uuid.UUID, len(froms))
@@ -731,7 +768,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 			srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 		)
 		if exception = cexceptions.Cover(exception, []cexceptions.Pair{
-			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: apiexceptions.NewShelfException().NotFound()},
+			{First: to.RootShelfId != requestDto.Body.DestinationRootShelfId, Second: s.shelfException.NotFound()},
 		}); exception != nil {
 			tx.Rollback()
 			return nil, exception
@@ -744,13 +781,13 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		sourceSubShelfIdMap := make(map[uuid.UUID]bool)
 		for _, from := range froms {
 			if len(from.Path)+len(to.Path) > int(data.MaxSubShelvesOfRootShelf) {
-				apiexceptions.NewShelfException().MaximumDepthExceeded(
+				s.shelfException.MaximumDepthExceeded(
 					int32(len(from.Path)+len(to.Path)),
 					data.MaxSubShelvesOfRootShelf,
 				)
 				// sourceSubShelfIdMap[from.Id] = false
 			} else if from.Id == to.Id { // handling inserting node to itself here
-				apiexceptions.NewShelfException().InsertParentIntoItsChildren(to.Id, from.Id)
+				s.shelfException.InsertParentIntoItsChildren(to.Id, from.Id)
 				// sourceSubShelfIdMap[from.Id] = false
 			} else {
 				sourceSubShelfIdMap[from.Id] = true
@@ -759,7 +796,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 
 		for _, parentId := range to.Path { // handling inserting node to its children here
 			if sourceSubShelfIdMap[parentId] {
-				apiexceptions.NewShelfException().InsertParentIntoItsChildren(
+				s.shelfException.InsertParentIntoItsChildren(
 					requestDto.Body.DestinationSubShelfId,
 					parentId,
 				)
@@ -783,7 +820,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		)
 		if err := result.Error; err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
+			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	} else {
 		validSourceSubShelfIds := []uuid.UUID{}
@@ -799,10 +836,10 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 		)
 		if err := result.Error; err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(err)
+			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-bulk-move",
 		blockPackIds,
@@ -822,7 +859,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.shelfException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &csubshelves.MoveMySubShelvesByRootShelfIdResponseDto{
@@ -834,7 +871,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 	ctx context.Context, requestDto *csubshelves.MoveMySubShelvesByRootShelfIdsRequestDto,
 ) (*csubshelves.MoveMySubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	allowedPermissions, exception := contexts.GetAllowedPermissions(ctx)
@@ -951,13 +988,13 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 			}
 
 			if len(from.Path)+len(to.Path) > int(data.MaxSubShelvesOfRootShelf) {
-				apiexceptions.NewShelfException().MaximumDepthExceeded(
+				s.shelfException.MaximumDepthExceeded(
 					int32(len(from.Path)+len(to.Path)),
 					data.MaxSubShelvesOfRootShelf,
 				)
 				// sourceSubShelfIdMap[sourceSubShelfId] = false
 			} else if from.Id == to.Id { // handling inserting node to itself here
-				apiexceptions.NewShelfException().InsertParentIntoItsChildren(to.Id, from.Id)
+				s.shelfException.InsertParentIntoItsChildren(to.Id, from.Id)
 				// sourceSubShelfIdMap[sourceSubShelfId] = false
 			} else {
 				sourceSubShelfIdMap[from.Id] = true
@@ -968,7 +1005,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 			// once we iterated through the source sub shelves of the current destination sub shelf
 			// we have the complete source sub shelf recorded in the sourceSubShelfIdMap now
 			if sourceSubShelfIdMap[parentId] {
-				apiexceptions.NewShelfException().InsertParentIntoItsChildren(
+				s.shelfException.InsertParentIntoItsChildren(
 					to.Id,
 					parentId,
 				)
@@ -1029,13 +1066,13 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 	`, strings.Join(valuePlaceholders, ","))
 	result := tx.Exec(sql, valueArgs...)
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
-		{First: result.Error != nil, Second: apiexceptions.NewShelfException().FailedToUpdate().WithOrigin(result.Error)},
-		{First: result.RowsAffected == 0, Second: apiexceptions.NewShelfException().NoChanges()},
+		{First: result.Error != nil, Second: s.shelfException.FailedToUpdate().WithOrigin(result.Error)},
+		{First: result.RowsAffected == 0, Second: s.shelfException.NoChanges()},
 	}); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-multi-root-move",
 		blockPackIds,
@@ -1055,7 +1092,7 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewShelfException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.shelfException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &csubshelves.MoveMySubShelvesByRootShelfIdsResponseDto{
@@ -1067,7 +1104,7 @@ func (s *SubShelfService) RestoreMySubShelfById(
 	ctx context.Context, requestDto *csubshelves.RestoreMySubShelfByIdRequestDto,
 ) (*csubshelves.RestoreMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -1090,15 +1127,23 @@ func (s *SubShelfService) RestoreMySubShelfById(
 		return nil, exception
 	}
 
-	responseDto := newSubShelfResponseDto(*restoredSubShelf)
-	return &responseDto, nil
+	return &csubshelves.SubShelfResponseDto{
+		Id:             restoredSubShelf.Id,
+		Name:           restoredSubShelf.Name,
+		RootShelfId:    restoredSubShelf.RootShelfId,
+		PrevSubShelfId: restoredSubShelf.PrevSubShelfId,
+		Path:           []uuid.UUID(restoredSubShelf.Path),
+		DeletedAt:      restoredSubShelf.DeletedAt,
+		UpdatedAt:      restoredSubShelf.UpdatedAt,
+		CreatedAt:      restoredSubShelf.CreatedAt,
+	}, nil
 }
 
 func (s *SubShelfService) RestoreMySubShelvesByIds(
 	ctx context.Context, requestDto *csubshelves.RestoreMySubShelvesByIdsRequestDto,
 ) (*csubshelves.RestoreMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -1123,7 +1168,16 @@ func (s *SubShelfService) RestoreMySubShelvesByIds(
 
 	resDto := csubshelves.RestoreMySubShelvesByIdsResponseDto{}
 	for _, restoredSubShelf := range restoredSubShelves {
-		resDto = append(resDto, newSubShelfResponseDto(restoredSubShelf))
+		resDto = append(resDto, csubshelves.SubShelfResponseDto{
+			Id:             restoredSubShelf.Id,
+			Name:           restoredSubShelf.Name,
+			RootShelfId:    restoredSubShelf.RootShelfId,
+			PrevSubShelfId: restoredSubShelf.PrevSubShelfId,
+			Path:           []uuid.UUID(restoredSubShelf.Path),
+			DeletedAt:      restoredSubShelf.DeletedAt,
+			UpdatedAt:      restoredSubShelf.UpdatedAt,
+			CreatedAt:      restoredSubShelf.CreatedAt,
+		})
 	}
 	return &resDto, nil
 }
@@ -1132,7 +1186,7 @@ func (s *SubShelfService) DeleteMySubShelfById(
 	ctx context.Context, requestDto *csubshelves.DeleteMySubShelfByIdRequestDto,
 ) (*csubshelves.DeleteMySubShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
@@ -1164,7 +1218,7 @@ func (s *SubShelfService) DeleteMySubShelfById(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		requestDto.Param.SubShelfId.String(),
 		blockPackIds,
@@ -1202,7 +1256,7 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	ctx context.Context, requestDto *csubshelves.DeleteMySubShelvesByIdsRequestDto,
 ) (*csubshelves.DeleteMySubShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
@@ -1234,7 +1288,7 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		"sub-shelf-bulk-delete",
 		blockPackIds,
@@ -1268,7 +1322,7 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 	}, nil
 }
 
-/* ============================== Service Methods for GraphQL SubShelf ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *SubShelfService) SearchPrivateSubShelves(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchSubShelfInput,
@@ -1315,7 +1369,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
 		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchSubShelfCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
+			return nil, s.searchException.FailedToDecode().WithOrigin(err)
 		}
 
 		query = query.Where(`"SubShelfTable".id > ?`, searchCursor.Fields.ID)
@@ -1370,7 +1424,7 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 			sschemas.SubShelfRelation_Items,
 		},
 	)).Find(&subShelves).Error; err != nil {
-		return nil, apiexceptions.NewShelfException().NotFound().WithOrigin(err)
+		return nil, s.shelfException.NotFound().WithOrigin(err)
 	}
 
 	hasNextPage := len(subShelves) > limit
@@ -1384,10 +1438,10 @@ func (s *SubShelfService) SearchPrivateSubShelves(
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
+			return nil, s.searchException.FailedToEncode().WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
+			return nil, s.searchException.FailedToUnmarshalSearchCursor()
 		}
 
 		searchEdges[index] = &cgqlmodels.SearchSubShelfEdge{

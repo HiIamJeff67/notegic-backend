@@ -53,6 +53,8 @@ type BlockService struct {
 	subShelfScope       sscopes.SubShelfScopeInterface
 	blockPackRepository srepositories.BlockPackRepositoryInterface
 	blockRepository     srepositories.BlockRepositoryInterface
+	blockException      apiexceptions.BlockException
+	searchException     apiexceptions.SearchException
 }
 
 func NewBlockService(
@@ -63,6 +65,8 @@ func NewBlockService(
 	subShelfScope sscopes.SubShelfScopeInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
 	blockRepository srepositories.BlockRepositoryInterface,
+	blockException apiexceptions.BlockException,
+	searchException apiexceptions.SearchException,
 ) BlockServiceInterface {
 	return &BlockService{
 		validator:           validator,
@@ -72,33 +76,16 @@ func NewBlockService(
 		subShelfScope:       subShelfScope,
 		blockPackRepository: blockPackRepository,
 		blockRepository:     blockRepository,
+		blockException:      blockException,
+		searchException:     searchException,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
-
-func newBlockResponseDto(block sschemas.Block) capi.BlockResponseDto {
-	return capi.BlockResponseDto{
-		Id:            block.Id,
-		BlockPackId:   block.BlockPackId,
-		ParentBlockId: block.ParentBlockId,
-		PrevBlockId:   block.PrevBlockId,
-		NextBlockId:   block.NextBlockId,
-		Type:          block.Type.String(),
-		Props:         json.RawMessage(block.Props),
-		Content:       json.RawMessage(block.Content),
-		UpdatedAt:     block.UpdatedAt,
-		CreatedAt:     block.CreatedAt,
-	}
-}
-
-/* ============================== Service Methods for Block ============================== */
 
 func (s *BlockService) GetMyBlockById(
 	ctx context.Context, requestDto *capi.GetMyBlockByIdRequestDto,
 ) (*capi.GetMyBlockByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
+		return nil, s.blockException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -123,15 +110,25 @@ func (s *BlockService) GetMyBlockById(
 		return nil, exception
 	}
 
-	responseDto := newBlockResponseDto(*block)
-	return &responseDto, nil
+	return &capi.BlockResponseDto{
+		Id:            block.Id,
+		BlockPackId:   block.BlockPackId,
+		ParentBlockId: block.ParentBlockId,
+		PrevBlockId:   block.PrevBlockId,
+		NextBlockId:   block.NextBlockId,
+		Type:          block.Type.String(),
+		Props:         json.RawMessage(block.Props),
+		Content:       json.RawMessage(block.Content),
+		UpdatedAt:     block.UpdatedAt,
+		CreatedAt:     block.CreatedAt,
+	}, nil
 }
 
 func (s *BlockService) GetMyBlocksByIds(
 	ctx context.Context, requestDto *capi.GetMyBlocksByIdsRequestDto,
 ) (*capi.GetMyBlocksByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
+		return nil, s.blockException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -159,7 +156,18 @@ func (s *BlockService) GetMyBlocksByIds(
 
 	responseDto := make(capi.GetMyBlocksByIdsResponseDto, len(blocks))
 	for index, block := range blocks {
-		responseDto[index] = newBlockResponseDto(block)
+		responseDto[index] = capi.BlockResponseDto{
+			Id:            block.Id,
+			BlockPackId:   block.BlockPackId,
+			ParentBlockId: block.ParentBlockId,
+			PrevBlockId:   block.PrevBlockId,
+			NextBlockId:   block.NextBlockId,
+			Type:          block.Type.String(),
+			Props:         json.RawMessage(block.Props),
+			Content:       json.RawMessage(block.Content),
+			UpdatedAt:     block.UpdatedAt,
+			CreatedAt:     block.CreatedAt,
+		}
 	}
 
 	return &responseDto, nil
@@ -169,7 +177,7 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 	ctx context.Context, requestDto *capi.GetMyBlocksByBlockPackIdRequestDto,
 ) (*capi.GetMyBlocksByBlockPackIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewBlockException().InvalidDto().WithOrigin(err)
+		return nil, s.blockException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -190,7 +198,7 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 		srepositories.WithAllowedPermissions(allowedPermissions),
 		srepositories.WithOnlyDeleted(stypes.Ternary_Negative),
 	) {
-		return nil, apiexceptions.NewBlockException().NoPermission("get the block pack of blocks")
+		return nil, s.blockException.NoPermission("get the block pack of blocks")
 	}
 
 	var blocks []sschemas.Block
@@ -199,12 +207,23 @@ func (s *BlockService) GetMyBlocksByBlockPackId(
 		Order("created_at ASC").
 		Order("id ASC").
 		Find(&blocks).Error; err != nil {
-		return nil, apiexceptions.NewBlockException().NotFound().WithOrigin(err)
+		return nil, s.blockException.NotFound().WithOrigin(err)
 	}
 
 	responseDto := make(capi.GetMyBlocksByBlockPackIdResponseDto, len(blocks))
 	for index, block := range blocks {
-		responseDto[index] = newBlockResponseDto(block)
+		responseDto[index] = capi.BlockResponseDto{
+			Id:            block.Id,
+			BlockPackId:   block.BlockPackId,
+			ParentBlockId: block.ParentBlockId,
+			PrevBlockId:   block.PrevBlockId,
+			NextBlockId:   block.NextBlockId,
+			Type:          block.Type.String(),
+			Props:         json.RawMessage(block.Props),
+			Content:       json.RawMessage(block.Content),
+			UpdatedAt:     block.UpdatedAt,
+			CreatedAt:     block.CreatedAt,
+		}
 	}
 
 	return &responseDto, nil
@@ -644,7 +663,7 @@ func (s *BlockService) SearchPrivateBlocks(
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
 		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchBlockCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
+			return nil, s.searchException.FailedToDecode().WithOrigin(err)
 		}
 
 		query = query.Where(`"BlockTable".id > ?`, searchCursor.Fields.ID)
@@ -677,7 +696,7 @@ func (s *BlockService) SearchPrivateBlocks(
 
 	var blocks []sschemas.Block
 	if err := query.Find(&blocks).Error; err != nil {
-		return nil, apiexceptions.NewBlockException().NotFound().WithOrigin(err)
+		return nil, s.blockException.NotFound().WithOrigin(err)
 	}
 
 	hasNextPage := len(blocks) > limit
@@ -686,10 +705,10 @@ func (s *BlockService) SearchPrivateBlocks(
 		searchCursor := ssearchcursor.SearchCursor[cgqlmodels.SearchBlockCursorFields]{Fields: cgqlmodels.SearchBlockCursorFields{ID: block.Id}}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
+			return nil, s.searchException.FailedToEncode().WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
+			return nil, s.searchException.FailedToUnmarshalSearchCursor()
 		}
 
 		searchEdges[index] = &cgqlmodels.SearchBlockEdge{EncodedSearchCursor: *encodedSearchCursor, Node: block.ToPrivateBlock()}

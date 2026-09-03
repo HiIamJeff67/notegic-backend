@@ -38,12 +38,18 @@ type NotificationRepository interface {
 type NotificationRepositoryImpl struct {
 	db                       *gorm.DB
 	userProjectionRepository UserProjectionRepositoryInterface
+	inboxEventRepository     InboxEventRepositoryInterface
 }
 
-func NewNotificationRepository(db *gorm.DB) NotificationRepository {
+func NewNotificationRepository(
+	db *gorm.DB,
+	userProjectionRepository UserProjectionRepositoryInterface,
+	inboxEventRepository InboxEventRepositoryInterface,
+) NotificationRepository {
 	return &NotificationRepositoryImpl{
 		db:                       db,
-		userProjectionRepository: NewUserProjectionRepository(db),
+		userProjectionRepository: userProjectionRepository,
+		inboxEventRepository:     inboxEventRepository,
 	}
 }
 
@@ -59,7 +65,7 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 	}
 
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		isNewInboxEvent, inboxException := NewInboxEventRepository().CreateOne(
+		isNewInboxEvent, inboxException := r.inboxEventRepository.CreateOne(
 			inputs.CreateInboxEventInput{EventId: event.EventId},
 			RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
 		)

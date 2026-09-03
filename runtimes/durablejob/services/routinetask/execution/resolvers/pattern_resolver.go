@@ -35,10 +35,13 @@ type RoutineTaskPatternResolver struct {
 	blockPackPatternResolver BlockPackPatternResolverInterface
 }
 
-func NewRoutineTaskPatternResolver(db *gorm.DB) RoutineTaskPatternResolverInterface {
+func NewRoutineTaskPatternResolver(
+	blockPatternResolver BlockPatternResolverInterface,
+	blockPackPatternResolver BlockPackPatternResolverInterface,
+) RoutineTaskPatternResolverInterface {
 	return RoutineTaskPatternResolver{
-		blockPatternResolver:     NewBlockPatternResolver(db),
-		blockPackPatternResolver: NewBlockPackPatternResolver(db),
+		blockPatternResolver:     blockPatternResolver,
+		blockPackPatternResolver: blockPackPatternResolver,
 	}
 }
 

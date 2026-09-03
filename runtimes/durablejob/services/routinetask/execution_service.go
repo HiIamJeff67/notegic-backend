@@ -21,7 +21,7 @@ import (
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+	sscope "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 
 	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
 	handlers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/handlers"
@@ -60,47 +60,49 @@ type RoutineTaskExecutionService struct {
 func NewRoutineTaskExecutionService(
 	validatorInstance *validator.Validate,
 	db *gorm.DB,
+	routineTaskRecordRepository srepositories.RoutineTaskRecordRepositoryInterface,
+	patternResolver resolvers.RoutineTaskPatternResolverInterface,
+	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface,
+	subShelfRepository srepositories.SubShelfRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	blockRepository srepositories.BlockRepositoryInterface,
+	routineRepository srepositories.RoutineRepositoryInterface,
+	materialRepository srepositories.MaterialRepositoryInterface,
 	yjsDocumentInitializer handlers.YjsDocumentInitializer,
 	yjsBlockPackUpdater handlers.YjsBlockPackUpdater,
 ) RoutineTaskExecutionServiceInterface {
-	if validatorInstance == nil {
-		validatorInstance = validator.New()
-	}
-
-	patternResolver := resolvers.NewRoutineTaskPatternResolver(db)
-	templateBlockMatcher := matchers.NewRoutineTaskTemplateMatcher()
 	service := &RoutineTaskExecutionService{
-		validator: validatorInstance,
-		db:        db,
-		routineTaskRecordRepository: srepositories.NewRoutineTaskRecordRepository(
-			db,
-			sscopes.NewRoutineTaskRecordScope(),
-		),
+		validator:                   validatorInstance,
+		db:                          db,
+		routineTaskRecordRepository: routineTaskRecordRepository,
 		subShelfHandler: handlers.NewSubShelfHandler(
-			db,
 			validatorInstance,
 			patternResolver,
 			templateBlockMatcher,
+			subShelfRepository,
+			blockPackRepository,
+			materialRepository,
 		),
 		blockPackHandler: handlers.NewBlockPackHandler(
-			db,
 			validatorInstance,
 			patternResolver,
 			templateBlockMatcher,
 			yjsDocumentInitializer,
 			yjsBlockPackUpdater,
+			blockPackRepository,
+			blockRepository,
 		),
 		routineHandler: handlers.NewRoutineHandler(
-			db,
 			validatorInstance,
 			patternResolver,
 			templateBlockMatcher,
+			routineRepository,
 		),
 		materialHandler: handlers.NewMaterialHandler(
-			db,
 			validatorInstance,
 			patternResolver,
 			templateBlockMatcher,
+			materialRepository,
 		),
 	}
 	return service
@@ -238,7 +240,7 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	lockingStrength := srepositories.LockingStrengthUpdate
 	var storedRecords []sschemas.RoutineTaskRecord
 	if err := tx.WithContext(ctx).
-		Scopes(sscopes.Locking(&lockingStrength)).
+		Scopes(sscope.Locking(&lockingStrength)).
 		Where("id IN ?", recordIds).
 		Find(&storedRecords).Error; err != nil {
 		tx.Rollback()
@@ -857,7 +859,11 @@ func (s *RoutineTaskExecutionService) ApplyPreparedRoutineTasks(
 	result = tx.Model(&sschemas.Routine{}).
 		Where("id IN (?)", routineIdsToFinalize).
 		Updates(map[string]any{
-			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"status": gorm.Expr(
+				`CASE WHEN period IS NULL THEN ?::"RoutineStatus" ELSE ?::"RoutineStatus" END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_Scheduled,
+			),
 			"updated_at": now,
 		})
 	if result.Error != nil {
@@ -950,7 +956,7 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	lockingStrength := srepositories.LockingStrengthUpdate
 	var runningRecords []sschemas.RoutineTaskRecord
 	if result := tx.Model(&sschemas.RoutineTaskRecord{}).
-		Scopes(sscopes.Locking(&lockingStrength)).
+		Scopes(sscope.Locking(&lockingStrength)).
 		Where("id IN ?", recordIds).
 		Find(&runningRecords); result.Error != nil {
 		tx.Rollback()
@@ -1108,7 +1114,11 @@ func (s *RoutineTaskExecutionService) ApplyFailedRoutineTasks(
 	result = tx.Model(&sschemas.Routine{}).
 		Where("id IN (?)", routineIdsToFinalize).
 		Updates(map[string]any{
-			"status":     gorm.Expr("CASE WHEN period IS NULL THEN ? ELSE ? END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_Scheduled),
+			"status": gorm.Expr(
+				`CASE WHEN period IS NULL THEN ?::"RoutineStatus" ELSE ?::"RoutineStatus" END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_Scheduled,
+			),
 			"updated_at": now,
 		})
 	if result.Error != nil {

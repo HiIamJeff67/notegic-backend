@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/user-infos"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -43,7 +46,13 @@ func (c *UserInfoController) GetMyInfo(ctx *gin.Context, request *capi.GetMyInfo
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *UserInfoController) UpdateMyInfo(ctx *gin.Context, request *capi.UpdateMyInfoRequestDto) {
@@ -62,5 +71,11 @@ func (c *UserInfoController) UpdateMyInfo(ctx *gin.Context, request *capi.Update
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

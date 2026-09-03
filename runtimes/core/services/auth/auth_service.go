@@ -3,17 +3,14 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
@@ -40,6 +37,8 @@ import (
 	userdata "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/redis/userdata"
 	cacheinputs "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/redis/userdata/inputs"
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/core/exceptions"
+	"github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/generators"
+	"github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/hashers"
 	emailtransport "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/email"
 )
 
@@ -58,18 +57,26 @@ type AuthServiceInterface interface {
 }
 
 type AuthService struct {
-	validator             *validator.Validate
-	db                    *gorm.DB
-	userRepository        srepositories.UserRepositoryInterface
-	userInfoRepository    srepositories.UserInfoRepositoryInterface
-	userAccountRepository srepositories.UserAccountRepositoryInterface
-	userSettingRepository srepositories.UserSettingRepositoryInterface
-	rootShelfRepository   srepositories.RootShelfRepositoryInterface
-	outboxRepository      srepositories.OutboxEventRepositoryInterface
-	oauthService          OAuthServiceInterface
-	emailClient           emailtransport.ClientInterface
-	userDataCacheClient   *userdata.UserDataCacheClient
-	authCodeGenerator     *sauthcode.AuthCodeGenerator
+	validator                  *validator.Validate
+	db                         *gorm.DB
+	userRepository             srepositories.UserRepositoryInterface
+	userInfoRepository         srepositories.UserInfoRepositoryInterface
+	userAccountRepository      srepositories.UserAccountRepositoryInterface
+	userSettingRepository      srepositories.UserSettingRepositoryInterface
+	rootShelfRepository        srepositories.RootShelfRepositoryInterface
+	outboxRepository           srepositories.OutboxEventRepositoryInterface
+	oauthService               OAuthServiceInterface
+	emailClient                emailtransport.ClientInterface
+	userDataCacheClient        *userdata.UserDataCacheClient
+	authCodeGenerator          *sauthcode.AuthCodeGenerator
+	fakeDisplayNameGenerator   generators.FakeDisplayNameGeneratorInterface
+	loginBlockedUntilGenerator generators.LoginBlockedUntilGeneratorInterface
+	passwordHasher             hashers.PasswordHasherInterface
+	authException              apiexceptions.AuthException
+	userException              apiexceptions.UserException
+	userAccountException       apiexceptions.UserAccountException
+	userInfoException          apiexceptions.UserInfoException
+	userSettingException       apiexceptions.UserSettingException
 }
 
 func NewAuthService(
@@ -85,190 +92,37 @@ func NewAuthService(
 	emailClient emailtransport.ClientInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
 	authCodeGenerator *sauthcode.AuthCodeGenerator,
+	fakeDisplayNameGenerator generators.FakeDisplayNameGeneratorInterface,
+	loginBlockedUntilGenerator generators.LoginBlockedUntilGeneratorInterface,
+	passwordHasher hashers.PasswordHasherInterface,
+	authException apiexceptions.AuthException,
+	userException apiexceptions.UserException,
+	userAccountException apiexceptions.UserAccountException,
+	userInfoException apiexceptions.UserInfoException,
+	userSettingException apiexceptions.UserSettingException,
 ) AuthServiceInterface {
-	if authCodeGenerator == nil {
-		authCodeGenerator = sauthcode.New()
-	}
-	if outboxRepository == nil {
-		outboxRepository = srepositories.NewOutboxEventRepository()
-	}
 	return &AuthService{
-		validator:             validator,
-		db:                    db,
-		userRepository:        userRepository,
-		userInfoRepository:    userInfoRepository,
-		userAccountRepository: userAccountRepository,
-		userSettingRepository: userSettingRepository,
-		rootShelfRepository:   rootShelfRepository,
-		outboxRepository:      outboxRepository,
-		oauthService:          oauthService,
-		emailClient:           emailClient,
-		userDataCacheClient:   userDataCacheClient,
-		authCodeGenerator:     authCodeGenerator,
+		validator:                  validator,
+		db:                         db,
+		userRepository:             userRepository,
+		userInfoRepository:         userInfoRepository,
+		userAccountRepository:      userAccountRepository,
+		userSettingRepository:      userSettingRepository,
+		rootShelfRepository:        rootShelfRepository,
+		outboxRepository:           outboxRepository,
+		oauthService:               oauthService,
+		emailClient:                emailClient,
+		userDataCacheClient:        userDataCacheClient,
+		authCodeGenerator:          authCodeGenerator,
+		fakeDisplayNameGenerator:   fakeDisplayNameGenerator,
+		loginBlockedUntilGenerator: loginBlockedUntilGenerator,
+		passwordHasher:             passwordHasher,
+		authException:              authException,
+		userException:              userException,
+		userAccountException:       userAccountException,
+		userInfoException:          userInfoException,
+		userSettingException:       userSettingException,
 	}
-}
-
-/* ============================== Auxiliary Functions ============================== */
-
-var loginCountToBlockDurationMap = map[int32]time.Duration{
-	3:  5 * time.Minute,
-	5:  15 * time.Minute,
-	7:  30 * time.Minute,
-	10: 1 * time.Hour,
-	15: 6 * time.Hour,
-	20: 24 * time.Hour,
-	30: 7 * 24 * time.Hour,
-}
-
-func (s *AuthService) generateRandomFakeDisplayName() string {
-	gofakeit.Seed(0)
-	return fmt.Sprintf("%s%s%d", gofakeit.AdjectiveDescriptive(), gofakeit.LastName(), gofakeit.Number(100000, 999999))
-}
-
-func (s *AuthService) getLoginBlockedUntilByLoginCount(loginCount int32) (*time.Time, *cexceptions.Exception) {
-	if loginCount < 0 {
-		return nil, cexceptions.New("InvalidLoginCount", "Auth", "GetLoginBlockedUntil", "Login count is invalid", http.StatusInternalServerError, true)
-	}
-
-	var blockDuration *time.Duration
-	for count, duration := range loginCountToBlockDurationMap {
-		if loginCount >= count {
-			blockDuration = &duration
-		}
-	}
-	if blockDuration == nil {
-		return nil, nil
-	}
-	blockedUntil := time.Now().Add(*blockDuration)
-	return &blockedUntil, nil
-}
-
-func (s *AuthService) hashPassword(password string) (string, *cexceptions.Exception) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", cexceptions.New(
-			"FailedToGenerateHashValue",
-			"Auth",
-			"Hash",
-			"Failed to generate a hash value",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-	return string(bytes), nil
-}
-
-func (s *AuthService) generateAccessToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateAccessToken(
-		userPublicId.String(),
-		sharedtokens.AccessTokenClaims{
-			Name:      name,
-			Email:     email,
-			UserAgent: userAgent,
-		},
-	)
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateAccessToken",
-			"Failed to generate the access token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) generateRefreshToken(userPublicId uuid.UUID, name string, email string, userAgent string) (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateRefreshToken(
-		userPublicId.String(),
-		sharedtokens.RefreshTokenClaims{
-			Name:      name,
-			Email:     email,
-			UserAgent: userAgent,
-		},
-	)
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateRefreshToken",
-			"Failed to generate the refresh token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) generateCSRFToken() (*string, *cexceptions.Exception) {
-	token, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
-	if err != nil {
-		return nil, cexceptions.New(
-			"GenerationFailed",
-			"Token",
-			"GenerateCSRFToken",
-			"Failed to generate the CSRF token",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return token, nil
-}
-
-func (s *AuthService) enqueueWelcomeNotification(
-	tx *gorm.DB,
-	user *sschemas.User,
-) *cexceptions.Exception {
-	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
-		Title:   "Welcome to Notegic",
-		Summary: "Your Notegic account is ready.",
-		Body:    "Start organizing your notes, shelves, and routines in one place.",
-	})
-	if err != nil {
-		return cexceptions.New(
-			"FailedToMarshal",
-			"Notification",
-			"Request",
-			"Failed to encode the welcome notification payload",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	if err := s.outboxRepository.EnqueueNotificationRequested(
-		tx,
-		uuid.NewString(),
-		coreevents.NotificationRequestedData{
-			RecipientUserPublicId: user.PublicId,
-			UserProjection: coreevents.UserProjection{
-				PublicId: user.PublicId,
-				Plan:     user.Plan,
-				Status:   user.Status,
-			},
-			Type:            coreevents.NotificationType_News,
-			Priority:        coreevents.NotificationPriority_Normal,
-			TemplateKey:     cnotificationtypes.TemplateKey_News,
-			TemplateVersion: 1,
-			Payload:         payload,
-			DedupeKey:       "welcome:" + user.PublicId.String(),
-		},
-	); err != nil {
-		return cexceptions.New(
-			"FailedToCreate",
-			"Notification",
-			"Request",
-			"Failed to enqueue the welcome notification",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return nil
 }
 
 func (s *AuthService) loginByGoogleUserInfo(
@@ -280,12 +134,12 @@ func (s *AuthService) loginByGoogleUserInfo(
 ) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception) {
 	if user.BlockLoginUntil.After(time.Now()) {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
+		return nil, s.authException.LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
 	}
 
 	if user.UserAccount.GoogleCredential == nil || userInfo.Id != *user.UserAccount.GoogleCredential {
 		newLoginCount := user.LoginCount + 1
-		blockLoginUntil, exception := s.getLoginBlockedUntilByLoginCount(newLoginCount)
+		blockLoginUntil, exception := s.loginBlockedUntilGenerator.GenerateNextByLoginCount(newLoginCount)
 		if exception != nil {
 			tx.Rollback()
 			return nil, exception
@@ -310,11 +164,11 @@ func (s *AuthService) loginByGoogleUserInfo(
 
 		if blockLoginUntil != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
+			return nil, s.authException.LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
 		}
 
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().WrongPassword() // login via google procedure early ends here
+		return nil, s.authException.WrongPassword() // login via google procedure early ends here
 	}
 
 	if user.UserAgent != userAgent {
@@ -332,20 +186,26 @@ func (s *AuthService) loginByGoogleUserInfo(
 		}
 	}
 
-	newAccessToken, exception := s.generateAccessToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newAccessToken, err := sharedtokens.GenerateAccessToken(
+		user.PublicId.String(),
+		sharedtokens.AccessTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateAccessToken", "Failed to generate the access token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newRefreshToken, exception := s.generateRefreshToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newRefreshToken, err := sharedtokens.GenerateRefreshToken(
+		user.PublicId.String(),
+		sharedtokens.RefreshTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateRefreshToken", "Failed to generate the refresh token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
+	newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "Failed to generate the CSRF token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	// check if the user data cache exists
@@ -394,7 +254,7 @@ func (s *AuthService) loginByGoogleUserInfo(
 			)
 		if err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewUserException().NotFound().WithOrigin(err)
+			return nil, s.userException.NotFound().WithOrigin(err)
 		}
 
 		newUserDataCache := userdata.UserDataCache{
@@ -448,7 +308,7 @@ func (s *AuthService) loginByGoogleUserInfo(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &capi.LoginViaGoogleResponseDto{
@@ -464,17 +324,15 @@ func (s *AuthService) loginByGoogleUserInfo(
 	}, nil
 }
 
-/* ============================== Service Methods for Authentication ============================== */
-
 func (s *AuthService) Register(
 	ctx context.Context, reqDto *capi.RegisterRequestDto,
 ) (*capi.RegisterResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
+		return nil, s.authException.InvalidDto().WithOrigin(err)
 	}
 
 	// put the hash part outside the transaction to decrease its blocking time from heavily hashing operation
-	hashedPassword, exception := s.hashPassword(reqDto.Body.Password)
+	hashedPassword, exception := s.passwordHasher.Hash(reqDto.Body.Password)
 	if exception != nil {
 		return nil, exception
 	}
@@ -483,7 +341,7 @@ func (s *AuthService) Register(
 
 	createUserInput := sinputs.CreateUserInput{
 		Name:        reqDto.Body.Name,
-		DisplayName: s.generateRandomFakeDisplayName(), // we generate a default display name for the new user
+		DisplayName: s.fakeDisplayNameGenerator.GenerateRandomly(), // we generate a default display name for the new user
 		Email:       reqDto.Body.Email,
 		Password:    hashedPassword,
 		UserAgent:   reqDto.Header.UserAgent,
@@ -507,30 +365,26 @@ func (s *AuthService) Register(
 		return nil, exception
 	}
 
-	newAccessToken, exception := s.generateAccessToken(
-		createdUser.PublicId,
-		createUserInput.Name,
-		createUserInput.Email,
-		createUserInput.UserAgent,
+	newAccessToken, err := sharedtokens.GenerateAccessToken(
+		createdUser.PublicId.String(),
+		sharedtokens.AccessTokenClaims{Name: createUserInput.Name, Email: createUserInput.Email, UserAgent: createUserInput.UserAgent},
 	)
-	if exception != nil {
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateAccessToken", "Failed to generate the access token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newRefreshToken, exception := s.generateRefreshToken(
-		createdUser.PublicId,
-		createUserInput.Name,
-		createUserInput.Email,
-		createUserInput.UserAgent,
+	newRefreshToken, err := sharedtokens.GenerateRefreshToken(
+		createdUser.PublicId.String(),
+		sharedtokens.RefreshTokenClaims{Name: createUserInput.Name, Email: createUserInput.Email, UserAgent: createUserInput.UserAgent},
 	)
-	if exception != nil {
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateRefreshToken", "Failed to generate the refresh token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
+	newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "Failed to generate the CSRF token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	authCode := s.authCodeGenerator.Generate()
@@ -587,13 +441,39 @@ func (s *AuthService) Register(
 		tx.Rollback()
 		return nil, exception
 	}
-	if exception = s.enqueueWelcomeNotification(tx, newUser); exception != nil {
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
+		Title:   "Welcome to Notegic",
+		Summary: "Your Notegic account is ready.",
+		Body:    "Start organizing your notes, shelves, and routines in one place.",
+	})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("FailedToMarshal", "Notification", "Request", "Failed to encode the welcome notification payload", http.StatusInternalServerError, true).WithOrigin(err)
+	}
+	if err := s.outboxRepository.EnqueueNotificationRequested(
+		tx,
+		uuid.NewString(),
+		coreevents.NotificationRequestedData{
+			RecipientUserPublicId: newUser.PublicId,
+			UserProjection: coreevents.UserProjection{
+				PublicId: newUser.PublicId,
+				Plan:     newUser.Plan,
+				Status:   newUser.Status,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "welcome:" + newUser.PublicId.String(),
+		},
+	); err != nil {
+		tx.Rollback()
+		return nil, cexceptions.New("FailedToCreate", "Notification", "Request", "Failed to enqueue the welcome notification", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	exception = s.userDataCacheClient.Set(
@@ -642,7 +522,7 @@ func (s *AuthService) RegisterViaGoogle(
 	ctx context.Context, reqDto *capi.RegisterViaGoogleRequestDto,
 ) (*capi.RegisterViaGoogleResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
+		return nil, s.authException.InvalidDto().WithOrigin(err)
 	}
 
 	userInfo, exception := s.oauthService.GetGoogleUserInfo(
@@ -691,21 +571,13 @@ func (s *AuthService) RegisterViaGoogle(
 		return nil, lookupException
 	}
 
-	fakePasswordBytes, err := bcrypt.GenerateFromPassword([]byte(uuid.New().String()), bcrypt.DefaultCost)
-	if err != nil {
+	fakePassword, exception := s.passwordHasher.Hash(uuid.New().String())
+	if exception != nil {
 		tx.Rollback()
-		return nil, cexceptions.New(
-			"FailedToGenerateHashValue",
-			"Auth",
-			"Hash",
-			"Failed to generate a hash value",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
+		return nil, exception
 	}
-	fakePassword := string(fakePasswordBytes)
 
-	hashedPassword, exception := s.hashPassword(fakePassword)
+	hashedPassword, exception := s.passwordHasher.Hash(fakePassword)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -714,7 +586,7 @@ func (s *AuthService) RegisterViaGoogle(
 	reg, err := regexp.Compile("[^a-z0-9]+")
 	if err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().FailedToCompileRegularExpression().WithOrigin(err)
+		return nil, s.authException.FailedToCompileRegularExpression().WithOrigin(err)
 	}
 	fakeName := strings.ToLower(uuid.New().String())
 	fakeName = reg.ReplaceAllString(fakeName, "")
@@ -727,7 +599,7 @@ func (s *AuthService) RegisterViaGoogle(
 
 	createUserInput := sinputs.CreateUserInput{
 		Name:        fakeName,
-		DisplayName: s.generateRandomFakeDisplayName(), // we generate a default display name for the new user
+		DisplayName: s.fakeDisplayNameGenerator.GenerateRandomly(), // we generate a default display name for the new user
 		Email:       userInfo.Email,
 		Password:    hashedPassword,
 		UserAgent:   reqDto.Header.UserAgent,
@@ -751,30 +623,26 @@ func (s *AuthService) RegisterViaGoogle(
 		return nil, exception
 	}
 
-	newAccessToken, exception := s.generateAccessToken(
-		createdUser.PublicId,
-		createUserInput.Name,
-		createUserInput.Email,
-		createUserInput.UserAgent,
+	newAccessToken, err := sharedtokens.GenerateAccessToken(
+		createdUser.PublicId.String(),
+		sharedtokens.AccessTokenClaims{Name: createUserInput.Name, Email: createUserInput.Email, UserAgent: createUserInput.UserAgent},
 	)
-	if exception != nil {
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateAccessToken", "Failed to generate the access token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newRefreshToken, exception := s.generateRefreshToken(
-		createdUser.PublicId,
-		createUserInput.Name,
-		createUserInput.Email,
-		createUserInput.UserAgent,
+	newRefreshToken, err := sharedtokens.GenerateRefreshToken(
+		createdUser.PublicId.String(),
+		sharedtokens.RefreshTokenClaims{Name: createUserInput.Name, Email: createUserInput.Email, UserAgent: createUserInput.UserAgent},
 	)
-	if exception != nil {
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateRefreshToken", "Failed to generate the refresh token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
+	newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "Failed to generate the CSRF token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	authCode := s.authCodeGenerator.Generate()
@@ -855,14 +723,40 @@ func (s *AuthService) RegisterViaGoogle(
 		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	if exception = s.enqueueWelcomeNotification(tx, newUser); exception != nil {
+	payload, err := json.Marshal(cnotificationtypes.NewsPayload{
+		Title:   "Welcome to Notegic",
+		Summary: "Your Notegic account is ready.",
+		Body:    "Start organizing your notes, shelves, and routines in one place.",
+	})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("FailedToMarshal", "Notification", "Request", "Failed to encode the welcome notification payload", http.StatusInternalServerError, true).WithOrigin(err)
+	}
+	if err := s.outboxRepository.EnqueueNotificationRequested(
+		tx,
+		uuid.NewString(),
+		coreevents.NotificationRequestedData{
+			RecipientUserPublicId: newUser.PublicId,
+			UserProjection: coreevents.UserProjection{
+				PublicId: newUser.PublicId,
+				Plan:     newUser.Plan,
+				Status:   newUser.Status,
+			},
+			Type:            coreevents.NotificationType_News,
+			Priority:        coreevents.NotificationPriority_Normal,
+			TemplateKey:     cnotificationtypes.TemplateKey_News,
+			TemplateVersion: 1,
+			Payload:         payload,
+			DedupeKey:       "welcome:" + newUser.PublicId.String(),
+		},
+	); err != nil {
+		tx.Rollback()
+		return nil, cexceptions.New("FailedToCreate", "Notification", "Request", "Failed to enqueue the welcome notification", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	// send the welcome email to the registered user
@@ -890,7 +784,7 @@ func (s *AuthService) Login(
 	ctx context.Context, reqDto *capi.LoginRequestDto,
 ) (*capi.LoginResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
@@ -920,22 +814,22 @@ func (s *AuthService) Login(
 		}
 	} else {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().InvalidDto()
+		return nil, s.authException.InvalidDto()
 	}
 
 	if user == nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().InvalidDto()
+		return nil, s.authException.InvalidDto()
 	}
 
 	if user.BlockLoginUntil.After(time.Now()) {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
+		return nil, s.authException.LoginBlockedDueToTryingTooManyTimes(user.BlockLoginUntil)
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(reqDto.Body.Password)) != nil {
+	if !s.passwordHasher.Compare(user.Password, reqDto.Body.Password) {
 		newLoginCount := user.LoginCount + 1
-		blockLoginUntil, exception := s.getLoginBlockedUntilByLoginCount(newLoginCount)
+		blockLoginUntil, exception := s.loginBlockedUntilGenerator.GenerateNextByLoginCount(newLoginCount)
 		if exception != nil {
 			tx.Rollback()
 			return nil, exception
@@ -960,11 +854,11 @@ func (s *AuthService) Login(
 
 		if blockLoginUntil != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewAuthException().LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
+			return nil, s.authException.LoginBlockedDueToTryingTooManyTimes(*blockLoginUntil)
 		}
 
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().WrongPassword() // login procedure early ends here
+		return nil, s.authException.WrongPassword() // login procedure early ends here
 	}
 
 	if user.UserAgent != reqDto.Header.UserAgent {
@@ -982,20 +876,26 @@ func (s *AuthService) Login(
 		}
 	}
 
-	newAccessToken, exception := s.generateAccessToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newAccessToken, err := sharedtokens.GenerateAccessToken(
+		user.PublicId.String(),
+		sharedtokens.AccessTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateAccessToken", "Failed to generate the access token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newRefreshToken, exception := s.generateRefreshToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newRefreshToken, err := sharedtokens.GenerateRefreshToken(
+		user.PublicId.String(),
+		sharedtokens.RefreshTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateRefreshToken", "Failed to generate the refresh token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
+	newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "Failed to generate the CSRF token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	// check if the user data cache exists
@@ -1044,7 +944,7 @@ func (s *AuthService) Login(
 			)
 		if err != nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewUserException().NotFound().WithOrigin(err)
+			return nil, s.userException.NotFound().WithOrigin(err)
 		}
 
 		newUserDataCache := userdata.UserDataCache{
@@ -1098,7 +998,7 @@ func (s *AuthService) Login(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &capi.LoginResponseDto{
@@ -1118,7 +1018,7 @@ func (s *AuthService) LoginViaGoogle(
 	ctx context.Context, reqDto *capi.LoginViaGoogleRequestDto,
 ) (*capi.LoginViaGoogleResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
+		return nil, s.authException.InvalidDto().WithOrigin(err)
 	}
 
 	userInfo, exception := s.oauthService.GetGoogleUserInfo(
@@ -1144,7 +1044,7 @@ func (s *AuthService) LoginViaGoogle(
 	}
 	if user == nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().InvalidDto()
+		return nil, s.authException.InvalidDto()
 	}
 
 	return s.loginByGoogleUserInfo(ctx, tx, user, userInfo, reqDto.Header.UserAgent)
@@ -1154,7 +1054,7 @@ func (s *AuthService) Logout(
 	ctx context.Context, reqDto *capi.LogoutRequestDto,
 ) (*capi.LogoutResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewAuthException().InvalidDto().WithOrigin(err)
+		return nil, s.authException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1205,7 +1105,7 @@ func (s *AuthService) Logout(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	exception = s.userDataCacheClient.Delete(actorUserName)
@@ -1222,7 +1122,7 @@ func (s *AuthService) SendAuthCode(
 	ctx context.Context, reqDto *capi.SendAuthCodeRequestDto,
 ) (*capi.SendAuthCodeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -1241,7 +1141,7 @@ func (s *AuthService) SendAuthCode(
 	).Row().
 		Scan(&output.Name, &output.UserAgent, &output.BlockAuthCodeUntil, &output.Now)
 	if err != nil {
-		return nil, apiexceptions.NewAuthException().AuthCodeBlockedDueToTryingTooManyTimes(output.BlockAuthCodeUntil).WithOrigin(err)
+		return nil, s.authException.AuthCodeBlockedDueToTryingTooManyTimes(output.BlockAuthCodeUntil).WithOrigin(err)
 	}
 
 	if exception := s.emailClient.SendValidationEmail(ctx, cemaildto.SendValidationEmailRequestDto{
@@ -1265,7 +1165,7 @@ func (s *AuthService) ValidateEmail(
 	ctx context.Context, reqDto *capi.ValidateEmailRequestDto,
 ) (*capi.ValidateEmailResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1279,7 +1179,7 @@ func (s *AuthService) ValidateEmail(
 		Row().
 		Scan(&updatedAt)
 	if err != nil {
-		return nil, apiexceptions.NewUserException().FailedToUpdate().WithOrigin(err)
+		return nil, s.userException.FailedToUpdate().WithOrigin(err)
 	}
 
 	return &capi.ValidateEmailResponseDto{
@@ -1291,7 +1191,7 @@ func (s *AuthService) ResetEmail(
 	ctx context.Context, reqDto *capi.ResetEmailRequestDto,
 ) (*capi.ResetEmailResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1306,7 +1206,7 @@ func (s *AuthService) ResetEmail(
 		Scan(&updatedAt)
 	if err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToUpdate().WithOrigin(err)
+		return nil, s.userException.FailedToUpdate().WithOrigin(err)
 	}
 
 	authCode := s.authCodeGenerator.Generate()
@@ -1329,7 +1229,7 @@ func (s *AuthService) ResetEmail(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &capi.ResetEmailResponseDto{
@@ -1341,7 +1241,7 @@ func (s *AuthService) ForgetPassword(
 	ctx context.Context, reqDto *capi.ForgetPasswordRequestDto,
 ) (*capi.ForgetPasswordResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 
 	tx := s.db.WithContext(ctx).Begin()
@@ -1371,28 +1271,34 @@ func (s *AuthService) ForgetPassword(
 		}
 	} else {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().InvalidDto()
+		return nil, s.authException.InvalidDto()
 	}
 
 	if reqDto.Body.AuthCode != user.UserAccount.AuthCode {
 		tx.Rollback()
-		return nil, apiexceptions.NewAuthException().WrongAuthCode()
+		return nil, s.authException.WrongAuthCode()
 	}
 
-	newAccessToken, exception := s.generateAccessToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newAccessToken, err := sharedtokens.GenerateAccessToken(
+		user.PublicId.String(),
+		sharedtokens.AccessTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateAccessToken", "Failed to generate the access token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newRefreshToken, exception := s.generateRefreshToken(user.PublicId, user.Name, user.Email, user.UserAgent)
-	if exception != nil {
+	newRefreshToken, err := sharedtokens.GenerateRefreshToken(
+		user.PublicId.String(),
+		sharedtokens.RefreshTokenClaims{Name: user.Name, Email: user.Email, UserAgent: user.UserAgent},
+	)
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateRefreshToken", "Failed to generate the refresh token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	newCSRFToken, exception := s.generateCSRFToken()
-	if exception != nil {
+	newCSRFToken, err := sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+	if err != nil {
 		tx.Rollback()
-		return nil, exception
+		return nil, cexceptions.New("GenerationFailed", "Token", "GenerateCSRFToken", "Failed to generate the CSRF token", http.StatusInternalServerError, true).WithOrigin(err)
 	}
 
 	// update the access token of the user
@@ -1420,7 +1326,7 @@ func (s *AuthService) ForgetPassword(
 		}
 	}
 
-	hashedPassword, exception := s.hashPassword(reqDto.Body.NewPassword)
+	hashedPassword, exception := s.passwordHasher.Hash(reqDto.Body.NewPassword)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
@@ -1446,7 +1352,7 @@ func (s *AuthService) ForgetPassword(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueUserSessionsRevoked(
+	if err := s.outboxRepository.EnqueueUserSessionsRevoked(
 		tx,
 		user.PublicId.String(),
 		user.PublicId,
@@ -1464,7 +1370,7 @@ func (s *AuthService) ForgetPassword(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	return &capi.ForgetPasswordResponseDto{
@@ -1476,7 +1382,7 @@ func (s *AuthService) ResetMe(
 	ctx context.Context, reqDto *capi.ResetMeRequestDto,
 ) (*capi.ResetMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1495,13 +1401,13 @@ func (s *AuthService) ResetMe(
 		First(&resetUserAccount)
 	if err := result.Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserAccountException().NotFound().WithOrigin(err)
+		return nil, s.userAccountException.NotFound().WithOrigin(err)
 	}
 
 	// delete the user info
 	if err := tx.Where("user_id = ?", actorUserId).Delete(&sschemas.UserInfo{}).Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserInfoException().FailedToDelete().WithOrigin(err)
+		return nil, s.userInfoException.FailedToDelete().WithOrigin(err)
 	}
 	// and then re-create a new user info
 	if _, exception := s.userInfoRepository.CreateOneByUserId(
@@ -1517,7 +1423,7 @@ func (s *AuthService) ResetMe(
 	// delete the user setting
 	if err := tx.Where("user_id = ?", actorUserId).Delete(&sschemas.UserSetting{}).Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserSettingException().FailedToDelete().WithOrigin(err)
+		return nil, s.userSettingException.FailedToDelete().WithOrigin(err)
 	}
 	// and then re-create a new user setting
 	if _, exception := s.userSettingRepository.CreateOneByUserId(
@@ -1557,7 +1463,7 @@ func (s *AuthService) ResetMe(
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithDetails(err)
+		return nil, s.userException.FailedToCommitTransaction().WithDetails(err)
 	}
 
 	return &capi.ResetMeResponseDto{
@@ -1569,7 +1475,7 @@ func (s *AuthService) DeleteMe(
 	ctx context.Context, reqDto *capi.DeleteMeRequestDto,
 ) (*capi.DeleteMeResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewUserException().InvalidInput().WithOrigin(err)
+		return nil, s.userException.InvalidInput().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1589,11 +1495,11 @@ func (s *AuthService) DeleteMe(
 	deleteResult := tx.Exec(authsql.DeleteMeSQL, actorUserId, reqDto.Body.AuthCode)
 	if deleteResult.Error != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToDelete().WithOrigin(deleteResult.Error)
+		return nil, s.userException.FailedToDelete().WithOrigin(deleteResult.Error)
 	}
 	if deleteResult.RowsAffected == 0 {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToDelete()
+		return nil, s.userException.FailedToDelete()
 	}
 	if err := s.outboxRepository.EnqueueUserSessionsRevoked(
 		tx,
@@ -1612,7 +1518,7 @@ func (s *AuthService) DeleteMe(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewUserException().FailedToCommitTransaction().WithOrigin(err)
+		return nil, s.userException.FailedToCommitTransaction().WithOrigin(err)
 	}
 
 	exception = s.userDataCacheClient.Delete(actorUserName)

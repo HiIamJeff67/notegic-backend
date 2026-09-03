@@ -20,20 +20,29 @@ import (
 )
 
 type RoutineRecordServiceInterface interface {
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateRoutineRecords(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineRecordInput) (*cgqlmodels.SearchRoutineRecordConnection, *cexceptions.Exception)
 }
 
 type RoutineRecordService struct {
-	db *gorm.DB
+	db               *gorm.DB
+	routineException apiexceptions.RoutineException
+	searchException  apiexceptions.SearchException
 }
 
 func NewRoutineRecordService(
 	db *gorm.DB,
+	routineException apiexceptions.RoutineException,
+	searchException apiexceptions.SearchException,
 ) RoutineRecordServiceInterface {
 	return &RoutineRecordService{
-		db: db,
+		db:               db,
+		routineException: routineException,
+		searchException:  searchException,
 	}
 }
+
+/* ============================== GraphQL Methods ============================== */
 
 func (s *RoutineRecordService) SearchPrivateRoutineRecords(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineRecordInput,
@@ -67,7 +76,7 @@ func (s *RoutineRecordService) SearchPrivateRoutineRecords(
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
 		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineRecordCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
+			return nil, s.searchException.FailedToDecode().WithOrigin(err)
 		}
 
 		query = query.Where(`"RoutineRecordTable".id > ?`, searchCursor.Fields.ID)
@@ -111,7 +120,7 @@ func (s *RoutineRecordService) SearchPrivateRoutineRecords(
 
 	var routineRecords []sschemas.RoutineRecord
 	if err := query.Find(&routineRecords).Error; err != nil {
-		return nil, apiexceptions.NewRoutineException().NotFound().WithOrigin(err)
+		return nil, s.routineException.NotFound().WithOrigin(err)
 	}
 
 	hasNextPage := len(routineRecords) > limit
@@ -123,10 +132,10 @@ func (s *RoutineRecordService) SearchPrivateRoutineRecords(
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
+			return nil, s.searchException.FailedToEncode().WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
+			return nil, s.searchException.FailedToUnmarshalSearchCursor()
 		}
 
 		searchEdges[index] = &cgqlmodels.SearchRoutineRecordEdge{

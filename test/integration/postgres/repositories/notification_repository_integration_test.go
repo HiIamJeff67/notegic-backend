@@ -29,7 +29,11 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 		t.Fatalf("create test database tables: %v", err)
 	}
 
-	repository := repositories.NewNotificationRepository(db)
+	repository := repositories.NewNotificationRepository(
+		db,
+		repositories.NewUserProjectionRepository(db),
+		repositories.NewInboxEventRepository(),
+	)
 	userPublicId := uuid.New()
 	firstEvent := newNotificationRequestEvent(t, userPublicId, "first")
 	if err := repository.CreateFromRequest(context.Background(), firstEvent); err != nil {
@@ -69,7 +73,11 @@ func TestNotificationRepositoryListUsesCompositeCursor(t *testing.T) {
 		t.Fatalf("create test database tables: %v", err)
 	}
 
-	repository := repositories.NewNotificationRepository(db)
+	repository := repositories.NewNotificationRepository(
+		db,
+		repositories.NewUserProjectionRepository(db),
+		repositories.NewInboxEventRepository(),
+	)
 	userPublicId := uuid.New()
 	createdAt := time.Now().UTC().Truncate(time.Microsecond)
 	for index := 0; index < 3; index++ {

@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"net/http"
+
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tasks"
@@ -44,7 +47,13 @@ func (c *RoutineTaskController) GetMyRoutineTaskById(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) GetAllMyRoutineTasksByRoutineIds(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksByRoutineIdsRequestDto) {
@@ -60,7 +69,13 @@ func (c *RoutineTaskController) GetAllMyRoutineTasksByRoutineIds(ctx *gin.Contex
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) GetAllMyRoutineTasks(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksRequestDto) {
@@ -76,7 +91,13 @@ func (c *RoutineTaskController) GetAllMyRoutineTasks(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) CreateRoutineTaskByRoutineId(ctx *gin.Context, requestDto *capi.CreateRoutineTaskByRoutineIdRequestDto) {
@@ -92,7 +113,13 @@ func (c *RoutineTaskController) CreateRoutineTaskByRoutineId(ctx *gin.Context, r
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) UpdateMyRoutineTaskById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTaskByIdRequestDto) {
@@ -108,7 +135,13 @@ func (c *RoutineTaskController) UpdateMyRoutineTaskById(ctx *gin.Context, reques
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) HardDeleteMyRoutineTaskById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTaskByIdRequestDto) {
@@ -124,7 +157,13 @@ func (c *RoutineTaskController) HardDeleteMyRoutineTaskById(ctx *gin.Context, re
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) HardDeleteMyRoutineTasksByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTasksByIdsRequestDto) {
@@ -140,7 +179,13 @@ func (c *RoutineTaskController) HardDeleteMyRoutineTasksByIds(ctx *gin.Context, 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskController) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskPurposeCountRequestDto) {
@@ -156,5 +201,11 @@ func (c *RoutineTaskController) VisualizeMyRoutineTaskPurposeCount(ctx *gin.Cont
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

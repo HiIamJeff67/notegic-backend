@@ -51,7 +51,7 @@ func configureDevelopmentNotificationRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.notifications.search"),
 				},
 				defaultMiddlewares,
-				notificationBinder.BindSearch(notificationController.Search),
+				notificationBinder.BindSearch(notificationController.SearchPrivateNotifications),
 			)...,
 		)
 		notificationRoutes.GET(
@@ -62,7 +62,7 @@ func configureDevelopmentNotificationRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.notifications.unreadCount"),
 				},
 				defaultMiddlewares,
-				notificationBinder.BindCountUnread(notificationController.CountUnread),
+				notificationBinder.BindCountUnread(notificationController.CountMyUnreadNotifications),
 			)...,
 		)
 		notificationRoutes.PATCH(
@@ -73,7 +73,7 @@ func configureDevelopmentNotificationRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.notifications.read"),
 				},
 				defaultMiddlewares,
-				notificationBinder.BindMarkRead(notificationController.MarkRead),
+				notificationBinder.BindMarkRead(notificationController.MarkMyNotificationsRead),
 			)...,
 		)
 		notificationRoutes.DELETE(
@@ -84,7 +84,7 @@ func configureDevelopmentNotificationRoutes(
 					middlewares.ApplyMeterMiddleware("server.requests.notifications.delete"),
 				},
 				defaultMiddlewares,
-				notificationBinder.BindDelete(notificationController.Delete),
+				notificationBinder.BindDelete(notificationController.DeleteMyNotifications),
 			)...,
 		)
 	}

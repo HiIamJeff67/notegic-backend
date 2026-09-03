@@ -31,8 +31,6 @@ func NewOAuthService(oauthGoogleConfig *oauth2.Config) OAuthServiceInterface {
 	}
 }
 
-/* ============================== Service Methods for OAuth ============================== */
-
 func (s *OAuthService) GetGoogleUserInfo(
 	ctx context.Context,
 	request *cauthdto.GetGoogleUserInfoRequestDto,

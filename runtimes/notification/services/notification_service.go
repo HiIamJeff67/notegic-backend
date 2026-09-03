@@ -47,89 +47,99 @@ type NotificationServiceInterface interface {
 }
 
 type NotificationService struct {
-	repository srepositories.NotificationRepository
-	validator  *validator.Validate
+	repository         srepositories.NotificationRepository
+	validator          *validator.Validate
+	eventException     notificationexceptions.EventException
+	requestException   notificationexceptions.RequestException
+	operationException notificationexceptions.OperationException
+	payloadException   notificationexceptions.PayloadException
 }
 
 func NewNotificationService(
 	repository srepositories.NotificationRepository,
 	notificationValidator *validator.Validate,
+	eventException notificationexceptions.EventException,
+	requestException notificationexceptions.RequestException,
+	operationException notificationexceptions.OperationException,
+	payloadException notificationexceptions.PayloadException,
 ) NotificationServiceInterface {
 	return &NotificationService{
-		repository: repository,
-		validator:  notificationValidator,
+		repository:         repository,
+		validator:          notificationValidator,
+		eventException:     eventException,
+		requestException:   requestException,
+		operationException: operationException,
+		payloadException:   payloadException,
 	}
 }
-
-/* ============================== Service Methods for Notification ============================== */
 
 func (s *NotificationService) ConsumeNotificationRequested(
 	ctx context.Context,
 	event cevent.EventEnvelope[coreevents.NotificationRequestedData],
 ) error {
 	if event.EventType != coreevents.EventType_NotificationRequested {
-		return notificationexceptions.NewEventException("Notification").UnsupportedEventType()
+		return s.eventException.UnsupportedEventType()
 	}
 	if event.AggregateId != event.Data.RecipientUserPublicId {
-		return notificationexceptions.NewEventException("Notification").AggregateRecipientMismatch()
+		return s.eventException.AggregateRecipientMismatch()
 	}
 	if event.Data.UserProjection.PublicId != event.Data.RecipientUserPublicId {
-		return notificationexceptions.NewEventException("Notification").AggregateRecipientMismatch()
+		return s.eventException.AggregateRecipientMismatch()
 	}
 	if err := s.validator.Struct(cnotificationtypes.NotificationMetadata{
 		Type:            string(event.Data.Type),
 		Priority:        string(event.Data.Priority),
 		TemplateVersion: event.Data.TemplateVersion,
 	}); err != nil {
-		return notificationexceptions.NewEventException("Notification").InvalidMetadata(err)
+		return s.eventException.InvalidMetadata(err)
 	}
 	if event.Data.TemplateVersion != 1 {
-		return notificationexceptions.NewEventException("Notification").UnsupportedTemplateVersion(
+		return s.eventException.UnsupportedTemplateVersion(
 			fmt.Errorf("version: %d", event.Data.TemplateVersion),
 		)
 	}
 	switch event.Data.Type {
 	case coreevents.NotificationType_News:
 		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_News {
-			return notificationexceptions.NewEventException("Notification").InvalidNewsTemplateKey()
+			return s.eventException.InvalidNewsTemplateKey()
 		}
 		var payload cnotificationtypes.NewsPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
+			return s.payloadException.PayloadDecodeFailed(err)
 		}
 		if err := s.validator.Struct(payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").InvalidNewsPayload(err)
+			return s.payloadException.InvalidNewsPayload(err)
 		}
 	case coreevents.NotificationType_Warning:
 		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_Warning {
-			return notificationexceptions.NewEventException("Notification").InvalidWarningTemplateKey()
+			return s.eventException.InvalidWarningTemplateKey()
 		}
 		var payload cnotificationtypes.WarningPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
+			return s.payloadException.PayloadDecodeFailed(err)
 		}
 		if err := s.validator.Struct(payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").InvalidWarningPayload(err)
+			return s.payloadException.InvalidWarningPayload(err)
 		}
 	case coreevents.NotificationType_Important:
 		if event.Data.TemplateKey != cnotificationtypes.TemplateKey_Important {
-			return notificationexceptions.NewEventException("Notification").InvalidImportantTemplateKey()
+			return s.eventException.InvalidImportantTemplateKey()
 		}
 		var payload cnotificationtypes.ImportantPayload
 		if err := json.Unmarshal(event.Data.Payload, &payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").PayloadDecodeFailed(err)
+			return s.payloadException.PayloadDecodeFailed(err)
 		}
 		if err := s.validator.Struct(payload); err != nil {
-			return notificationexceptions.NewPayloadException("Notification").InvalidImportantPayload(err)
+			return s.payloadException.InvalidImportantPayload(err)
 		}
 	default:
-		return notificationexceptions.NewEventException("Notification").UnsupportedType(
+		return s.eventException.UnsupportedType(
 			fmt.Errorf("type: %q", event.Data.Type),
 		)
 	}
 
 	if err := s.repository.CreateFromRequest(ctx, event); err != nil {
-		return notificationexceptions.NewOperationException("Notification").CreateFailed(err)
+		return s.operationException.CreateFailed(err)
 	}
 	return nil
 }
@@ -141,10 +151,10 @@ func (s *NotificationService) SearchPrivateNotifications(
 	startTime := time.Now()
 
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
-		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
+		return nil, s.requestException.RecipientRequired()
 	}
 	if err := s.validator.Struct(request); err != nil {
-		return nil, notificationexceptions.NewRequestException("Notification").InvalidSearchRequest(err)
+		return nil, s.requestException.InvalidSearchRequest(err)
 	}
 
 	limit := request.First
@@ -156,10 +166,10 @@ func (s *NotificationService) SearchPrivateNotifications(
 	if request.After != nil && strings.TrimSpace(*request.After) != "" {
 		decodedCursor, err := ssearchcursor.Decode[cnotifications.SearchNotificationCursorFields](*request.After)
 		if err != nil {
-			return nil, notificationexceptions.NewRequestException("Notification").InvalidSearchRequest(err)
+			return nil, s.requestException.InvalidSearchRequest(err)
 		}
 		if decodedCursor.Fields.CreatedAt.IsZero() || decodedCursor.Fields.Id == uuid.Nil {
-			return nil, notificationexceptions.NewRequestException("Notification").InvalidSearchRequest(
+			return nil, s.requestException.InvalidSearchRequest(
 				fmt.Errorf("notification search cursor is incomplete"),
 			)
 		}
@@ -181,7 +191,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 		limit+1,
 	)
 	if err != nil {
-		return nil, notificationexceptions.NewOperationException("Notification").SearchFailed(err)
+		return nil, s.operationException.SearchFailed(err)
 	}
 
 	hasNextPage := len(notifications) > limit
@@ -200,7 +210,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 		payload := map[string]any{}
 		if len(notification.Payload) > 0 {
 			if err := json.Unmarshal(notification.Payload, &payload); err != nil {
-				return nil, notificationexceptions.NewPayloadException("Notification").ResponsePayloadDecodeFailed(err)
+				return nil, s.payloadException.ResponsePayloadDecodeFailed(err)
 			}
 		}
 		notificationResponse := cnotifications.NotificationResponseDto{
@@ -224,7 +234,7 @@ func (s *NotificationService) SearchPrivateNotifications(
 			if err == nil {
 				err = fmt.Errorf("encoded notification cursor is nil")
 			}
-			return nil, notificationexceptions.NewOperationException("Notification").SearchFailed(err)
+			return nil, s.operationException.SearchFailed(err)
 		}
 		response.SearchEdges[index] = cnotifications.SearchPrivateNotificationEdge{
 			EncodedSearchCursor: *encodedCursor,
@@ -246,14 +256,14 @@ func (s *NotificationService) CountMyUnreadNotifications(
 	request *cnotifications.CountUnreadNotificationsRequestDto,
 ) (*cnotifications.CountUnreadNotificationsResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
-		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
+		return nil, s.requestException.RecipientRequired()
 	}
 	if err := s.validator.Struct(request); err != nil {
-		return nil, notificationexceptions.NewRequestException("Notification").InvalidCountRequest(err)
+		return nil, s.requestException.InvalidCountRequest(err)
 	}
 	count, err := s.repository.CountUnread(ctx, request.RecipientUserPublicId)
 	if err != nil {
-		return nil, notificationexceptions.NewOperationException("Notification").CountUnreadFailed(err)
+		return nil, s.operationException.CountUnreadFailed(err)
 	}
 
 	return &cnotifications.CountUnreadNotificationsResponseDto{Count: count}, nil
@@ -264,14 +274,14 @@ func (s *NotificationService) MarkMyNotificationsRead(
 	request *cnotifications.MarkNotificationsReadRequestDto,
 ) (*cnotifications.MarkNotificationsReadResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
-		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
+		return nil, s.requestException.RecipientRequired()
 	}
 	if err := s.validator.Struct(request); err != nil {
-		return nil, notificationexceptions.NewRequestException("Notification").InvalidMarkReadRequest(err)
+		return nil, s.requestException.InvalidMarkReadRequest(err)
 	}
 	count, err := s.repository.MarkRead(ctx, request.RecipientUserPublicId, request.NotificationIds)
 	if err != nil {
-		return nil, notificationexceptions.NewOperationException("Notification").MarkReadFailed(err)
+		return nil, s.operationException.MarkReadFailed(err)
 	}
 
 	return &cnotifications.MarkNotificationsReadResponseDto{UpdatedCount: count}, nil
@@ -282,14 +292,14 @@ func (s *NotificationService) SoftDeleteMyNotifications(
 	request *cnotifications.DeleteNotificationsRequestDto,
 ) (*cnotifications.DeleteNotificationsResponseDto, error) {
 	if request == nil || request.RecipientUserPublicId == uuid.Nil {
-		return nil, notificationexceptions.NewRequestException("Notification").RecipientRequired()
+		return nil, s.requestException.RecipientRequired()
 	}
 	if err := s.validator.Struct(request); err != nil {
-		return nil, notificationexceptions.NewRequestException("Notification").InvalidDeleteRequest(err)
+		return nil, s.requestException.InvalidDeleteRequest(err)
 	}
 	count, err := s.repository.SoftDelete(ctx, request.RecipientUserPublicId, request.NotificationIds)
 	if err != nil {
-		return nil, notificationexceptions.NewOperationException("Notification").DeleteFailed(err)
+		return nil, s.operationException.DeleteFailed(err)
 	}
 
 	return &cnotifications.DeleteNotificationsResponseDto{DeletedCount: count}, nil
@@ -302,7 +312,7 @@ func (s *NotificationService) HardDeleteExpiredNotifications(
 ) (int64, error) {
 	count, err := s.repository.DeleteExpired(ctx, now, retention)
 	if err != nil {
-		return 0, notificationexceptions.NewOperationException("Notification").HardDeleteFailed(err)
+		return 0, s.operationException.HardDeleteFailed(err)
 	}
 	return count, nil
 }
@@ -312,12 +322,12 @@ func (s *NotificationService) DeleteAllNotificationsForUser(
 	userPublicId uuid.UUID,
 ) error {
 	if userPublicId == uuid.Nil {
-		return notificationexceptions.NewRequestException("Notification").UserRequired()
+		return s.requestException.UserRequired()
 	}
 
 	_, err := s.repository.DeleteForUser(ctx, userPublicId)
 	if err != nil {
-		return notificationexceptions.NewOperationException("Notification").DeleteAllForUserFailed(err)
+		return s.operationException.DeleteAllForUserFailed(err)
 	}
 	return nil
 }

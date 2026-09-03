@@ -12,6 +12,7 @@ import (
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
+	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 	validation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
 )
 
@@ -40,7 +41,7 @@ func TestPreparerPreparesAssignmentWithoutDatabaseAccess(t *testing.T) {
 		PatternValues:       map[string]string{"date": "2026-08-05"},
 	}
 
-	prepared, exception := NewAssignmentPreparer(validation.New()).Prepare(t.Context(), assignment)
+	prepared, exception := NewAssignmentPreparer(validation.New(), durablejobexceptions.NewRoutineTaskException()).Prepare(t.Context(), assignment)
 	if exception != nil {
 		t.Fatalf("prepare assignment: %v", exception)
 	}
@@ -69,7 +70,7 @@ func TestPreparerReturnsLocalErrorForInvalidPayload(t *testing.T) {
 		Payload:             []byte("{"),
 	}
 
-	prepared, err := NewAssignmentPreparer(validation.New()).Prepare(t.Context(), assignment)
+	prepared, err := NewAssignmentPreparer(validation.New(), durablejobexceptions.NewRoutineTaskException()).Prepare(t.Context(), assignment)
 	if prepared != nil {
 		t.Fatalf("prepared task = %#v, want nil", prepared)
 	}
@@ -91,7 +92,7 @@ func TestPreparerRejectsRetiredPurpose(t *testing.T) {
 		Payload:             []byte(`{}`),
 	}
 
-	prepared, err := NewAssignmentPreparer(validation.New()).Prepare(t.Context(), assignment)
+	prepared, err := NewAssignmentPreparer(validation.New(), durablejobexceptions.NewRoutineTaskException()).Prepare(t.Context(), assignment)
 	if prepared != nil {
 		t.Fatalf("prepared task = %#v, want nil", prepared)
 	}
@@ -126,7 +127,7 @@ func TestPrepareAssignmentMatchesNestedTemplateBlockContent(t *testing.T) {
 		t.Fatalf("json.Marshal() error = %v", err)
 	}
 
-	prepared, err := NewAssignmentPreparer(nil).Prepare(nil, croutinetasktypes.RoutineTaskAssignment{
+	prepared, err := NewAssignmentPreparer(nil, durablejobexceptions.NewRoutineTaskException()).Prepare(nil, croutinetasktypes.RoutineTaskAssignment{
 		RoutineTaskId:       uuid.New(),
 		RoutineTaskRecordId: uuid.New(),
 		RoutineRecordId:     uuid.New(),

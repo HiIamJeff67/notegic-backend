@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	cnotifications "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/api"
 
 	sharedcontexts "github.com/HiIamJeff67/notegic-backend/shared/lib/contexts"
@@ -13,10 +16,10 @@ import (
 )
 
 type NotificationControllerInterface interface {
-	Search(ctx *gin.Context, requestDto *cnotifications.SearchPrivateNotificationsRequestDto)
-	CountUnread(ctx *gin.Context, requestDto *cnotifications.CountUnreadNotificationsRequestDto)
-	MarkRead(ctx *gin.Context, requestDto *cnotifications.MarkNotificationsReadRequestDto)
-	Delete(ctx *gin.Context, requestDto *cnotifications.DeleteNotificationsRequestDto)
+	SearchPrivateNotifications(ctx *gin.Context, requestDto *cnotifications.SearchPrivateNotificationsRequestDto)
+	CountMyUnreadNotifications(ctx *gin.Context, requestDto *cnotifications.CountUnreadNotificationsRequestDto)
+	MarkMyNotificationsRead(ctx *gin.Context, requestDto *cnotifications.MarkNotificationsReadRequestDto)
+	DeleteMyNotifications(ctx *gin.Context, requestDto *cnotifications.DeleteNotificationsRequestDto)
 }
 
 type NotificationController struct {
@@ -29,7 +32,7 @@ func NewNotificationController(
 	return &NotificationController{notificationClient: notificationClient}
 }
 
-func (c *NotificationController) Search(
+func (c *NotificationController) SearchPrivateNotifications(
 	ctx *gin.Context,
 	requestDto *cnotifications.SearchPrivateNotificationsRequestDto,
 ) {
@@ -51,10 +54,16 @@ func (c *NotificationController) Search(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
-func (c *NotificationController) CountUnread(
+func (c *NotificationController) CountMyUnreadNotifications(
 	ctx *gin.Context,
 	requestDto *cnotifications.CountUnreadNotificationsRequestDto,
 ) {
@@ -76,10 +85,16 @@ func (c *NotificationController) CountUnread(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
-func (c *NotificationController) MarkRead(
+func (c *NotificationController) MarkMyNotificationsRead(
 	ctx *gin.Context,
 	requestDto *cnotifications.MarkNotificationsReadRequestDto,
 ) {
@@ -101,10 +116,16 @@ func (c *NotificationController) MarkRead(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
-func (c *NotificationController) Delete(
+func (c *NotificationController) DeleteMyNotifications(
 	ctx *gin.Context,
 	requestDto *cnotifications.DeleteNotificationsRequestDto,
 ) {
@@ -126,5 +147,11 @@ func (c *NotificationController) Delete(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

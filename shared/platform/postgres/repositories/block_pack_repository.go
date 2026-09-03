@@ -57,18 +57,22 @@ type BlockPackRepositoryInterface interface {
 type BlockPackRepository struct {
 	db *gorm.DB
 	BulkBlockPackRepository
-	blockPackScope scopes.BlockPackScopeInterface
-	exceptions     exceptions.BlockPackException
+	blockPackScope     scopes.BlockPackScopeInterface
+	subShelfRepository SubShelfRepositoryInterface
+	exceptions         exceptions.BlockPackException
 }
 
 func NewBlockPackRepository(
 	db *gorm.DB,
 	blockPackScope scopes.BlockPackScopeInterface,
+	bulkBlockPackRepository *BulkBlockPackRepository,
+	subShelfRepository SubShelfRepositoryInterface,
 ) BlockPackRepositoryInterface {
 	return &BlockPackRepository{
 		db:                      db,
-		BulkBlockPackRepository: *NewBulkBlockPackRepository(db, blockPackScope),
+		BulkBlockPackRepository: *bulkBlockPackRepository,
 		blockPackScope:          blockPackScope,
+		subShelfRepository:      subShelfRepository,
 		exceptions:              exceptions.NewBlockPackException(),
 	}
 }
@@ -415,9 +419,7 @@ func (r *BlockPackRepository) CreateOneBySubShelfId(
 	}
 
 	if parsedOptions.HasAllowedPermissions() {
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
-
-		if !subShelfRepository.HasPermission(
+		if !r.subShelfRepository.HasPermission(
 			subShelfId,
 			userId,
 			parsedOptions.AllowedPermissions,
@@ -490,8 +492,7 @@ func (r *BlockPackRepository) CreateManyBySubShelfIds(
 			parentSubShelfIds = append(parentSubShelfIds, in.ParentSubShelfId)
 		}
 
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
-		validParentSubShelves, exception := subShelfRepository.CheckPermissionsAndGetManyByIds(
+		validParentSubShelves, exception := r.subShelfRepository.CheckPermissionsAndGetManyByIds(
 			parentSubShelfIds,
 			userId,
 			nil,
@@ -582,9 +583,7 @@ func (r *BlockPackRepository) UpdateOneById(
 	}
 
 	if input.Values.ParentSubShelfId != nil && !partialupdate.CheckSetNull(input.SetNull, "ParentSubShelfId") {
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
-
-		if !subShelfRepository.HasPermission(
+		if !r.subShelfRepository.HasPermission(
 			*input.Values.ParentSubShelfId,
 			userId,
 			parsedOptions.AllowedPermissions,
@@ -664,8 +663,7 @@ func (r *BlockPackRepository) UpdateManyByIds(
 			isParentSubShelfExist[parentSubShelfId] = true
 		}
 
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
-		validSubShelves, exception := subShelfRepository.CheckPermissionsAndGetManyByIds(
+		validSubShelves, exception := r.subShelfRepository.CheckPermissionsAndGetManyByIds(
 			parentSubShelfIds,
 			userId,
 			nil,

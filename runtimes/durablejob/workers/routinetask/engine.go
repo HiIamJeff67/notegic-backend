@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
 	cdurablejob "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1"
 	cdurablejobroutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
@@ -52,16 +53,18 @@ func NewEngine(
 		batchSize: initialMaxWorkers,
 		claimer:   claimer,
 	}
+	var managerDB *gorm.DB
+	if claimer != nil {
+		managerDB = claimer.db
+	}
 	engine.routineTaskManager = NewManager(
+		managerDB,
 		planService,
 		executionService,
 		runningPublisher,
 		completionPublisher,
 		engine.workerId,
 	)
-	if claimer != nil {
-		engine.routineTaskManager.db = claimer.db
-	}
 	engine.isHealthy.Store(true)
 
 	return engine

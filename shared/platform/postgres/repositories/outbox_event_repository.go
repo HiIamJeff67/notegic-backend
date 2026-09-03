@@ -61,16 +61,12 @@ func (r *OutboxEventRepository) CreateMany(
 	createInputs []inputs.CreateOutboxEventInput,
 	opts ...RepositoryOptions,
 ) *cexceptions.Exception {
-	contractRepository := r.contractRepository
-	if contractRepository == nil {
-		contractRepository = NewGenericOutboxEventRepository()
-	}
 	parsedOptions := ParseRepositoryOptions(
 		append([]RepositoryOptions{
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	return contractRepository.CreateMany(
+	return r.contractRepository.CreateMany(
 		createInputs,
 		parsedOptions,
 	)
@@ -505,16 +501,12 @@ func (r *OutboxEventRepository) ClaimAvailable(
 	claimTimeout time.Duration,
 	opts ...RepositoryOptions,
 ) ([]schemas.OutboxEvent, *cexceptions.Exception) {
-	contractRepository := r.contractRepository
-	if contractRepository == nil {
-		contractRepository = NewGenericOutboxEventRepository()
-	}
 	parsedOptions := ParseRepositoryOptions(
 		append([]RepositoryOptions{
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	return contractRepository.ClaimAvailable(ctx, workerId, batchSize, claimTimeout, parsedOptions)
+	return r.contractRepository.ClaimAvailable(ctx, workerId, batchSize, claimTimeout, parsedOptions)
 }
 
 func (r *OutboxEventRepository) MarkPublishedMany(
@@ -523,16 +515,12 @@ func (r *OutboxEventRepository) MarkPublishedMany(
 	workerId string,
 	opts ...RepositoryOptions,
 ) *cexceptions.Exception {
-	contractRepository := r.contractRepository
-	if contractRepository == nil {
-		contractRepository = NewGenericOutboxEventRepository()
-	}
 	parsedOptions := ParseRepositoryOptions(
 		append([]RepositoryOptions{
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	return contractRepository.MarkPublishedMany(ctx, eventIds, workerId, parsedOptions)
+	return r.contractRepository.MarkPublishedMany(ctx, eventIds, workerId, parsedOptions)
 }
 
 func (r *OutboxEventRepository) MarkFailedMany(
@@ -541,16 +529,12 @@ func (r *OutboxEventRepository) MarkFailedMany(
 	workerId string,
 	opts ...RepositoryOptions,
 ) *cexceptions.Exception {
-	contractRepository := r.contractRepository
-	if contractRepository == nil {
-		contractRepository = NewGenericOutboxEventRepository()
-	}
 	parsedOptions := ParseRepositoryOptions(
 		append([]RepositoryOptions{
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	return contractRepository.MarkFailedMany(ctx, failureInputs, workerId, parsedOptions)
+	return r.contractRepository.MarkFailedMany(ctx, failureInputs, workerId, parsedOptions)
 }
 
 func (r *OutboxEventRepository) DeletePublishedBefore(
@@ -558,14 +542,10 @@ func (r *OutboxEventRepository) DeletePublishedBefore(
 	publishedBefore time.Time,
 	opts ...RepositoryOptions,
 ) (int64, *cexceptions.Exception) {
-	contractRepository := r.contractRepository
-	if contractRepository == nil {
-		contractRepository = NewGenericOutboxEventRepository()
-	}
 	parsedOptions := ParseRepositoryOptions(
 		append([]RepositoryOptions{
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	return contractRepository.DeletePublishedBefore(ctx, publishedBefore, parsedOptions)
+	return r.contractRepository.DeletePublishedBefore(ctx, publishedBefore, parsedOptions)
 }

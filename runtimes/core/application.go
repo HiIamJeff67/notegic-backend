@@ -30,13 +30,17 @@ import (
 	apikeycache "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/redis/apikey"
 	userdata "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/redis/userdata"
 	storage "github.com/HiIamJeff67/notegic-backend/runtimes/core/data/storage"
+	coreexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/core/exceptions"
 	apikeyservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/apikey"
 	authservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth"
+	authgenerators "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/generators"
+	authhashers "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/hashers"
 	blockservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/blocks"
 	materialservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/material"
 	otherservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/other"
 	realtimeservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/realtime"
 	routineservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/routines"
+	routineparsers "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/routines/parsers"
 	shelfservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/shelves"
 	userservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/user"
 	coretransports "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports"
@@ -111,13 +115,14 @@ func (a *Application) buildRouter(
 	stationRepository := srepositories.NewStationRepository(db, stationScope)
 	usersToShelvesRepository := srepositories.NewUsersToShelvesRepository(db)
 	usersToStationsRepository := srepositories.NewUsersToStationsRepository(db)
-	blockRepository := srepositories.NewBlockRepository(db, blockScope)
-	blockPackRepository := srepositories.NewBlockPackRepository(db, blockPackScope)
-	subShelfRepository := srepositories.NewSubShelfRepository(db, subShelfScope)
-	materialRepository := srepositories.NewMaterialRepository(db, materialScope)
-	routineRepository := srepositories.NewRoutineRepository(db, routineScope)
+	subShelfRepository := srepositories.NewSubShelfRepository(db, subShelfScope, rootShelfRepository)
+	bulkBlockPackRepository := srepositories.NewBulkBlockPackRepository(db, blockPackScope)
+	blockPackRepository := srepositories.NewBlockPackRepository(db, blockPackScope, bulkBlockPackRepository, subShelfRepository)
+	blockRepository := srepositories.NewBlockRepository(db, blockScope, bulkBlockPackRepository)
+	materialRepository := srepositories.NewMaterialRepository(db, materialScope, subShelfRepository)
+	routineRepository := srepositories.NewRoutineRepository(db, routineScope, stationRepository)
 	routineTagRepository := srepositories.NewRoutineTagRepository(db, routineTagScope)
-	routineTaskRepository := srepositories.NewRoutineTaskRepository(db, routineTaskScope)
+	routineTaskRepository := srepositories.NewRoutineTaskRepository(db, routineTaskScope, routineRepository)
 	routineTaskDependencyRepository := srepositories.NewRoutineTaskDependencyRepository(db)
 	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(db, routineTaskRecordScope)
 	itemRepository := srepositories.NewItemRepository(db, itemScope)
@@ -142,6 +147,14 @@ func (a *Application) buildRouter(
 		emailClient,
 		userDataCacheClient,
 		sauthcode.New(),
+		authgenerators.NewFakeDisplayNameGenerator(),
+		authgenerators.NewLoginBlockedUntilGenerator(),
+		authhashers.NewPasswordHasher(),
+		coreexceptions.NewAuthException(),
+		coreexceptions.NewUserException(),
+		coreexceptions.NewUserAccountException(),
+		coreexceptions.NewUserInfoException(),
+		coreexceptions.NewUserSettingException(),
 	)
 	rootShelfService := shelfservices.NewRootShelfService(
 		validator,
@@ -150,6 +163,8 @@ func (a *Application) buildRouter(
 		rootShelfRepository,
 		usersToShelvesRepository,
 		blockPackRepository,
+		outboxEventRepository,
+		coreexceptions.NewShelfException(),
 	)
 	stationService := routineservices.NewStationService(
 		validator,
@@ -191,6 +206,8 @@ func (a *Application) buildRouter(
 		subShelfScope,
 		blockPackRepository,
 		blockRepository,
+		coreexceptions.NewBlockException(),
+		coreexceptions.NewSearchException(),
 	)
 	realtimeService := realtimeservices.NewRealtimeService(
 		validator,
@@ -201,14 +218,21 @@ func (a *Application) buildRouter(
 		validator,
 		db,
 		routineTagRepository,
+		coreexceptions.NewRoutineTagException(),
+		coreexceptions.NewSearchException(),
 	)
 	routineRecordService := routineservices.NewRoutineRecordService(
 		db,
+		coreexceptions.NewRoutineException(),
+		coreexceptions.NewSearchException(),
 	)
 	routineTaskRecordService := routineservices.NewRoutineTaskRecordService(
 		validator,
 		db,
 		routineTaskRecordRepository,
+		coreexceptions.NewRoutineTaskException(),
+		coreexceptions.NewRoutineException(),
+		coreexceptions.NewSearchException(),
 	)
 	subShelfService := shelfservices.NewSubShelfService(
 		validator,
@@ -219,6 +243,12 @@ func (a *Application) buildRouter(
 		rootShelfRepository,
 		materialRepository,
 		blockPackRepository,
+		outboxEventRepository,
+		coreexceptions.NewShelfException(),
+		coreexceptions.NewBlockPackException(),
+		coreexceptions.NewMaterialException(),
+		coreexceptions.NewStorageException(),
+		coreexceptions.NewSearchException(),
 	)
 	blockPackService := blockservices.NewBlockPackService(
 		validator,
@@ -226,6 +256,9 @@ func (a *Application) buildRouter(
 		blockPackScope,
 		subShelfRepository,
 		blockPackRepository,
+		outboxEventRepository,
+		coreexceptions.NewBlockPackException(),
+		coreexceptions.NewSearchException(),
 	)
 	materialService := materialservices.NewMaterialService(
 		validator,
@@ -235,6 +268,9 @@ func (a *Application) buildRouter(
 		subShelfRepository,
 		materialRepository,
 		config.StorageKeySalt,
+		coreexceptions.NewMaterialException(),
+		coreexceptions.NewStorageException(),
+		coreexceptions.NewSearchException(),
 	)
 	routineService := routineservices.NewRoutineService(
 		validator,
@@ -245,12 +281,19 @@ func (a *Application) buildRouter(
 		routineTagRepository,
 		routineTaskRepository,
 		itemRepository,
+		coreexceptions.NewRoutineException(),
+		coreexceptions.NewItemException(),
+		coreexceptions.NewSearchException(),
 	)
 	routineTaskService := routineservices.NewRoutineTaskService(
 		validator,
 		db,
 		routineTaskScope,
 		routineTaskRepository,
+		routineparsers.NewRoutineTaskPayloadParser(validator),
+		coreexceptions.NewRoutineTaskException(),
+		coreexceptions.NewRoutineException(),
+		coreexceptions.NewSearchException(),
 	)
 	routineTaskDependencyService := routineservices.NewRoutineTaskDependencyService(
 		validator,
@@ -258,6 +301,7 @@ func (a *Application) buildRouter(
 		routineRepository,
 		routineTaskRepository,
 		routineTaskDependencyRepository,
+		coreexceptions.NewRoutineTaskDependencyException(),
 	)
 	themeService := otherservices.NewThemeService(db)
 	itemService := shelfservices.NewItemService(db, itemScope)
@@ -410,15 +454,33 @@ func (a *Application) initializeWorkers(
 	kafkaConnection skafka.ConnectionConfig,
 	kafkaProducer *skafka.Producer,
 ) func() {
+	blockPackYjsRepository := srepositories.NewBlockPackYjsRepository(db)
+	outboxEventRepository := srepositories.NewOutboxEventRepository(db)
+	blockPackScope := sscopes.NewBlockPackScope()
+	blockScope := sscopes.NewBlockScope()
+	rootShelfRepository := srepositories.NewRootShelfRepository(db, sscopes.NewRootShelfScope())
+	subShelfRepository := srepositories.NewSubShelfRepository(
+		db,
+		sscopes.NewSubShelfScope(),
+		rootShelfRepository,
+	)
+	bulkBlockPackRepository := srepositories.NewBulkBlockPackRepository(db, blockPackScope)
+	blockPackRepository := srepositories.NewBlockPackRepository(
+		db,
+		blockPackScope,
+		bulkBlockPackRepository,
+		subShelfRepository,
+	)
+	blockRepository := srepositories.NewBlockRepository(db, blockScope, bulkBlockPackRepository)
 	outboxRelay := coretransports.NewOutboxRelay(
 		db,
-		srepositories.NewOutboxEventRepository(db),
+		outboxEventRepository,
 		kafkaProducer,
 		config.OutboxRelay,
 	)
 	yjsMaintenanceReconciliationWorker := coreworkers.NewYjsMaintenanceReconciliationWorker(
 		db,
-		srepositories.NewOutboxEventRepository(db),
+		outboxEventRepository,
 	)
 	quotaCycleWorker := coreworkers.NewQuotaCycleWorker(
 		db,
@@ -427,16 +489,20 @@ func (a *Application) initializeWorkers(
 	)
 	yjsCommandConsumer := yjsworkerconsumers.NewYjsCommandConsumer(
 		db,
-		blockservices.NewYjsPersistenceService(db),
+		blockservices.NewYjsPersistenceService(db, blockPackYjsRepository),
 		blockservices.NewBlockService(
 			validation.New(),
 			db,
-			sscopes.NewBlockScope(),
-			sscopes.NewBlockPackScope(),
+			blockScope,
+			blockPackScope,
 			sscopes.NewSubShelfScope(),
-			srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
-			srepositories.NewBlockRepository(db, sscopes.NewBlockScope()),
+			blockPackRepository,
+			blockRepository,
+			coreexceptions.NewBlockException(),
+			coreexceptions.NewSearchException(),
 		),
+		blockPackYjsRepository,
+		outboxEventRepository,
 		skafka.ConsumerConfig{
 			ClientConfig: skafka.ClientConfig{
 				ConnectionConfig: kafkaConnection,

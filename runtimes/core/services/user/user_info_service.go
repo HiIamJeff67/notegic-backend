@@ -27,7 +27,7 @@ type UserInfoServiceInterface interface {
 	GetMyInfo(ctx context.Context, requestDto *capi.GetMyInfoRequestDto) (*capi.GetMyInfoResponseDto, *cexceptions.Exception)
 	UpdateMyInfo(ctx context.Context, requestDto *capi.UpdateMyInfoRequestDto) (*capi.UpdateMyInfoResponseDto, *cexceptions.Exception)
 
-	// services for public userInfos
+	/* ============================== GraphQL Methods ============================== */
 	GetPublicUserInfoByUserPublicId(ctx context.Context, publicId uuid.UUID) (*cgqlmodels.PublicUserInfo, *cexceptions.Exception)
 	GetPublicUserInfosByUserPublicIds(ctx context.Context, publicIds []uuid.UUID) ([]*cgqlmodels.PublicUserInfo, *cexceptions.Exception)
 }
@@ -52,8 +52,6 @@ func NewUserInfoService(
 		userDataCacheClient: userDataCacheClient,
 	}
 }
-
-/* ============================== Service Methods for UserInfo ============================== */
 
 func (s *UserInfoService) GetMyInfo(
 	ctx context.Context, requestDto *capi.GetMyInfoRequestDto,
@@ -182,7 +180,7 @@ func (s *UserInfoService) UpdateMyInfo(
 	}, nil
 }
 
-/* ============================== Service Methods for Public UserInfo (Only available in GraphQL) ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 // use the searchable user cursor (we only give the search functionality on users)
 func (s *UserInfoService) GetPublicUserInfoByUserPublicId(

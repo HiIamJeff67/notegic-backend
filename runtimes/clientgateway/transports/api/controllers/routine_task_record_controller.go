@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-records"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -37,7 +40,13 @@ func (c *RoutineTaskRecordController) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 /* ============================== Visualization Methods ============================== */
@@ -48,7 +57,13 @@ func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordStatusCount(ct
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordPurposeCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskRecordPurposeCountRequestDto) {
@@ -57,7 +72,13 @@ func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordPurposeCount(c
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordScheduledAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskRecordScheduledAtCountRequestDto) {
@@ -66,7 +87,13 @@ func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordScheduledAtCou
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordActualStartedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto) {
@@ -75,7 +102,13 @@ func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordActualStartedA
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordActualEndedAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto) {
@@ -84,5 +117,11 @@ func (c *RoutineTaskRecordController) VisualizeMyRoutineTaskRecordActualEndedAtC
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

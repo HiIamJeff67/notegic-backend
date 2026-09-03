@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/auth"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
@@ -64,21 +66,27 @@ func (c *AuthController) Register(ctx *gin.Context, requestDto *capi.RegisterReq
 
 	c.accessTokenCookieHandler.Set(ctx, response.Data.AccessToken)
 	c.refreshTokenCookieHandler.Set(ctx, response.Data.RefreshToken)
-	writeClientResponse(ctx, struct {
-		PublicId    uuid.UUID `json:"publicId"`
-		Name        string    `json:"name"`
-		DisplayName string    `json:"displayName"`
-		Email       string    `json:"email"`
-		CSRFToken   string    `json:"csrfToken"`
-		CreatedAt   time.Time `json:"createdAt"`
-	}{
-		PublicId:    response.Data.PublicId,
-		Name:        response.Data.Name,
-		DisplayName: response.Data.DisplayName,
-		Email:       response.Data.Email,
-		CSRFToken:   response.Data.CSRFToken,
-		CreatedAt:   response.Data.CreatedAt,
-	})
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data: struct {
+				PublicId    uuid.UUID `json:"publicId"`
+				Name        string    `json:"name"`
+				DisplayName string    `json:"displayName"`
+				Email       string    `json:"email"`
+				CSRFToken   string    `json:"csrfToken"`
+				CreatedAt   time.Time `json:"createdAt"`
+			}{
+				PublicId:    response.Data.PublicId,
+				Name:        response.Data.Name,
+				DisplayName: response.Data.DisplayName,
+				Email:       response.Data.Email,
+				CSRFToken:   response.Data.CSRFToken,
+				CreatedAt:   response.Data.CreatedAt,
+			},
+		},
+	)
 }
 
 func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *capi.RegisterViaGoogleRequestDto) {
@@ -99,21 +107,27 @@ func (c *AuthController) RegisterViaGoogle(ctx *gin.Context, requestDto *capi.Re
 
 	c.accessTokenCookieHandler.Set(ctx, response.Data.AccessToken)
 	c.refreshTokenCookieHandler.Set(ctx, response.Data.RefreshToken)
-	writeClientResponse(ctx, struct {
-		PublicId    uuid.UUID `json:"publicId"`
-		Name        string    `json:"name"`
-		DisplayName string    `json:"displayName"`
-		Email       string    `json:"email"`
-		CSRFToken   string    `json:"csrfToken"`
-		CreatedAt   time.Time `json:"createdAt"`
-	}{
-		PublicId:    response.Data.PublicId,
-		Name:        response.Data.Name,
-		DisplayName: response.Data.DisplayName,
-		Email:       response.Data.Email,
-		CSRFToken:   response.Data.CSRFToken,
-		CreatedAt:   response.Data.CreatedAt,
-	})
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data: struct {
+				PublicId    uuid.UUID `json:"publicId"`
+				Name        string    `json:"name"`
+				DisplayName string    `json:"displayName"`
+				Email       string    `json:"email"`
+				CSRFToken   string    `json:"csrfToken"`
+				CreatedAt   time.Time `json:"createdAt"`
+			}{
+				PublicId:    response.Data.PublicId,
+				Name:        response.Data.Name,
+				DisplayName: response.Data.DisplayName,
+				Email:       response.Data.Email,
+				CSRFToken:   response.Data.CSRFToken,
+				CreatedAt:   response.Data.CreatedAt,
+			},
+		},
+	)
 }
 
 func (c *AuthController) Login(ctx *gin.Context, requestDto *capi.LoginRequestDto) {
@@ -135,23 +149,29 @@ func (c *AuthController) Login(ctx *gin.Context, requestDto *capi.LoginRequestDt
 	c.accessTokenCookieHandler.Set(ctx, response.Data.AccessToken)
 	c.refreshTokenCookieHandler.Set(ctx, response.Data.RefreshToken)
 	updatedAt := response.Data.UpdatedAt
-	writeClientResponse(ctx, struct {
-		PublicId    uuid.UUID  `json:"publicId"`
-		Name        string     `json:"name"`
-		DisplayName string     `json:"displayName"`
-		Email       string     `json:"email"`
-		CSRFToken   string     `json:"csrfToken"`
-		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
-		CreatedAt   time.Time  `json:"createdAt"`
-	}{
-		PublicId:    response.Data.PublicId,
-		Name:        response.Data.Name,
-		DisplayName: response.Data.DisplayName,
-		Email:       response.Data.Email,
-		CSRFToken:   response.Data.CSRFToken,
-		UpdatedAt:   &updatedAt,
-		CreatedAt:   response.Data.CreatedAt,
-	})
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data: struct {
+				PublicId    uuid.UUID  `json:"publicId"`
+				Name        string     `json:"name"`
+				DisplayName string     `json:"displayName"`
+				Email       string     `json:"email"`
+				CSRFToken   string     `json:"csrfToken"`
+				UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+				CreatedAt   time.Time  `json:"createdAt"`
+			}{
+				PublicId:    response.Data.PublicId,
+				Name:        response.Data.Name,
+				DisplayName: response.Data.DisplayName,
+				Email:       response.Data.Email,
+				CSRFToken:   response.Data.CSRFToken,
+				UpdatedAt:   &updatedAt,
+				CreatedAt:   response.Data.CreatedAt,
+			},
+		},
+	)
 }
 
 func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *capi.LoginViaGoogleRequestDto) {
@@ -173,23 +193,29 @@ func (c *AuthController) LoginViaGoogle(ctx *gin.Context, requestDto *capi.Login
 	c.accessTokenCookieHandler.Set(ctx, response.Data.AccessToken)
 	c.refreshTokenCookieHandler.Set(ctx, response.Data.RefreshToken)
 	updatedAt := response.Data.UpdatedAt
-	writeClientResponse(ctx, struct {
-		PublicId    uuid.UUID  `json:"publicId"`
-		Name        string     `json:"name"`
-		DisplayName string     `json:"displayName"`
-		Email       string     `json:"email"`
-		CSRFToken   string     `json:"csrfToken"`
-		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
-		CreatedAt   time.Time  `json:"createdAt"`
-	}{
-		PublicId:    response.Data.PublicId,
-		Name:        response.Data.Name,
-		DisplayName: response.Data.DisplayName,
-		Email:       response.Data.Email,
-		CSRFToken:   response.Data.CSRFToken,
-		UpdatedAt:   &updatedAt,
-		CreatedAt:   response.Data.CreatedAt,
-	})
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data: struct {
+				PublicId    uuid.UUID  `json:"publicId"`
+				Name        string     `json:"name"`
+				DisplayName string     `json:"displayName"`
+				Email       string     `json:"email"`
+				CSRFToken   string     `json:"csrfToken"`
+				UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+				CreatedAt   time.Time  `json:"createdAt"`
+			}{
+				PublicId:    response.Data.PublicId,
+				Name:        response.Data.Name,
+				DisplayName: response.Data.DisplayName,
+				Email:       response.Data.Email,
+				CSRFToken:   response.Data.CSRFToken,
+				UpdatedAt:   &updatedAt,
+				CreatedAt:   response.Data.CreatedAt,
+			},
+		},
+	)
 }
 
 func (c *AuthController) Logout(ctx *gin.Context, requestDto *capi.LogoutRequestDto) {
@@ -207,7 +233,13 @@ func (c *AuthController) Logout(ctx *gin.Context, requestDto *capi.LogoutRequest
 
 	c.accessTokenCookieHandler.Delete(ctx)
 	c.refreshTokenCookieHandler.Delete(ctx)
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *capi.SendAuthCodeRequestDto) {
@@ -217,7 +249,13 @@ func (c *AuthController) SendAuthCode(ctx *gin.Context, requestDto *capi.SendAut
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *capi.ValidateEmailRequestDto) {
@@ -227,7 +265,13 @@ func (c *AuthController) ValidateEmail(ctx *gin.Context, requestDto *capi.Valida
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmailRequestDto) {
@@ -237,7 +281,13 @@ func (c *AuthController) ResetEmail(ctx *gin.Context, requestDto *capi.ResetEmai
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *capi.ForgetPasswordRequestDto) {
@@ -247,7 +297,13 @@ func (c *AuthController) ForgetPassword(ctx *gin.Context, requestDto *capi.Forge
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *capi.ResetMeRequestDto) {
@@ -257,7 +313,13 @@ func (c *AuthController) ResetMe(ctx *gin.Context, requestDto *capi.ResetMeReque
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *AuthController) DeleteMe(ctx *gin.Context, requestDto *capi.DeleteMeRequestDto) {
@@ -267,5 +329,11 @@ func (c *AuthController) DeleteMe(ctx *gin.Context, requestDto *capi.DeleteMeReq
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

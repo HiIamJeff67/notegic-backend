@@ -47,18 +47,21 @@ type MaterialRepositoryInterface interface {
 type MaterialRepository struct {
 	db *gorm.DB
 	BulkMaterialRepository
-	materialScope scopes.MaterialScopeInterface
-	exceptions    exceptions.MaterialException
+	materialScope      scopes.MaterialScopeInterface
+	subShelfRepository SubShelfRepositoryInterface
+	exceptions         exceptions.MaterialException
 }
 
 func NewMaterialRepository(
 	db *gorm.DB,
 	materialScope scopes.MaterialScopeInterface,
+	subShelfRepository SubShelfRepositoryInterface,
 ) MaterialRepositoryInterface {
 	return &MaterialRepository{
 		db:                     db,
 		BulkMaterialRepository: *NewBulkMaterialRepository(db, materialScope),
 		materialScope:          materialScope,
+		subShelfRepository:     subShelfRepository,
 		exceptions:             exceptions.NewMaterialException(),
 	}
 }
@@ -226,9 +229,7 @@ func (r *MaterialRepository) CreateOneBySubShelfId(
 	}
 
 	if parsedOptions.HasAllowedPermissions() {
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
-
-		if !subShelfRepository.HasPermission(
+		if !r.subShelfRepository.HasPermission(
 			subShelfId,
 			userId,
 			parsedOptions.AllowedPermissions,
@@ -306,9 +307,8 @@ func (r *MaterialRepository) UpdateOneById(
 
 	// if the root shelf id is required to be updated in the database
 	if input.Values.ParentSubShelfId != nil && !partialupdate.CheckSetNull(input.SetNull, "ParentSubShelfId") {
-		subShelfRepository := NewSubShelfRepository(r.db, scopes.NewSubShelfScope())
 		// check if the user has the enough permission to the destination shelf
-		if !subShelfRepository.HasPermission(
+		if !r.subShelfRepository.HasPermission(
 			*input.Values.ParentSubShelfId,
 			userId,
 			parsedOptions.AllowedPermissions,

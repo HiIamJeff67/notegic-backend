@@ -35,8 +35,11 @@ type RoutineTaskServiceInterface interface {
 	UpdateMyRoutineTaskById(ctx context.Context, reqDto *capi.UpdateMyRoutineTaskByIdRequestDto) (*capi.UpdateMyRoutineTaskByIdResponseDto, *cexceptions.Exception)
 	HardDeleteMyRoutineTaskById(ctx context.Context, reqDto *capi.HardDeleteMyRoutineTaskByIdRequestDto) (*capi.HardDeleteMyRoutineTaskByIdResponseDto, *cexceptions.Exception)
 	HardDeleteMyRoutineTasksByIds(ctx context.Context, reqDto *capi.HardDeleteMyRoutineTasksByIdsRequestDto) (*capi.HardDeleteMyRoutineTasksByIdsResponseDto, *cexceptions.Exception)
+
+	/* ============================== Visualization Methods ============================== */
 	VisualizeMyRoutineTaskPurposeCount(ctx context.Context, reqDto *capi.VisualizeMyRoutineTaskPurposeCountRequestDto) (*capi.VisualizeMyRoutineTaskPurposeCountResponseDto, *cexceptions.Exception)
 
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateRoutineTasks(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskInput) (*cgqlmodels.SearchRoutineTaskConnection, *cexceptions.Exception)
 }
 
@@ -46,6 +49,9 @@ type RoutineTaskService struct {
 	routineTaskScope      sscopes.RoutineTaskScopeInterface
 	routineTaskRepository srepositories.RoutineTaskRepositoryInterface
 	payloadParser         parsers.RoutineTaskPayloadParserInterface
+	routineTaskException  apiexceptions.RoutineTaskException
+	routineException      apiexceptions.RoutineException
+	searchException       apiexceptions.SearchException
 }
 
 func NewRoutineTaskService(
@@ -53,20 +59,22 @@ func NewRoutineTaskService(
 	db *gorm.DB,
 	routineTaskScope sscopes.RoutineTaskScopeInterface,
 	routineTaskRepository srepositories.RoutineTaskRepositoryInterface,
+	payloadParser parsers.RoutineTaskPayloadParserInterface,
+	routineTaskException apiexceptions.RoutineTaskException,
+	routineException apiexceptions.RoutineException,
+	searchException apiexceptions.SearchException,
 ) RoutineTaskServiceInterface {
-	if routineTaskScope == nil {
-		routineTaskScope = sscopes.NewRoutineTaskScope()
-	}
 	return &RoutineTaskService{
 		validator:             validator,
 		db:                    db,
 		routineTaskScope:      routineTaskScope,
 		routineTaskRepository: routineTaskRepository,
-		payloadParser:         parsers.NewRoutineTaskPayloadParser(validator),
+		payloadParser:         payloadParser,
+		routineTaskException:  routineTaskException,
+		routineException:      routineException,
+		searchException:       searchException,
 	}
 }
-
-/* ============================== Main Methods ============================== */
 
 func (s *RoutineTaskService) GetMyRoutineTaskById(
 	ctx context.Context, reqDto *capi.GetMyRoutineTaskByIdRequestDto,
@@ -76,10 +84,10 @@ func (s *RoutineTaskService) GetMyRoutineTaskById(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 	if reqDto.Param.IsDeleted != nil && *reqDto.Param.IsDeleted {
-		return nil, apiexceptions.NewRoutineTaskException().NotFound()
+		return nil, s.routineTaskException.NotFound()
 	}
 
 	db := s.db.WithContext(ctx)
@@ -122,7 +130,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 	if reqDto.Param.AreDeleted != nil && *reqDto.Param.AreDeleted {
 		resDto := capi.GetAllMyRoutineTasksByRoutineIdsResponseDto{}
@@ -173,7 +181,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasks(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 	if reqDto.Param.AreDeleted != nil && *reqDto.Param.AreDeleted {
 		resDto := capi.GetAllMyRoutineTasksResponseDto{}
@@ -224,7 +232,7 @@ func (s *RoutineTaskService) CreateRoutineTaskByRoutineId(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 	if exception := s.payloadParser.ValidateRoutineTaskPayload(
 		reqDto.Body.Purpose,
@@ -271,7 +279,7 @@ func (s *RoutineTaskService) UpdateMyRoutineTaskById(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -343,7 +351,7 @@ func (s *RoutineTaskService) HardDeleteMyRoutineTaskById(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -375,7 +383,7 @@ func (s *RoutineTaskService) HardDeleteMyRoutineTasksByIds(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -399,7 +407,7 @@ func (s *RoutineTaskService) HardDeleteMyRoutineTasksByIds(
 	}, nil
 }
 
-/* ============================== Service Methods for Charts ============================== */
+/* ============================== Visualization Methods ============================== */
 
 func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 	ctx context.Context, reqDto *capi.VisualizeMyRoutineTaskPurposeCountRequestDto,
@@ -409,7 +417,7 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 		return nil, exception
 	}
 	if err := s.validator.Struct(reqDto); err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 
 	db := s.db.WithContext(ctx)
@@ -426,7 +434,7 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 		Group(`"RoutineTaskTable".purpose`).
 		Scan(&rows)
 	if err := result.Error; err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(err)
+		return nil, s.routineTaskException.NotFound().WithOrigin(err)
 	}
 
 	counts := make(map[cenums.RoutineTaskPurpose]int64, len(rows))
@@ -439,7 +447,7 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 		metadata := map[string]string{"purpose": purpose.String()}
 		meta, err := json.Marshal(metadata)
 		if err != nil {
-			return nil, apiexceptions.NewRoutineException().FailedToMarshalData(metadata)
+			return nil, s.routineException.FailedToMarshalData(metadata)
 		}
 
 		data[index] = capi.RoutineTaskCountDatum{
@@ -455,7 +463,7 @@ func (s *RoutineTaskService) VisualizeMyRoutineTaskPurposeCount(
 	}, nil
 }
 
-/* ============================== Service Methods for GraphQL RoutineTask ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRoutineTaskInput,
@@ -497,7 +505,7 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 	if gqlInput.After != nil && len(strings.ReplaceAll(*gqlInput.After, " ", "")) > 0 {
 		searchCursor, err := ssearchcursor.Decode[cgqlmodels.SearchRoutineTaskCursorFields](*gqlInput.After)
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToDecode().WithOrigin(err)
+			return nil, s.searchException.FailedToDecode().WithOrigin(err)
 		}
 
 		query = query.Where("id > ?", searchCursor.Fields.ID)
@@ -555,7 +563,7 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 	if err := query.Scopes(s.routineTaskScope.IncludePreloads(
 		nil,
 	)).Find(&routineTasks).Error; err != nil {
-		return nil, apiexceptions.NewRoutineTaskException().NotFound().WithOrigin(err)
+		return nil, s.routineTaskException.NotFound().WithOrigin(err)
 	}
 
 	hasNextPage := len(routineTasks) > limit
@@ -569,10 +577,10 @@ func (s *RoutineTaskService) SearchPrivateRoutineTasks(
 		}
 		encodedSearchCursor, err := searchCursor.Encode()
 		if err != nil {
-			return nil, apiexceptions.NewSearchException().FailedToEncode().WithOrigin(err)
+			return nil, s.searchException.FailedToEncode().WithOrigin(err)
 		}
 		if encodedSearchCursor == nil {
-			return nil, apiexceptions.NewSearchException().FailedToUnmarshalSearchCursor()
+			return nil, s.searchException.FailedToUnmarshalSearchCursor()
 		}
 
 		searchEdges[index] = &cgqlmodels.SearchRoutineTaskEdge{

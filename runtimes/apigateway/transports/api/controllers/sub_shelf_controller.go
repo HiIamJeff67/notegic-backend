@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"net/http"
+
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
@@ -54,7 +57,13 @@ func (c *SubShelfController) GetMySubShelfById(ctx *gin.Context, requestDto *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByPrevSubShelfIdRequestDto) {
@@ -73,7 +82,13 @@ func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, r
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMySubShelvesByRootShelfIdRequestDto) {
@@ -92,7 +107,13 @@ func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, r
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) {
@@ -111,7 +132,13 @@ func (c *SubShelfController) GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Co
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.CreateSubShelfByRootShelfIdRequestDto) {
@@ -130,7 +157,13 @@ func (c *SubShelfController) CreateSubShelfByRootShelfId(ctx *gin.Context, reque
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.CreateSubShelvesByRootShelfIdsRequestDto) {
@@ -149,7 +182,13 @@ func (c *SubShelfController) CreateSubShelvesByRootShelfIds(ctx *gin.Context, re
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) UpdateMySubShelfById(ctx *gin.Context, requestDto *capi.UpdateMySubShelfByIdRequestDto) {
@@ -168,7 +207,13 @@ func (c *SubShelfController) UpdateMySubShelfById(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) UpdateMySubShelvesByIds(ctx *gin.Context, requestDto *capi.UpdateMySubShelvesByIdsRequestDto) {
@@ -187,7 +232,13 @@ func (c *SubShelfController) UpdateMySubShelvesByIds(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) MoveMySubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelfByRootShelfIdRequestDto) {
@@ -206,7 +257,13 @@ func (c *SubShelfController) MoveMySubShelfByRootShelfId(ctx *gin.Context, reque
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) MoveMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdRequestDto) {
@@ -225,7 +282,13 @@ func (c *SubShelfController) MoveMySubShelvesByRootShelfId(ctx *gin.Context, req
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) MoveMySubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.MoveMySubShelvesByRootShelfIdsRequestDto) {
@@ -244,7 +307,13 @@ func (c *SubShelfController) MoveMySubShelvesByRootShelfIds(ctx *gin.Context, re
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) RestoreMySubShelfById(ctx *gin.Context, requestDto *capi.RestoreMySubShelfByIdRequestDto) {
@@ -263,7 +332,13 @@ func (c *SubShelfController) RestoreMySubShelfById(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) RestoreMySubShelvesByIds(ctx *gin.Context, requestDto *capi.RestoreMySubShelvesByIdsRequestDto) {
@@ -282,7 +357,13 @@ func (c *SubShelfController) RestoreMySubShelvesByIds(ctx *gin.Context, requestD
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) DeleteMySubShelfById(ctx *gin.Context, requestDto *capi.DeleteMySubShelfByIdRequestDto) {
@@ -301,7 +382,13 @@ func (c *SubShelfController) DeleteMySubShelfById(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *SubShelfController) DeleteMySubShelvesByIds(ctx *gin.Context, requestDto *capi.DeleteMySubShelvesByIdsRequestDto) {
@@ -320,5 +407,11 @@ func (c *SubShelfController) DeleteMySubShelvesByIds(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

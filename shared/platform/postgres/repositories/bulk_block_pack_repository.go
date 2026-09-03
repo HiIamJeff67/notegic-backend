@@ -22,10 +22,24 @@ import (
 )
 
 type BulkBlockPackRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckBlockPackPermissionInput, preloads []schemas.BlockPackRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.BlockPack, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteBlockPackInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckBlockPackPermissionInput,
+		preloads []schemas.BlockPackRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.BlockPack, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateBlockPackInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateBlockPackInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(
+		inputs []inputs.BulkDeleteBlockPackInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkBlockPackRepository struct {
@@ -37,17 +51,11 @@ type BulkBlockPackRepository struct {
 func NewBulkBlockPackRepository(
 	db *gorm.DB,
 	blockPackScope scopes.BlockPackScopeInterface,
-	repositoryExceptions ...exceptions.BlockPackException,
 ) *BulkBlockPackRepository {
-	repositoryException := exceptions.NewBlockPackException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkBlockPackRepository{
 		db:             db,
 		blockPackScope: blockPackScope,
-		exceptions:     repositoryException,
+		exceptions:     exceptions.NewBlockPackException(),
 	}
 }
 
@@ -190,7 +198,9 @@ func (r *BulkBlockPackRepository) BulkCreateMany(
 		Where("uts.user_id IN ? AND uts.permission IN ?", userIds, parsedOptions.AllowedPermissions).
 		Scan(&validTargets)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -231,7 +241,9 @@ func (r *BulkBlockPackRepository) BulkCreateMany(
 	result = parsedOptions.DB.Model(&schemas.BlockPack{}).
 		CreateInBatches(&newBlockPacks, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -285,7 +297,9 @@ func (r *BulkBlockPackRepository) BulkUpdateMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -312,7 +326,9 @@ func (r *BulkBlockPackRepository) BulkUpdateMany(
 			Where("uts.user_id IN ? AND uts.permission IN ?", targetUserIds, parsedOptions.AllowedPermissions).
 			Scan(&validTargets)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 		}
 
@@ -394,7 +410,9 @@ func (r *BulkBlockPackRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 
@@ -451,7 +469,9 @@ func (r *BulkBlockPackRepository) BulkDeleteMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -474,7 +494,9 @@ func (r *BulkBlockPackRepository) BulkDeleteMany(
 		Where("id IN ? AND deleted_at IS NULL", validIds).
 		Updates(map[string]interface{}{"deleted_at": time.Now(), "updated_at": time.Now()})
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToDelete().WithOrigin(result.Error)
 	}
 

@@ -21,6 +21,27 @@ func NewRoutineTaskTemplateMatcher() RoutineTaskTemplateMatcherInterface {
 	return RoutineTaskTemplateMatcher{}
 }
 
+func (m RoutineTaskTemplateMatcher) matchJSONValue(value any, values map[string]string) any {
+	switch typed := value.(type) {
+	case string:
+		return m.MatchString(typed, values)
+	case []any:
+		matched := make([]any, len(typed))
+		for index, item := range typed {
+			matched[index] = m.matchJSONValue(item, values)
+		}
+		return matched
+	case map[string]any:
+		matched := make(map[string]any, len(typed))
+		for key, item := range typed {
+			matched[key] = m.matchJSONValue(item, values)
+		}
+		return matched
+	default:
+		return value
+	}
+}
+
 func (m RoutineTaskTemplateMatcher) MatchString(value string, values map[string]string) string {
 	if len(values) == 0 || !strings.Contains(value, "{{") {
 		return value
@@ -109,25 +130,4 @@ func (m RoutineTaskTemplateMatcher) MatchArborizedEditableBlock(
 	}
 
 	return matchedBlock, nil
-}
-
-func (m RoutineTaskTemplateMatcher) matchJSONValue(value any, values map[string]string) any {
-	switch typed := value.(type) {
-	case string:
-		return m.MatchString(typed, values)
-	case []any:
-		matched := make([]any, len(typed))
-		for index, item := range typed {
-			matched[index] = m.matchJSONValue(item, values)
-		}
-		return matched
-	case map[string]any:
-		matched := make(map[string]any, len(typed))
-		for key, item := range typed {
-			matched[key] = m.matchJSONValue(item, values)
-		}
-		return matched
-	default:
-		return value
-	}
 }

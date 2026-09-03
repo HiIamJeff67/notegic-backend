@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"net/http"
+
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-tags"
@@ -47,7 +50,13 @@ func (c *RoutineTagController) GetMyRoutineTagById(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTagsRequestDto) {
@@ -66,7 +75,13 @@ func (c *RoutineTagController) GetAllMyRoutineTags(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *capi.CreateRoutineTagRequestDto) {
@@ -85,7 +100,13 @@ func (c *RoutineTagController) CreateRoutineTag(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *capi.CreateRoutineTagsRequestDto) {
@@ -104,7 +125,13 @@ func (c *RoutineTagController) CreateRoutineTags(ctx *gin.Context, requestDto *c
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagByIdRequestDto) {
@@ -123,7 +150,13 @@ func (c *RoutineTagController) UpdateMyRoutineTagById(ctx *gin.Context, requestD
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTagsByIdsRequestDto) {
@@ -142,7 +175,13 @@ func (c *RoutineTagController) UpdateMyRoutineTagsByIds(ctx *gin.Context, reques
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagByIdRequestDto) {
@@ -161,7 +200,13 @@ func (c *RoutineTagController) HardDeleteMyRoutineTagById(ctx *gin.Context, requ
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTagController) HardDeleteMyRoutineTagsByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineTagsByIdsRequestDto) {
@@ -180,5 +225,11 @@ func (c *RoutineTagController) HardDeleteMyRoutineTagsByIds(ctx *gin.Context, re
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

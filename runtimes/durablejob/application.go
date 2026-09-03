@@ -15,10 +15,15 @@ import (
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	"gorm.io/gorm"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
+	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 	routineexecution "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+	routinetaskmatchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
+	routinetaskresolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/resolvers"
 	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/realtimegateway/producers"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/status"
@@ -103,13 +108,39 @@ func (a *Application) initializeWorkers(
 	routineTaskClaimer := routinetaskworker.NewClaimer(db, validation.New())
 	routineTaskLifecycleProducer := realtimegatewayproducers.NewRoutineTaskLifecycleProducer(kafkaProducer)
 	routineTaskCompletionProducer := realtimegatewayproducers.NewRoutineTaskCompletionProducer(kafkaProducer)
+	rootShelfRepository := srepositories.NewRootShelfRepository(db, scopes.NewRootShelfScope())
+	stationRepository := srepositories.NewStationRepository(db, scopes.NewStationScope())
+	subShelfRepository := srepositories.NewSubShelfRepository(db, scopes.NewSubShelfScope(), rootShelfRepository)
+	bulkBlockPackRepository := srepositories.NewBulkBlockPackRepository(db, scopes.NewBlockPackScope())
+	blockPackRepository := srepositories.NewBlockPackRepository(db, scopes.NewBlockPackScope(), bulkBlockPackRepository, subShelfRepository)
+	blockRepository := srepositories.NewBlockRepository(db, scopes.NewBlockScope(), bulkBlockPackRepository)
+	routineRepository := srepositories.NewRoutineRepository(db, scopes.NewRoutineScope(), stationRepository)
+	materialRepository := srepositories.NewMaterialRepository(db, scopes.NewMaterialScope(), subShelfRepository)
+	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(db, scopes.NewRoutineTaskRecordScope())
+	patternResolver := routinetaskresolvers.NewRoutineTaskPatternResolver(
+		routinetaskresolvers.NewBlockPatternResolver(blockRepository),
+		routinetaskresolvers.NewBlockPackPatternResolver(blockPackRepository),
+	)
+	templateBlockMatcher := routinetaskmatchers.NewRoutineTaskTemplateMatcher()
 	routineTaskExecutionService := routineexecution.NewRoutineTaskExecutionService(
 		validation.New(),
 		db,
+		routineTaskRecordRepository,
+		patternResolver,
+		templateBlockMatcher,
+		subShelfRepository,
+		blockPackRepository,
+		blockRepository,
+		routineRepository,
+		materialRepository,
 		yjsworkertransport.NewDocumentInitializationClient(config.YjsDocumentInitialization),
 		yjsworkertransport.NewBlockPackUpdateClient(config.YjsDocumentInitialization),
 	)
-	routineTaskPlanService := routineexecution.NewPlanService(db, validation.New())
+	routineTaskPlanService := routineexecution.NewPlanService(
+		db,
+		validation.New(),
+		durablejobexceptions.NewRoutineTaskException(),
+	)
 	routineTaskEngine := routinetaskworker.NewEngine(
 		config,
 		routineTaskClaimer,

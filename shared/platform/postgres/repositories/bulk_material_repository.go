@@ -21,10 +21,24 @@ import (
 )
 
 type BulkMaterialRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckMaterialPermissionInput, preloads []schemas.MaterialRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Material, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteMaterialInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckMaterialPermissionInput,
+		preloads []schemas.MaterialRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.Material, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateMaterialInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateMaterialInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(
+		inputs []inputs.BulkDeleteMaterialInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkMaterialRepository struct {
@@ -36,17 +50,11 @@ type BulkMaterialRepository struct {
 func NewBulkMaterialRepository(
 	db *gorm.DB,
 	materialScope scopes.MaterialScopeInterface,
-	repositoryExceptions ...exceptions.MaterialException,
 ) *BulkMaterialRepository {
-	repositoryException := exceptions.NewMaterialException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkMaterialRepository{
 		db:            db,
 		materialScope: materialScope,
-		exceptions:    repositoryException,
+		exceptions:    exceptions.NewMaterialException(),
 	}
 }
 
@@ -184,7 +192,9 @@ func (r *BulkMaterialRepository) BulkCreateMany(
 			Where(`uts.user_id IN ? AND uts.permission IN ?`, userIds, parsedOptions.AllowedPermissions).
 			Scan(&validTargets)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 		}
 		for _, target := range validTargets {
@@ -197,7 +207,9 @@ func (r *BulkMaterialRepository) BulkCreateMany(
 			Where(`"SubShelfTable".id IN ? AND "SubShelfTable".deleted_at IS NULL`, parentSubShelfIds).
 			Scan(&validParentIds)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 		}
 		for _, parentId := range validParentIds {
@@ -238,7 +250,9 @@ func (r *BulkMaterialRepository) BulkCreateMany(
 	result := parsedOptions.DB.Model(&schemas.Material{}).
 		CreateInBatches(&newMaterials, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 	if shouldStartTransaction {
@@ -290,7 +304,9 @@ func (r *BulkMaterialRepository) BulkUpdateMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -316,7 +332,9 @@ func (r *BulkMaterialRepository) BulkUpdateMany(
 			Where(`uts.user_id IN ? AND uts.permission IN ?`, targetUserIds, parsedOptions.AllowedPermissions).
 			Scan(&validTargets)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 		}
 		validTargetByUserId := make(map[[2]uuid.UUID]bool, len(validTargets))
@@ -389,7 +407,9 @@ func (r *BulkMaterialRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 	if shouldStartTransaction {
@@ -444,7 +464,9 @@ func (r *BulkMaterialRepository) BulkDeleteMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -467,7 +489,9 @@ func (r *BulkMaterialRepository) BulkDeleteMany(
 		Where("id IN ? AND deleted_at IS NULL", validIds).
 		Updates(map[string]interface{}{"deleted_at": time.Now(), "updated_at": time.Now()})
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToDelete().WithOrigin(result.Error)
 	}
 

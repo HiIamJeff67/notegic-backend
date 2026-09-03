@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routine-task-dependencies"
 	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
-	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -46,7 +47,17 @@ func (c *RoutineTaskDependencyController) GetRoutineTaskDependenciesByRoutineId(
 		capi.GetRoutineTaskDependenciesByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/get-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) CreateRoutineTaskDependencyByRoutineId(
@@ -63,7 +74,17 @@ func (c *RoutineTaskDependencyController) CreateRoutineTaskDependencyByRoutineId
 		capi.CreateRoutineTaskDependencyByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/create-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) CreateRoutineTaskDependenciesByRoutineId(
@@ -80,7 +101,17 @@ func (c *RoutineTaskDependencyController) CreateRoutineTaskDependenciesByRoutine
 		capi.CreateRoutineTaskDependenciesByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/create-many-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependencyByRoutineId(
@@ -97,7 +128,17 @@ func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependencyByRoutineId
 		capi.UpdateRoutineTaskDependencyByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/update-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependenciesByRoutineId(
@@ -114,7 +155,17 @@ func (c *RoutineTaskDependencyController) UpdateRoutineTaskDependenciesByRoutine
 		capi.UpdateRoutineTaskDependenciesByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/update-many-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependencyByRoutineId(
@@ -131,7 +182,17 @@ func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependencyByRoutineId
 		capi.DeleteRoutineTaskDependencyByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/delete-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
+	if exception != nil {
+		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependenciesByRoutineId(
@@ -148,13 +209,15 @@ func (c *RoutineTaskDependencyController) DeleteRoutineTaskDependenciesByRoutine
 		capi.DeleteRoutineTaskDependenciesByRoutineIdOperation,
 		"/core/v1/routine-task-dependencies/delete-many-by-routine-id",
 	)
-	writeRoutineTaskDependencyResponse(ctx, response, exception)
-}
-
-func writeRoutineTaskDependencyResponse[D any](ctx *gin.Context, response *cgateway.Response[D], exception *cexceptions.Exception) {
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return
 	}
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

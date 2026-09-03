@@ -37,19 +37,22 @@ type RoutineTaskRepositoryInterface interface {
 }
 
 type RoutineTaskRepository struct {
-	db               *gorm.DB
-	routineTaskScope scopes.RoutineTaskScopeInterface
-	exceptions       exceptions.RoutineTaskException
+	db                *gorm.DB
+	routineTaskScope  scopes.RoutineTaskScopeInterface
+	routineRepository RoutineRepositoryInterface
+	exceptions        exceptions.RoutineTaskException
 }
 
 func NewRoutineTaskRepository(
 	db *gorm.DB,
 	routineTaskScope scopes.RoutineTaskScopeInterface,
+	routineRepository RoutineRepositoryInterface,
 ) RoutineTaskRepositoryInterface {
 	return &RoutineTaskRepository{
-		db:               db,
-		routineTaskScope: routineTaskScope,
-		exceptions:       exceptions.NewRoutineTaskException(),
+		db:                db,
+		routineTaskScope:  routineTaskScope,
+		routineRepository: routineRepository,
+		exceptions:        exceptions.NewRoutineTaskException(),
 	}
 }
 
@@ -66,7 +69,12 @@ func (r *RoutineTaskRepository) incrementRoutineDefinitionVersions(
 		Where("id IN ?", routineIds).
 		Updates(map[string]interface{}{
 			"definition_version": gorm.Expr("definition_version + 1"),
-			"status":             gorm.Expr("CASE WHEN status IN (?, ?) THEN ? ELSE status END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_OverDue, cenums.RoutineStatus_Scheduled),
+			"status": gorm.Expr(
+				`CASE WHEN status IN (?::"RoutineStatus", ?::"RoutineStatus") THEN ?::"RoutineStatus" ELSE status END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_OverDue,
+				cenums.RoutineStatus_Scheduled,
+			),
 		})
 	if result.Error != nil {
 		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
@@ -297,8 +305,7 @@ func (r *RoutineTaskRepository) CreateOneByRoutineId(
 		opts = append(opts, WithLockingStrength(LockingStrengthNoKeyUpdate))
 	}
 
-	routineRepository := NewRoutineRepository(r.db, scopes.NewRoutineScope())
-	if !routineRepository.HasPermission(
+	if !r.routineRepository.HasPermission(
 		routineId,
 		userId,
 		parsedOptions.AllowedPermissions,
@@ -373,8 +380,7 @@ func (r *RoutineTaskRepository) CreateManyByRoutineIds(
 		routineIds[index] = in.RoutineId
 	}
 
-	routineRepository := NewRoutineRepository(r.db, scopes.NewRoutineScope())
-	validRoutines, exception := routineRepository.CheckPermissionsAndGetManyByIds(routineIds, userId, nil, parsedOptions.AllowedPermissions, opts...)
+	validRoutines, exception := r.routineRepository.CheckPermissionsAndGetManyByIds(routineIds, userId, nil, parsedOptions.AllowedPermissions, opts...)
 	if exception != nil {
 		parsedOptions.DB.Rollback()
 		return nil, exception
@@ -462,8 +468,7 @@ func (r *RoutineTaskRepository) UpdateOneById(
 		return nil, exception
 	}
 	if input.Values.RoutineId != nil && !partialupdate.CheckSetNull(input.SetNull, "RoutineId") {
-		routineRepository := NewRoutineRepository(r.db, scopes.NewRoutineScope())
-		if !routineRepository.HasPermission(*input.Values.RoutineId, userId, parsedOptions.AllowedPermissions, opts...) {
+		if !r.routineRepository.HasPermission(*input.Values.RoutineId, userId, parsedOptions.AllowedPermissions, opts...) {
 			parsedOptions.DB.Rollback()
 			return nil, r.exceptions.NoPermission("move a routine task to this routine")
 		}
@@ -575,8 +580,7 @@ func (r *RoutineTaskRepository) UpdateManyByIds(
 		for targetRoutineId := range targetRoutineIdSet {
 			targetRoutineIds = append(targetRoutineIds, targetRoutineId)
 		}
-		routineRepository := NewRoutineRepository(r.db, scopes.NewRoutineScope())
-		if !routineRepository.HavePermissions(targetRoutineIds, userId, parsedOptions.AllowedPermissions, opts...) {
+		if !r.routineRepository.HavePermissions(targetRoutineIds, userId, parsedOptions.AllowedPermissions, opts...) {
 			parsedOptions.DB.Rollback()
 			return r.exceptions.NoPermission("move these routine tasks to the given routines")
 		}

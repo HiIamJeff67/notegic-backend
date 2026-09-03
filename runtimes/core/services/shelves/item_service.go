@@ -23,6 +23,7 @@ import (
 )
 
 type ItemServiceInterface interface {
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateItems(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchItemInput) (*cgqlmodels.SearchItemConnection, *cexceptions.Exception)
 }
 
@@ -41,7 +42,7 @@ func NewItemService(
 	}
 }
 
-/* ============================== Service Methods for GraphQL Item ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *ItemService) SearchPrivateItems(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchItemInput,

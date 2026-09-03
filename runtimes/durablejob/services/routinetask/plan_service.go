@@ -19,6 +19,7 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	routinetasksql "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/data/postgres/sqls/routinetask"
+	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"
 	routinetaskbuilders "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/plan/builders"
 	routinetaskpreparers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/plan/preparers"
 )
@@ -32,18 +33,99 @@ type PlanService struct {
 func NewPlanService(
 	db *gorm.DB,
 	validatorInstance *validator.Validate,
+	routineTaskException durablejobexceptions.RoutineTaskException,
 ) *PlanService {
 	return &PlanService{
 		db:          db,
 		planBuilder: &routinetaskbuilders.DeterministicPlanBuilder{},
-		preparer:    routinetaskpreparers.NewAssignmentPreparer(validatorInstance),
+		preparer:    routinetaskpreparers.NewAssignmentPreparer(validatorInstance, routineTaskException),
 	}
 }
 
-func (s *PlanService) CreateRoutineTaskAssignments(
+func (s *PlanService) markInvalidRoutines(
+	db *gorm.DB,
+	invalidReasons map[uuid.UUID]string,
+	phase cenums.RoutinePhase,
+) error {
+	if db == nil || len(invalidReasons) == 0 {
+		return nil
+	}
+	recordIds := make([]uuid.UUID, 0, len(invalidReasons))
+	for recordId := range invalidReasons {
+		recordIds = append(recordIds, recordId)
+	}
+	now := time.Now().UTC()
+	errorReasonSQL := "CASE routine_record_id"
+	errorReasonArgs := make([]any, 0, len(invalidReasons)*2)
+	for recordId, reason := range invalidReasons {
+		if len(reason) > 256 {
+			reason = reason[:256]
+		}
+		errorReasonSQL += " WHEN ? THEN ?"
+		errorReasonArgs = append(errorReasonArgs, recordId, reason)
+	}
+	errorReasonSQL += " ELSE error_reason END"
+	result := db.
+		Model(&sschemas.RoutineTaskRecord{}).
+		Where("routine_record_id IN ?", recordIds).
+		Where("status IN ?", []cenums.RoutineTaskRecordStatus{
+			cenums.RoutineTaskRecordStatus_Waiting,
+			cenums.RoutineTaskRecordStatus_Ready,
+			cenums.RoutineTaskRecordStatus_Running,
+		}).
+		Updates(map[string]any{
+			"status":       cenums.RoutineTaskRecordStatus_Blocked,
+			"error_code":   cenums.RoutineTaskRecordErrorCode_PayloadInvalid,
+			"error_reason": gorm.Expr(errorReasonSQL, errorReasonArgs...),
+			"updated_at":   now,
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	result = db.
+		Model(&sschemas.RoutineRecord{}).
+		Where("id IN ?", recordIds).
+		Updates(map[string]any{
+			"status":          cenums.RoutineRecordStatus_Blocked,
+			"actual_ended_at": now,
+			"updated_at":      now,
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result = db.Exec(
+		routinetasksql.UpdateRoutineRecordAggregateSQL,
+		cenums.RoutineRecordStatus_Running,
+		cenums.RoutineRecordStatus_Blocked,
+		cenums.RoutineRecordStatus_Failed,
+		cenums.RoutineRecordStatus_Success,
+		now,
+		now,
+		recordIds,
+	); result.Error != nil {
+		return result.Error
+	}
+	routineIdsQuery := db.
+		Model(&sschemas.RoutineRecord{}).
+		Select("routine_id").
+		Where("id IN ?", recordIds)
+	if result = db.
+		Model(&sschemas.Routine{}).
+		Where("id IN (?)", routineIdsQuery).
+		Updates(map[string]any{
+			"status":     cenums.RoutineStatus_OverDue,
+			"phase":      phase,
+			"updated_at": now,
+		}); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (s *PlanService) BuildRoutineTaskPlans(
 	ctx context.Context,
 	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
-) ([]cdurablejobroutinetasktypes.CompletedRoutineTask, []cdurablejobroutinetasktypes.FailedRoutineTask) {
+) ([]cdurablejobroutinetasktypes.CompletedRoutineTask, []cdurablejobroutinetasktypes.FailedRoutineTask, map[uuid.UUID]string, error) {
 	completedTasks := make([]cdurablejobroutinetasktypes.CompletedRoutineTask, 0, len(assignments))
 	failedTasks := make([]cdurablejobroutinetasktypes.FailedRoutineTask, 0)
 	for _, assignment := range assignments {
@@ -99,14 +181,6 @@ func (s *PlanService) CreateRoutineTaskAssignments(
 			ErrorReason:         errorReason,
 		})
 	}
-	return completedTasks, failedTasks
-}
-
-func (s *PlanService) BuildRoutineTaskPlans(
-	ctx context.Context,
-	assignments []cdurablejobroutinetasktypes.RoutineTaskAssignment,
-) ([]cdurablejobroutinetasktypes.CompletedRoutineTask, []cdurablejobroutinetasktypes.FailedRoutineTask, map[uuid.UUID]string, error) {
-	completedTasks, failedTasks := s.CreateRoutineTaskAssignments(ctx, assignments)
 	invalidReasons := make(map[uuid.UUID]string, len(failedTasks))
 	for _, failedTask := range failedTasks {
 		invalidReasons[failedTask.RoutineRecordId] = failedTask.ErrorReason
@@ -247,84 +321,4 @@ func (s *PlanService) BuildRoutineTaskPlans(
 	}
 
 	return completedTasks, failedTasks, invalidReasons, nil
-}
-
-func (s *PlanService) markInvalidRoutines(
-	db *gorm.DB,
-	invalidReasons map[uuid.UUID]string,
-	phase cenums.RoutinePhase,
-) error {
-	if db == nil || len(invalidReasons) == 0 {
-		return nil
-	}
-	recordIds := make([]uuid.UUID, 0, len(invalidReasons))
-	for recordId := range invalidReasons {
-		recordIds = append(recordIds, recordId)
-	}
-	now := time.Now().UTC()
-	errorReasonSQL := "CASE routine_record_id"
-	errorReasonArgs := make([]any, 0, len(invalidReasons)*2)
-	for recordId, reason := range invalidReasons {
-		if len(reason) > 256 {
-			reason = reason[:256]
-		}
-		errorReasonSQL += " WHEN ? THEN ?"
-		errorReasonArgs = append(errorReasonArgs, recordId, reason)
-	}
-	errorReasonSQL += " ELSE error_reason END"
-	result := db.
-		Model(&sschemas.RoutineTaskRecord{}).
-		Where("routine_record_id IN ?", recordIds).
-		Where("status IN ?", []cenums.RoutineTaskRecordStatus{
-			cenums.RoutineTaskRecordStatus_Waiting,
-			cenums.RoutineTaskRecordStatus_Ready,
-			cenums.RoutineTaskRecordStatus_Running,
-		}).
-		Updates(map[string]any{
-			"status":       cenums.RoutineTaskRecordStatus_Blocked,
-			"error_code":   cenums.RoutineTaskRecordErrorCode_PayloadInvalid,
-			"error_reason": gorm.Expr(errorReasonSQL, errorReasonArgs...),
-			"updated_at":   now,
-		})
-	if result.Error != nil {
-		return result.Error
-	}
-	result = db.
-		Model(&sschemas.RoutineRecord{}).
-		Where("id IN ?", recordIds).
-		Updates(map[string]any{
-			"status":          cenums.RoutineRecordStatus_Blocked,
-			"actual_ended_at": now,
-			"updated_at":      now,
-		})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result = db.Exec(
-		routinetasksql.UpdateRoutineRecordAggregateSQL,
-		cenums.RoutineRecordStatus_Running,
-		cenums.RoutineRecordStatus_Blocked,
-		cenums.RoutineRecordStatus_Failed,
-		cenums.RoutineRecordStatus_Success,
-		now,
-		now,
-		recordIds,
-	); result.Error != nil {
-		return result.Error
-	}
-	routineIdsQuery := db.
-		Model(&sschemas.RoutineRecord{}).
-		Select("routine_id").
-		Where("id IN ?", recordIds)
-	if result = db.
-		Model(&sschemas.Routine{}).
-		Where("id IN (?)", routineIdsQuery).
-		Updates(map[string]any{
-			"status":     cenums.RoutineStatus_OverDue,
-			"phase":      phase,
-			"updated_at": now,
-		}); result.Error != nil {
-		return result.Error
-	}
-	return nil
 }

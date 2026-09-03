@@ -14,7 +14,6 @@ import (
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
@@ -42,25 +41,16 @@ type MaterialHandler struct {
 }
 
 func NewMaterialHandler(
-	db *gorm.DB,
 	validatorInstance *validator.Validate,
 	patternResolver resolvers.RoutineTaskPatternResolverInterface,
 	templateMatcher matchers.RoutineTaskTemplateMatcherInterface,
+	materialRepository srepositories.MaterialRepositoryInterface,
 ) MaterialHandlerInterface {
-	if validatorInstance == nil {
-		validatorInstance = validator.New()
-	}
-	if patternResolver == nil {
-		patternResolver = resolvers.NewRoutineTaskPatternResolver(db)
-	}
-	if templateMatcher == nil {
-		templateMatcher = matchers.NewRoutineTaskTemplateMatcher()
-	}
 	return &MaterialHandler{
 		validator:          validatorInstance,
 		patternResolver:    patternResolver,
 		templateMatcher:    templateMatcher,
-		materialRepository: srepositories.NewMaterialRepository(db, sscopes.NewMaterialScope()),
+		materialRepository: materialRepository,
 	}
 }
 

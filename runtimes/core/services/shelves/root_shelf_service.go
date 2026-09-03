@@ -52,6 +52,7 @@ type RootShelfServiceInterface interface {
 	LeaveMyRootShelf(ctx context.Context, requestDto *capi.LeaveMyRootShelfRequestDto) *cexceptions.Exception
 	LeaveMyRootShelves(ctx context.Context, requestDto *capi.LeaveMyRootShelvesRequestDto) *cexceptions.Exception
 
+	/* ============================== GraphQL Methods ============================== */
 	SearchPrivateRootShelves(ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRootShelfInput) (*cgqlmodels.SearchRootShelfConnection, *cexceptions.Exception)
 }
 
@@ -62,6 +63,8 @@ type RootShelfService struct {
 	rootShelfRepository      srepositories.RootShelfRepositoryInterface
 	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface
 	blockPackRepository      srepositories.BlockPackRepositoryInterface
+	outboxRepository         srepositories.OutboxEventRepositoryInterface
+	shelfException           apiexceptions.ShelfException
 }
 
 func NewRootShelfService(
@@ -71,6 +74,8 @@ func NewRootShelfService(
 	rootShelfRepository srepositories.RootShelfRepositoryInterface,
 	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	shelfException apiexceptions.ShelfException,
 ) RootShelfServiceInterface {
 	return &RootShelfService{
 		validator:                validator,
@@ -79,10 +84,10 @@ func NewRootShelfService(
 		rootShelfRepository:      rootShelfRepository,
 		usersToShelvesRepository: usersToShelvesRepository,
 		blockPackRepository:      blockPackRepository,
+		outboxRepository:         outboxRepository,
+		shelfException:           shelfException,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
 
 func (s *RootShelfService) saveMyRootShelfPermission(
 	ctx context.Context,
@@ -216,7 +221,7 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 	if targetPermission != nil &&
 		slices.Index(cenums.AllAccessControlPermissions, permission) <
 			slices.Index(cenums.AllAccessControlPermissions, targetPermission.Permission) {
-		if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+		if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 			tx,
 			rootShelf.Id.String(),
 			blockPackIds,
@@ -234,7 +239,7 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 			).WithOrigin(err)
 		}
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -270,13 +275,11 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 	}, nil
 }
 
-/* ============================== Service Methods for RootShelf ============================== */
-
 func (s *RootShelfService) GetMyRootShelfById(
 	ctx context.Context, requestDto *capi.GetMyRootShelfByIdRequestDto,
 ) (*capi.GetMyRootShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -327,7 +330,7 @@ func (s *RootShelfService) CreateRootShelf(
 	ctx context.Context, requestDto *capi.CreateRootShelfRequestDto,
 ) (*capi.CreateRootShelfResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -360,7 +363,7 @@ func (s *RootShelfService) CreateRootShelves(
 	ctx context.Context, requestDto *capi.CreateRootShelvesRequestDto,
 ) (*capi.CreateRootShelvesResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -397,7 +400,7 @@ func (s *RootShelfService) UpdateMyRootShelfById(
 	ctx context.Context, requestDto *capi.UpdateMyRootShelfByIdRequestDto,
 ) (*capi.UpdateMyRootShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -436,7 +439,7 @@ func (s *RootShelfService) UpdateMyRootShelvesByIds(
 	requestDto *capi.UpdateMyRootShelvesByIdsRequestDto,
 ) (*capi.UpdateMyRootShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -479,7 +482,7 @@ func (s *RootShelfService) RestoreMyRootShelfById(
 	requestDto *capi.RestoreMyRootShelfByIdRequestDto,
 ) (*capi.RestoreMyRootShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -519,7 +522,7 @@ func (s *RootShelfService) RestoreMyRootShelvesByIds(
 	requestDto *capi.RestoreMyRootShelvesByIdsRequestDto,
 ) (*capi.RestoreMyRootShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -564,7 +567,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 	requestDto *capi.DeleteMyRootShelfByIdRequestDto,
 ) (*capi.DeleteMyRootShelfByIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -681,7 +684,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 	if permission == cenums.AccessControlPermission_Owner {
 		reason = coreevents.BlockPackAccessRevocationReason_ResourceUnavailable
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -699,7 +702,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		).WithOrigin(err)
 	}
 	if permission == cenums.AccessControlPermission_Owner {
-		if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfDeleted(
+		if err := s.outboxRepository.EnqueueRootShelfDeleted(
 			tx,
 			rootShelf.Id.String(),
 			rootShelf.Id,
@@ -716,7 +719,7 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 			).WithOrigin(err)
 		}
 	} else if len(targetUserPublicIds) > 0 {
-		if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+		if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
 			tx,
 			rootShelf.Id.String(),
 			rootShelf.Id,
@@ -755,7 +758,7 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 	requestDto *capi.DeleteMyRootShelvesByIdsRequestDto,
 ) (*capi.DeleteMyRootShelvesByIdsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -815,7 +818,7 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		"root-shelf-bulk-delete",
 		blockPackIds,
@@ -832,7 +835,7 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfDeleted(
+	if err := s.outboxRepository.EnqueueManyRootShelfDeleted(
 		tx,
 		"root-shelf-bulk-delete",
 		requestDto.Body.RootShelfIds,
@@ -869,7 +872,7 @@ func (s *RootShelfService) GetMyRootShelfPermission(
 	ctx context.Context, requestDto *capi.GetMyRootShelfPermissionRequestDto,
 ) (*capi.GetMyRootShelfPermissionResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	actorUserId, exception := contexts.GetActorUserId(ctx)
@@ -925,7 +928,7 @@ func (s *RootShelfService) CreateMyRootShelfPermission(
 	ctx context.Context, requestDto *capi.CreateMyRootShelfPermissionRequestDto,
 ) (*capi.CreateMyRootShelfPermissionResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
@@ -943,7 +946,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermission(
 	ctx context.Context, requestDto *capi.UpsertMyRootShelfPermissionRequestDto,
 ) (*capi.UpsertMyRootShelfPermissionResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
@@ -960,7 +963,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	ctx context.Context, requestDto *capi.UpsertMyRootShelfPermissionsRequestDto,
 ) (*capi.UpsertMyRootShelfPermissionsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1118,7 +1121,7 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	for userId, user := range userById {
 		userPublicIdByUserId[userId] = user.PublicId
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionChanges(
+	if err := s.outboxRepository.EnqueueManyRootShelfPermissionChanges(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1173,7 +1176,7 @@ func (s *RootShelfService) UpdateMyRootShelfPermission(
 	ctx context.Context, requestDto *capi.UpdateMyRootShelfPermissionRequestDto,
 ) (*capi.UpdateMyRootShelfPermissionResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	permission, err := cenums.ConvertStringToAccessControlPermission(requestDto.Body.Permission)
 	if err != nil {
@@ -1192,7 +1195,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 	requestDto *capi.TransferMyRootShelfOwnershipRequestDto,
 ) (*capi.TransferMyRootShelfOwnershipResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1404,7 +1407,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			http.StatusNotFound,
 		)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1421,7 +1424,7 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionChanged(
+	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1462,7 +1465,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	ctx context.Context, requestDto *capi.DeleteMyRootShelfPermissionRequestDto,
 ) (*capi.DeleteMyRootShelfPermissionResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1561,7 +1564,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1578,7 +1581,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+	if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1613,7 +1616,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	ctx context.Context, requestDto *capi.DeleteMyRootShelfPermissionsRequestDto,
 ) (*capi.DeleteMyRootShelfPermissionsResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return nil, apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
 
 	userPublicIdSet := make(map[uuid.UUID]struct{}, len(requestDto.Body.UserPublicIds))
@@ -1761,7 +1764,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1778,7 +1781,7 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
+	if err := s.outboxRepository.EnqueueManyRootShelfPermissionRevocations(
 		tx,
 		rootShelf.Id.String(),
 		[]uuid.UUID{rootShelf.Id},
@@ -1813,7 +1816,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 	ctx context.Context, requestDto *capi.LeaveMyRootShelfRequestDto,
 ) *cexceptions.Exception {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -1870,7 +1873,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 		tx.Rollback()
 		return exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		rootShelf.Id.String(),
 		blockPackIds,
@@ -1887,7 +1890,7 @@ func (s *RootShelfService) LeaveMyRootShelf(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueRootShelfPermissionRevoked(
+	if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
 		tx,
 		rootShelf.Id.String(),
 		rootShelf.Id,
@@ -1921,7 +1924,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 	ctx context.Context, requestDto *capi.LeaveMyRootShelvesRequestDto,
 ) *cexceptions.Exception {
 	if err := s.validator.Struct(requestDto); err != nil {
-		return apiexceptions.NewShelfException().InvalidDto().WithOrigin(err)
+		return s.shelfException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -2002,7 +2005,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 		tx.Rollback()
 		return exception
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueBlockPackAccessRevocations(
+	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
 		tx,
 		"root-shelf-bulk-leave",
 		blockPackIds,
@@ -2019,7 +2022,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 			true,
 		).WithOrigin(err)
 	}
-	if err := srepositories.NewOutboxEventRepository().EnqueueManyRootShelfPermissionRevocations(
+	if err := s.outboxRepository.EnqueueManyRootShelfPermissionRevocations(
 		tx,
 		"root-shelf-bulk-leave",
 		rootShelfIds,
@@ -2049,7 +2052,7 @@ func (s *RootShelfService) LeaveMyRootShelves(
 	return nil
 }
 
-/* ============================== Service Methods for GraphQL RootShelf ============================== */
+/* ============================== GraphQL Methods ============================== */
 
 func (s *RootShelfService) SearchPrivateRootShelves(
 	ctx context.Context, userId uuid.UUID, gqlInput cgqlmodels.SearchRootShelfInput,

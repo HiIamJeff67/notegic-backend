@@ -21,10 +21,24 @@ import (
 )
 
 type BulkRoutineRepositoryInterface interface {
-	BulkCheckPermissionsAndGetManyByIds(inputs []inputs.BulkCheckRoutinePermissionInput, preloads []schemas.RoutineRelation, allowedPermissions []cenums.AccessControlPermission, opts ...RepositoryOptions) ([]bool, []schemas.Routine, *cexceptions.Exception)
-	BulkCreateMany(inputs []inputs.BulkCreateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkUpdateMany(inputs []inputs.BulkUpdateRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
-	BulkDeleteMany(inputs []inputs.BulkDeleteRoutineInput, opts ...RepositoryOptions) ([]bool, *cexceptions.Exception)
+	BulkCheckPermissionsAndGetManyByIds(
+		inputs []inputs.BulkCheckRoutinePermissionInput,
+		preloads []schemas.RoutineRelation,
+		allowedPermissions []cenums.AccessControlPermission,
+		opts ...RepositoryOptions,
+	) ([]bool, []schemas.Routine, *cexceptions.Exception)
+	BulkCreateMany(
+		inputs []inputs.BulkCreateRoutineInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkUpdateMany(
+		inputs []inputs.BulkUpdateRoutineInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
+	BulkDeleteMany(
+		inputs []inputs.BulkDeleteRoutineInput,
+		opts ...RepositoryOptions,
+	) ([]bool, *cexceptions.Exception)
 }
 
 type BulkRoutineRepository struct {
@@ -36,17 +50,11 @@ type BulkRoutineRepository struct {
 func NewBulkRoutineRepository(
 	db *gorm.DB,
 	routineScope scopes.RoutineScopeInterface,
-	repositoryExceptions ...exceptions.RoutineException,
 ) *BulkRoutineRepository {
-	repositoryException := exceptions.NewRoutineException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
 	return &BulkRoutineRepository{
 		db:           db,
 		routineScope: routineScope,
-		exceptions:   repositoryException,
+		exceptions:   exceptions.NewRoutineException(),
 	}
 }
 
@@ -172,7 +180,9 @@ func (r *BulkRoutineRepository) BulkCreateMany(
 		Where("uts.user_id IN ? AND uts.permission IN ?", userIds, parsedOptions.AllowedPermissions).
 		Scan(&validTargets)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -248,7 +258,9 @@ func (r *BulkRoutineRepository) BulkCreateMany(
 	result = parsedOptions.DB.Model(&schemas.Routine{}).
 		CreateInBatches(&newRoutines, parsedOptions.BatchSize)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToCreate().WithOrigin(result.Error)
 	}
 
@@ -297,7 +309,9 @@ func (r *BulkRoutineRepository) BulkUpdateMany(
 	checkOptions = append(checkOptions, WithLockingStrength(LockingStrengthNoKeyUpdate))
 	successes, _, exception := r.BulkCheckPermissionsAndGetManyByIds(checkInputs, nil, parsedOptions.AllowedPermissions, checkOptions...)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -324,7 +338,9 @@ func (r *BulkRoutineRepository) BulkUpdateMany(
 			Where("uts.user_id IN ? AND uts.permission IN ?", targetUserIds, parsedOptions.AllowedPermissions).
 			Scan(&validTargets)
 		if result.Error != nil {
-			parsedOptions.DB.Rollback()
+			if shouldStartTransaction {
+				parsedOptions.DB.Rollback()
+			}
 			return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 		}
 
@@ -423,7 +439,9 @@ func (r *BulkRoutineRepository) BulkUpdateMany(
 	}
 	result := parsedOptions.DB.Raw(sql, valueArgs...).Scan(&updatedIndexes)
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToUpdate().WithOrigin(result.Error)
 	}
 
@@ -480,7 +498,9 @@ func (r *BulkRoutineRepository) BulkDeleteMany(
 		checkOptions...,
 	)
 	if exception != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, exception
 	}
 
@@ -503,7 +523,9 @@ func (r *BulkRoutineRepository) BulkDeleteMany(
 		Where(`id IN ? AND deleted_at IS NULL`, validIds).
 		Updates(map[string]interface{}{"deleted_at": time.Now(), "updated_at": time.Now()})
 	if result.Error != nil {
-		parsedOptions.DB.Rollback()
+		if shouldStartTransaction {
+			parsedOptions.DB.Rollback()
+		}
 		return nil, r.exceptions.FailedToDelete().WithOrigin(result.Error)
 	}
 

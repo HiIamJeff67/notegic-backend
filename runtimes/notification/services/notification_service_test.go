@@ -17,6 +17,7 @@ import (
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
+	notificationexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/notification/exceptions"
 	notificationvalidations "github.com/HiIamJeff67/notegic-backend/runtimes/notification/validations"
 )
 
@@ -70,7 +71,14 @@ func newNotificationServiceForTest(repository *notificationRepositoryStub) Notif
 	notificationvalidations.RegisterWarningValidation(validate)
 	notificationvalidations.RegisterImportantValidation(validate)
 
-	return NewNotificationService(repository, validate)
+	return NewNotificationService(
+		repository,
+		validate,
+		notificationexceptions.NewEventException("Notification"),
+		notificationexceptions.NewRequestException("Notification"),
+		notificationexceptions.NewOperationException("Notification"),
+		notificationexceptions.NewPayloadException("Notification"),
+	)
 }
 
 func TestConsumeRequestedValidatesPayloadBeforePersisting(t *testing.T) {

@@ -19,7 +19,6 @@ import (
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
@@ -58,7 +57,6 @@ type BlockPackGetDetailedExecutionHandlerInterface interface {
 
 type BlockPackHandler struct {
 	Handler
-	db                   *gorm.DB
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface
@@ -69,31 +67,22 @@ type BlockPackHandler struct {
 }
 
 func NewBlockPackHandler(
-	db *gorm.DB,
 	validatorInstance *validator.Validate,
 	patternResolver resolvers.RoutineTaskPatternResolverInterface,
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface,
 	yjsDocumentInitializer YjsDocumentInitializer,
 	yjsBlockPackUpdater YjsBlockPackUpdater,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	blockRepository srepositories.BlockRepositoryInterface,
 ) BlockPackHandlerInterface {
-	if validatorInstance == nil {
-		validatorInstance = validator.New()
-	}
-	if patternResolver == nil {
-		patternResolver = resolvers.NewRoutineTaskPatternResolver(db)
-	}
-	if templateBlockMatcher == nil {
-		templateBlockMatcher = matchers.NewRoutineTaskTemplateMatcher()
-	}
 	return &BlockPackHandler{
-		db:                   db,
 		validator:            validatorInstance,
 		patternResolver:      patternResolver,
 		templateBlockMatcher: templateBlockMatcher,
 		yjsWorkerClient:      yjsDocumentInitializer,
 		yjsBlockPackUpdater:  yjsBlockPackUpdater,
-		blockPackRepository:  srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
-		blockRepository:      srepositories.NewBlockRepository(db, sscopes.NewBlockScope()),
+		blockPackRepository:  blockPackRepository,
+		blockRepository:      blockRepository,
 	}
 }
 

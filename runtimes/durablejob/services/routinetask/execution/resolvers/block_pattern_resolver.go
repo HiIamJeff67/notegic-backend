@@ -17,7 +17,6 @@ import (
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
 
@@ -27,14 +26,12 @@ type BlockPatternResolverInterface interface {
 }
 
 type BlockPatternResolver struct {
-	db              *gorm.DB
 	blockRepository srepositories.BlockRepositoryInterface
 }
 
-func NewBlockPatternResolver(db *gorm.DB) BlockPatternResolverInterface {
+func NewBlockPatternResolver(blockRepository srepositories.BlockRepositoryInterface) BlockPatternResolverInterface {
 	return BlockPatternResolver{
-		db:              db,
-		blockRepository: srepositories.NewBlockRepository(db, sscopes.NewBlockScope()),
+		blockRepository: blockRepository,
 	}
 }
 

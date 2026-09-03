@@ -57,6 +57,7 @@ type RoutineTaskDependencyService struct {
 	routineRepository               srepositories.RoutineRepositoryInterface
 	routineTaskRepository           srepositories.RoutineTaskRepositoryInterface
 	routineTaskDependencyRepository srepositories.RoutineTaskDependencyRepositoryInterface
+	routineTaskDependencyException  apiexceptions.RoutineTaskDependencyException
 }
 
 func NewRoutineTaskDependencyService(
@@ -65,6 +66,7 @@ func NewRoutineTaskDependencyService(
 	routineRepository srepositories.RoutineRepositoryInterface,
 	routineTaskRepository srepositories.RoutineTaskRepositoryInterface,
 	routineTaskDependencyRepository srepositories.RoutineTaskDependencyRepositoryInterface,
+	routineTaskDependencyException apiexceptions.RoutineTaskDependencyException,
 ) RoutineTaskDependencyServiceInterface {
 	return &RoutineTaskDependencyService{
 		validator:                       validator,
@@ -72,15 +74,15 @@ func NewRoutineTaskDependencyService(
 		routineRepository:               routineRepository,
 		routineTaskRepository:           routineTaskRepository,
 		routineTaskDependencyRepository: routineTaskDependencyRepository,
+		routineTaskDependencyException:  routineTaskDependencyException,
 	}
 }
-
-/* ============================== Auxiliary Functions ============================== */
 
 func validateRoutineTaskDependencyBatch(
 	routineTasks []sschemas.RoutineTask,
 	inputs []coretypes.CreatableRoutineTaskDependency,
 	dependencies []sschemas.RoutineTaskDependency,
+	routineTaskDependencyException apiexceptions.RoutineTaskDependencyException,
 ) *cexceptions.Exception {
 	taskIds := make(map[uuid.UUID]struct{}, len(routineTasks))
 	graph := make(map[uuid.UUID][]uuid.UUID, len(routineTasks))
@@ -102,17 +104,17 @@ func validateRoutineTaskDependencyBatch(
 	}
 	for _, input := range inputs {
 		if _, exists := taskIds[input.RoutineTaskId]; !exists {
-			return apiexceptions.NewRoutineTaskDependencyException().
+			return routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("routine task does not belong to the routine"))
 		}
 		if _, exists := taskIds[input.PreviousRoutineTaskId]; !exists {
-			return apiexceptions.NewRoutineTaskDependencyException().
+			return routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("previous routine task does not belong to the routine"))
 		}
 		if input.RoutineTaskId == input.PreviousRoutineTaskId {
-			return apiexceptions.NewRoutineTaskDependencyException().
+			return routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("a routine task cannot depend on itself"))
 		}
@@ -121,7 +123,7 @@ func validateRoutineTaskDependencyBatch(
 			PreviousRoutineTaskId: input.PreviousRoutineTaskId,
 		}
 		if _, exists := knownDependencies[key]; exists {
-			return apiexceptions.NewRoutineTaskDependencyException().DependencyAlreadyExists()
+			return routineTaskDependencyException.DependencyAlreadyExists()
 		}
 		knownDependencies[key] = struct{}{}
 		graph[input.RoutineTaskId] = append(graph[input.RoutineTaskId], input.PreviousRoutineTaskId)
@@ -146,7 +148,7 @@ func validateRoutineTaskDependencyBatch(
 	}
 	for taskId := range taskIds {
 		if visit(taskId) {
-			return apiexceptions.NewRoutineTaskDependencyException().
+			return routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("routine task dependencies cannot contain a cycle"))
 		}
@@ -154,14 +156,12 @@ func validateRoutineTaskDependencyBatch(
 	return nil
 }
 
-/* ============================== Service Methods for Routine Task Dependency ============================== */
-
 func (s *RoutineTaskDependencyService) GetRoutineTaskDependenciesByRoutineId(
 	ctx context.Context,
 	request *capi.GetRoutineTaskDependenciesByRoutineIdRequestDto,
 ) (*capi.GetRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(request); err != nil {
-		return nil, apiexceptions.NewRoutineTaskDependencyException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -207,44 +207,24 @@ func (s *RoutineTaskDependencyService) CreateRoutineTaskDependencyByRoutineId(
 	ctx context.Context,
 	request *capi.CreateRoutineTaskDependencyByRoutineIdRequestDto,
 ) (*capi.CreateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception) {
-	result, exception := s.createRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		[]coretypes.CreatableRoutineTaskDependency{request.Body},
-		request,
-	)
+	pluralRequest := &capi.CreateRoutineTaskDependenciesByRoutineIdRequestDto{}
+	pluralRequest.Header = request.Header
+	pluralRequest.Body.Dependencies = []coretypes.CreatableRoutineTaskDependency{request.Body}
+	pluralRequest.Param = request.Param
+	pluralRequest.Query = request.Query
+	result, exception := s.CreateRoutineTaskDependenciesByRoutineId(ctx, pluralRequest)
 	if exception != nil {
 		return nil, exception
 	}
-	response := capi.CreateRoutineTaskDependencyByRoutineIdResponseDto(result[0])
-	return &response, nil
+	return &(*result)[0], nil
 }
 
 func (s *RoutineTaskDependencyService) CreateRoutineTaskDependenciesByRoutineId(
 	ctx context.Context,
 	request *capi.CreateRoutineTaskDependenciesByRoutineIdRequestDto,
 ) (*capi.CreateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception) {
-	result, exception := s.createRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		request.Body.Dependencies,
-		request,
-	)
-	if exception != nil {
-		return nil, exception
-	}
-	response := capi.CreateRoutineTaskDependenciesByRoutineIdResponseDto(result)
-	return &response, nil
-}
-
-func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
-	ctx context.Context,
-	routineId uuid.UUID,
-	inputs []coretypes.CreatableRoutineTaskDependency,
-	request any,
-) ([]coretypes.RoutineTaskDependency, *cexceptions.Exception) {
 	if err := s.validator.Struct(request); err != nil {
-		return nil, apiexceptions.NewRoutineTaskDependencyException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -256,7 +236,7 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 	}
 	tx := s.db.WithContext(ctx).Begin()
 	if _, exception := s.routineRepository.CheckPermissionAndGetOneById(
-		routineId,
+		request.Param.RoutineId,
 		actorUserId,
 		nil,
 		allowedPermissions,
@@ -267,7 +247,7 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 		return nil, exception
 	}
 	routineTasks, exception := s.routineTaskRepository.GetAllByRoutineIds(
-		[]uuid.UUID{routineId},
+		[]uuid.UUID{request.Param.RoutineId},
 		actorUserId,
 		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
 		srepositories.WithTransactionDB(tx),
@@ -279,19 +259,24 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 		return nil, exception
 	}
 	dependencies, exception := s.routineTaskDependencyRepository.GetAllByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	if exception := validateRoutineTaskDependencyBatch(routineTasks, inputs, dependencies); exception != nil {
+	if exception := validateRoutineTaskDependencyBatch(
+		routineTasks,
+		request.Body.Dependencies,
+		dependencies,
+		s.routineTaskDependencyException,
+	); exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	createInputs := make([]sinputs.CreateRoutineTaskDependencyInput, len(inputs))
-	for index, input := range inputs {
+	createInputs := make([]sinputs.CreateRoutineTaskDependencyInput, len(request.Body.Dependencies))
+	for index, input := range request.Body.Dependencies {
 		createInputs[index] = sinputs.CreateRoutineTaskDependencyInput{
 			RoutineTaskId:         input.RoutineTaskId,
 			PreviousRoutineTaskId: input.PreviousRoutineTaskId,
@@ -300,7 +285,7 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 		}
 	}
 	if exception := s.routineTaskDependencyRepository.CreateManyByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		createInputs,
 		srepositories.WithTransactionDB(tx),
 	); exception != nil {
@@ -308,15 +293,15 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 		return nil, exception
 	}
 	dependencies, exception = s.routineTaskDependencyRepository.GetAllByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	keys := make([]sinputs.RoutineTaskDependencyKey, len(inputs))
-	for index, input := range inputs {
+	keys := make([]sinputs.RoutineTaskDependencyKey, len(request.Body.Dependencies))
+	for index, input := range request.Body.Dependencies {
 		keys[index] = sinputs.RoutineTaskDependencyKey{
 			RoutineTaskId:         input.RoutineTaskId,
 			PreviousRoutineTaskId: input.PreviousRoutineTaskId,
@@ -324,7 +309,7 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewRoutineTaskDependencyException().FailedToCreate().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.FailedToCreate().WithOrigin(err)
 	}
 	byKey := make(map[sinputs.RoutineTaskDependencyKey]sschemas.RoutineTaskDependency, len(dependencies))
 	for _, dependency := range dependencies {
@@ -333,7 +318,7 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 			PreviousRoutineTaskId: dependency.PreviousRoutineTaskId,
 		}] = dependency
 	}
-	result := make([]coretypes.RoutineTaskDependency, 0, len(keys))
+	result := make(capi.CreateRoutineTaskDependenciesByRoutineIdResponseDto, 0, len(keys))
 	for _, key := range keys {
 		if dependency, exists := byKey[key]; exists {
 			result = append(result, coretypes.RoutineTaskDependency{
@@ -346,51 +331,31 @@ func (s *RoutineTaskDependencyService) createRoutineTaskDependencies(
 			})
 		}
 	}
-	return result, nil
+	return &result, nil
 }
 
 func (s *RoutineTaskDependencyService) UpdateRoutineTaskDependencyByRoutineId(
 	ctx context.Context,
 	request *capi.UpdateRoutineTaskDependencyByRoutineIdRequestDto,
 ) (*capi.UpdateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception) {
-	result, exception := s.updateRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		[]coretypes.UpdatableRoutineTaskDependency{request.Body},
-		request,
-	)
+	pluralRequest := &capi.UpdateRoutineTaskDependenciesByRoutineIdRequestDto{}
+	pluralRequest.Header = request.Header
+	pluralRequest.Body.Dependencies = []coretypes.UpdatableRoutineTaskDependency{request.Body}
+	pluralRequest.Param = request.Param
+	pluralRequest.Query = request.Query
+	result, exception := s.UpdateRoutineTaskDependenciesByRoutineId(ctx, pluralRequest)
 	if exception != nil {
 		return nil, exception
 	}
-	response := capi.UpdateRoutineTaskDependencyByRoutineIdResponseDto(result[0])
-	return &response, nil
+	return &(*result)[0], nil
 }
 
 func (s *RoutineTaskDependencyService) UpdateRoutineTaskDependenciesByRoutineId(
 	ctx context.Context,
 	request *capi.UpdateRoutineTaskDependenciesByRoutineIdRequestDto,
 ) (*capi.UpdateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception) {
-	result, exception := s.updateRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		request.Body.Dependencies,
-		request,
-	)
-	if exception != nil {
-		return nil, exception
-	}
-	response := capi.UpdateRoutineTaskDependenciesByRoutineIdResponseDto(result)
-	return &response, nil
-}
-
-func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
-	ctx context.Context,
-	routineId uuid.UUID,
-	inputs []coretypes.UpdatableRoutineTaskDependency,
-	request any,
-) ([]coretypes.RoutineTaskDependency, *cexceptions.Exception) {
 	if err := s.validator.Struct(request); err != nil {
-		return nil, apiexceptions.NewRoutineTaskDependencyException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -402,7 +367,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 	}
 	tx := s.db.WithContext(ctx).Begin()
 	if _, exception := s.routineRepository.CheckPermissionAndGetOneById(
-		routineId,
+		request.Param.RoutineId,
 		actorUserId,
 		nil,
 		allowedPermissions,
@@ -413,7 +378,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 		return nil, exception
 	}
 	_, exception = s.routineTaskRepository.GetAllByRoutineIds(
-		[]uuid.UUID{routineId},
+		[]uuid.UUID{request.Param.RoutineId},
 		actorUserId,
 		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
 		srepositories.WithTransactionDB(tx),
@@ -425,15 +390,15 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 		return nil, exception
 	}
 	dependencies, exception := s.routineTaskDependencyRepository.GetAllByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	keys := make([]sinputs.RoutineTaskDependencyKey, len(inputs))
-	updates := make([]sinputs.UpdateRoutineTaskDependencyInput, len(inputs))
+	keys := make([]sinputs.RoutineTaskDependencyKey, len(request.Body.Dependencies))
+	updates := make([]sinputs.UpdateRoutineTaskDependencyInput, len(request.Body.Dependencies))
 	knownDependencies := make(map[sinputs.RoutineTaskDependencyKey]sschemas.RoutineTaskDependency, len(dependencies))
 	for _, dependency := range dependencies {
 		knownDependencies[sinputs.RoutineTaskDependencyKey{
@@ -441,25 +406,25 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 			PreviousRoutineTaskId: dependency.PreviousRoutineTaskId,
 		}] = dependency
 	}
-	seenKeys := make(map[sinputs.RoutineTaskDependencyKey]struct{}, len(inputs))
-	for index, input := range inputs {
+	seenKeys := make(map[sinputs.RoutineTaskDependencyKey]struct{}, len(request.Body.Dependencies))
+	for index, input := range request.Body.Dependencies {
 		key := sinputs.RoutineTaskDependencyKey{
 			RoutineTaskId:         input.RoutineTaskId,
 			PreviousRoutineTaskId: input.PreviousRoutineTaskId,
 		}
 		if _, exists := seenKeys[key]; exists {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().DependencyAlreadyExists()
+			return nil, s.routineTaskDependencyException.DependencyAlreadyExists()
 		}
 		seenKeys[key] = struct{}{}
 		dependency, exists := knownDependencies[key]
 		if !exists {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().NotFound()
+			return nil, s.routineTaskDependencyException.NotFound()
 		}
 		if input.Description == nil && input.Progress == nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().
+			return nil, s.routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("at least one dependency field must be updated"))
 		}
@@ -478,7 +443,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 		}
 	}
 	if exception := s.routineTaskDependencyRepository.UpdateManyByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		updates,
 		srepositories.WithTransactionDB(tx),
 	); exception != nil {
@@ -486,7 +451,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 		return nil, exception
 	}
 	dependencies, exception = s.routineTaskDependencyRepository.GetAllByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
@@ -495,7 +460,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewRoutineTaskDependencyException().FailedToUpdate().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.FailedToUpdate().WithOrigin(err)
 	}
 	byKey := make(map[sinputs.RoutineTaskDependencyKey]sschemas.RoutineTaskDependency, len(dependencies))
 	for _, dependency := range dependencies {
@@ -504,7 +469,7 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 			PreviousRoutineTaskId: dependency.PreviousRoutineTaskId,
 		}] = dependency
 	}
-	result := make([]coretypes.RoutineTaskDependency, 0, len(keys))
+	result := make(capi.UpdateRoutineTaskDependenciesByRoutineIdResponseDto, 0, len(keys))
 	for _, key := range keys {
 		if dependency, exists := byKey[key]; exists {
 			result = append(result, coretypes.RoutineTaskDependency{
@@ -517,41 +482,27 @@ func (s *RoutineTaskDependencyService) updateRoutineTaskDependencies(
 			})
 		}
 	}
-	return result, nil
+	return &result, nil
 }
 
 func (s *RoutineTaskDependencyService) DeleteRoutineTaskDependencyByRoutineId(
 	ctx context.Context,
 	request *capi.DeleteRoutineTaskDependencyByRoutineIdRequestDto,
 ) (*capi.DeleteRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception) {
-	return s.deleteRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		[]coretypes.DeletableRoutineTaskDependency{request.Body},
-		request,
-	)
+	pluralRequest := &capi.DeleteRoutineTaskDependenciesByRoutineIdRequestDto{}
+	pluralRequest.Header = request.Header
+	pluralRequest.Body.Dependencies = []coretypes.DeletableRoutineTaskDependency{request.Body}
+	pluralRequest.Param = request.Param
+	pluralRequest.Query = request.Query
+	return s.DeleteRoutineTaskDependenciesByRoutineId(ctx, pluralRequest)
 }
 
 func (s *RoutineTaskDependencyService) DeleteRoutineTaskDependenciesByRoutineId(
 	ctx context.Context,
 	request *capi.DeleteRoutineTaskDependenciesByRoutineIdRequestDto,
 ) (*capi.DeleteRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception) {
-	return s.deleteRoutineTaskDependencies(
-		ctx,
-		request.Param.RoutineId,
-		request.Body.Dependencies,
-		request,
-	)
-}
-
-func (s *RoutineTaskDependencyService) deleteRoutineTaskDependencies(
-	ctx context.Context,
-	routineId uuid.UUID,
-	inputs []coretypes.DeletableRoutineTaskDependency,
-	request any,
-) (*capi.DeleteRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(request); err != nil {
-		return nil, apiexceptions.NewRoutineTaskDependencyException().InvalidDto().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.InvalidDto().WithOrigin(err)
 	}
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
@@ -563,7 +514,7 @@ func (s *RoutineTaskDependencyService) deleteRoutineTaskDependencies(
 	}
 	tx := s.db.WithContext(ctx).Begin()
 	if _, exception := s.routineRepository.CheckPermissionAndGetOneById(
-		routineId,
+		request.Param.RoutineId,
 		actorUserId,
 		nil,
 		allowedPermissions,
@@ -574,15 +525,15 @@ func (s *RoutineTaskDependencyService) deleteRoutineTaskDependencies(
 		return nil, exception
 	}
 	dependencies, exception := s.routineTaskDependencyRepository.GetAllByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		srepositories.WithTransactionDB(tx),
 	)
 	if exception != nil {
 		tx.Rollback()
 		return nil, exception
 	}
-	keys := make([]sinputs.RoutineTaskDependencyKey, len(inputs))
-	for index, input := range inputs {
+	keys := make([]sinputs.RoutineTaskDependencyKey, len(request.Body.Dependencies))
+	for index, input := range request.Body.Dependencies {
 		keys[index] = sinputs.RoutineTaskDependencyKey{
 			RoutineTaskId:         input.RoutineTaskId,
 			PreviousRoutineTaskId: input.PreviousRoutineTaskId,
@@ -599,24 +550,24 @@ func (s *RoutineTaskDependencyService) deleteRoutineTaskDependencies(
 	for _, key := range keys {
 		if key.RoutineTaskId == uuid.Nil || key.PreviousRoutineTaskId == uuid.Nil {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().
+			return nil, s.routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("routine task dependency ids are required"))
 		}
 		if _, exists := knownKeys[key]; !exists {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().NotFound()
+			return nil, s.routineTaskDependencyException.NotFound()
 		}
 		if _, exists := seenKeys[key]; exists {
 			tx.Rollback()
-			return nil, apiexceptions.NewRoutineTaskDependencyException().
+			return nil, s.routineTaskDependencyException.
 				InvalidInput().
 				WithOrigin(fmt.Errorf("duplicate routine task dependency"))
 		}
 		seenKeys[key] = struct{}{}
 	}
 	deletedCount, exception := s.routineTaskDependencyRepository.DeleteManyByRoutineId(
-		routineId,
+		request.Param.RoutineId,
 		keys,
 		srepositories.WithTransactionDB(tx),
 	)
@@ -626,7 +577,7 @@ func (s *RoutineTaskDependencyService) deleteRoutineTaskDependencies(
 	}
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, apiexceptions.NewRoutineTaskDependencyException().FailedToDelete().WithOrigin(err)
+		return nil, s.routineTaskDependencyException.FailedToDelete().WithOrigin(err)
 	}
 	return &capi.DeleteRoutineTaskDependenciesByRoutineIdResponseDto{
 		DeletedCount: deletedCount,

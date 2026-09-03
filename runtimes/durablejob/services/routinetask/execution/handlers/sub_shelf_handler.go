@@ -14,7 +14,6 @@ import (
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
-	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 
 	matchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
@@ -35,7 +34,6 @@ type SubShelfDetailedExecutionHandlerInterface interface {
 
 type SubShelfHandler struct {
 	Handler
-	db                   *gorm.DB
 	validator            *validator.Validate
 	patternResolver      resolvers.RoutineTaskPatternResolverInterface
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface
@@ -45,28 +43,20 @@ type SubShelfHandler struct {
 }
 
 func NewSubShelfHandler(
-	db *gorm.DB,
 	validatorInstance *validator.Validate,
 	patternResolver resolvers.RoutineTaskPatternResolverInterface,
 	templateBlockMatcher matchers.RoutineTaskTemplateMatcherInterface,
+	subShelfRepository srepositories.SubShelfRepositoryInterface,
+	blockPackRepository srepositories.BlockPackRepositoryInterface,
+	materialRepository srepositories.MaterialRepositoryInterface,
 ) SubShelfHandlerInterface {
-	if validatorInstance == nil {
-		validatorInstance = validator.New()
-	}
-	if patternResolver == nil {
-		patternResolver = resolvers.NewRoutineTaskPatternResolver(db)
-	}
-	if templateBlockMatcher == nil {
-		templateBlockMatcher = matchers.NewRoutineTaskTemplateMatcher()
-	}
 	return &SubShelfHandler{
-		db:                   db,
 		validator:            validatorInstance,
 		patternResolver:      patternResolver,
 		templateBlockMatcher: templateBlockMatcher,
-		subShelfRepository:   srepositories.NewSubShelfRepository(db, sscopes.NewSubShelfScope()),
-		blockPackRepository:  srepositories.NewBlockPackRepository(db, sscopes.NewBlockPackScope()),
-		materialRepository:   srepositories.NewMaterialRepository(db, sscopes.NewMaterialScope()),
+		subShelfRepository:   subShelfRepository,
+		blockPackRepository:  blockPackRepository,
+		materialRepository:   materialRepository,
 	}
 }
 

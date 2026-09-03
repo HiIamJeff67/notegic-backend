@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/routines"
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
 
 	sexceptionwriter "github.com/HiIamJeff67/notegic-backend/shared/util/exceptionwriter"
 
@@ -57,7 +60,13 @@ func (c *RoutineController) GetMyRoutineById(ctx *gin.Context, requestDto *capi.
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) GetMyRoutinesByStationId(ctx *gin.Context, requestDto *capi.GetMyRoutinesByStationIdRequestDto) {
@@ -73,7 +82,13 @@ func (c *RoutineController) GetMyRoutinesByStationId(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) GetAllMyRoutinesByTimeRange(ctx *gin.Context, requestDto *capi.GetAllMyRoutinesByTimeRangeRequestDto) {
@@ -89,7 +104,13 @@ func (c *RoutineController) GetAllMyRoutinesByTimeRange(ctx *gin.Context, reques
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) CreateRoutineByStationId(ctx *gin.Context, requestDto *capi.CreateRoutineByStationIdRequestDto) {
@@ -105,7 +126,13 @@ func (c *RoutineController) CreateRoutineByStationId(ctx *gin.Context, requestDt
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) CreateRoutinesByStationIds(ctx *gin.Context, requestDto *capi.CreateRoutinesByStationIdsRequestDto) {
@@ -121,7 +148,13 @@ func (c *RoutineController) CreateRoutinesByStationIds(ctx *gin.Context, request
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) UpdateMyRoutineById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineByIdRequestDto) {
@@ -137,7 +170,13 @@ func (c *RoutineController) UpdateMyRoutineById(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) UpdateMyRoutinesByIds(ctx *gin.Context, requestDto *capi.UpdateMyRoutinesByIdsRequestDto) {
@@ -153,7 +192,13 @@ func (c *RoutineController) UpdateMyRoutinesByIds(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) LinkRoutineTagById(ctx *gin.Context, requestDto *capi.LinkRoutineTagByIdRequestDto) {
@@ -169,7 +214,13 @@ func (c *RoutineController) LinkRoutineTagById(ctx *gin.Context, requestDto *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) LinkRoutineTagsByIds(ctx *gin.Context, requestDto *capi.LinkRoutineTagsByIdsRequestDto) {
@@ -185,7 +236,13 @@ func (c *RoutineController) LinkRoutineTagsByIds(ctx *gin.Context, requestDto *c
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) LinkRoutineItemById(ctx *gin.Context, requestDto *capi.LinkRoutineItemByIdRequestDto) {
@@ -201,7 +258,13 @@ func (c *RoutineController) LinkRoutineItemById(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) LinkRoutineItemsByIds(ctx *gin.Context, requestDto *capi.LinkRoutineItemsByIdsRequestDto) {
@@ -217,7 +280,13 @@ func (c *RoutineController) LinkRoutineItemsByIds(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) RestoreMyRoutineById(ctx *gin.Context, requestDto *capi.RestoreMyRoutineByIdRequestDto) {
@@ -233,7 +302,13 @@ func (c *RoutineController) RestoreMyRoutineById(ctx *gin.Context, requestDto *c
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) RestoreMyRoutinesByIds(ctx *gin.Context, requestDto *capi.RestoreMyRoutinesByIdsRequestDto) {
@@ -249,7 +324,13 @@ func (c *RoutineController) RestoreMyRoutinesByIds(ctx *gin.Context, requestDto 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) DeleteMyRoutineById(ctx *gin.Context, requestDto *capi.DeleteMyRoutineByIdRequestDto) {
@@ -265,7 +346,13 @@ func (c *RoutineController) DeleteMyRoutineById(ctx *gin.Context, requestDto *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) DeleteMyRoutinesByIds(ctx *gin.Context, requestDto *capi.DeleteMyRoutinesByIdsRequestDto) {
@@ -281,7 +368,13 @@ func (c *RoutineController) DeleteMyRoutinesByIds(ctx *gin.Context, requestDto *
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) HardDeleteMyRoutineById(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutineByIdRequestDto) {
@@ -297,7 +390,13 @@ func (c *RoutineController) HardDeleteMyRoutineById(ctx *gin.Context, requestDto
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) HardDeleteMyRoutinesByIds(ctx *gin.Context, requestDto *capi.HardDeleteMyRoutinesByIdsRequestDto) {
@@ -313,7 +412,13 @@ func (c *RoutineController) HardDeleteMyRoutinesByIds(ctx *gin.Context, requestD
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) VisualizeMyRoutineStatusCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineStatusCountRequestDto) {
@@ -329,7 +434,13 @@ func (c *RoutineController) VisualizeMyRoutineStatusCount(ctx *gin.Context, requ
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) VisualizeMyRoutinePeriodCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutinePeriodCountRequestDto) {
@@ -345,7 +456,13 @@ func (c *RoutineController) VisualizeMyRoutinePeriodCount(ctx *gin.Context, requ
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) VisualizeMyRoutineScheduledStartAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineScheduledStartAtCountRequestDto) {
@@ -361,7 +478,13 @@ func (c *RoutineController) VisualizeMyRoutineScheduledStartAtCount(ctx *gin.Con
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *RoutineController) VisualizeMyRoutineScheduledEndAtCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineScheduledEndAtCountRequestDto) {
@@ -377,5 +500,11 @@ func (c *RoutineController) VisualizeMyRoutineScheduledEndAtCount(ctx *gin.Conte
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }

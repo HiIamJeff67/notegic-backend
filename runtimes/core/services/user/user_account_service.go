@@ -55,8 +55,6 @@ func NewUserAccountService(
 	}
 }
 
-/* ============================== Service Methods for UserAccount ============================== */
-
 func (s *UserAccountService) GetMyAccount(
 	ctx context.Context, requestDto *capi.GetMyAccountRequestDto,
 ) (*capi.GetMyAccountResponseDto, *cexceptions.Exception) {
@@ -175,8 +173,6 @@ func (s *UserAccountService) UpdateMyAccount(
 		UpdatedAt: time.Now(),
 	}, nil
 }
-
-/* ============================== Service Methods for Binding Accounts ============================== */
 
 func (s *UserAccountService) BindGoogleAccount(
 	ctx context.Context, requestDto *capi.BindGoogleAccountRequestDto,

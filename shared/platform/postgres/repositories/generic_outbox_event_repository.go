@@ -12,14 +12,13 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
-	exceptions "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/exceptions"
 	inputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
 type GenericOutboxEventRepositoryInterface interface {
@@ -31,7 +30,6 @@ type GenericOutboxEventRepositoryInterface interface {
 }
 
 type GenericOutboxEventRepository struct {
-	exceptions exceptions.OutboxException
 }
 
 type outboxEventMetadata struct {
@@ -42,13 +40,8 @@ type outboxEventMetadata struct {
 	Trace         cevent.TraceMetadata `json:"trace"`
 }
 
-func NewGenericOutboxEventRepository(repositoryExceptions ...exceptions.OutboxException) GenericOutboxEventRepositoryInterface {
-	repositoryException := exceptions.NewOutboxException()
-	if len(repositoryExceptions) > 0 {
-		repositoryException = repositoryExceptions[0]
-	}
-
-	return &GenericOutboxEventRepository{exceptions: repositoryException}
+func NewGenericOutboxEventRepository() GenericOutboxEventRepositoryInterface {
+	return &GenericOutboxEventRepository{}
 }
 
 func ConvertEnvelopeToCreateOutboxEventInput[D any](
@@ -109,7 +102,7 @@ func EnqueueOutboxEvents[D any](
 		createInputs[index] = createInput
 	}
 
-	if exception := NewGenericOutboxEventRepository().CreateMany(
+	if exception := (&GenericOutboxEventRepository{}).CreateMany(
 		createInputs,
 		RepositoryOptionFields{
 			DB:                   tx,
@@ -192,6 +185,7 @@ func (r *GenericOutboxEventRepository) ClaimAvailable(
 	now := time.Now()
 	expiredAt := now.Add(-claimTimeout)
 	tx := parsedOptions.DB.WithContext(ctx).Begin()
+	lockingStrength := "UPDATE"
 
 	var events []schemas.OutboxEvent
 	result := tx.
@@ -201,7 +195,7 @@ func (r *GenericOutboxEventRepository) ClaimAvailable(
 		Where("claimed_at IS NULL OR claimed_at <= ?", expiredAt).
 		Order("created_at ASC").
 		Limit(batchSize).
-		Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+		Scopes(scopes.Locking(&lockingStrength, "SKIP LOCKED")).
 		Find(&events)
 	if result.Error != nil {
 		tx.Rollback()

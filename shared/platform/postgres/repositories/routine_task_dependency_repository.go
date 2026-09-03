@@ -65,6 +65,42 @@ func NewRoutineTaskDependencyRepository(db *gorm.DB) RoutineTaskDependencyReposi
 	}
 }
 
+func (r *RoutineTaskDependencyRepository) incrementRoutineDefinitionVersion(
+	routineId uuid.UUID,
+	db *gorm.DB,
+) *cexceptions.Exception {
+	result := db.
+		Model(&schemas.Routine{}).
+		Where("id = ?", routineId).
+		Updates(map[string]interface{}{
+			"definition_version": gorm.Expr("definition_version + 1"),
+			"status": gorm.Expr(
+				`CASE WHEN status IN (?::"RoutineStatus", ?::"RoutineStatus") THEN ?::"RoutineStatus" ELSE status END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_OverDue,
+				cenums.RoutineStatus_Scheduled,
+			),
+		})
+	if result.Error != nil {
+		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
+	}
+	return nil
+}
+
+func (r *RoutineTaskDependencyRepository) validateRoutineTaskDependencyInput(
+	routineId uuid.UUID,
+	routineTaskId uuid.UUID,
+	previousRoutineTaskId uuid.UUID,
+) *cexceptions.Exception {
+	if routineId == uuid.Nil || routineTaskId == uuid.Nil || previousRoutineTaskId == uuid.Nil {
+		return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("routine and routine task ids are required"))
+	}
+	if routineTaskId == previousRoutineTaskId {
+		return r.exceptions.InvalidInput().WithOrigin(fmt.Errorf("a routine task cannot depend on itself"))
+	}
+	return nil
+}
+
 func (r *RoutineTaskDependencyRepository) GetAllByRoutineId(
 	routineId uuid.UUID,
 	opts ...RepositoryOptions,
@@ -93,7 +129,7 @@ func (r *RoutineTaskDependencyRepository) CreateOneByRoutineId(
 	input inputs.CreateRoutineTaskDependencyInput,
 	opts ...RepositoryOptions,
 ) (*schemas.RoutineTaskDependency, *cexceptions.Exception) {
-	if exception := validateRoutineTaskDependencyInput(routineId, input.RoutineTaskId, input.PreviousRoutineTaskId); exception != nil {
+	if exception := r.validateRoutineTaskDependencyInput(routineId, input.RoutineTaskId, input.PreviousRoutineTaskId); exception != nil {
 		return nil, exception
 	}
 
@@ -148,7 +184,7 @@ func (r *RoutineTaskDependencyRepository) CreateManyByRoutineId(
 		return r.exceptions.NoChanges()
 	}
 	for _, dependency := range input {
-		if exception := validateRoutineTaskDependencyInput(
+		if exception := r.validateRoutineTaskDependencyInput(
 			routineId,
 			dependency.RoutineTaskId,
 			dependency.PreviousRoutineTaskId,
@@ -226,7 +262,7 @@ func (r *RoutineTaskDependencyRepository) UpdateManyByRoutineId(
 
 	dependencies := make([]schemas.RoutineTaskDependency, len(input))
 	for index, dependency := range input {
-		if exception := validateRoutineTaskDependencyInput(
+		if exception := r.validateRoutineTaskDependencyInput(
 			routineId,
 			dependency.RoutineTaskId,
 			dependency.PreviousRoutineTaskId,
@@ -334,40 +370,4 @@ func (r *RoutineTaskDependencyRepository) DeleteManyByRoutineId(
 	}
 
 	return result.RowsAffected, nil
-}
-
-func (r *RoutineTaskDependencyRepository) incrementRoutineDefinitionVersion(
-	routineId uuid.UUID,
-	db *gorm.DB,
-) *cexceptions.Exception {
-	result := db.
-		Model(&schemas.Routine{}).
-		Where("id = ?", routineId).
-		Updates(map[string]interface{}{
-			"definition_version": gorm.Expr("definition_version + 1"),
-			"status": gorm.Expr(
-				"CASE WHEN status IN (?, ?) THEN ? ELSE status END",
-				cenums.RoutineStatus_Completed,
-				cenums.RoutineStatus_OverDue,
-				cenums.RoutineStatus_Scheduled,
-			),
-		})
-	if result.Error != nil {
-		return r.exceptions.FailedToUpdate().WithOrigin(result.Error)
-	}
-	return nil
-}
-
-func validateRoutineTaskDependencyInput(
-	routineId uuid.UUID,
-	routineTaskId uuid.UUID,
-	previousRoutineTaskId uuid.UUID,
-) *cexceptions.Exception {
-	if routineId == uuid.Nil || routineTaskId == uuid.Nil || previousRoutineTaskId == uuid.Nil {
-		return exceptions.NewRoutineTaskDependencyException().InvalidInput().WithOrigin(fmt.Errorf("routine and routine task ids are required"))
-	}
-	if routineTaskId == previousRoutineTaskId {
-		return exceptions.NewRoutineTaskDependencyException().InvalidInput().WithOrigin(fmt.Errorf("a routine task cannot depend on itself"))
-	}
-	return nil
 }

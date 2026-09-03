@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	cgateway "github.com/HiIamJeff67/notegic-backend/contracts/gateway/v1"
+
 	"github.com/gin-gonic/gin"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/stations"
@@ -68,7 +70,13 @@ func (c *StationController) GetMyStationById(ctx *gin.Context, request *capi.Get
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) GetAllMyStations(ctx *gin.Context, request *capi.GetAllMyStationsRequestDto) {
@@ -87,7 +95,13 @@ func (c *StationController) GetAllMyStations(ctx *gin.Context, request *capi.Get
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) CreateStation(ctx *gin.Context, request *capi.CreateStationRequestDto) {
@@ -106,7 +120,13 @@ func (c *StationController) CreateStation(ctx *gin.Context, request *capi.Create
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) CreateStations(ctx *gin.Context, request *capi.CreateStationsRequestDto) {
@@ -125,7 +145,13 @@ func (c *StationController) CreateStations(ctx *gin.Context, request *capi.Creat
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *capi.UpdateMyStationByIdRequestDto) {
@@ -144,7 +170,13 @@ func (c *StationController) UpdateMyStationById(ctx *gin.Context, request *capi.
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *capi.UpdateMyStationsByIdsRequestDto) {
@@ -163,7 +195,13 @@ func (c *StationController) UpdateMyStationsByIds(ctx *gin.Context, request *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *capi.RestoreMyStationByIdRequestDto) {
@@ -182,7 +220,13 @@ func (c *StationController) RestoreMyStationById(ctx *gin.Context, request *capi
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *capi.RestoreMyStationsByIdsRequestDto) {
@@ -201,7 +245,13 @@ func (c *StationController) RestoreMyStationsByIds(ctx *gin.Context, request *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *capi.DeleteMyStationByIdRequestDto) {
@@ -220,7 +270,13 @@ func (c *StationController) DeleteMyStationById(ctx *gin.Context, request *capi.
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *capi.DeleteMyStationsByIdsRequestDto) {
@@ -239,7 +295,13 @@ func (c *StationController) DeleteMyStationsByIds(ctx *gin.Context, request *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *capi.HardDeleteMyStationByIdRequestDto) {
@@ -258,7 +320,13 @@ func (c *StationController) HardDeleteMyStationById(ctx *gin.Context, request *c
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request *capi.HardDeleteMyStationsByIdsRequestDto) {
@@ -277,7 +345,13 @@ func (c *StationController) HardDeleteMyStationsByIds(ctx *gin.Context, request 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 /* ============================== Controller Methods for Visualization ============================== */
@@ -298,7 +372,13 @@ func (c *StationController) VisualizeMyTotalCount(ctx *gin.Context, request *cap
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 /* ============================== Controller Methods for Station Permissions ============================== */
@@ -319,7 +399,13 @@ func (c *StationController) GetMyStationPermission(ctx *gin.Context, request *ca
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request *capi.CreateMyStationPermissionRequestDto) {
@@ -338,7 +424,13 @@ func (c *StationController) CreateMyStationPermission(ctx *gin.Context, request 
 		return
 	}
 
-	writeCreatedClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusCreated,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) UpsertMyStationPermission(
@@ -359,7 +451,13 @@ func (c *StationController) UpsertMyStationPermission(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) UpsertMyStationPermissions(
@@ -380,7 +478,13 @@ func (c *StationController) UpsertMyStationPermissions(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request *capi.UpdateMyStationPermissionRequestDto) {
@@ -399,7 +503,13 @@ func (c *StationController) UpdateMyStationPermission(ctx *gin.Context, request 
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) TransferMyStationOwnership(
@@ -420,7 +530,13 @@ func (c *StationController) TransferMyStationOwnership(
 		return
 	}
 
-	writeClientResponse(ctx, response.Data)
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    response.Data,
+		},
+	)
 }
 
 func (c *StationController) DeleteMyStationPermission(
@@ -441,7 +557,13 @@ func (c *StationController) DeleteMyStationPermission(
 		return
 	}
 
-	writeClientResponse(ctx, capi.DeleteMyStationPermissionResponseDto{})
+	ctx.JSON(
+		http.StatusOK,
+		cgateway.ClientResponse[any]{
+			Success: true,
+			Data:    capi.DeleteMyStationPermissionResponseDto{},
+		},
+	)
 }
 
 func (c *StationController) DeleteMyStationPermissions(

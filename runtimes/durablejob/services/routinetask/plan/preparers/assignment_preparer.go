@@ -17,109 +17,18 @@ import (
 )
 
 type AssignmentPreparer struct {
-	validator *validator.Validate
+	validator  *validator.Validate
+	exceptions durablejobexceptions.RoutineTaskException
 }
 
 func NewAssignmentPreparer(
 	validatorInstance *validator.Validate,
+	routineTaskException durablejobexceptions.RoutineTaskException,
 ) *AssignmentPreparer {
 	return &AssignmentPreparer{
-		validator: validatorInstance,
+		validator:  validatorInstance,
+		exceptions: routineTaskException,
 	}
-}
-
-func (p *AssignmentPreparer) Prepare(
-	_ context.Context,
-	assignment croutinetasktypes.RoutineTaskAssignment,
-) (*croutinetasktypes.PreparedRoutineTask, error) {
-	if assignment.RoutineTaskId == uuid.Nil ||
-		assignment.RoutineTaskRecordId == uuid.Nil ||
-		assignment.RoutineRecordId == uuid.Nil ||
-		assignment.RoutineId == uuid.Nil ||
-		assignment.ActorUserId == uuid.Nil ||
-		assignment.ActorUserPublicId == uuid.Nil ||
-		assignment.Purpose == "" ||
-		len(assignment.Payload) == 0 {
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
-			fmt.Errorf("routine task assignment is incomplete"),
-		)
-	}
-
-	var payload any
-	switch assignment.Purpose {
-	case cenums.RoutineTaskPurpose_GetSubShelf:
-		payload = &croutinetasktypes.GetSubShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_DeleteSubShelf:
-		payload = &croutinetasktypes.DeleteSubShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_GetBlockPack:
-		payload = &croutinetasktypes.GetBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_DeleteBlockPack:
-		payload = &croutinetasktypes.DeleteBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_GetRoutine:
-		payload = &croutinetasktypes.GetRoutineRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_DeleteRoutine:
-		payload = &croutinetasktypes.DeleteRoutineRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_GetMaterial:
-		payload = &croutinetasktypes.GetMaterialRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_CreateMaterial:
-		payload = &croutinetasktypes.CreateMaterialRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateMaterial:
-		payload = &croutinetasktypes.UpdateMaterialRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_DeleteMaterial:
-		payload = &croutinetasktypes.DeleteMaterialRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_CreateSubShelf:
-		payload = &croutinetasktypes.CreateSubShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateSubShelf:
-		payload = &croutinetasktypes.UpdateSubShelfRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_CreateBlockPack:
-		payload = &croutinetasktypes.CreateBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateBlockPack:
-		payload = &croutinetasktypes.UpdateBlockPackRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_CreateRoutine:
-		payload = &croutinetasktypes.CreateRoutineRoutineTaskPayload{}
-	case cenums.RoutineTaskPurpose_UpdateRoutine:
-		payload = &croutinetasktypes.UpdateRoutineRoutineTaskPayload{}
-	default:
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(
-			fmt.Errorf("unsupported routine task purpose: %s", assignment.Purpose),
-		)
-	}
-
-	if err := json.Unmarshal(assignment.Payload, payload); err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
-	}
-	if p.validator != nil {
-		if err := p.validator.Struct(payload); err != nil {
-			return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
-		}
-	}
-
-	rawPayload, err := json.Marshal(payload)
-	if err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
-	}
-	var payloadValue any
-	if err := json.Unmarshal(rawPayload, &payloadValue); err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
-	}
-	payloadValue = matchPayloadValue(payloadValue, assignment.PatternValues, true)
-	preparedPayload, err := json.Marshal(payloadValue)
-	if err != nil {
-		return nil, durablejobexceptions.NewRoutineTaskException().InvalidPayload(err)
-	}
-
-	return &croutinetasktypes.PreparedRoutineTask{
-		RoutineTaskId:       assignment.RoutineTaskId,
-		RoutineTaskRecordId: assignment.RoutineTaskRecordId,
-		RoutineRecordId:     assignment.RoutineRecordId,
-		RoutineId:           assignment.RoutineId,
-		ActorUserId:         assignment.ActorUserId,
-		ActorUserPublicId:   assignment.ActorUserPublicId,
-		Attempt:             assignment.Attempt,
-		Purpose:             assignment.Purpose,
-		Payload:             preparedPayload,
-		PreparedAt:          time.Now().UTC(),
-	}, nil
 }
 
 func matchPayloadValue(value any, values map[string]string, allowStrings bool) any {
@@ -182,4 +91,98 @@ func matchPayloadValue(value any, values map[string]string, allowStrings bool) a
 	default:
 		return value
 	}
+}
+
+func (p *AssignmentPreparer) Prepare(
+	_ context.Context,
+	assignment croutinetasktypes.RoutineTaskAssignment,
+) (*croutinetasktypes.PreparedRoutineTask, error) {
+	if assignment.RoutineTaskId == uuid.Nil ||
+		assignment.RoutineTaskRecordId == uuid.Nil ||
+		assignment.RoutineRecordId == uuid.Nil ||
+		assignment.RoutineId == uuid.Nil ||
+		assignment.ActorUserId == uuid.Nil ||
+		assignment.ActorUserPublicId == uuid.Nil ||
+		assignment.Purpose == "" ||
+		len(assignment.Payload) == 0 {
+		return nil, p.exceptions.InvalidPayload(
+			fmt.Errorf("routine task assignment is incomplete"),
+		)
+	}
+
+	var payload any
+	switch assignment.Purpose {
+	case cenums.RoutineTaskPurpose_GetSubShelf:
+		payload = &croutinetasktypes.GetSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteSubShelf:
+		payload = &croutinetasktypes.DeleteSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetBlockPack:
+		payload = &croutinetasktypes.GetBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteBlockPack:
+		payload = &croutinetasktypes.DeleteBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetRoutine:
+		payload = &croutinetasktypes.GetRoutineRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteRoutine:
+		payload = &croutinetasktypes.DeleteRoutineRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_GetMaterial:
+		payload = &croutinetasktypes.GetMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_CreateMaterial:
+		payload = &croutinetasktypes.CreateMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_UpdateMaterial:
+		payload = &croutinetasktypes.UpdateMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_DeleteMaterial:
+		payload = &croutinetasktypes.DeleteMaterialRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_CreateSubShelf:
+		payload = &croutinetasktypes.CreateSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_UpdateSubShelf:
+		payload = &croutinetasktypes.UpdateSubShelfRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_CreateBlockPack:
+		payload = &croutinetasktypes.CreateBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_UpdateBlockPack:
+		payload = &croutinetasktypes.UpdateBlockPackRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_CreateRoutine:
+		payload = &croutinetasktypes.CreateRoutineRoutineTaskPayload{}
+	case cenums.RoutineTaskPurpose_UpdateRoutine:
+		payload = &croutinetasktypes.UpdateRoutineRoutineTaskPayload{}
+	default:
+		return nil, p.exceptions.InvalidPayload(
+			fmt.Errorf("unsupported routine task purpose: %s", assignment.Purpose),
+		)
+	}
+
+	if err := json.Unmarshal(assignment.Payload, payload); err != nil {
+		return nil, p.exceptions.InvalidPayload(err)
+	}
+	if p.validator != nil {
+		if err := p.validator.Struct(payload); err != nil {
+			return nil, p.exceptions.InvalidPayload(err)
+		}
+	}
+
+	rawPayload, err := json.Marshal(payload)
+	if err != nil {
+		return nil, p.exceptions.InvalidPayload(err)
+	}
+	var payloadValue any
+	if err := json.Unmarshal(rawPayload, &payloadValue); err != nil {
+		return nil, p.exceptions.InvalidPayload(err)
+	}
+	payloadValue = matchPayloadValue(payloadValue, assignment.PatternValues, true)
+	preparedPayload, err := json.Marshal(payloadValue)
+	if err != nil {
+		return nil, p.exceptions.InvalidPayload(err)
+	}
+
+	return &croutinetasktypes.PreparedRoutineTask{
+		RoutineTaskId:       assignment.RoutineTaskId,
+		RoutineTaskRecordId: assignment.RoutineTaskRecordId,
+		RoutineRecordId:     assignment.RoutineRecordId,
+		RoutineId:           assignment.RoutineId,
+		ActorUserId:         assignment.ActorUserId,
+		ActorUserPublicId:   assignment.ActorUserPublicId,
+		Attempt:             assignment.Attempt,
+		Purpose:             assignment.Purpose,
+		Payload:             preparedPayload,
+		PreparedAt:          time.Now().UTC(),
+	}, nil
 }

@@ -13,10 +13,50 @@ import (
 	croutinetasktypes "github.com/HiIamJeff67/notegic-backend/contracts/durable-job/v1/types/routine-tasks"
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
+	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
+
 	routinetaskservice "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask"
+	routinetaskmatchers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/matchers"
+	routinetaskresolvers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/execution/resolvers"
 	routinetaskvalidation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
 	stypes "github.com/HiIamJeff67/notegic-backend/shared/types"
 )
+
+func newRoutineTaskExecutionService(db *gorm.DB) routinetaskservice.RoutineTaskExecutionServiceInterface {
+	blockPackScope := scopes.NewBlockPackScope()
+	blockScope := scopes.NewBlockScope()
+	materialScope := scopes.NewMaterialScope()
+	routineScope := scopes.NewRoutineScope()
+	routineTaskRecordScope := scopes.NewRoutineTaskRecordScope()
+	subShelfScope := scopes.NewSubShelfScope()
+	rootShelfRepository := srepositories.NewRootShelfRepository(db, scopes.NewRootShelfScope())
+	stationRepository := srepositories.NewStationRepository(db, scopes.NewStationScope())
+	subShelfRepository := srepositories.NewSubShelfRepository(db, subShelfScope, rootShelfRepository)
+	bulkBlockPackRepository := srepositories.NewBulkBlockPackRepository(db, blockPackScope)
+	blockPackRepository := srepositories.NewBlockPackRepository(db, blockPackScope, bulkBlockPackRepository, subShelfRepository)
+	blockRepository := srepositories.NewBlockRepository(db, blockScope, bulkBlockPackRepository)
+	routineRepository := srepositories.NewRoutineRepository(db, routineScope, stationRepository)
+	materialRepository := srepositories.NewMaterialRepository(db, materialScope, subShelfRepository)
+
+	return routinetaskservice.NewRoutineTaskExecutionService(
+		routinetaskvalidation.New(),
+		db,
+		srepositories.NewRoutineTaskRecordRepository(db, routineTaskRecordScope),
+		routinetaskresolvers.NewRoutineTaskPatternResolver(
+			routinetaskresolvers.NewBlockPatternResolver(blockRepository),
+			routinetaskresolvers.NewBlockPackPatternResolver(blockPackRepository),
+		),
+		routinetaskmatchers.NewRoutineTaskTemplateMatcher(),
+		subShelfRepository,
+		blockPackRepository,
+		blockRepository,
+		routineRepository,
+		materialRepository,
+		nil,
+		nil,
+	)
+}
 
 func TestApplyPreparedRoutineTasksCreatesNestedSubShelvesWithPlannedIdentity(t *testing.T) {
 	db := openRoutineTaskClaimIntegrationDB(t)
@@ -98,7 +138,7 @@ func TestApplyPreparedRoutineTasksCreatesNestedSubShelvesWithPlannedIdentity(t *
 	}
 	storeExecutionPlan(t, db, routineRecordId, plan, now)
 
-	service := routinetaskservice.NewRoutineTaskExecutionService(routinetaskvalidation.New(), db, nil, nil)
+	service := newRoutineTaskExecutionService(db)
 	request := &cdurablejob.MarkCompletedRoutineTasksRequestDto{
 		WorkerId: uuid.New(),
 		Tasks: []croutinetasktypes.CompletedRoutineTask{
@@ -111,7 +151,7 @@ func TestApplyPreparedRoutineTasksCreatesNestedSubShelvesWithPlannedIdentity(t *
 		t.Fatalf("apply nested sub shelf tasks: %v", exception)
 	}
 
-	rebuiltService := routinetaskservice.NewRoutineTaskExecutionService(routinetaskvalidation.New(), db, nil, nil)
+	rebuiltService := newRoutineTaskExecutionService(db)
 	if exception := rebuiltService.ApplyPreparedRoutineTasks(t.Context(), uuid.New(), request); exception != nil {
 		t.Fatalf("replay nested sub shelf tasks: %v", exception)
 	}
@@ -228,7 +268,7 @@ func TestApplyPreparedRoutineTasksRollsBackAllObjectsWhenPermissionFails(t *test
 		PlannedObjectIds:        map[string]uuid.UUID{},
 	}, now)
 
-	service := routinetaskservice.NewRoutineTaskExecutionService(routinetaskvalidation.New(), db, nil, nil)
+	service := newRoutineTaskExecutionService(db)
 	request := &cdurablejob.MarkCompletedRoutineTasksRequestDto{
 		WorkerId: uuid.New(),
 		Tasks: []croutinetasktypes.CompletedRoutineTask{
@@ -295,7 +335,7 @@ func TestApplyPreparedRoutineTasksRollsBackOnDeferredParentForeignKeyFailure(t *
 		PlannedObjectIds:        map[string]uuid.UUID{},
 	}, now)
 
-	service := routinetaskservice.NewRoutineTaskExecutionService(routinetaskvalidation.New(), db, nil, nil)
+	service := newRoutineTaskExecutionService(db)
 	request := &cdurablejob.MarkCompletedRoutineTasksRequestDto{
 		WorkerId: uuid.New(),
 		Tasks: []croutinetasktypes.CompletedRoutineTask{
@@ -406,7 +446,7 @@ func TestApplyPreparedRoutineTasksRollsBackOnTriggerFailure(t *testing.T) {
 		t.Fatalf("create sub shelf failure trigger: %v", result.Error)
 	}
 
-	service := routinetaskservice.NewRoutineTaskExecutionService(routinetaskvalidation.New(), db, nil, nil)
+	service := newRoutineTaskExecutionService(db)
 	request := &cdurablejob.MarkCompletedRoutineTasksRequestDto{
 		WorkerId: uuid.New(),
 		Tasks: []croutinetasktypes.CompletedRoutineTask{

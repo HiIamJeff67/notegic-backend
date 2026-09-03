@@ -38,10 +38,11 @@ type BlockRepository struct {
 func NewBlockRepository(
 	db *gorm.DB,
 	blockScope scopes.BlockScopeInterface,
+	blockPackRepository *BulkBlockPackRepository,
 ) BlockRepositoryInterface {
 	return &BlockRepository{
 		db:                  db,
-		BulkBlockRepository: *NewBulkBlockRepository(db, blockScope),
+		BulkBlockRepository: *NewBulkBlockRepository(db, blockScope, blockPackRepository),
 		blockScope:          blockScope,
 		exceptions:          exceptions.NewBlockException(),
 	}

@@ -52,18 +52,21 @@ type SubShelfRepositoryInterface interface {
 type SubShelfRepository struct {
 	db *gorm.DB
 	BulkSubShelfRepository
-	subShelfScope scopes.SubShelfScopeInterface
-	exceptions    exceptions.ShelfException
+	subShelfScope       scopes.SubShelfScopeInterface
+	rootShelfRepository RootShelfRepositoryInterface
+	exceptions          exceptions.ShelfException
 }
 
 func NewSubShelfRepository(
 	db *gorm.DB,
 	subShelfScope scopes.SubShelfScopeInterface,
+	rootShelfRepository RootShelfRepositoryInterface,
 ) SubShelfRepositoryInterface {
 	return &SubShelfRepository{
 		db:                     db,
 		BulkSubShelfRepository: *NewBulkSubShelfRepository(db, subShelfScope),
 		subShelfScope:          subShelfScope,
+		rootShelfRepository:    rootShelfRepository,
 		exceptions:             exceptions.NewShelfException(),
 	}
 }
@@ -290,9 +293,7 @@ func (r *SubShelfRepository) CreateOneByRootShelfId(
 		prevSubShelf.Path = append(prevSubShelf.Path, prevSubShelf.Id)
 		newSubShelf.Path = prevSubShelf.Path
 	} else {
-		rootShelfRepository := NewRootShelfRepository(r.db, scopes.NewRootShelfScope())
-
-		if !rootShelfRepository.HasPermission(
+		if !r.rootShelfRepository.HasPermission(
 			rootShelfId,
 			userId,
 			parsedOptions.AllowedPermissions,
@@ -389,9 +390,7 @@ func (r *SubShelfRepository) CreateManyByRootShelfIds(
 		isPrevSubShelfValid[validPrevSubShelf.Id] = &validPrevSubShelf.RootShelfId
 	}
 
-	rootShelfRepository := NewRootShelfRepository(r.db, scopes.NewRootShelfScope())
-
-	validRootShelves, _, exception := rootShelfRepository.CheckPermissionsAndGetManyByIds(
+	validRootShelves, _, exception := r.rootShelfRepository.CheckPermissionsAndGetManyByIds(
 		rootShelfIds,
 		userId,
 		nil,

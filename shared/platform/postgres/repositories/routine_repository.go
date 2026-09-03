@@ -53,18 +53,21 @@ type RoutineRepositoryInterface interface {
 type RoutineRepository struct {
 	db *gorm.DB
 	BulkRoutineRepository
-	routineScope scopes.RoutineScopeInterface
-	exceptions   exceptions.RoutineException
+	routineScope      scopes.RoutineScopeInterface
+	stationRepository StationRepositoryInterface
+	exceptions        exceptions.RoutineException
 }
 
 func NewRoutineRepository(
 	db *gorm.DB,
 	routineScope scopes.RoutineScopeInterface,
+	stationRepository StationRepositoryInterface,
 ) RoutineRepositoryInterface {
 	return &RoutineRepository{
 		db:                    db,
 		BulkRoutineRepository: *NewBulkRoutineRepository(db, routineScope),
 		routineScope:          routineScope,
+		stationRepository:     stationRepository,
 		exceptions:            exceptions.NewRoutineException(),
 	}
 }
@@ -350,8 +353,7 @@ func (r *RoutineRepository) CreateOneByStationId(
 		opts = append(opts, WithLockingStrength(LockingStrengthNoKeyUpdate))
 	}
 
-	stationRepository := NewStationRepository(r.db, scopes.NewStationScope())
-	if !stationRepository.HasPermission(
+	if !r.stationRepository.HasPermission(
 		stationId,
 		userId,
 		parsedOptions.AllowedPermissions,
@@ -424,8 +426,7 @@ func (r *RoutineRepository) CreateManyByStationIds(
 	for index, in := range input {
 		stationIds[index] = in.StationId
 	}
-	stationRepository := NewStationRepository(r.db, scopes.NewStationScope())
-	validStations, _, exception := stationRepository.CheckPermissionsAndGetManyByIds(
+	validStations, _, exception := r.stationRepository.CheckPermissionsAndGetManyByIds(
 		stationIds,
 		userId,
 		nil,
@@ -524,8 +525,7 @@ func (r *RoutineRepository) UpdateOneById(
 		return nil, exception
 	}
 	if input.Values.StationId != nil && !partialupdate.CheckSetNull(input.SetNull, "StationId") {
-		stationRepository := NewStationRepository(r.db, scopes.NewStationScope())
-		if !stationRepository.HasPermission(
+		if !r.stationRepository.HasPermission(
 			*input.Values.StationId,
 			userId,
 			parsedOptions.AllowedPermissions,
@@ -565,8 +565,13 @@ func (r *RoutineRepository) UpdateOneById(
 		Where(`"RoutineTable".id = ? AND "RoutineTable".deleted_at IS NULL`, id).
 		Updates(map[string]interface{}{
 			"definition_version": gorm.Expr("definition_version + 1"),
-			"status":             gorm.Expr("CASE WHEN status IN (?, ?) THEN ? ELSE status END", cenums.RoutineStatus_Completed, cenums.RoutineStatus_OverDue, cenums.RoutineStatus_Scheduled),
-			"updated_at":         time.Now().UTC(),
+			"status": gorm.Expr(
+				`CASE WHEN status IN (?::"RoutineStatus", ?::"RoutineStatus") THEN ?::"RoutineStatus" ELSE status END`,
+				cenums.RoutineStatus_Completed,
+				cenums.RoutineStatus_OverDue,
+				cenums.RoutineStatus_Scheduled,
+			),
+			"updated_at": time.Now().UTC(),
 		})
 	if result.Error != nil {
 		parsedOptions.DB.Rollback()
@@ -639,8 +644,7 @@ func (r *RoutineRepository) UpdateManyByIds(
 		for targetStationId := range targetStationIdSet {
 			targetStationIds = append(targetStationIds, targetStationId)
 		}
-		stationRepository := NewStationRepository(r.db, scopes.NewStationScope())
-		if !stationRepository.HavePermissions(
+		if !r.stationRepository.HavePermissions(
 			targetStationIds,
 			userId,
 			parsedOptions.AllowedPermissions,
