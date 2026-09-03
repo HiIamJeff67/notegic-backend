@@ -114,7 +114,7 @@ func AuthMiddleware(
 			nil,
 			srepositories.WithDB(db),
 		)
-		if exception != nil || user.RefreshToken != refreshToken || user.UserAgent != userAgent {
+		if exception != nil || user == nil || user.RefreshToken != refreshToken || user.UserAgent != userAgent {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, cgateway.Response[struct{}]{
 				Version: cgateway.Version,
 				Metadata: cgateway.ResponseMetadata{
@@ -166,7 +166,27 @@ func AuthMiddleware(
 		} else {
 			userDataCache, exception := userDataCacheClient.Get(user.Name)
 			if exception != nil {
-				err = exception
+				if exception.Reason != "NotFound" {
+					err = exception
+				} else {
+					newCSRFToken, err = sharedtokens.GenerateCSRFToken(sharedtokens.CSRFTokenClaims{})
+					if err == nil {
+						err = userDataCacheClient.Set(user.Name, userdata.UserDataCache{
+							Id:          user.Id,
+							PublicId:    user.PublicId,
+							Name:        user.Name,
+							DisplayName: user.DisplayName,
+							Email:       user.Email,
+							AccessToken: *newAccessToken,
+							CSRFToken:   *newCSRFToken,
+							Role:        user.Role,
+							Plan:        user.Plan,
+							Status:      user.Status,
+							CreatedAt:   user.CreatedAt,
+							UpdatedAt:   user.UpdatedAt,
+						})
+					}
+				}
 			} else if request.Tokens.CSRFToken != "" && request.Tokens.CSRFToken != userDataCache.CSRFToken {
 				newCSRFToken = &userDataCache.CSRFToken
 			} else {
