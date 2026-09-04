@@ -320,9 +320,9 @@
               }
             }
           ],
-          "name": "get-all-my-block-packs-by-root-shelf-id",
+          "name": "get-my-block-packs-by-root-shelf-id",
           "request": {
-            "description": "Get All My Block Packs By Root Shelf Id. Go DTO: `GetAllMyBlockPacksByRootShelfIdRequestDto`; response DTO: `GetAllMyBlockPacksByRootShelfIdResponseDto`.",
+            "description": "Get My Block Packs By Root Shelf Id. Go DTO: `GetMyBlockPacksByRootShelfIdRequestDto`; response DTO: `GetMyBlockPacksByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -988,9 +988,9 @@
               }
             }
           ],
-          "name": "get-all-my-materials-by-root-shelf-id",
+          "name": "get-my-materials-by-root-shelf-id",
           "request": {
-            "description": "Get All My Materials By Root Shelf Id. Go DTO: `GetAllMyMaterialsByRootShelfIdRequestDto`; response DTO: `GetAllMyMaterialsByRootShelfIdResponseDto`.",
+            "description": "Get My Materials By Root Shelf Id. Go DTO: `GetMyMaterialsByRootShelfIdRequestDto`; response DTO: `GetMyMaterialsByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -3147,6 +3147,48 @@
               }
             }
           ],
+          "name": "get-my-routine-tasks-by-routine-id",
+          "request": {
+            "description": "Get My Routine Tasks By Routine Id. Go DTO: `GetMyRoutineTasksByRoutineIdRequestDto`; response DTO: `GetMyRoutineTasksByRoutineIdResponseDto`.",
+            "header": [
+              {
+                "key": "User-Agent",
+                "type": "text",
+                "value": "{{userAgent}}"
+              },
+              {
+                "key": "X-API-Key",
+                "type": "text",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{apiGatewayBaseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "areDeleted",
+                  "value": "true"
+                }
+              ],
+              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/routine/{{routineId}}?areDeleted=true"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "name": "create-routine-task-by-routine-id",
           "request": {
             "body": {
@@ -3182,52 +3224,6 @@
                 "{{apiGatewayBaseUrl}}"
               ],
               "raw": "{{apiGatewayBaseUrl}}/routine-tasks/routine/{{routineId}}"
-            }
-          }
-        },
-        {
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('HTTP response is below 500', function () { pm.expect(pm.response.code).to.be.below(500); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "name": "get-all-my-routine-tasks-by-routine-ids",
-          "request": {
-            "description": "Get All My Routine Tasks By Routine Ids. Go DTO: `GetAllMyRoutineTasksByRoutineIdsRequestDto`; response DTO: `GetAllMyRoutineTasksByRoutineIdsResponseDto`.",
-            "header": [
-              {
-                "key": "User-Agent",
-                "type": "text",
-                "value": "{{userAgent}}"
-              },
-              {
-                "key": "X-API-Key",
-                "type": "text",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "method": "GET",
-            "url": {
-              "host": [
-                "{{apiGatewayBaseUrl}}"
-              ],
-              "query": [
-                {
-                  "key": "areDeleted",
-                  "value": "true"
-                },
-                {
-                  "key": "routineIds",
-                  "value": "00000000-0000-4000-8000-000000000001"
-                }
-              ],
-              "raw": "{{apiGatewayBaseUrl}}/routine-tasks/routines?areDeleted=true\u0026routineIds=00000000-0000-4000-8000-000000000001"
             }
           }
         },
@@ -3432,9 +3428,9 @@
               }
             }
           ],
-          "name": "get-all-my-routines-by-time-range",
+          "name": "get-my-routines-by-time-range",
           "request": {
-            "description": "Get All My Routines By Time Range. Go DTO: `GetAllMyRoutinesByTimeRangeRequestDto`; response DTO: `GetAllMyRoutinesByTimeRangeResponseDto`.",
+            "description": "Get My Routines By Time Range. Go DTO: `GetMyRoutinesByTimeRangeRequestDto`; response DTO: `GetMyRoutinesByTimeRangeResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -5890,9 +5886,9 @@
               }
             }
           ],
-          "name": "get-all-my-sub-shelves-by-root-shelf-id",
+          "name": "get-my-sub-shelves-by-root-shelf-id",
           "request": {
-            "description": "Get All My Sub Shelves By Root Shelf Id. Go DTO: `GetAllMySubShelvesByRootShelfIdRequestDto`; response DTO: `GetAllMySubShelvesByRootShelfIdResponseDto`.",
+            "description": "Get My Sub Shelves By Root Shelf Id. Go DTO: `GetMySubShelvesByRootShelfIdRequestDto`; response DTO: `GetMySubShelvesByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",

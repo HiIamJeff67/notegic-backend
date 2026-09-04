@@ -16,7 +16,7 @@ import (
 type SubShelfControllerInterface interface {
 	GetMySubShelfById(ctx *gin.Context, requestDto *capi.GetMySubShelfByIdRequestDto)
 	GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByPrevSubShelfIdRequestDto)
-	GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMySubShelvesByRootShelfIdRequestDto)
+	GetMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByRootShelfIdRequestDto)
 	GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto)
 	CreateSubShelfByRootShelfId(ctx *gin.Context, requestDto *capi.CreateSubShelfByRootShelfIdRequestDto)
 	CreateSubShelvesByRootShelfIds(ctx *gin.Context, requestDto *capi.CreateSubShelvesByRootShelfIdsRequestDto)
@@ -91,16 +91,16 @@ func (c *SubShelfController) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context, r
 	)
 }
 
-func (c *SubShelfController) GetAllMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMySubShelvesByRootShelfIdRequestDto) {
+func (c *SubShelfController) GetMySubShelvesByRootShelfId(ctx *gin.Context, requestDto *capi.GetMySubShelvesByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		capi.GetAllMySubShelvesByRootShelfIdRequestDto,
-		capi.GetAllMySubShelvesByRootShelfIdResponseDto,
+		capi.GetMySubShelvesByRootShelfIdRequestDto,
+		capi.GetMySubShelvesByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		capi.GetAllMySubShelvesByRootShelfIdOperation,
-		"/core/v1/sub-shelves/get-all-by-root-shelf-id",
+		capi.GetMySubShelvesByRootShelfIdOperation,
+		"/core/v1/sub-shelves/get-by-root-shelf-id",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

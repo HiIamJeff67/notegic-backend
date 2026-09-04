@@ -85,7 +85,7 @@ type GetMyBlockPacksByParentSubShelfIdRequestDto struct {
 
 type GetMyBlockPacksByParentSubShelfIdResponseDto []BlockPackResponseDto
 
-type GetAllMyBlockPacksByRootShelfIdRequestDto struct {
+type GetMyBlockPacksByRootShelfIdRequestDto struct {
 	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
@@ -99,4 +99,4 @@ type GetAllMyBlockPacksByRootShelfIdRequestDto struct {
 	]
 }
 
-type GetAllMyBlockPacksByRootShelfIdResponseDto []BlockPackResponseDto
+type GetMyBlockPacksByRootShelfIdResponseDto []BlockPackResponseDto

@@ -19,7 +19,6 @@ type BlockPackYjsUpdate struct {
 	CompactedAt        *time.Time `json:"compactedAt" gorm:"column:compacted_at; type:timestamptz; default:null;"`
 	CreatedAt          time.Time  `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	BlockPack BlockPack `json:"blockPack" gorm:"foreignKey:BlockPackId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }
 

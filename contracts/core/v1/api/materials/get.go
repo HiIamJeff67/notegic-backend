@@ -77,7 +77,7 @@ type GetMyMaterialsByParentSubShelfIdRequestDto struct {
 
 type GetMyMaterialsByParentSubShelfIdResponseDto []MaterialResponseDto
 
-type GetAllMyMaterialsByRootShelfIdRequestDto struct {
+type GetMyMaterialsByRootShelfIdRequestDto struct {
 	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
@@ -91,4 +91,4 @@ type GetAllMyMaterialsByRootShelfIdRequestDto struct {
 	]
 }
 
-type GetAllMyMaterialsByRootShelfIdResponseDto []MaterialResponseDto
+type GetMyMaterialsByRootShelfIdResponseDto []MaterialResponseDto

@@ -36,7 +36,7 @@ type MaterialServiceInterface interface {
 	GetMyMaterialById(ctx context.Context, requestDto *capi.GetMyMaterialByIdRequestDto) (*capi.GetMyMaterialByIdResponseDto, *cexceptions.Exception)
 	GetMyMaterialAndItsParentById(ctx context.Context, requestDto *capi.GetMyMaterialAndItsParentByIdRequestDto) (*capi.GetMyMaterialAndItsParentByIdResponseDto, *cexceptions.Exception)
 	GetMyMaterialsByParentSubShelfId(ctx context.Context, requestDto *capi.GetMyMaterialsByParentSubShelfIdRequestDto) (*capi.GetMyMaterialsByParentSubShelfIdResponseDto, *cexceptions.Exception)
-	GetAllMyMaterialsByRootShelfId(ctx context.Context, requestDto *capi.GetAllMyMaterialsByRootShelfIdRequestDto) (*capi.GetAllMyMaterialsByRootShelfIdResponseDto, *cexceptions.Exception)
+	GetMyMaterialsByRootShelfId(ctx context.Context, requestDto *capi.GetMyMaterialsByRootShelfIdRequestDto) (*capi.GetMyMaterialsByRootShelfIdResponseDto, *cexceptions.Exception)
 	CreateMyMaterial(ctx context.Context, requestDto *capi.CreateMyMaterialRequestDto) (*capi.CreateMyMaterialResponseDto, *cexceptions.Exception)
 	UpdateMyMaterialById(ctx context.Context, requestDto *capi.UpdateMyMaterialByIdRequestDto) (*capi.UpdateMyMaterialByIdResponseDto, *cexceptions.Exception)
 	SaveMyMaterialById(ctx context.Context, requestDto *capi.SaveMyMaterialByIdRequestDto) (*capi.SaveMyMaterialByIdResponseDto, *cexceptions.Exception)
@@ -278,9 +278,9 @@ func (s *MaterialService) GetMyMaterialsByParentSubShelfId(
 	return &resDto, nil
 }
 
-func (s *MaterialService) GetAllMyMaterialsByRootShelfId(
-	ctx context.Context, requestDto *capi.GetAllMyMaterialsByRootShelfIdRequestDto,
-) (*capi.GetAllMyMaterialsByRootShelfIdResponseDto, *cexceptions.Exception) {
+func (s *MaterialService) GetMyMaterialsByRootShelfId(
+	ctx context.Context, requestDto *capi.GetMyMaterialsByRootShelfIdRequestDto,
+) (*capi.GetMyMaterialsByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, s.materialException.InvalidDto().WithOrigin(err)
 	}
@@ -319,7 +319,7 @@ func (s *MaterialService) GetAllMyMaterialsByRootShelfId(
 		return nil, s.materialException.NotFound()
 	}
 
-	resDto := capi.GetAllMyMaterialsByRootShelfIdResponseDto{}
+	resDto := capi.GetMyMaterialsByRootShelfIdResponseDto{}
 	for _, material := range materials {
 		downloadURL, err := s.storage.PresignGetObjectByKey(ctx, material.ContentKey, nil)
 		if err != nil {

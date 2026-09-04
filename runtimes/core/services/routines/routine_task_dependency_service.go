@@ -21,34 +21,13 @@ import (
 )
 
 type RoutineTaskDependencyServiceInterface interface {
-	GetRoutineTaskDependenciesByRoutineId(
-		ctx context.Context,
-		request *capi.GetRoutineTaskDependenciesByRoutineIdRequestDto,
-	) (*capi.GetRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
-	CreateRoutineTaskDependencyByRoutineId(
-		ctx context.Context,
-		request *capi.CreateRoutineTaskDependencyByRoutineIdRequestDto,
-	) (*capi.CreateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
-	CreateRoutineTaskDependenciesByRoutineId(
-		ctx context.Context,
-		request *capi.CreateRoutineTaskDependenciesByRoutineIdRequestDto,
-	) (*capi.CreateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
-	UpdateRoutineTaskDependencyByRoutineId(
-		ctx context.Context,
-		request *capi.UpdateRoutineTaskDependencyByRoutineIdRequestDto,
-	) (*capi.UpdateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
-	UpdateRoutineTaskDependenciesByRoutineId(
-		ctx context.Context,
-		request *capi.UpdateRoutineTaskDependenciesByRoutineIdRequestDto,
-	) (*capi.UpdateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
-	DeleteRoutineTaskDependencyByRoutineId(
-		ctx context.Context,
-		request *capi.DeleteRoutineTaskDependencyByRoutineIdRequestDto,
-	) (*capi.DeleteRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
-	DeleteRoutineTaskDependenciesByRoutineId(
-		ctx context.Context,
-		request *capi.DeleteRoutineTaskDependenciesByRoutineIdRequestDto,
-	) (*capi.DeleteRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
+	GetRoutineTaskDependenciesByRoutineId(ctx context.Context, request *capi.GetRoutineTaskDependenciesByRoutineIdRequestDto) (*capi.GetRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
+	CreateRoutineTaskDependencyByRoutineId(ctx context.Context, request *capi.CreateRoutineTaskDependencyByRoutineIdRequestDto) (*capi.CreateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
+	CreateRoutineTaskDependenciesByRoutineId(ctx context.Context, request *capi.CreateRoutineTaskDependenciesByRoutineIdRequestDto) (*capi.CreateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
+	UpdateRoutineTaskDependencyByRoutineId(ctx context.Context, request *capi.UpdateRoutineTaskDependencyByRoutineIdRequestDto) (*capi.UpdateRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
+	UpdateRoutineTaskDependenciesByRoutineId(ctx context.Context, request *capi.UpdateRoutineTaskDependenciesByRoutineIdRequestDto) (*capi.UpdateRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
+	DeleteRoutineTaskDependencyByRoutineId(ctx context.Context, request *capi.DeleteRoutineTaskDependencyByRoutineIdRequestDto) (*capi.DeleteRoutineTaskDependencyByRoutineIdResponseDto, *cexceptions.Exception)
+	DeleteRoutineTaskDependenciesByRoutineId(ctx context.Context, request *capi.DeleteRoutineTaskDependenciesByRoutineIdRequestDto) (*capi.DeleteRoutineTaskDependenciesByRoutineIdResponseDto, *cexceptions.Exception)
 }
 
 type RoutineTaskDependencyService struct {
@@ -88,9 +67,6 @@ func validateRoutineTaskDependencyBatch(
 	graph := make(map[uuid.UUID][]uuid.UUID, len(routineTasks))
 	for _, routineTask := range routineTasks {
 		taskIds[routineTask.Id] = struct{}{}
-		for _, previousTask := range routineTask.PreviousTasks {
-			graph[routineTask.Id] = append(graph[routineTask.Id], previousTask.Id)
-		}
 	}
 	for _, dependency := range dependencies {
 		graph[dependency.RoutineTaskId] = append(graph[dependency.RoutineTaskId], dependency.PreviousRoutineTaskId)
@@ -249,7 +225,7 @@ func (s *RoutineTaskDependencyService) CreateRoutineTaskDependenciesByRoutineId(
 	routineTasks, exception := s.routineTaskRepository.GetAllByRoutineIds(
 		[]uuid.UUID{request.Param.RoutineId},
 		actorUserId,
-		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
+		nil,
 		srepositories.WithTransactionDB(tx),
 		srepositories.WithAllowedPermissions(allowedPermissions),
 		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),
@@ -380,7 +356,7 @@ func (s *RoutineTaskDependencyService) UpdateRoutineTaskDependenciesByRoutineId(
 	_, exception = s.routineTaskRepository.GetAllByRoutineIds(
 		[]uuid.UUID{request.Param.RoutineId},
 		actorUserId,
-		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
+		nil,
 		srepositories.WithTransactionDB(tx),
 		srepositories.WithAllowedPermissions(allowedPermissions),
 		srepositories.WithLockingStrength(srepositories.LockingStrengthUpdate),

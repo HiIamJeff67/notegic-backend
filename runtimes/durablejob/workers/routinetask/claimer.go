@@ -168,6 +168,13 @@ func (c *Claimer) ClaimRoutines(
 			tx.Rollback()
 			return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to retrieve routine tasks", http.StatusInternalServerError, true).WithOrigin(result.Error)
 		}
+		result = tx.Model(&sschemas.RoutineTask{}).
+			Where("routine_id IN ?", routineIds).
+			Update("phase", cenums.RoutinePhase_Claimed)
+		if result.Error != nil {
+			tx.Rollback()
+			return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to update claimed routine task phases", http.StatusInternalServerError, true).WithOrigin(result.Error)
+		}
 		if len(routineTasks) > 0 {
 			taskIds := make([]uuid.UUID, len(routineTasks))
 			for index, task := range routineTasks {
@@ -632,6 +639,13 @@ func (c *Claimer) ClaimRoutines(
 	if result.Error != nil {
 		tx.Rollback()
 		return nil, cexceptions.New("ClaimFailed", "Routine", "Claim", "Failed to update claimed routine phases", http.StatusInternalServerError, true).WithOrigin(result.Error)
+	}
+	result = tx.Model(&sschemas.RoutineTask{}).
+		Where("routine_id IN (?)", routineIdsForPhase).
+		Update("phase", cenums.RoutinePhase_Claimed)
+	if result.Error != nil {
+		tx.Rollback()
+		return nil, cexceptions.New("ClaimFailed", "RoutineTask", "Claim", "Failed to update claimed routine task phases", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 	consumedIds := make(map[uuid.UUID]struct{}, len(consumedRecordIds))
 	for _, id := range consumedRecordIds {

@@ -57,12 +57,12 @@ func configureMaterialRoutes(
 			endpoint.GetMyMaterialsByParentSubShelfId,
 		)
 		materialRoutes.POST(
-			"/get-all-by-root-shelf-id",
+			"/get-by-root-shelf-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMyMaterialsByRootShelfIdOperation,
+				capi.GetMyMaterialsByRootShelfIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
-			endpoint.GetAllMyMaterialsByRootShelfId,
+			endpoint.GetMyMaterialsByRootShelfId,
 		)
 		materialRoutes.POST(
 			"/create",

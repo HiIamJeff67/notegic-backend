@@ -164,7 +164,7 @@ func (r *RoutineTaskRepository) CheckPermissionAndGetOneById(
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		First(&routineTask)
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
-		{First: result.Error != nil, Second: r.exceptions.NotFound().WithOrigin(result.Error)},
+		{First: result.Error != nil, Second: r.exceptions.FailedToGet().WithOrigin(result.Error)},
 		{First: routineTask.Id == uuid.Nil, Second: r.exceptions.NotFound()},
 	}); exception != nil {
 		return nil, exception
@@ -194,7 +194,7 @@ func (r *RoutineTaskRepository) CheckPermissionsAndGetManyByIds(
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&routineTasks)
 	if exception := cexceptions.Cover(nil, []cexceptions.Pair{
-		{First: result.Error != nil, Second: r.exceptions.NotFound().WithOrigin(result.Error)},
+		{First: result.Error != nil, Second: r.exceptions.FailedToGet().WithOrigin(result.Error)},
 		{First: len(routineTasks) == 0, Second: r.exceptions.NotFound()},
 	}); exception != nil {
 		return nil, exception
@@ -243,7 +243,7 @@ func (r *RoutineTaskRepository) GetAllByUserId(
 		Scopes(r.routineTaskScope.IncludePreloads(preloads)).
 		Find(&routineTasks)
 	if result.Error != nil {
-		return nil, r.exceptions.NotFound().WithOrigin(result.Error)
+		return nil, r.exceptions.FailedToGet().WithOrigin(result.Error)
 	}
 
 	return routineTasks, nil
@@ -277,7 +277,7 @@ func (r *RoutineTaskRepository) GetAllByRoutineIds(
 		Scopes(scopes.Locking(parsedOptions.LockingStrength)).
 		Find(&routineTasks)
 	if result.Error != nil {
-		return nil, r.exceptions.NotFound().WithOrigin(result.Error)
+		return nil, r.exceptions.FailedToGet().WithOrigin(result.Error)
 	}
 
 	return routineTasks, nil
@@ -686,15 +686,20 @@ func (r *RoutineTaskRepository) HardDeleteOneById(
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	var routineId uuid.UUID
+	var routineTask struct {
+		RoutineId uuid.UUID `gorm:"column:routine_id"`
+	}
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTask{}).
 		Select("routine_id").
 		Scopes(r.routineTaskScope.PassPermissionCheck(id, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskTable".id = ?`, id).
-		Scan(&routineId)
+		Find(&routineTask)
 	if result.Error != nil {
 		return r.exceptions.FailedToDelete().WithOrigin(result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return r.exceptions.NoChanges()
 	}
 
 	result = parsedOptions.DB.
@@ -709,7 +714,7 @@ func (r *RoutineTaskRepository) HardDeleteOneById(
 		return exception
 	}
 	if result.RowsAffected > 0 {
-		if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, []uuid.UUID{routineId}); exception != nil {
+		if exception := r.incrementRoutineDefinitionVersions(parsedOptions.DB, []uuid.UUID{routineTask.RoutineId}); exception != nil {
 			return exception
 		}
 	}
@@ -731,15 +736,21 @@ func (r *RoutineTaskRepository) HardDeleteManyByIds(
 			WithDB(r.db),
 		}, opts...)...,
 	)
-	var routineIds []uuid.UUID
+	var routineTasks []struct {
+		RoutineId uuid.UUID `gorm:"column:routine_id"`
+	}
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTask{}).
 		Select("DISTINCT routine_id").
 		Scopes(r.routineTaskScope.PassPermissionChecks(ids, userId, parsedOptions.AllowedPermissions)).
 		Where(`"RoutineTaskTable".id IN ?`, ids).
-		Find(&routineIds)
+		Find(&routineTasks)
 	if result.Error != nil {
 		return r.exceptions.FailedToDelete().WithOrigin(result.Error)
+	}
+	routineIds := make([]uuid.UUID, len(routineTasks))
+	for index, routineTask := range routineTasks {
+		routineIds[index] = routineTask.RoutineId
 	}
 
 	result = parsedOptions.DB.

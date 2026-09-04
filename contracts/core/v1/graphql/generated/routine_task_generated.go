@@ -207,6 +207,47 @@ func (ec *executionContext) fieldContext_PrivateRoutineTask_purpose(_ context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _PrivateRoutineTask_phase(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PrivateRoutineTask_phase(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phase, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*enums.RoutinePhase)
+	fc.Result = res
+	return ec.marshalORoutinePhase2ᚖgithubᚗcomᚋHiIamJeff67ᚋnotegicᚑbackendᚋcontractsᚋtypesᚋenumsᚐRoutinePhase(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PrivateRoutineTask_phase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PrivateRoutineTask",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RoutinePhase does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PrivateRoutineTask_payload(ctx context.Context, field graphql.CollectedField, obj *gqlmodels.PrivateRoutineTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PrivateRoutineTask_payload(ctx, field)
 	if err != nil {
@@ -558,6 +599,8 @@ func (ec *executionContext) _PrivateRoutineTask(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "phase":
+			out.Values[i] = ec._PrivateRoutineTask_phase(ctx, field, obj)
 		case "payload":
 			out.Values[i] = ec._PrivateRoutineTask_payload(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

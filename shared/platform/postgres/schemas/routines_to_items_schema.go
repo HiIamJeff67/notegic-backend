@@ -16,7 +16,6 @@ type RoutinesToItems struct {
 	ItemType  cenums.ItemType `json:"itemType" gorm:"column:type; type:\"ItemType\"; primaryKey;"`
 	CreatedAt time.Time       `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	Routine Routine `json:"routine" gorm:"foreignKey:RoutineId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	Item    Item    `json:"item" gorm:"foreignKey:ItemId,ItemType; references:Id,Type; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }

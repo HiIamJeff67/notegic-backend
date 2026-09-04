@@ -109,7 +109,10 @@ async function resetDatabase(): Promise<void> {
   );
   await adminPool.query(`GRANT USAGE ON SCHEMA public TO "${yjsRole}"`);
   await adminPool.query(
-    `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "BlockTable", "BlockPackTable", "BlockPackYjsDocumentTable", "BlockPackYjsUpdateTable" TO "${yjsRole}"`
+    `GRANT SELECT ON TABLE "BlockPackTable" TO "${yjsRole}"`
+  );
+  await adminPool.query(
+    `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "BlockTable", "BlockPackYjsDocumentTable", "BlockPackYjsUpdateTable" TO "${yjsRole}"`
   );
   await adminPool.query(`REVOKE ALL ON TABLE "UserTable" FROM "${yjsRole}"`);
 }

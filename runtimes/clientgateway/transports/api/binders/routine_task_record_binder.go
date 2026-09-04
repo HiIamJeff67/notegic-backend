@@ -18,7 +18,7 @@ import (
 )
 
 type RoutineTaskRecordBinderInterface interface {
-	BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc
+	BindGetMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc
 
 	/* ============================== Visualization Methods ============================== */
 	BindVisualizeMyRoutineTaskRecordStatusCount(controllerFunc controllers.Func[*capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto]) gin.HandlerFunc
@@ -91,9 +91,9 @@ func parseRoutineTaskRecordVisualizationTimeRange(ctx *gin.Context) (int, time.T
 
 /* ============================== Service Methods for RoutineTaskRecord ============================== */
 
-func (b *RoutineTaskRecordBinder) BindGetAllMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskRecordBinder) BindGetMyRoutineTaskRecordsByRoutineTaskId(controllerFunc controllers.Func[*capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto{}
+		requestDto := &capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 
 		routineTaskId, err := uuid.Parse(ctx.Param("routine-task-id"))

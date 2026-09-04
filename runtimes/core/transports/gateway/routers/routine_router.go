@@ -49,12 +49,12 @@ func configureRoutineRoutes(
 			endpoint.GetMyRoutinesByStationId,
 		)
 		routineRoutes.POST(
-			"/get-all-by-time-range",
+			"/get-by-time-range",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMyRoutinesByTimeRangeOperation,
+				capi.GetMyRoutinesByTimeRangeOperation,
 			),
 			apiCompatibleAuthMiddleware,
-			endpoint.GetAllMyRoutinesByTimeRange,
+			endpoint.GetMyRoutinesByTimeRange,
 		)
 		routineRoutes.POST(
 			"/create-by-station-id",

@@ -18,7 +18,8 @@ import (
 
 type RoutineTaskBinderInterface interface {
 	BindGetMyRoutineTaskById(controllerFunc controllers.Func[*capi.GetMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc
+	BindGetMyRoutineTasksByRoutineId(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdRequestDto]) gin.HandlerFunc
+	BindGetMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc
 	BindGetAllMyRoutineTasks(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksRequestDto]) gin.HandlerFunc
 	BindCreateRoutineTaskByRoutineId(controllerFunc controllers.Func[*capi.CreateRoutineTaskByRoutineIdRequestDto]) gin.HandlerFunc
 	BindUpdateMyRoutineTaskById(controllerFunc controllers.Func[*capi.UpdateMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
@@ -93,9 +94,28 @@ func (b *RoutineTaskBinder) BindGetMyRoutineTaskById(controllerFunc controllers.
 	}
 }
 
-func (b *RoutineTaskBinder) BindGetAllMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskBinder) BindGetMyRoutineTasksByRoutineId(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &capi.GetAllMyRoutineTasksByRoutineIdsRequestDto{}
+		requestDto := &capi.GetMyRoutineTasksByRoutineIdRequestDto{}
+		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
+		areDeleted, ok := parseRoutineTaskBool(ctx, "areDeleted")
+		if !ok {
+			return
+		}
+		requestDto.Param.AreDeleted = areDeleted
+		value, ok := parseRoutineTaskUUID(ctx, "routine-id")
+		if !ok {
+			return
+		}
+		requestDto.Param.RoutineId = value
+		controllerFunc(ctx, requestDto)
+		return
+	}
+}
+
+func (b *RoutineTaskBinder) BindGetMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		requestDto := &capi.GetMyRoutineTasksByRoutineIdsRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		areDeleted, ok := parseRoutineTaskBool(ctx, "areDeleted")
 		if !ok {

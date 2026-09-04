@@ -41,12 +41,20 @@ func configureRoutineTaskRoutes(
 			endpoint.GetMyRoutineTaskById,
 		)
 		routineTaskRoutes.POST(
-			"/get-all-by-routine-ids",
+			"/get-by-routine-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMyRoutineTasksByRoutineIdsOperation,
+				capi.GetMyRoutineTasksByRoutineIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
-			endpoint.GetAllMyRoutineTasksByRoutineIds,
+			endpoint.GetMyRoutineTasksByRoutineId,
+		)
+		routineTaskRoutes.POST(
+			"/get-by-routine-ids",
+			middlewares.DelegationAuthenticatedMiddleware(
+				capi.GetMyRoutineTasksByRoutineIdsOperation,
+			),
+			apiCompatibleAuthMiddleware,
+			endpoint.GetMyRoutineTasksByRoutineIds,
 		)
 		routineTaskRoutes.POST(
 			"/get-all",

@@ -17,7 +17,7 @@ import (
 type SubShelfBinderInterface interface {
 	BindGetMySubShelfById(controllerFunc controllers.Func[*capi.GetMySubShelfByIdRequestDto]) gin.HandlerFunc
 	BindGetMySubShelvesByPrevSubShelfId(controllerFunc controllers.Func[*capi.GetMySubShelvesByPrevSubShelfIdRequestDto]) gin.HandlerFunc
-	BindGetAllMySubShelvesByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMySubShelvesByRootShelfIdRequestDto]) gin.HandlerFunc
+	BindGetMySubShelvesByRootShelfId(controllerFunc controllers.Func[*capi.GetMySubShelvesByRootShelfIdRequestDto]) gin.HandlerFunc
 	BindGetMySubShelvesAndItemsByPrevSubShelfId(controllerFunc controllers.Func[*capi.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto]) gin.HandlerFunc
 	BindCreateSubShelfByRootShelfId(controllerFunc controllers.Func[*capi.CreateSubShelfByRootShelfIdRequestDto]) gin.HandlerFunc
 	BindCreateSubShelvesByRootShelfIds(controllerFunc controllers.Func[*capi.CreateSubShelvesByRootShelfIdsRequestDto]) gin.HandlerFunc
@@ -92,9 +92,9 @@ func (b *SubShelfBinder) BindGetMySubShelvesByPrevSubShelfId(controllerFunc cont
 	}
 }
 
-func (b *SubShelfBinder) BindGetAllMySubShelvesByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMySubShelvesByRootShelfIdRequestDto]) gin.HandlerFunc {
+func (b *SubShelfBinder) BindGetMySubShelvesByRootShelfId(controllerFunc controllers.Func[*capi.GetMySubShelvesByRootShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto capi.GetAllMySubShelvesByRootShelfIdRequestDto
+		var requestDto capi.GetMySubShelvesByRootShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 

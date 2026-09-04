@@ -17,7 +17,7 @@ type BlockPackControllerInterface interface {
 	GetMyBlockPackById(ctx *gin.Context, requestDto *capi.GetMyBlockPackByIdRequestDto)
 	GetMyBlockPackAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto)
 	GetMyBlockPacksByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto)
-	GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto)
+	GetMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByRootShelfIdRequestDto)
 	CreateBlockPack(ctx *gin.Context, requestDto *capi.CreateBlockPackRequestDto)
 	CreateBlockPacks(ctx *gin.Context, requestDto *capi.CreateBlockPacksRequestDto)
 	UpdateMyBlockPackById(ctx *gin.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto)
@@ -116,16 +116,16 @@ func (c *BlockPackController) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context
 	)
 }
 
-func (c *BlockPackController) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto) {
+func (c *BlockPackController) GetMyBlockPacksByRootShelfId(ctx *gin.Context, requestDto *capi.GetMyBlockPacksByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		capi.GetAllMyBlockPacksByRootShelfIdRequestDto,
-		capi.GetAllMyBlockPacksByRootShelfIdResponseDto,
+		capi.GetMyBlockPacksByRootShelfIdRequestDto,
+		capi.GetMyBlockPacksByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		capi.GetAllMyBlockPacksByRootShelfIdOperation,
-		"/core/v1/block-packs/get-all-by-root-shelf-id",
+		capi.GetMyBlockPacksByRootShelfIdOperation,
+		"/core/v1/block-packs/get-by-root-shelf-id",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

@@ -40,6 +40,28 @@ station, permission, exception := s.stationRepository.CheckPermissionAndGetOneBy
 - Align new files, transport controllers, adapters, services, repositories, and scopes by domain, for example `station_*`.
 - Create an interface only when the caller needs a replaceable implementation, a boundary already exists, or tests genuinely require it. New interfaces follow the existing `XxxInterface` convention; do not pre-abstract a single struct.
 
+### Collection getter naming
+
+- Use `GetAll` only when the method returns the complete collection visible to
+  the caller without an additional resource, time, or scope filter. User-owned
+  complete collections such as `GetAllMyRoutineTags` and `GetAllMyStations` may
+  retain `All`.
+- Remove `All` when the collection is constrained by a time range, parent/root
+  resource, Routine, RoutineTask, or any other resource filter. Use a name such
+  as `GetMyRoutinesByTimeRange`, `GetMyMaterialsByRootShelfId`, or
+  `GetMyRoutineTasksByRoutineId`.
+- Keep `My` when the service resolves the collection through the authenticated
+  user's visibility and ownership scope. Do not add `My` to internal methods
+  whose caller already supplies a trusted scope.
+- Use the singular resource selector for one resource (`ByRoutineId`) and the
+  plural selector for a set-based API (`ByRoutineIds`). A set-based method must
+  remain one collection query; callers must not replace it with a loop of
+  single-resource API calls.
+- When renaming a public method, update its contract, operation, Core service,
+  gateway endpoint, controller, binder, route, generated public artifacts, and
+  all consumers together. Preserve an existing `GetAllMy...` name only when it
+  satisfies the complete-collection rule above.
+
 ## Service DTO and Repository Input Boundaries
 
 - `XxxInput` under `shared/platform/postgres/repositories/inputs/` is a repository persistence contract: it describes data for create, update, partial-update, or bulk SQL and may only be used as repository input. Services import the shared package as `inputs`; controllers and Gateways must not use it as a transport request/response contract.

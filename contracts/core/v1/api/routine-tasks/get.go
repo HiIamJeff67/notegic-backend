@@ -1,10 +1,29 @@
 package apicontract
 
 import (
+	"time"
+
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
+	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 )
+
+type RoutineTaskResponseDto struct {
+	Id                     uuid.UUID                 `json:"id"`
+	RoutineId              uuid.UUID                 `json:"routineId"`
+	Title                  string                    `json:"title"`
+	Purpose                cenums.RoutineTaskPurpose `json:"purpose"`
+	Phase                  *cenums.RoutinePhase      `json:"phase"`
+	Payload                datatypes.JSON            `json:"payload"`
+	CostUnit               int64                     `json:"costUnit"`
+	Priority               int32                     `json:"priority"`
+	MaxAttempts            int32                     `json:"maxAttempts"`
+	PreviousRoutineTaskIds []uuid.UUID               `json:"previousRoutineTaskIds"`
+	UpdatedAt              time.Time                 `json:"updatedAt"`
+	CreatedAt              time.Time                 `json:"createdAt"`
+}
 
 type GetMyRoutineTaskByIdRequestDto struct {
 	coreapi.RequestDto[
@@ -20,7 +39,24 @@ type GetMyRoutineTaskByIdRequestDto struct {
 	]
 }
 type GetMyRoutineTaskByIdResponseDto = RoutineTaskResponseDto
-type GetAllMyRoutineTasksByRoutineIdsRequestDto struct {
+
+type GetMyRoutineTasksByRoutineIdRequestDto struct {
+	coreapi.RequestDto[
+		struct {
+			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
+		},
+		struct{},
+		struct {
+			RoutineId  uuid.UUID `json:"routineId" validate:"required"`
+			AreDeleted *bool     `json:"areDeleted" validate:"omitnil"`
+		},
+		struct{},
+	]
+}
+
+type GetMyRoutineTasksByRoutineIdResponseDto []RoutineTaskResponseDto
+
+type GetMyRoutineTasksByRoutineIdsRequestDto struct {
 	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
@@ -33,7 +69,7 @@ type GetAllMyRoutineTasksByRoutineIdsRequestDto struct {
 		struct{},
 	]
 }
-type GetAllMyRoutineTasksByRoutineIdsResponseDto []RoutineTaskResponseDto
+type GetMyRoutineTasksByRoutineIdsResponseDto []RoutineTaskResponseDto
 type GetAllMyRoutineTasksRequestDto struct {
 	coreapi.RequestDto[
 		struct {

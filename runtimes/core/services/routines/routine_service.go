@@ -32,7 +32,7 @@ import (
 type RoutineServiceInterface interface {
 	GetMyRoutineById(ctx context.Context, reqDto *capi.GetMyRoutineByIdRequestDto) (*capi.GetMyRoutineByIdResponseDto, *cexceptions.Exception)
 	GetMyRoutinesByStationId(ctx context.Context, reqDto *capi.GetMyRoutinesByStationIdRequestDto) (*capi.GetMyRoutinesByStationIdResponseDto, *cexceptions.Exception)
-	GetAllMyRoutinesByTimeRange(ctx context.Context, reqDto *capi.GetAllMyRoutinesByTimeRangeRequestDto) (*capi.GetAllMyRoutinesByTimeRangeResponseDto, *cexceptions.Exception)
+	GetMyRoutinesByTimeRange(ctx context.Context, reqDto *capi.GetMyRoutinesByTimeRangeRequestDto) (*capi.GetMyRoutinesByTimeRangeResponseDto, *cexceptions.Exception)
 	CreateRoutineByStationId(ctx context.Context, reqDto *capi.CreateRoutineByStationIdRequestDto) (*capi.CreateRoutineByStationIdResponseDto, *cexceptions.Exception)
 	CreateRoutinesByStationIds(ctx context.Context, reqDto *capi.CreateRoutinesByStationIdsRequestDto) (*capi.CreateRoutinesByStationIdsResponseDto, *cexceptions.Exception)
 	UpdateMyRoutineById(ctx context.Context, reqDto *capi.UpdateMyRoutineByIdRequestDto) (*capi.UpdateMyRoutineByIdResponseDto, *cexceptions.Exception)
@@ -413,9 +413,9 @@ func (s *RoutineService) GetMyRoutinesByStationId(
 	return &resDto, nil
 }
 
-func (s *RoutineService) GetAllMyRoutinesByTimeRange(
-	ctx context.Context, reqDto *capi.GetAllMyRoutinesByTimeRangeRequestDto,
-) (*capi.GetAllMyRoutinesByTimeRangeResponseDto, *cexceptions.Exception) {
+func (s *RoutineService) GetMyRoutinesByTimeRange(
+	ctx context.Context, reqDto *capi.GetMyRoutinesByTimeRangeRequestDto,
+) (*capi.GetMyRoutinesByTimeRangeResponseDto, *cexceptions.Exception) {
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
 		return nil, exception
@@ -471,7 +471,7 @@ func (s *RoutineService) GetAllMyRoutinesByTimeRange(
 		return nil, exception
 	}
 
-	resDto := make(capi.GetAllMyRoutinesByTimeRangeResponseDto, len(routines))
+	resDto := make(capi.GetMyRoutinesByTimeRangeResponseDto, len(routines))
 	for index, routine := range routines {
 		tagIds := make([]uuid.UUID, len(routine.RoutinesToTags))
 		for index, routineToTag := range routine.RoutinesToTags {

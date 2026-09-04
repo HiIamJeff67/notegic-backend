@@ -883,9 +883,9 @@
               }
             }
           ],
-          "name": "get-all-my-block-packs-by-root-shelf-id",
+          "name": "get-my-block-packs-by-root-shelf-id",
           "request": {
-            "description": "Get All My Block Packs By Root Shelf Id. Go DTO: `GetAllMyBlockPacksByRootShelfIdRequestDto`; response DTO: `GetAllMyBlockPacksByRootShelfIdResponseDto`.",
+            "description": "Get All My Block Packs By Root Shelf Id. Go DTO: `GetMyBlockPacksByRootShelfIdRequestDto`; response DTO: `GetMyBlockPacksByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -1645,9 +1645,9 @@
               }
             }
           ],
-          "name": "get-all-my-materials-by-root-shelf-id",
+          "name": "get-my-materials-by-root-shelf-id",
           "request": {
-            "description": "Get All My Materials By Root Shelf Id. Go DTO: `GetAllMyMaterialsByRootShelfIdRequestDto`; response DTO: `GetAllMyMaterialsByRootShelfIdResponseDto`.",
+            "description": "Get All My Materials By Root Shelf Id. Go DTO: `GetMyMaterialsByRootShelfIdRequestDto`; response DTO: `GetMyMaterialsByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -3695,9 +3695,9 @@
               }
             }
           ],
-          "name": "get-all-my-routine-task-records-by-routine-task-id",
+          "name": "get-my-routine-task-records-by-routine-task-id",
           "request": {
-            "description": "Get All My Routine Task Records By Routine Task Id. Go DTO: `GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto`; response DTO: `GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto`.",
+            "description": "Get All My Routine Task Records By Routine Task Id. Go DTO: `GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto`; response DTO: `GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -3771,7 +3771,7 @@
                   "value": "1"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/actual-ended-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026routineTaskIds=00000000-0000-4000-8000-000000000001\u0026timeHourUnit=1"
+              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/actual-ended-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&routineTaskIds=00000000-0000-4000-8000-000000000001&timeHourUnit=1"
             }
           }
         },
@@ -3826,7 +3826,7 @@
                   "value": "1"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/actual-started-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026routineTaskIds=00000000-0000-4000-8000-000000000001\u0026timeHourUnit=1"
+              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/actual-started-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&routineTaskIds=00000000-0000-4000-8000-000000000001&timeHourUnit=1"
             }
           }
         },
@@ -3869,7 +3869,7 @@
                   "value": "00000000-0000-4000-8000-000000000001"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/purpose-count?permission=Read\u0026routineTaskIds=00000000-0000-4000-8000-000000000001"
+              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/purpose-count?permission=Read&routineTaskIds=00000000-0000-4000-8000-000000000001"
             }
           }
         },
@@ -3924,7 +3924,7 @@
                   "value": "1"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/scheduled-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026routineTaskIds=00000000-0000-4000-8000-000000000001\u0026timeHourUnit=1"
+              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/scheduled-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&routineTaskIds=00000000-0000-4000-8000-000000000001&timeHourUnit=1"
             }
           }
         },
@@ -3967,7 +3967,7 @@
                   "value": "00000000-0000-4000-8000-000000000001"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/status-count?permission=Read\u0026routineTaskIds=00000000-0000-4000-8000-000000000001"
+              "raw": "{{gatewayBaseUrl}}/routine-task-records/visualizations/status-count?permission=Read&routineTaskIds=00000000-0000-4000-8000-000000000001"
             }
           }
         }
@@ -4135,9 +4135,9 @@
               }
             }
           ],
-          "name": "get-all-my-routine-tasks-by-routine-ids",
+          "name": "get-my-routine-tasks-by-routine-id",
           "request": {
-            "description": "Get All My Routine Tasks By Routine Ids. Go DTO: `GetAllMyRoutineTasksByRoutineIdsRequestDto`; response DTO: `GetAllMyRoutineTasksByRoutineIdsResponseDto`.",
+            "description": "Get My Routine Tasks By Routine Id. Go DTO: `GetMyRoutineTasksByRoutineIdRequestDto`; response DTO: `GetMyRoutineTasksByRoutineIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -4154,13 +4154,9 @@
                 {
                   "key": "areDeleted",
                   "value": "true"
-                },
-                {
-                  "key": "routineIds",
-                  "value": "00000000-0000-4000-8000-000000000001"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-tasks/routines?areDeleted=true\u0026routineIds=00000000-0000-4000-8000-000000000001"
+              "raw": "{{gatewayBaseUrl}}/routine-tasks/routine/{{routineId}}?areDeleted=true"
             }
           }
         },
@@ -4310,7 +4306,7 @@
                   "value": "1"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routine-tasks/visualizations/scheduled-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026timeHourUnit=1"
+              "raw": "{{gatewayBaseUrl}}/routine-tasks/visualizations/scheduled-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&timeHourUnit=1"
             }
           }
         },
@@ -4623,9 +4619,9 @@
               }
             }
           ],
-          "name": "get-all-my-routines-by-time-range",
+          "name": "get-my-routines-by-time-range",
           "request": {
-            "description": "Get All My Routines By Time Range. Go DTO: `GetAllMyRoutinesByTimeRangeRequestDto`; response DTO: `GetAllMyRoutinesByTimeRangeResponseDto`.",
+            "description": "Get My Routines By Time Range. Go DTO: `GetMyRoutinesByTimeRangeRequestDto`; response DTO: `GetMyRoutinesByTimeRangeResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",
@@ -4656,7 +4652,7 @@
                   "value": "2026-01-01T00:00:00Z"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routines?areDeleted=true\u0026from=2026-01-01T00%3A00%3A00Z\u0026stationIds=00000000-0000-4000-8000-000000000001\u0026to=2026-01-01T00%3A00%3A00Z"
+              "raw": "{{gatewayBaseUrl}}/routines?areDeleted=true&from=2026-01-01T00%3A00%3A00Z&stationIds=00000000-0000-4000-8000-000000000001&to=2026-01-01T00%3A00%3A00Z"
             }
           }
         },
@@ -5227,7 +5223,7 @@
                   "value": "1"
                 }
               ],
-              "raw": "{{gatewayBaseUrl}}/routines/visualizations/scheduled-start-at-count?permission=Read\u0026queryRangeEndedAt=2026-01-01T00%3A00%3A00Z\u0026queryRangeStartedAt=2026-01-01T00%3A00%3A00Z\u0026timeHourUnit=1"
+              "raw": "{{gatewayBaseUrl}}/routines/visualizations/scheduled-start-at-count?permission=Read&queryRangeEndedAt=2026-01-01T00%3A00%3A00Z&queryRangeStartedAt=2026-01-01T00%3A00%3A00Z&timeHourUnit=1"
             }
           }
         },
@@ -7197,9 +7193,9 @@
               }
             }
           ],
-          "name": "get-all-my-sub-shelves-by-root-shelf-id",
+          "name": "get-my-sub-shelves-by-root-shelf-id",
           "request": {
-            "description": "Get All My Sub Shelves By Root Shelf Id. Go DTO: `GetAllMySubShelvesByRootShelfIdRequestDto`; response DTO: `GetAllMySubShelvesByRootShelfIdResponseDto`.",
+            "description": "Get My Sub Shelves By Root Shelf Id. Go DTO: `GetMySubShelvesByRootShelfIdRequestDto`; response DTO: `GetMySubShelvesByRootShelfIdResponseDto`.",
             "header": [
               {
                 "key": "User-Agent",

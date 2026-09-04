@@ -14,7 +14,7 @@ import (
 )
 
 type RoutineTaskRecordControllerInterface interface {
-	GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto)
+	GetMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context, requestDto *capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto)
 
 	/* ============================== Visualization Methods ============================== */
 	VisualizeMyRoutineTaskRecordStatusCount(ctx *gin.Context, requestDto *capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto)
@@ -34,8 +34,8 @@ func NewRoutineTaskRecordController(coreAdapter *coreadapters.CoreAdapter) Routi
 	}
 }
 
-func (c *RoutineTaskRecordController) GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto, capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto](ctx, c.coreAdapter, requestDto, capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdOperation, "/core/v1/routine-task-records/get-all-by-routine-task-id")
+func (c *RoutineTaskRecordController) GetMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context, requestDto *capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto, capi.GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto](ctx, c.coreAdapter, requestDto, capi.GetMyRoutineTaskRecordsByRoutineTaskIdOperation, "/core/v1/routine-task-records/get-by-routine-task-id")
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)
 		return

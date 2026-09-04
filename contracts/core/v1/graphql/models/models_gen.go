@@ -144,6 +144,7 @@ type PrivateRoutineTask struct {
 	RoutineID              uuid.UUID                `json:"routineId"`
 	Title                  string                   `json:"title"`
 	Purpose                enums.RoutineTaskPurpose `json:"purpose"`
+	Phase                  *enums.RoutinePhase      `json:"phase,omitempty"`
 	Payload                json.RawMessage          `json:"payload"`
 	CostUnit               int64                    `json:"costUnit"`
 	Priority               int32                    `json:"priority"`

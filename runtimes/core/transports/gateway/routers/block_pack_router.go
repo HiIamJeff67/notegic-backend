@@ -57,12 +57,12 @@ func configureBlockPackRoutes(
 			endpoint.GetMyBlockPacksByParentSubShelfId,
 		)
 		blockPackRoutes.POST(
-			"/get-all-by-root-shelf-id",
+			"/get-by-root-shelf-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMyBlockPacksByRootShelfIdOperation,
+				capi.GetMyBlockPacksByRootShelfIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
-			endpoint.GetAllMyBlockPacksByRootShelfId,
+			endpoint.GetMyBlockPacksByRootShelfId,
 		)
 		blockPackRoutes.POST(
 			"/create",

@@ -164,7 +164,7 @@ func call[RequestDto any, ResponseDto any](
 			true,
 		).WithOrigin(err)
 	}
-	response := &cgateway.Response[ResponseDto]{}
+	response := &cgateway.Response[json.RawMessage]{}
 	if err := json.Unmarshal(responseBody, response); err != nil {
 		return nil, cexceptions.New(
 			"CoreResponseDecodingFailed",
@@ -214,7 +214,26 @@ func call[RequestDto any, ResponseDto any](
 		)
 	}
 
-	return response, nil
+	typedResponse := &cgateway.Response[ResponseDto]{
+		Version:   response.Version,
+		Metadata:  response.Metadata,
+		Tokens:    response.Tokens,
+		Exception: response.Exception,
+	}
+	if len(response.Data) > 0 {
+		if err := json.Unmarshal(response.Data, &typedResponse.Data); err != nil {
+			return nil, cexceptions.New(
+				"CoreResponseDecodingFailed",
+				"Gateway",
+				"CallCore",
+				"Failed to decode the Core service response",
+				http.StatusInternalServerError,
+				true,
+			).WithOrigin(err)
+		}
+	}
+
+	return typedResponse, nil
 }
 
 /* ============================== Core Call Methods ============================== */

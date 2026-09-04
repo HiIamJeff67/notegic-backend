@@ -3069,7 +3069,7 @@
         ],
         "type": "object"
       },
-      "GetAllMyBlockPacksByRootShelfIdResponseData": {
+      "GetMyBlockPacksByRootShelfIdResponseData": {
         "items": {
           "properties": {
             "blockCount": {
@@ -3163,10 +3163,10 @@
         },
         "type": "array"
       },
-      "GetAllMyBlockPacksByRootShelfIdSuccessResponse": {
+      "GetMyBlockPacksByRootShelfIdSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMyBlockPacksByRootShelfIdResponseData"
+            "$ref": "#/components/schemas/GetMyBlockPacksByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -3200,7 +3200,7 @@
         ],
         "type": "object"
       },
-      "GetAllMyMaterialsByRootShelfIdResponseData": {
+      "GetMyMaterialsByRootShelfIdResponseData": {
         "items": {
           "properties": {
             "contentType": {
@@ -3275,10 +3275,10 @@
         },
         "type": "array"
       },
-      "GetAllMyMaterialsByRootShelfIdSuccessResponse": {
+      "GetMyMaterialsByRootShelfIdSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMyMaterialsByRootShelfIdResponseData"
+            "$ref": "#/components/schemas/GetMyMaterialsByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -3388,7 +3388,7 @@
         ],
         "type": "object"
       },
-      "GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseData": {
+      "GetMyRoutineTaskRecordsByRoutineTaskIdResponseData": {
         "items": {
           "properties": {
             "actualEndedAt": {
@@ -3475,10 +3475,10 @@
         },
         "type": "array"
       },
-      "GetAllMyRoutineTaskRecordsByRoutineTaskIdSuccessResponse": {
+      "GetMyRoutineTaskRecordsByRoutineTaskIdSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseData"
+            "$ref": "#/components/schemas/GetMyRoutineTaskRecordsByRoutineTaskIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -3512,7 +3512,7 @@
         ],
         "type": "object"
       },
-      "GetAllMyRoutineTasksByRoutineIdsResponseData": {
+      "GetMyRoutineTasksByRoutineIdResponseData": {
         "items": {
           "properties": {
             "actualEndedAt": {
@@ -3636,10 +3636,10 @@
         },
         "type": "array"
       },
-      "GetAllMyRoutineTasksByRoutineIdsSuccessResponse": {
+      "GetMyRoutineTasksByRoutineIdSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMyRoutineTasksByRoutineIdsResponseData"
+            "$ref": "#/components/schemas/GetMyRoutineTasksByRoutineIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -3834,7 +3834,7 @@
         ],
         "type": "object"
       },
-      "GetAllMyRoutinesByTimeRangeResponseData": {
+      "GetMyRoutinesByTimeRangeResponseData": {
         "items": {
           "properties": {
             "createdAt": {
@@ -3942,10 +3942,10 @@
         },
         "type": "array"
       },
-      "GetAllMyRoutinesByTimeRangeSuccessResponse": {
+      "GetMyRoutinesByTimeRangeSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMyRoutinesByTimeRangeResponseData"
+            "$ref": "#/components/schemas/GetMyRoutinesByTimeRangeResponseData"
           },
           "embedded": {
             "properties": {
@@ -4073,7 +4073,7 @@
         ],
         "type": "object"
       },
-      "GetAllMySubShelvesByRootShelfIdResponseData": {
+      "GetMySubShelvesByRootShelfIdResponseData": {
         "items": {
           "properties": {
             "createdAt": {
@@ -4129,10 +4129,10 @@
         },
         "type": "array"
       },
-      "GetAllMySubShelvesByRootShelfIdSuccessResponse": {
+      "GetMySubShelvesByRootShelfIdSuccessResponse": {
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/GetAllMySubShelvesByRootShelfIdResponseData"
+            "$ref": "#/components/schemas/GetMySubShelvesByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -17226,7 +17226,7 @@
     },
     "/block-packs/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMyBlockPacksByRootShelfId",
+        "operationId": "getMyBlockPacksByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -17265,7 +17265,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyBlockPacksByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyBlockPacksByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -17364,8 +17364,8 @@
         "tags": [
           "block-packs"
         ],
-        "x-go-request-dto": "GetAllMyBlockPacksByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMyBlockPacksByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMyBlockPacksByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMyBlockPacksByRootShelfIdResponseDto"
       }
     },
     "/block-packs/sub-shelf/{parent-sub-shelf-id}": {
@@ -19536,7 +19536,7 @@
     },
     "/materials/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMyMaterialsByRootShelfId",
+        "operationId": "getMyMaterialsByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -19575,7 +19575,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyMaterialsByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyMaterialsByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -19674,8 +19674,8 @@
         "tags": [
           "materials"
         ],
-        "x-go-request-dto": "GetAllMyMaterialsByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMyMaterialsByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMyMaterialsByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMyMaterialsByRootShelfIdResponseDto"
       }
     },
     "/materials/sub-shelf/{parent-sub-shelf-id}": {
@@ -26478,7 +26478,7 @@
     },
     "/routine-task-records/routine-task/{routine-task-id}": {
       "get": {
-        "operationId": "getAllMyRoutineTaskRecordsByRoutineTaskId",
+        "operationId": "getMyRoutineTaskRecordsByRoutineTaskId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -26517,7 +26517,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyRoutineTaskRecordsByRoutineTaskIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyRoutineTaskRecordsByRoutineTaskIdSuccessResponse"
                 }
               }
             },
@@ -26616,8 +26616,8 @@
         "tags": [
           "routine-task-records"
         ],
-        "x-go-request-dto": "GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto",
-        "x-go-response-dto": "GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto"
+        "x-go-request-dto": "GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto",
+        "x-go-response-dto": "GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto"
       }
     },
     "/routine-task-records/visualizations/actual-ended-at-count": {
@@ -27899,11 +27899,9 @@
         ],
         "x-go-request-dto": "CreateRoutineTaskByRoutineIdRequestDto",
         "x-go-response-dto": "CreateRoutineTaskByRoutineIdResponseDto"
-      }
-    },
-    "/routine-tasks/routines": {
+      },
       "get": {
-        "operationId": "getAllMyRoutineTasksByRoutineIds",
+        "operationId": "getMyRoutineTasksByRoutineId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -27927,20 +27925,13 @@
             }
           },
           {
-            "example": [
-              "00000000-0000-4000-8000-000000000001"
-            ],
-            "in": "query",
-            "name": "routineIds",
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
             "required": true,
             "schema": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "maxItems": 1024,
-              "minItems": 1,
-              "type": "array"
+              "format": "uuid",
+              "type": "string"
             }
           }
         ],
@@ -27949,7 +27940,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyRoutineTasksByRoutineIdsSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyRoutineTasksByRoutineIdSuccessResponse"
                 }
               }
             },
@@ -28044,12 +28035,12 @@
             "refreshCookie": []
           }
         ],
-        "summary": "Get All My Routine Tasks By Routine Ids",
+        "summary": "Get My Routine Tasks By Routine Id",
         "tags": [
           "routine-tasks"
         ],
-        "x-go-request-dto": "GetAllMyRoutineTasksByRoutineIdsRequestDto",
-        "x-go-response-dto": "GetAllMyRoutineTasksByRoutineIdsResponseDto"
+        "x-go-request-dto": "GetMyRoutineTasksByRoutineIdRequestDto",
+        "x-go-response-dto": "GetMyRoutineTasksByRoutineIdResponseDto"
       }
     },
     "/routine-tasks/visualizations/actual-ended-at-count": {
@@ -29423,7 +29414,7 @@
     },
     "/routines": {
       "get": {
-        "operationId": "getAllMyRoutinesByTimeRange",
+        "operationId": "getMyRoutinesByTimeRange",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -29489,7 +29480,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyRoutinesByTimeRangeSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyRoutinesByTimeRangeSuccessResponse"
                 }
               }
             },
@@ -29584,12 +29575,12 @@
             "refreshCookie": []
           }
         ],
-        "summary": "Get All My Routines By Time Range",
+        "summary": "Get My Routines By Time Range",
         "tags": [
           "routines"
         ],
-        "x-go-request-dto": "GetAllMyRoutinesByTimeRangeRequestDto",
-        "x-go-response-dto": "GetAllMyRoutinesByTimeRangeResponseDto"
+        "x-go-request-dto": "GetMyRoutinesByTimeRangeRequestDto",
+        "x-go-response-dto": "GetMyRoutinesByTimeRangeResponseDto"
       }
     },
     "/routines/batch": {
@@ -36817,7 +36808,7 @@
     },
     "/sub-shelves/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMySubShelvesByRootShelfId",
+        "operationId": "getMySubShelvesByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -36856,7 +36847,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMySubShelvesByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMySubShelvesByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -36951,12 +36942,12 @@
             "refreshCookie": []
           }
         ],
-        "summary": "Get All My Sub Shelves By Root Shelf Id",
+        "summary": "Get My Sub Shelves By Root Shelf Id",
         "tags": [
           "sub-shelves"
         ],
-        "x-go-request-dto": "GetAllMySubShelvesByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMySubShelvesByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMySubShelvesByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMySubShelvesByRootShelfIdResponseDto"
       },
       "post": {
         "operationId": "createSubShelfByRootShelfId",

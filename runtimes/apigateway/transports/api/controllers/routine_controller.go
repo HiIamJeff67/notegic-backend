@@ -16,7 +16,7 @@ import (
 type RoutineControllerInterface interface {
 	GetMyRoutineById(ctx *gin.Context, requestDto *capi.GetMyRoutineByIdRequestDto)
 	GetMyRoutinesByStationId(ctx *gin.Context, requestDto *capi.GetMyRoutinesByStationIdRequestDto)
-	GetAllMyRoutinesByTimeRange(ctx *gin.Context, requestDto *capi.GetAllMyRoutinesByTimeRangeRequestDto)
+	GetMyRoutinesByTimeRange(ctx *gin.Context, requestDto *capi.GetMyRoutinesByTimeRangeRequestDto)
 	CreateRoutineByStationId(ctx *gin.Context, requestDto *capi.CreateRoutineByStationIdRequestDto)
 	CreateRoutinesByStationIds(ctx *gin.Context, requestDto *capi.CreateRoutinesByStationIdsRequestDto)
 	UpdateMyRoutineById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineByIdRequestDto)
@@ -91,13 +91,13 @@ func (c *RoutineController) GetMyRoutinesByStationId(ctx *gin.Context, requestDt
 	)
 }
 
-func (c *RoutineController) GetAllMyRoutinesByTimeRange(ctx *gin.Context, requestDto *capi.GetAllMyRoutinesByTimeRangeRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.GetAllMyRoutinesByTimeRangeRequestDto, capi.GetAllMyRoutinesByTimeRangeResponseDto](
+func (c *RoutineController) GetMyRoutinesByTimeRange(ctx *gin.Context, requestDto *capi.GetMyRoutinesByTimeRangeRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.GetMyRoutinesByTimeRangeRequestDto, capi.GetMyRoutinesByTimeRangeResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		capi.GetAllMyRoutinesByTimeRangeOperation,
-		"/core/v1/routines/get-all-by-time-range",
+		capi.GetMyRoutinesByTimeRangeOperation,
+		"/core/v1/routines/get-by-time-range",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

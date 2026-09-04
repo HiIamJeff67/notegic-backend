@@ -17,7 +17,7 @@ type MaterialControllerInterface interface {
 	GetMyMaterialById(ctx *gin.Context, requestDto *capi.GetMyMaterialByIdRequestDto)
 	GetMyMaterialAndItsParentById(ctx *gin.Context, requestDto *capi.GetMyMaterialAndItsParentByIdRequestDto)
 	GetMyMaterialsByParentSubShelfId(ctx *gin.Context, requestDto *capi.GetMyMaterialsByParentSubShelfIdRequestDto)
-	GetAllMyMaterialsByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyMaterialsByRootShelfIdRequestDto)
+	GetMyMaterialsByRootShelfId(ctx *gin.Context, requestDto *capi.GetMyMaterialsByRootShelfIdRequestDto)
 	CreateMyMaterial(ctx *gin.Context, requestDto *capi.CreateMyMaterialRequestDto)
 	UpdateMyMaterialById(ctx *gin.Context, requestDto *capi.UpdateMyMaterialByIdRequestDto)
 	SaveMyMaterialById(ctx *gin.Context, requestDto *capi.SaveMyMaterialByIdRequestDto)
@@ -114,16 +114,16 @@ func (c *MaterialController) GetMyMaterialsByParentSubShelfId(ctx *gin.Context, 
 	)
 }
 
-func (c *MaterialController) GetAllMyMaterialsByRootShelfId(ctx *gin.Context, requestDto *capi.GetAllMyMaterialsByRootShelfIdRequestDto) {
+func (c *MaterialController) GetMyMaterialsByRootShelfId(ctx *gin.Context, requestDto *capi.GetMyMaterialsByRootShelfIdRequestDto) {
 	response, exception := coreadapters.CallSecurly[
-		capi.GetAllMyMaterialsByRootShelfIdRequestDto,
-		capi.GetAllMyMaterialsByRootShelfIdResponseDto,
+		capi.GetMyMaterialsByRootShelfIdRequestDto,
+		capi.GetMyMaterialsByRootShelfIdResponseDto,
 	](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		capi.GetAllMyMaterialsByRootShelfIdOperation,
-		"/core/v1/materials/get-all-by-root-shelf-id",
+		capi.GetMyMaterialsByRootShelfIdOperation,
+		"/core/v1/materials/get-by-root-shelf-id",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

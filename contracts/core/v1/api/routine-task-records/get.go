@@ -9,7 +9,7 @@ import (
 	coreapi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api"
 )
 
-type GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto struct {
+type GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto struct {
 	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
@@ -41,4 +41,4 @@ type RoutineTaskRecordResponseDto struct {
 	CreatedAt       time.Time      `json:"createdAt"`
 }
 
-type GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto []RoutineTaskRecordResponseDto
+type GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto []RoutineTaskRecordResponseDto

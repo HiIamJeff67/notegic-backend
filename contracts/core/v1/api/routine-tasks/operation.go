@@ -2,7 +2,8 @@ package apicontract
 
 const (
 	GetMyRoutineTaskByIdOperation               = "routine-task.get-by-id"
-	GetAllMyRoutineTasksByRoutineIdsOperation   = "routine-task.get-all-by-routine-ids"
+	GetMyRoutineTasksByRoutineIdOperation       = "routine-task.get-by-routine-id"
+	GetMyRoutineTasksByRoutineIdsOperation      = "routine-task.get-by-routine-ids"
 	GetAllMyRoutineTasksOperation               = "routine-task.get-all"
 	CreateRoutineTaskByRoutineIdOperation       = "routine-task.create-by-routine-id"
 	UpdateMyRoutineTaskByIdOperation            = "routine-task.update"

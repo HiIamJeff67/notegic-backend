@@ -24,12 +24,12 @@ func configureRoutineTaskRecordRoutes(
 	routineTaskRecordRoutes := router.Group("/routine-task-records")
 	{
 		routineTaskRecordRoutes.POST(
-			"/get-all-by-routine-task-id",
+			"/get-by-routine-task-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdOperation,
+				capi.GetMyRoutineTaskRecordsByRoutineTaskIdOperation,
 			),
 			authMiddleware,
-			endpoint.GetAllMyRoutineTaskRecordsByRoutineTaskId,
+			endpoint.GetMyRoutineTaskRecordsByRoutineTaskId,
 		)
 		routineTaskRecordRoutes.POST(
 			"/graphql/search",

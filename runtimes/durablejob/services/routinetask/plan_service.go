@@ -220,6 +220,15 @@ func (s *PlanService) BuildRoutineTaskPlans(
 		seenRoutineIds[record.RoutineId] = struct{}{}
 		routineIds = append(routineIds, record.RoutineId)
 	}
+	routineTaskIds := make([]uuid.UUID, 0, len(assignments))
+	seenRoutineTaskIds := make(map[uuid.UUID]struct{}, len(assignments))
+	for _, assignment := range assignments {
+		if _, exists := seenRoutineTaskIds[assignment.RoutineTaskId]; exists {
+			continue
+		}
+		seenRoutineTaskIds[assignment.RoutineTaskId] = struct{}{}
+		routineTaskIds = append(routineTaskIds, assignment.RoutineTaskId)
+	}
 
 	if result := tx.
 		Model(&sschemas.Routine{}).
@@ -227,6 +236,13 @@ func (s *PlanService) BuildRoutineTaskPlans(
 		Update("phase", cenums.RoutinePhase_Plan); result.Error != nil {
 		tx.Rollback()
 		return nil, nil, nil, fmt.Errorf("mark routines as planning: %w", result.Error)
+	}
+	if result := tx.
+		Model(&sschemas.RoutineTask{}).
+		Where("id IN ?", routineTaskIds).
+		Update("phase", cenums.RoutinePhase_Plan); result.Error != nil {
+		tx.Rollback()
+		return nil, nil, nil, fmt.Errorf("mark routine tasks as planning: %w", result.Error)
 	}
 
 	plannedSnapshots := make(map[uuid.UUID][]byte, len(records))

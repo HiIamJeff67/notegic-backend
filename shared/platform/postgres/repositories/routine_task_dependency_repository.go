@@ -116,7 +116,8 @@ func (r *RoutineTaskDependencyRepository) GetAllByRoutineId(
 	result := parsedOptions.DB.
 		Model(&schemas.RoutineTaskDependency{}).
 		Joins(`INNER JOIN "RoutineTaskTable" task ON task.id = "RoutineDependencyTable".routine_task_id`).
-		Where(`task.routine_id = ?`, routineId).
+		Joins(`INNER JOIN "RoutineTaskTable" previous_task ON previous_task.id = "RoutineDependencyTable".previous_routine_task_id`).
+		Where(`task.routine_id = ? AND previous_task.routine_id = ?`, routineId, routineId).
 		Order(`"RoutineDependencyTable".created_at ASC`).
 		Find(&dependencies)
 	if result.Error != nil {

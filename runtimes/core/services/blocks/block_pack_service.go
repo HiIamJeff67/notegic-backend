@@ -37,7 +37,7 @@ type BlockPackServiceInterface interface {
 	GetMyBlockPackById(ctx context.Context, requestDto *capi.GetMyBlockPackByIdRequestDto) (*capi.GetMyBlockPackByIdResponseDto, *cexceptions.Exception)
 	GetMyBlockPackAndItsParentById(ctx context.Context, requestDto *capi.GetMyBlockPackAndItsParentByIdRequestDto) (*capi.GetMyBlockPackAndItsParentByIdResponseDto, *cexceptions.Exception)
 	GetMyBlockPacksByParentSubShelfId(ctx context.Context, requestDto *capi.GetMyBlockPacksByParentSubShelfIdRequestDto) (*capi.GetMyBlockPacksByParentSubShelfIdResponseDto, *cexceptions.Exception)
-	GetAllMyBlockPacksByRootShelfId(ctx context.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto) (*capi.GetAllMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception)
+	GetMyBlockPacksByRootShelfId(ctx context.Context, requestDto *capi.GetMyBlockPacksByRootShelfIdRequestDto) (*capi.GetMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception)
 	CreateBlockPack(ctx context.Context, requestDto *capi.CreateBlockPackRequestDto) (*capi.CreateBlockPackResponseDto, *cexceptions.Exception)
 	CreateBlockPacks(ctx context.Context, requestDto *capi.CreateBlockPacksRequestDto) (*capi.CreateBlockPacksResponseDto, *cexceptions.Exception)
 	UpdateMyBlockPackById(ctx context.Context, requestDto *capi.UpdateMyBlockPackByIdRequestDto) (*capi.UpdateMyBlockPackByIdResponseDto, *cexceptions.Exception)
@@ -278,9 +278,9 @@ func (s *BlockPackService) GetMyBlockPacksByParentSubShelfId(
 	return &resDto, nil
 }
 
-func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
-	ctx context.Context, requestDto *capi.GetAllMyBlockPacksByRootShelfIdRequestDto,
-) (*capi.GetAllMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception) {
+func (s *BlockPackService) GetMyBlockPacksByRootShelfId(
+	ctx context.Context, requestDto *capi.GetMyBlockPacksByRootShelfIdRequestDto,
+) (*capi.GetMyBlockPacksByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, s.blockPackException.InvalidDto().WithOrigin(err)
 	}
@@ -305,7 +305,7 @@ func (s *BlockPackService) GetAllMyBlockPacksByRootShelfId(
 		}
 	}
 
-	resDto := capi.GetAllMyBlockPacksByRootShelfIdResponseDto{}
+	resDto := capi.GetMyBlockPacksByRootShelfIdResponseDto{}
 	result := db.Model(&sschemas.BlockPack{}).
 		Select(`
 			"BlockPackTable".*,

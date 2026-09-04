@@ -21,7 +21,6 @@ type SubShelf struct {
 	UpdatedAt      time.Time       `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
 	CreatedAt      time.Time       `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	RootShelf      RootShelf   `json:"rootShelf" gorm:"foreignKey:RootShelfId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	NextSubShelves []SubShelf  `json:"subShelves" gorm:"foreignKey:PrevSubShelfId; references:Id;"`
 	Materials      []Material  `json:"materials" gorm:"foreignKey:ParentSubShelfId; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`

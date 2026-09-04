@@ -3,6 +3,7 @@ type PrivateRoutineTask {
   routineId: UUID!
   title: String!
   purpose: RoutineTaskPurpose!
+  phase: RoutinePhase
   payload: RawJSON!
   costUnit: Int64!
   priority: Int32!

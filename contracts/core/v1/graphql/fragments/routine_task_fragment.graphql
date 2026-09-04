@@ -3,6 +3,7 @@ fragment FragmentedBasicPrivateRoutineTask on PrivateRoutineTask {
   routineId
   title
   purpose
+  phase
   costUnit
   priority
   maxAttempts

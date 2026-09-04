@@ -16,7 +16,7 @@ type MaterialEndpointInterface interface {
 	GetMyMaterialById(ctx *gin.Context)
 	GetMyMaterialAndItsParentById(ctx *gin.Context)
 	GetMyMaterialsByParentSubShelfId(ctx *gin.Context)
-	GetAllMyMaterialsByRootShelfId(ctx *gin.Context)
+	GetMyMaterialsByRootShelfId(ctx *gin.Context)
 	CreateMyMaterial(ctx *gin.Context)
 	UpdateMyMaterialById(ctx *gin.Context)
 	SaveMyMaterialById(ctx *gin.Context)
@@ -139,14 +139,14 @@ func (t *MaterialEndpoint) GetMyMaterialsByParentSubShelfId(ctx *gin.Context) {
 	})
 }
 
-func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMyMaterialsByRootShelfIdRequestDto]{}
+func (t *MaterialEndpoint) GetMyMaterialsByRootShelfId(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyMaterialsByRootShelfIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.materialService.GetAllMyMaterialsByRootShelfId(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.materialService.GetMyMaterialsByRootShelfId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
@@ -161,7 +161,7 @@ func (t *MaterialEndpoint) GetAllMyMaterialsByRootShelfId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyMaterialsByRootShelfIdResponseDto]{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyMaterialsByRootShelfIdResponseDto]{
 		Version: cgateway.Version,
 		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,

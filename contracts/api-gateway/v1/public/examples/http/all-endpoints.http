@@ -108,7 +108,7 @@ X-API-Key: {{apiKey}}
   "destinationParentSubShelfId": "00000000-0000-4000-8000-000000000001"
 }
 
-### GET Get All My Block Packs By Root Shelf Id
+### GET Get My Block Packs By Root Shelf Id
 GET {{apiGatewayBaseUrl}}/block-packs/root-shelf/{{rootShelfId}}?areDeleted=true
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
@@ -232,7 +232,7 @@ X-API-Key: {{apiKey}}
   ]
 }
 
-### GET Get All My Materials By Root Shelf Id
+### GET Get My Materials By Root Shelf Id
 GET {{apiGatewayBaseUrl}}/materials/root-shelf/{{rootShelfId}}?areDeleted=true
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
@@ -708,6 +708,11 @@ X-API-Key: {{apiKey}}
   ]
 }
 
+### GET Get My Routine Tasks By Routine Id
+GET {{apiGatewayBaseUrl}}/routine-tasks/routine/{{routineId}}?areDeleted=true
+User-Agent: {{userAgent}}
+X-API-Key: {{apiKey}}
+
 ### POST Create Routine Task By Routine Id
 POST {{apiGatewayBaseUrl}}/routine-tasks/routine/{{routineId}}
 User-Agent: {{userAgent}}
@@ -722,11 +727,6 @@ X-API-Key: {{apiKey}}
   "routineId": "00000000-0000-4000-8000-000000000001",
   "title": "example"
 }
-
-### GET Get All My Routine Tasks By Routine Ids
-GET {{apiGatewayBaseUrl}}/routine-tasks/routines?areDeleted=true&routineIds=00000000-0000-4000-8000-000000000001
-User-Agent: {{userAgent}}
-X-API-Key: {{apiKey}}
 
 ### GET Visualize My Routine Task Purpose Count
 GET {{apiGatewayBaseUrl}}/routine-tasks/visualizations/purpose-count?permission=Read
@@ -767,7 +767,7 @@ X-API-Key: {{apiKey}}
   "routineTaskId": "00000000-0000-4000-8000-000000000001"
 }
 
-### GET Get All My Routines By Time Range
+### GET Get My Routines By Time Range
 GET {{apiGatewayBaseUrl}}/routines?areDeleted=true&from=2026-01-01T00%3A00%3A00Z&stationIds=00000000-0000-4000-8000-000000000001&to=2026-01-01T00%3A00%3A00Z
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
@@ -1345,7 +1345,7 @@ GET {{apiGatewayBaseUrl}}/sub-shelves/prev-sub-shelf/{{prevSubShelfId}}/items?ar
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}
 
-### GET Get All My Sub Shelves By Root Shelf Id
+### GET Get My Sub Shelves By Root Shelf Id
 GET {{apiGatewayBaseUrl}}/sub-shelves/root-shelf/{{rootShelfId}}?areDeleted=true
 User-Agent: {{userAgent}}
 X-API-Key: {{apiKey}}

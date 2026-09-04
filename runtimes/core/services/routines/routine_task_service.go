@@ -29,7 +29,8 @@ import (
 
 type RoutineTaskServiceInterface interface {
 	GetMyRoutineTaskById(ctx context.Context, reqDto *capi.GetMyRoutineTaskByIdRequestDto) (*capi.GetMyRoutineTaskByIdResponseDto, *cexceptions.Exception)
-	GetAllMyRoutineTasksByRoutineIds(ctx context.Context, reqDto *capi.GetAllMyRoutineTasksByRoutineIdsRequestDto) (*capi.GetAllMyRoutineTasksByRoutineIdsResponseDto, *cexceptions.Exception)
+	GetMyRoutineTasksByRoutineId(ctx context.Context, reqDto *capi.GetMyRoutineTasksByRoutineIdRequestDto) (*capi.GetMyRoutineTasksByRoutineIdResponseDto, *cexceptions.Exception)
+	GetMyRoutineTasksByRoutineIds(ctx context.Context, reqDto *capi.GetMyRoutineTasksByRoutineIdsRequestDto) (*capi.GetMyRoutineTasksByRoutineIdsResponseDto, *cexceptions.Exception)
 	GetAllMyRoutineTasks(ctx context.Context, reqDto *capi.GetAllMyRoutineTasksRequestDto) (*capi.GetAllMyRoutineTasksResponseDto, *cexceptions.Exception)
 	CreateRoutineTaskByRoutineId(ctx context.Context, reqDto *capi.CreateRoutineTaskByRoutineIdRequestDto) (*capi.CreateRoutineTaskByRoutineIdResponseDto, *cexceptions.Exception)
 	UpdateMyRoutineTaskById(ctx context.Context, reqDto *capi.UpdateMyRoutineTaskByIdRequestDto) (*capi.UpdateMyRoutineTaskByIdResponseDto, *cexceptions.Exception)
@@ -99,7 +100,7 @@ func (s *RoutineTaskService) GetMyRoutineTaskById(
 	routineTask, exception := s.routineTaskRepository.GetOneById(
 		reqDto.Param.RoutineTaskId,
 		actorUserId,
-		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
+		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousDependencies},
 		srepositories.WithDB(db),
 		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
@@ -112,6 +113,7 @@ func (s *RoutineTaskService) GetMyRoutineTaskById(
 		RoutineId:              routineTask.RoutineId,
 		Title:                  routineTask.Title,
 		Purpose:                routineTask.Purpose,
+		Phase:                  routineTask.Phase,
 		Payload:                routineTask.Payload,
 		CostUnit:               routineTask.CostUnit,
 		Priority:               routineTask.Priority,
@@ -122,9 +124,26 @@ func (s *RoutineTaskService) GetMyRoutineTaskById(
 	}, nil
 }
 
-func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
-	ctx context.Context, reqDto *capi.GetAllMyRoutineTasksByRoutineIdsRequestDto,
-) (*capi.GetAllMyRoutineTasksByRoutineIdsResponseDto, *cexceptions.Exception) {
+func (s *RoutineTaskService) GetMyRoutineTasksByRoutineId(
+	ctx context.Context, reqDto *capi.GetMyRoutineTasksByRoutineIdRequestDto,
+) (*capi.GetMyRoutineTasksByRoutineIdResponseDto, *cexceptions.Exception) {
+	request := &capi.GetMyRoutineTasksByRoutineIdsRequestDto{}
+	request.Header = reqDto.Header
+	request.Param.RoutineIds = []uuid.UUID{reqDto.Param.RoutineId}
+	request.Param.AreDeleted = reqDto.Param.AreDeleted
+
+	response, exception := s.GetMyRoutineTasksByRoutineIds(ctx, request)
+	if exception != nil {
+		return nil, exception
+	}
+
+	routineTasks := capi.GetMyRoutineTasksByRoutineIdResponseDto(*response)
+	return &routineTasks, nil
+}
+
+func (s *RoutineTaskService) GetMyRoutineTasksByRoutineIds(
+	ctx context.Context, reqDto *capi.GetMyRoutineTasksByRoutineIdsRequestDto,
+) (*capi.GetMyRoutineTasksByRoutineIdsResponseDto, *cexceptions.Exception) {
 	actorUserId, exception := contexts.GetActorUserId(ctx)
 	if exception != nil {
 		return nil, exception
@@ -133,7 +152,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
 		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
 	if reqDto.Param.AreDeleted != nil && *reqDto.Param.AreDeleted {
-		resDto := capi.GetAllMyRoutineTasksByRoutineIdsResponseDto{}
+		resDto := capi.GetMyRoutineTasksByRoutineIdsResponseDto{}
 		return &resDto, nil
 	}
 
@@ -146,7 +165,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
 	routineTasks, exception := s.routineTaskRepository.GetAllByRoutineIds(
 		reqDto.Param.RoutineIds,
 		actorUserId,
-		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
+		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousDependencies},
 		srepositories.WithDB(db),
 		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
@@ -154,13 +173,15 @@ func (s *RoutineTaskService) GetAllMyRoutineTasksByRoutineIds(
 		return nil, exception
 	}
 
-	resDto := make(capi.GetAllMyRoutineTasksByRoutineIdsResponseDto, len(routineTasks))
+	resDto := make(capi.GetMyRoutineTasksByRoutineIdsResponseDto, len(routineTasks))
 	for index, routineTask := range routineTasks {
 		resDto[index] = capi.RoutineTaskResponseDto{
 			Id:                     routineTask.Id,
 			RoutineId:              routineTask.RoutineId,
 			Title:                  routineTask.Title,
 			Purpose:                routineTask.Purpose,
+			Phase:                  routineTask.Phase,
+			Payload:                routineTask.Payload,
 			CostUnit:               routineTask.CostUnit,
 			Priority:               routineTask.Priority,
 			MaxAttempts:            routineTask.MaxAttempts,
@@ -196,7 +217,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasks(
 
 	routineTasks, exception := s.routineTaskRepository.GetAllByUserId(
 		actorUserId,
-		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousTasks},
+		[]sschemas.RoutineTaskRelation{sschemas.RoutineTaskRelation_PreviousDependencies},
 		srepositories.WithDB(db),
 		srepositories.WithAllowedPermissions(allowedPermissions),
 	)
@@ -211,6 +232,7 @@ func (s *RoutineTaskService) GetAllMyRoutineTasks(
 			RoutineId:              routineTask.RoutineId,
 			Title:                  routineTask.Title,
 			Purpose:                routineTask.Purpose,
+			Phase:                  routineTask.Phase,
 			Payload:                routineTask.Payload,
 			CostUnit:               routineTask.CostUnit,
 			Priority:               routineTask.Priority,

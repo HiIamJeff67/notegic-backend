@@ -10,7 +10,7 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `PUT` | `/block-packs/batch/position` | `moveMyBlockPacksByParentSubShelfIds` | `MoveMyBlockPacksByParentSubShelfIdsRequestDto` | `MoveMyBlockPacksByParentSubShelfIdsResponseDto` |
 | `PATCH` | `/block-packs/batch/restore` | `restoreMyBlockPacksByIds` | `RestoreMyBlockPacksByIdsRequestDto` | `RestoreMyBlockPacksByIdsResponseDto` |
 | `PUT` | `/block-packs/position` | `moveMyBlockPacksByParentSubShelfId` | `MoveMyBlockPacksByParentSubShelfIdRequestDto` | `MoveMyBlockPacksByParentSubShelfIdResponseDto` |
-| `GET` | `/block-packs/root-shelf/{root-shelf-id}` | `getAllMyBlockPacksByRootShelfId` | `GetAllMyBlockPacksByRootShelfIdRequestDto` | `GetAllMyBlockPacksByRootShelfIdResponseDto` |
+| `GET` | `/block-packs/root-shelf/{root-shelf-id}` | `getMyBlockPacksByRootShelfId` | `GetMyBlockPacksByRootShelfIdRequestDto` | `GetMyBlockPacksByRootShelfIdResponseDto` |
 | `GET` | `/block-packs/sub-shelf/{parent-sub-shelf-id}` | `getMyBlockPacksByParentSubShelfId` | `GetMyBlockPacksByParentSubShelfIdRequestDto` | `GetMyBlockPacksByParentSubShelfIdResponseDto` |
 | `POST` | `/block-packs/sub-shelf/{parent-sub-shelf-id}` | `createBlockPack` | `CreateBlockPackRequestDto` | `CreateBlockPackResponseDto` |
 | `DELETE` | `/block-packs/{block-pack-id}` | `deleteMyBlockPackById` | `DeleteMyBlockPackByIdRequestDto` | `DeleteMyBlockPackByIdResponseDto` |
@@ -25,7 +25,7 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `DELETE` | `/materials/batch` | `deleteMyMaterialsByIds` | `DeleteMyMaterialsByIdsRequestDto` | `DeleteMyMaterialsByIdsResponseDto` |
 | `PUT` | `/materials/batch/parent` | `moveMyMaterialsByIds` | `MoveMyMaterialsByIdsRequestDto` | `MoveMyMaterialsByIdsResponseDto` |
 | `PATCH` | `/materials/batch/restore` | `restoreMyMaterialsByIds` | `RestoreMyMaterialsByIdsRequestDto` | `RestoreMyMaterialsByIdsResponseDto` |
-| `GET` | `/materials/root-shelf/{root-shelf-id}` | `getAllMyMaterialsByRootShelfId` | `GetAllMyMaterialsByRootShelfIdRequestDto` | `GetAllMyMaterialsByRootShelfIdResponseDto` |
+| `GET` | `/materials/root-shelf/{root-shelf-id}` | `getMyMaterialsByRootShelfId` | `GetMyMaterialsByRootShelfIdRequestDto` | `GetMyMaterialsByRootShelfIdResponseDto` |
 | `GET` | `/materials/sub-shelf/{parent-sub-shelf-id}` | `getMyMaterialsByParentSubShelfId` | `GetMyMaterialsByParentSubShelfIdRequestDto` | `GetMyMaterialsByParentSubShelfIdResponseDto` |
 | `POST` | `/materials/sub-shelf/{parent-sub-shelf-id}` | `createMyMaterial` | `CreateMyMaterialRequestDto` | `CreateMyMaterialResponseDto` |
 | `DELETE` | `/materials/{material-id}` | `deleteMyMaterialById` | `DeleteMyMaterialByIdRequestDto` | `DeleteMyMaterialByIdResponseDto` |
@@ -71,13 +71,13 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `PUT` | `/routine-task-dependencies/routine/{routine-id}/batch` | `updateRoutineTaskDependenciesByRoutineId` | `UpdateRoutineTaskDependenciesByRoutineIdRequestDto` | `UpdateRoutineTaskDependenciesByRoutineIdResponseDto` |
 | `GET` | `/routine-tasks` | `getAllMyRoutineTasks` | `GetAllMyRoutineTasksRequestDto` | `GetAllMyRoutineTasksResponseDto` |
 | `DELETE` | `/routine-tasks/batch/permanently` | `hardDeleteMyRoutineTasksByIds` | `HardDeleteMyRoutineTasksByIdsRequestDto` | `HardDeleteMyRoutineTasksByIdsResponseDto` |
+| `GET` | `/routine-tasks/routine/{routine-id}` | `getMyRoutineTasksByRoutineId` | `GetMyRoutineTasksByRoutineIdRequestDto` | `GetMyRoutineTasksByRoutineIdResponseDto` |
 | `POST` | `/routine-tasks/routine/{routine-id}` | `createRoutineTaskByRoutineId` | `CreateRoutineTaskByRoutineIdRequestDto` | `CreateRoutineTaskByRoutineIdResponseDto` |
-| `GET` | `/routine-tasks/routines` | `getAllMyRoutineTasksByRoutineIds` | `GetAllMyRoutineTasksByRoutineIdsRequestDto` | `GetAllMyRoutineTasksByRoutineIdsResponseDto` |
 | `GET` | `/routine-tasks/visualizations/purpose-count` | `visualizeMyRoutineTaskPurposeCount` | `VisualizeMyRoutineTaskPurposeCountRequestDto` | `VisualizeMyRoutineTaskPurposeCountResponseDto` |
 | `GET` | `/routine-tasks/{routine-task-id}` | `getMyRoutineTaskById` | `GetMyRoutineTaskByIdRequestDto` | `GetMyRoutineTaskByIdResponseDto` |
 | `PUT` | `/routine-tasks/{routine-task-id}` | `updateMyRoutineTaskById` | `UpdateMyRoutineTaskByIdRequestDto` | `UpdateMyRoutineTaskByIdResponseDto` |
 | `DELETE` | `/routine-tasks/{routine-task-id}/permanently` | `hardDeleteMyRoutineTaskById` | `HardDeleteMyRoutineTaskByIdRequestDto` | `HardDeleteMyRoutineTaskByIdResponseDto` |
-| `GET` | `/routines` | `getAllMyRoutinesByTimeRange` | `GetAllMyRoutinesByTimeRangeRequestDto` | `GetAllMyRoutinesByTimeRangeResponseDto` |
+| `GET` | `/routines` | `getMyRoutinesByTimeRange` | `GetMyRoutinesByTimeRangeRequestDto` | `GetMyRoutinesByTimeRangeResponseDto` |
 | `DELETE` | `/routines/batch` | `deleteMyRoutinesByIds` | `DeleteMyRoutinesByIdsRequestDto` | `DeleteMyRoutinesByIdsResponseDto` |
 | `POST` | `/routines/batch` | `createRoutinesByStationIds` | `CreateRoutinesByStationIdsRequestDto` | `CreateRoutinesByStationIdsResponseDto` |
 | `PUT` | `/routines/batch` | `updateMyRoutinesByIds` | `UpdateMyRoutinesByIdsRequestDto` | `UpdateMyRoutinesByIdsResponseDto` |
@@ -129,7 +129,7 @@ This catalog is generated from the APIGateway public route allowlist. Request an
 | `PUT` | `/sub-shelves/position` | `moveMySubShelvesByRootShelfId` | `MoveMySubShelvesByRootShelfIdRequestDto` | `MoveMySubShelvesByRootShelfIdResponseDto` |
 | `GET` | `/sub-shelves/prev-sub-shelf/{prev-sub-shelf-id}` | `getMySubShelvesByPrevSubShelfId` | `GetMySubShelvesByPrevSubShelfIdRequestDto` | `GetMySubShelvesByPrevSubShelfIdResponseDto` |
 | `GET` | `/sub-shelves/prev-sub-shelf/{prev-sub-shelf-id}/items` | `getMySubShelvesAndItemsByPrevSubShelfId` | `GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto` | `GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto` |
-| `GET` | `/sub-shelves/root-shelf/{root-shelf-id}` | `getAllMySubShelvesByRootShelfId` | `GetAllMySubShelvesByRootShelfIdRequestDto` | `GetAllMySubShelvesByRootShelfIdResponseDto` |
+| `GET` | `/sub-shelves/root-shelf/{root-shelf-id}` | `getMySubShelvesByRootShelfId` | `GetMySubShelvesByRootShelfIdRequestDto` | `GetMySubShelvesByRootShelfIdResponseDto` |
 | `POST` | `/sub-shelves/root-shelf/{root-shelf-id}` | `createSubShelfByRootShelfId` | `CreateSubShelfByRootShelfIdRequestDto` | `CreateSubShelfByRootShelfIdResponseDto` |
 | `DELETE` | `/sub-shelves/{sub-shelf-id}` | `deleteMySubShelfById` | `DeleteMySubShelfByIdRequestDto` | `DeleteMySubShelfByIdResponseDto` |
 | `GET` | `/sub-shelves/{sub-shelf-id}` | `getMySubShelfById` | `GetMySubShelfByIdRequestDto` | `GetMySubShelfByIdResponseDto` |

@@ -35,7 +35,7 @@ import (
 type SubShelfServiceInterface interface {
 	GetMySubShelfById(ctx context.Context, requestDto *csubshelves.GetMySubShelfByIdRequestDto) (*csubshelves.GetMySubShelfByIdResponseDto, *cexceptions.Exception)
 	GetMySubShelvesByPrevSubShelfId(ctx context.Context, requestDto *csubshelves.GetMySubShelvesByPrevSubShelfIdRequestDto) (*csubshelves.GetMySubShelvesByPrevSubShelfIdResponseDto, *cexceptions.Exception)
-	GetAllMySubShelvesByRootShelfId(ctx context.Context, requestDto *csubshelves.GetAllMySubShelvesByRootShelfIdRequestDto) (*csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception)
+	GetMySubShelvesByRootShelfId(ctx context.Context, requestDto *csubshelves.GetMySubShelvesByRootShelfIdRequestDto) (*csubshelves.GetMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception)
 	GetMySubShelvesAndItemsByPrevSubShelfId(ctx context.Context, requestDto *csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto) (*csubshelves.GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto, *cexceptions.Exception)
 	CreateSubShelfByRootShelfId(ctx context.Context, requestDto *csubshelves.CreateSubShelfByRootShelfIdRequestDto) (*csubshelves.CreateSubShelfByRootShelfIdResponseDto, *cexceptions.Exception)
 	CreateSubShelvesByRootShelfIds(ctx context.Context, requestDto *csubshelves.CreateSubShelvesByRootShelfIdsRequestDto) (*csubshelves.CreateSubShelvesByRootShelfIdsResponseDto, *cexceptions.Exception)
@@ -212,9 +212,9 @@ func (s *SubShelfService) GetMySubShelvesByPrevSubShelfId(
 	return &responseDto, nil
 }
 
-func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
-	ctx context.Context, requestDto *csubshelves.GetAllMySubShelvesByRootShelfIdRequestDto,
-) (*csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
+func (s *SubShelfService) GetMySubShelvesByRootShelfId(
+	ctx context.Context, requestDto *csubshelves.GetMySubShelvesByRootShelfIdRequestDto,
+) (*csubshelves.GetMySubShelvesByRootShelfIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, s.shelfException.InvalidDto().WithOrigin(err)
 	}
@@ -256,7 +256,7 @@ func (s *SubShelfService) GetAllMySubShelvesByRootShelfId(
 		return nil, s.shelfException.NotFound().WithOrigin(err)
 	}
 
-	responseDto := make(csubshelves.GetAllMySubShelvesByRootShelfIdResponseDto, 0, len(subShelves))
+	responseDto := make(csubshelves.GetMySubShelvesByRootShelfIdResponseDto, 0, len(subShelves))
 	for _, subShelf := range subShelves {
 		responseDto = append(responseDto, csubshelves.SubShelfResponseDto{
 			Id:             subShelf.Id,

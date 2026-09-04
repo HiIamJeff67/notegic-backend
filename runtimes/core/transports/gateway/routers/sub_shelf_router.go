@@ -49,12 +49,12 @@ func configureSubShelfRoutes(
 			endpoint.GetMySubShelvesByPrevSubShelfId,
 		)
 		subShelfRoutes.POST(
-			"/get-all-by-root-shelf-id",
+			"/get-by-root-shelf-id",
 			middlewares.DelegationAuthenticatedMiddleware(
-				capi.GetAllMySubShelvesByRootShelfIdOperation,
+				capi.GetMySubShelvesByRootShelfIdOperation,
 			),
 			apiCompatibleAuthMiddleware,
-			endpoint.GetAllMySubShelvesByRootShelfId,
+			endpoint.GetMySubShelvesByRootShelfId,
 		)
 		subShelfRoutes.POST(
 			"/get-and-items-by-prev-sub-shelf-id",

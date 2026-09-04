@@ -73,7 +73,7 @@ export class YjsPostgresRepository {
         )
       )
       .limit(1)
-      .for("update");
+      .for("update", { of: blockPackYjsDocumentTable });
     if (document === undefined) {
       return { document: null, updates: [] };
     }
@@ -157,7 +157,7 @@ export class YjsPostgresRepository {
             isNull(blockPackYjsDocumentTable.deletedAt)
           )
         )
-        .for("update");
+        .for("update", { of: blockPackYjsDocumentTable });
       if (document === undefined) {
         return { applied: false, compactedUntilSequence: 0 };
       }
@@ -230,7 +230,7 @@ export class YjsPostgresRepository {
             isNull(blockPackTable.deletedAt)
           )
         )
-        .for("update");
+        .for("update", { of: blockPackYjsDocumentTable });
       if (document === undefined) {
         return { applied: false, projectedUntilSequence: -1 };
       }

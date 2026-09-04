@@ -28,7 +28,6 @@ type Routine struct {
 	UpdatedAt         time.Time             `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
 	CreatedAt         time.Time             `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	Station         Station           `json:"station" gorm:"foreignKey:StationId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	RoutinesToTags  []RoutinesToTags  `json:"routinesToTags" gorm:"foreignKey:RoutineId,StationId; references:Id,StationId; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	RoutineTasks    []RoutineTask     `json:"routineTasks" gorm:"foreignKey:RoutineId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`

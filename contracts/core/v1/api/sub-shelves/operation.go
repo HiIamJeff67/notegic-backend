@@ -3,7 +3,7 @@ package apicontract
 const (
 	GetMySubShelfByIdOperation                       = "sub-shelf.get-by-id"
 	GetMySubShelvesByPrevSubShelfIdOperation         = "sub-shelf.get-by-prev-sub-shelf-id"
-	GetAllMySubShelvesByRootShelfIdOperation         = "sub-shelf.get-all-by-root-shelf-id"
+	GetMySubShelvesByRootShelfIdOperation            = "sub-shelf.get-by-root-shelf-id"
 	GetMySubShelvesAndItemsByPrevSubShelfIdOperation = "sub-shelf.get-and-items-by-prev-sub-shelf-id"
 	CreateSubShelfByRootShelfIdOperation             = "sub-shelf.create"
 	CreateSubShelvesByRootShelfIdsOperation          = "sub-shelf.create-many"

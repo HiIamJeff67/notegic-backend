@@ -86,14 +86,14 @@ func configureDevelopmentMaterialRoutes(
 			"/root-shelf/:root-shelf-id",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("getAllMyMaterialsByRootShelfId"),
-					middlewares.ApplyMeterMiddleware("server.requests.material.getAllMyMaterialsByRootShelfId"),
+					middlewares.ApplyTracerMiddleware("getMyMaterialsByRootShelfId"),
+					middlewares.ApplyMeterMiddleware("server.requests.material.getMyMaterialsByRootShelfId"),
 				},
 				append(
 					defaultMiddlewares,
 					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
-				materialBinder.BindGetAllMyMaterialsByRootShelfId(materialController.GetAllMyMaterialsByRootShelfId),
+				materialBinder.BindGetMyMaterialsByRootShelfId(materialController.GetMyMaterialsByRootShelfId),
 			)...,
 		)
 		materialRoutes.POST(

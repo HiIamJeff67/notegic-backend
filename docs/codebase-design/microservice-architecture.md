@@ -257,6 +257,12 @@ dependency-graph validation may belong outside the phase directories when they
 are intentionally shared by multiple phases. Phase orchestration services remain
 directly under `services/routinetask/`.
 
+`Routine.phase` is the aggregate phase for the current Routine run. Each
+`RoutineTask` also has a nullable `phase` field, which remains `NULL` until
+DurableJob claims the task. Core task create/update APIs do not accept this field;
+DurableJob is the only writer and updates it as the task moves through the
+runtime pipeline.
+
 Core owns RoutineTaskDependency relation CRUD and validates task membership,
 duplicate edges, self-edges, cross-Routine edges, and cycles before persistence.
 DurableJob consumes the persisted dependency relations while executing a

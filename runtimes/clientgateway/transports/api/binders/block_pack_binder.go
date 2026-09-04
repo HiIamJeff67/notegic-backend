@@ -18,7 +18,7 @@ type BlockPackBinderInterface interface {
 	BindGetMyBlockPackById(controllerFunc controllers.Func[*capi.GetMyBlockPackByIdRequestDto]) gin.HandlerFunc
 	BindGetMyBlockPackAndItsParentById(controllerFunc controllers.Func[*capi.GetMyBlockPackAndItsParentByIdRequestDto]) gin.HandlerFunc
 	BindGetMyBlockPacksByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyBlockPacksByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc
+	BindGetMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc
 	BindCreateBlockPack(controllerFunc controllers.Func[*capi.CreateBlockPackRequestDto]) gin.HandlerFunc
 	BindCreateBlockPacks(controllerFunc controllers.Func[*capi.CreateBlockPacksRequestDto]) gin.HandlerFunc
 	BindUpdateMyBlockPackById(controllerFunc controllers.Func[*capi.UpdateMyBlockPackByIdRequestDto]) gin.HandlerFunc
@@ -119,9 +119,9 @@ func (b *BlockPackBinder) BindGetMyBlockPacksByParentSubShelfId(controllerFunc c
 	}
 }
 
-func (b *BlockPackBinder) BindGetAllMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc {
+func (b *BlockPackBinder) BindGetMyBlockPacksByRootShelfId(controllerFunc controllers.Func[*capi.GetMyBlockPacksByRootShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto capi.GetAllMyBlockPacksByRootShelfIdRequestDto
+		var requestDto capi.GetMyBlockPacksByRootShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 

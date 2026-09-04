@@ -72,14 +72,14 @@ func configureDevelopmentSubShelfRoutes(
 			"/root-shelf/:root-shelf-id",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("getAllMySubShelvesByRootShelfId"),
-					middlewares.ApplyMeterMiddleware("server.requests.subShelf.getAllMySubShelvesByRootShelfId"),
+					middlewares.ApplyTracerMiddleware("getMySubShelvesByRootShelfId"),
+					middlewares.ApplyMeterMiddleware("server.requests.subShelf.getMySubShelvesByRootShelfId"),
 				},
 				append(
 					defaultMiddlewares,
 					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
-				subShelfBinder.BindGetAllMySubShelvesByRootShelfId(subShelfController.GetAllMySubShelvesByRootShelfId),
+				subShelfBinder.BindGetMySubShelvesByRootShelfId(subShelfController.GetMySubShelvesByRootShelfId),
 			)...,
 		)
 		subShelfRoutes.GET(

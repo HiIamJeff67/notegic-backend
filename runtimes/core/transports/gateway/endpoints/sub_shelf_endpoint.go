@@ -15,7 +15,7 @@ import (
 type SubShelfEndpointInterface interface {
 	GetMySubShelfById(ctx *gin.Context)
 	GetMySubShelvesByPrevSubShelfId(ctx *gin.Context)
-	GetAllMySubShelvesByRootShelfId(ctx *gin.Context)
+	GetMySubShelvesByRootShelfId(ctx *gin.Context)
 	GetMySubShelvesAndItemsByPrevSubShelfId(ctx *gin.Context)
 	CreateSubShelfByRootShelfId(ctx *gin.Context)
 	CreateSubShelvesByRootShelfIds(ctx *gin.Context)
@@ -109,14 +109,14 @@ func (t *SubShelfEndpoint) GetMySubShelvesByPrevSubShelfId(ctx *gin.Context) {
 	})
 }
 
-func (t *SubShelfEndpoint) GetAllMySubShelvesByRootShelfId(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMySubShelvesByRootShelfIdRequestDto]{}
+func (t *SubShelfEndpoint) GetMySubShelvesByRootShelfId(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMySubShelvesByRootShelfIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.subShelfService.GetAllMySubShelvesByRootShelfId(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.subShelfService.GetMySubShelvesByRootShelfId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
@@ -131,7 +131,7 @@ func (t *SubShelfEndpoint) GetAllMySubShelvesByRootShelfId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMySubShelvesByRootShelfIdResponseDto]{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMySubShelvesByRootShelfIdResponseDto]{
 		Version: cgateway.Version,
 		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,

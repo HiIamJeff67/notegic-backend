@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gorm.io/gorm"
+
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
@@ -17,7 +19,6 @@ import (
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
 	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
-	"gorm.io/gorm"
 
 	durablejobconfig "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/configs"
 	durablejobexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/exceptions"

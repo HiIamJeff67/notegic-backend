@@ -19,6 +19,7 @@ type RoutineTask struct {
 	ActorUserId       uuid.UUID                 `json:"actorUserId" gorm:"column:actor_user_id; type:uuid; not null;"`
 	Title             string                    `json:"title" gorm:"column:title; size:128; not null; default:'undefined';"`
 	Purpose           cenums.RoutineTaskPurpose `json:"purpose" gorm:"column:purpose; type:\"RoutineTaskPurpose\"; not null; default:'CreateBlockPack';"`
+	Phase             *cenums.RoutinePhase      `json:"phase" gorm:"column:phase; type:\"RoutinePhase\"; default:null;"`
 	Payload           datatypes.JSON            `json:"payload" gorm:"column:payload; type:jsonb; not null; default:'{}'; check:routine_task_check_payload_size,octet_length(payload::text) <= 16777216;"`
 	CostUnit          int64                     `json:"costUnit" gorm:"column:cost_unit; type:bigint; not null; default:0; check:routine_task_check_cost_unit_non_negative,cost_unit >= 0;"`
 	Priority          int32                     `json:"priority" gorm:"column:priority; type:integer; not null; default:0; check:routine_task_check_priority_validation,priority >= 0 AND priority <= 100;"`
@@ -28,14 +29,13 @@ type RoutineTask struct {
 	UpdatedAt         time.Time                 `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
 	CreatedAt         time.Time                 `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	// Routine and User are owned and migrated by Core. DurableJob may use these
 	// relations at runtime, but it must not let AutoMigrate create their tables.
-	Routine       Routine             `json:"routine" gorm:"-:migration;foreignKey:RoutineId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
-	ActorUser     UserView            `json:"actorUser" gorm:"-:migration;foreignKey:ActorUserId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:RESTRICT;"`
-	Records       []RoutineTaskRecord `json:"records" gorm:"foreignKey:RoutineTaskId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
-	PreviousTasks []RoutineTask       `json:"previousTasks" gorm:"many2many:RoutineDependencyTable;foreignKey:Id;references:Id;joinForeignKey:RoutineTaskId;joinReferences:PreviousRoutineTaskId;"`
-	NextTasks     []RoutineTask       `json:"nextTasks" gorm:"many2many:RoutineDependencyTable;foreignKey:Id;references:Id;joinForeignKey:PreviousRoutineTaskId;joinReferences:RoutineTaskId;"`
+	Routine              Routine                 `json:"routine" gorm:"-:migration;foreignKey:RoutineId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	ActorUser            UserView                `json:"actorUser" gorm:"-:migration;foreignKey:ActorUserId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:RESTRICT;"`
+	Records              []RoutineTaskRecord     `json:"records" gorm:"foreignKey:RoutineTaskId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	PreviousDependencies []RoutineTaskDependency `json:"-" gorm:"foreignKey:RoutineTaskId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
+	NextDependencies     []RoutineTaskDependency `json:"-" gorm:"foreignKey:PreviousRoutineTaskId;references:Id;constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }
 
 // RoutineTask Table Name
@@ -47,25 +47,26 @@ func (RoutineTask) TableName() string {
 type RoutineTaskRelation postgres.RelationName
 
 const (
-	RoutineTaskRelation_Routine       RoutineTaskRelation = "Routine"
-	RoutineTaskRelation_ActorUser     RoutineTaskRelation = "ActorUser"
-	RoutineTaskRelation_Records       RoutineTaskRelation = "Records"
-	RoutineTaskRelation_PreviousTasks RoutineTaskRelation = "PreviousTasks"
-	RoutineTaskRelation_NextTasks     RoutineTaskRelation = "NextTasks"
+	RoutineTaskRelation_Routine              RoutineTaskRelation = "Routine"
+	RoutineTaskRelation_ActorUser            RoutineTaskRelation = "ActorUser"
+	RoutineTaskRelation_Records              RoutineTaskRelation = "Records"
+	RoutineTaskRelation_PreviousDependencies RoutineTaskRelation = "PreviousDependencies"
+	RoutineTaskRelation_NextDependencies     RoutineTaskRelation = "NextDependencies"
 )
 
 /* ============================== Relative Type Conversion ============================== */
 
 func (rt *RoutineTask) ToPrivateRoutineTask() *cgqlmodels.PrivateRoutineTask {
-	previousTaskIds := make([]uuid.UUID, 0, len(rt.PreviousTasks))
-	for _, previousTask := range rt.PreviousTasks {
-		previousTaskIds = append(previousTaskIds, previousTask.Id)
+	previousTaskIds := make([]uuid.UUID, 0, len(rt.PreviousDependencies))
+	for _, dependency := range rt.PreviousDependencies {
+		previousTaskIds = append(previousTaskIds, dependency.PreviousRoutineTaskId)
 	}
 	return &cgqlmodels.PrivateRoutineTask{
 		ID:                     rt.Id,
 		RoutineID:              rt.RoutineId,
 		Title:                  rt.Title,
 		Purpose:                rt.Purpose,
+		Phase:                  rt.Phase,
 		Payload:                json.RawMessage(rt.Payload),
 		CostUnit:               rt.CostUnit,
 		Priority:               rt.Priority,

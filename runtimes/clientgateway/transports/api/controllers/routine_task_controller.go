@@ -15,7 +15,7 @@ import (
 
 type RoutineTaskControllerInterface interface {
 	GetMyRoutineTaskById(ctx *gin.Context, requestDto *capi.GetMyRoutineTaskByIdRequestDto)
-	GetAllMyRoutineTasksByRoutineIds(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksByRoutineIdsRequestDto)
+	GetMyRoutineTasksByRoutineId(ctx *gin.Context, requestDto *capi.GetMyRoutineTasksByRoutineIdRequestDto)
 	GetAllMyRoutineTasks(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksRequestDto)
 	CreateRoutineTaskByRoutineId(ctx *gin.Context, requestDto *capi.CreateRoutineTaskByRoutineIdRequestDto)
 	UpdateMyRoutineTaskById(ctx *gin.Context, requestDto *capi.UpdateMyRoutineTaskByIdRequestDto)
@@ -56,13 +56,13 @@ func (c *RoutineTaskController) GetMyRoutineTaskById(ctx *gin.Context, requestDt
 	)
 }
 
-func (c *RoutineTaskController) GetAllMyRoutineTasksByRoutineIds(ctx *gin.Context, requestDto *capi.GetAllMyRoutineTasksByRoutineIdsRequestDto) {
-	response, exception := coreadapters.CallSecurly[capi.GetAllMyRoutineTasksByRoutineIdsRequestDto, capi.GetAllMyRoutineTasksByRoutineIdsResponseDto](
+func (c *RoutineTaskController) GetMyRoutineTasksByRoutineId(ctx *gin.Context, requestDto *capi.GetMyRoutineTasksByRoutineIdRequestDto) {
+	response, exception := coreadapters.CallSecurly[capi.GetMyRoutineTasksByRoutineIdRequestDto, capi.GetMyRoutineTasksByRoutineIdResponseDto](
 		ctx,
 		c.coreAdapter,
 		requestDto,
-		capi.GetAllMyRoutineTasksByRoutineIdsOperation,
-		"/core/v1/routine-tasks/get-all-by-routine-ids",
+		capi.GetMyRoutineTasksByRoutineIdOperation,
+		"/core/v1/routine-tasks/get-by-routine-id",
 	)
 	if exception != nil {
 		sexceptionwriter.SafelyAbortAndResponseWithJSON(exception, ctx)

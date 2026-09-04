@@ -26,7 +26,7 @@ import (
 )
 
 type RoutineTaskRecordServiceInterface interface {
-	GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx context.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto) (*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception)
+	GetMyRoutineTaskRecordsByRoutineTaskId(ctx context.Context, requestDto *capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto) (*capi.GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception)
 
 	/* ============================== Visualization Methods ============================== */
 	VisualizeMyRoutineTaskRecordStatusCount(ctx context.Context, requestDto *capi.VisualizeMyRoutineTaskRecordStatusCountRequestDto) (*capi.VisualizeMyRoutineTaskRecordStatusCountResponseDto, *cexceptions.Exception)
@@ -166,9 +166,9 @@ func (s *RoutineTaskRecordService) visualizeMyRoutineTaskRecordTimeCount(
 	return data, nil
 }
 
-func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
-	ctx context.Context, requestDto *capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto,
-) (*capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception) {
+func (s *RoutineTaskRecordService) GetMyRoutineTaskRecordsByRoutineTaskId(
+	ctx context.Context, requestDto *capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto,
+) (*capi.GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto, *cexceptions.Exception) {
 	if err := s.validator.Struct(requestDto); err != nil {
 		return nil, s.routineTaskException.InvalidDto().WithOrigin(err)
 	}
@@ -194,7 +194,7 @@ func (s *RoutineTaskRecordService) GetAllMyRoutineTaskRecordsByRoutineTaskId(
 		return nil, exception
 	}
 
-	responseDto := make(capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto, len(routineTaskRecords))
+	responseDto := make(capi.GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto, len(routineTaskRecords))
 	for index, routineTaskRecord := range routineTaskRecords {
 		var errorCode *string
 		if routineTaskRecord.ErrorCode != nil {

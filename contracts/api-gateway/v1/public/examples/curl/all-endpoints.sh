@@ -75,7 +75,7 @@ moveMyBlockPacksByParentSubShelfId() {
     "$api_gateway_base_url/block-packs/position"
 }
 
-getAllMyBlockPacksByRootShelfId() {
+getMyBlockPacksByRootShelfId() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
     -H "X-API-Key: $api_key" \
@@ -194,7 +194,7 @@ restoreMyMaterialsByIds() {
     "$api_gateway_base_url/materials/batch/restore"
 }
 
-getAllMyMaterialsByRootShelfId() {
+getMyMaterialsByRootShelfId() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
     -H "X-API-Key: $api_key" \
@@ -581,6 +581,13 @@ hardDeleteMyRoutineTasksByIds() {
     "$api_gateway_base_url/routine-tasks/batch/permanently"
 }
 
+getMyRoutineTasksByRoutineId() {
+  curl --fail-with-body --silent --show-error -X GET \
+    -H "User-Agent: $user_agent" \
+    -H "X-API-Key: $api_key" \
+    "$api_gateway_base_url/routine-tasks/routine/${routineId}?areDeleted=true"
+}
+
 createRoutineTaskByRoutineId() {
   curl --fail-with-body --silent --show-error -X POST \
     -H "User-Agent: $user_agent" \
@@ -588,13 +595,6 @@ createRoutineTaskByRoutineId() {
     -H "X-API-Key: $api_key" \
     --data '{"maxAttempts":1,"payload":{},"priority":1,"purpose":"GetSubShelf","routineId":"00000000-0000-4000-8000-000000000001","title":"example"}' \
     "$api_gateway_base_url/routine-tasks/routine/${routineId}"
-}
-
-getAllMyRoutineTasksByRoutineIds() {
-  curl --fail-with-body --silent --show-error -X GET \
-    -H "User-Agent: $user_agent" \
-    -H "X-API-Key: $api_key" \
-    "$api_gateway_base_url/routine-tasks/routines?areDeleted=true&routineIds=00000000-0000-4000-8000-000000000001"
 }
 
 visualizeMyRoutineTaskPurposeCount() {
@@ -629,7 +629,7 @@ hardDeleteMyRoutineTaskById() {
     "$api_gateway_base_url/routine-tasks/${routineTaskId}/permanently"
 }
 
-getAllMyRoutinesByTimeRange() {
+getMyRoutinesByTimeRange() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
     -H "X-API-Key: $api_key" \
@@ -1065,7 +1065,7 @@ getMySubShelvesAndItemsByPrevSubShelfId() {
     "$api_gateway_base_url/sub-shelves/prev-sub-shelf/${prevSubShelfId}/items?areDeleted=true"
 }
 
-getAllMySubShelvesByRootShelfId() {
+getMySubShelvesByRootShelfId() {
   curl --fail-with-body --silent --show-error -X GET \
     -H "User-Agent: $user_agent" \
     -H "X-API-Key: $api_key" \

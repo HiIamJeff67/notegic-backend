@@ -2,7 +2,6 @@ package binders
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -18,7 +17,7 @@ import (
 
 type RoutineTaskBinderInterface interface {
 	BindGetMyRoutineTaskById(controllerFunc controllers.Func[*capi.GetMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc
+	BindGetMyRoutineTasksByRoutineId(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdRequestDto]) gin.HandlerFunc
 	BindGetAllMyRoutineTasks(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksRequestDto]) gin.HandlerFunc
 	BindCreateRoutineTaskByRoutineId(controllerFunc controllers.Func[*capi.CreateRoutineTaskByRoutineIdRequestDto]) gin.HandlerFunc
 	BindUpdateMyRoutineTaskById(controllerFunc controllers.Func[*capi.UpdateMyRoutineTaskByIdRequestDto]) gin.HandlerFunc
@@ -93,31 +92,20 @@ func (b *RoutineTaskBinder) BindGetMyRoutineTaskById(controllerFunc controllers.
 	}
 }
 
-func (b *RoutineTaskBinder) BindGetAllMyRoutineTasksByRoutineIds(controllerFunc controllers.Func[*capi.GetAllMyRoutineTasksByRoutineIdsRequestDto]) gin.HandlerFunc {
+func (b *RoutineTaskBinder) BindGetMyRoutineTasksByRoutineId(controllerFunc controllers.Func[*capi.GetMyRoutineTasksByRoutineIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &capi.GetAllMyRoutineTasksByRoutineIdsRequestDto{}
+		requestDto := &capi.GetMyRoutineTasksByRoutineIdRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		areDeleted, ok := parseRoutineTaskBool(ctx, "areDeleted")
 		if !ok {
 			return
 		}
 		requestDto.Param.AreDeleted = areDeleted
-		if ctx.Query("areDeleted") != "" && requestDto.Param.AreDeleted == nil {
+		value, ok := parseRoutineTaskUUID(ctx, "routine-id")
+		if !ok {
 			return
 		}
-		routineIdValues := ctx.QueryArray("routineIds")
-		if len(routineIdValues) == 1 {
-			routineIdValues = strings.Split(routineIdValues[0], ",")
-		}
-		requestDto.Param.RoutineIds = make([]uuid.UUID, len(routineIdValues))
-		for index, value := range routineIdValues {
-			parsed, err := uuid.Parse(value)
-			if err != nil {
-				sexceptionwriter.SafelyAbortAndResponseWithJSON(cexceptions.InvalidInput("RoutineTask").WithOrigin(err), ctx)
-				return
-			}
-			requestDto.Param.RoutineIds[index] = parsed
-		}
+		requestDto.Param.RoutineId = value
 		controllerFunc(ctx, requestDto)
 		return
 	}

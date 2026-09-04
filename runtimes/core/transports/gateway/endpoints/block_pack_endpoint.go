@@ -16,7 +16,7 @@ type BlockPackEndpointInterface interface {
 	GetMyBlockPackById(ctx *gin.Context)
 	GetMyBlockPackAndItsParentById(ctx *gin.Context)
 	GetMyBlockPacksByParentSubShelfId(ctx *gin.Context)
-	GetAllMyBlockPacksByRootShelfId(ctx *gin.Context)
+	GetMyBlockPacksByRootShelfId(ctx *gin.Context)
 	CreateBlockPack(ctx *gin.Context)
 	CreateBlockPacks(ctx *gin.Context)
 	UpdateMyBlockPackById(ctx *gin.Context)
@@ -141,14 +141,14 @@ func (t *BlockPackEndpoint) GetMyBlockPacksByParentSubShelfId(ctx *gin.Context) 
 	})
 }
 
-func (t *BlockPackEndpoint) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMyBlockPacksByRootShelfIdRequestDto]{}
+func (t *BlockPackEndpoint) GetMyBlockPacksByRootShelfId(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyBlockPacksByRootShelfIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.blockPackService.GetAllMyBlockPacksByRootShelfId(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.blockPackService.GetMyBlockPacksByRootShelfId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
@@ -163,7 +163,7 @@ func (t *BlockPackEndpoint) GetAllMyBlockPacksByRootShelfId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyBlockPacksByRootShelfIdResponseDto]{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyBlockPacksByRootShelfIdResponseDto]{
 		Version: cgateway.Version,
 		Metadata: cgateway.ResponseMetadata{
 			RequestId:   request.Metadata.RequestId,

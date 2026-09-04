@@ -50,21 +50,43 @@ func NewManager(
 	}
 }
 
-func (hm *Manager) setRoutinePhase(
+func (hm *Manager) setPhase(
 	db *gorm.DB,
 	routineIds []uuid.UUID,
+	routineTaskIds []uuid.UUID,
 	phase cenums.RoutinePhase,
 ) error {
-	if len(routineIds) == 0 {
+	if len(routineIds) == 0 && len(routineTaskIds) == 0 {
 		return nil
 	}
 	if db == nil {
 		return fmt.Errorf("DurableJob routine phase database is not configured")
 	}
-	return db.
-		Model(&sschemas.Routine{}).
-		Where("id IN ?", routineIds).
-		Update("phase", phase).Error
+
+	tx := db.Begin()
+	if len(routineIds) > 0 {
+		if result := tx.
+			Model(&sschemas.Routine{}).
+			Where("id IN ?", routineIds).
+			Update("phase", phase); result.Error != nil {
+			tx.Rollback()
+			return result.Error
+		}
+	}
+	if len(routineTaskIds) > 0 {
+		if result := tx.
+			Model(&sschemas.RoutineTask{}).
+			Where("id IN ?", routineTaskIds).
+			Update("phase", phase); result.Error != nil {
+			tx.Rollback()
+			return result.Error
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 func (hm *Manager) Manage(
@@ -87,12 +109,17 @@ func (hm *Manager) Manage(
 
 	routineIds := make([]uuid.UUID, 0, len(assignments))
 	seenRoutineIds := make(map[uuid.UUID]struct{}, len(assignments))
+	routineTaskIds := make([]uuid.UUID, 0, len(assignments))
+	seenRoutineTaskIds := make(map[uuid.UUID]struct{}, len(assignments))
 	for _, assignment := range assignments {
-		if _, exists := seenRoutineIds[assignment.RoutineId]; exists {
-			continue
+		if _, exists := seenRoutineIds[assignment.RoutineId]; !exists {
+			seenRoutineIds[assignment.RoutineId] = struct{}{}
+			routineIds = append(routineIds, assignment.RoutineId)
 		}
-		seenRoutineIds[assignment.RoutineId] = struct{}{}
-		routineIds = append(routineIds, assignment.RoutineId)
+		if _, exists := seenRoutineTaskIds[assignment.RoutineTaskId]; !exists {
+			seenRoutineTaskIds[assignment.RoutineTaskId] = struct{}{}
+			routineTaskIds = append(routineTaskIds, assignment.RoutineTaskId)
+		}
 	}
 	// Build and persist the deterministic plan, including assignment planning.
 	success, failed, invalidReasons, err := hm.planService.BuildRoutineTaskPlans(ctx, assignments)
@@ -148,7 +175,17 @@ func (hm *Manager) Manage(
 	if phaseDB != nil {
 		phaseDB = phaseDB.WithContext(ctx)
 	}
-	if err := hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Execution); err != nil {
+	validRoutineTaskIds := make([]uuid.UUID, 0, len(routineTaskIds))
+	for _, assignment := range assignments {
+		if _, invalid := invalidReasons[assignment.RoutineRecordId]; invalid {
+			continue
+		}
+		if _, exists := seenRoutineTaskIds[assignment.RoutineTaskId]; exists {
+			validRoutineTaskIds = append(validRoutineTaskIds, assignment.RoutineTaskId)
+			delete(seenRoutineTaskIds, assignment.RoutineTaskId)
+		}
+	}
+	if err := hm.setPhase(phaseDB, validRoutineIds, validRoutineTaskIds, cenums.RoutinePhase_Execution); err != nil {
 		return err
 	}
 	if len(success) > 0 || len(failed) > 0 {
@@ -167,7 +204,7 @@ func (hm *Manager) Manage(
 			},
 		}
 		if exception := hm.executionService.ApplyResult(ctx, uuid.New(), result); exception != nil {
-			_ = hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Recovery)
+			_ = hm.setPhase(phaseDB, validRoutineIds, validRoutineTaskIds, cenums.RoutinePhase_Recovery)
 			return exception
 		}
 		if hm.completionPublisher != nil {
@@ -177,13 +214,17 @@ func (hm *Manager) Manage(
 				hm.workerId,
 			)
 			if err != nil {
-				_ = hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Recovery)
+				_ = hm.setPhase(phaseDB, validRoutineIds, validRoutineTaskIds, cenums.RoutinePhase_Recovery)
 				return err
 			}
 		}
 	}
 	if len(failed) > 0 {
-		if err := hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Recovery); err != nil {
+		failedRoutineTaskIds := make([]uuid.UUID, 0, len(failed))
+		for _, failedTask := range failed {
+			failedRoutineTaskIds = append(failedRoutineTaskIds, failedTask.RoutineTaskId)
+		}
+		if err := hm.setPhase(phaseDB, validRoutineIds, failedRoutineTaskIds, cenums.RoutinePhase_Recovery); err != nil {
 			return err
 		}
 		result := cdurablejobroutinetasktypes.Result{
@@ -199,5 +240,5 @@ func (hm *Manager) Manage(
 			return exception
 		}
 	}
-	return hm.setRoutinePhase(phaseDB, validRoutineIds, cenums.RoutinePhase_Analysis)
+	return hm.setPhase(phaseDB, validRoutineIds, validRoutineTaskIds, cenums.RoutinePhase_Analysis)
 }

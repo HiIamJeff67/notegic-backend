@@ -218,7 +218,7 @@ func (s *UserService) GetPublicUserByPublicId(
 	db := s.db.WithContext(ctx)
 
 	user := sschemas.User{}
-	result := db.Table(sschemas.User{}.TableName()).
+	result := db.Model(&sschemas.User{}).
 		Where("public_id = ?", publicId).
 		First(&user)
 	if err := result.Error; err != nil {
@@ -259,9 +259,9 @@ func (s *UserService) GetPublicAuthorByThemePublicIds(
 		sschemas.User
 		ThemePublicId uuid.UUID `gorm:"theme_public_id"`
 	}
-	result := db.Table(sschemas.User{}.TableName()+" u").
-		Select("u.*, t.public_id as theme_public_id").
-		Joins(`LEFT JOIN "ThemeTable" t ON t.author_id = u.id`).
+	result := db.Model(&sschemas.User{}).
+		Select(`"UserTable".*, t.public_id as theme_public_id`).
+		Joins(`LEFT JOIN "ThemeTable" t ON t.author_id = "UserTable".id`).
 		Where("t.public_id IN ?", uniquePublicIds).
 		Find(&authorsWithPublicThemeIds)
 	if err := result.Error; err != nil {

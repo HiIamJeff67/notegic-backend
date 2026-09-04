@@ -72,14 +72,14 @@ func configureDevelopmentRoutineRoutes(
 			"/",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("getAllMyRoutinesByTimeRange"),
-					middlewares.ApplyMeterMiddleware("server.requests.routine.getAllMyRoutinesByTimeRange"),
+					middlewares.ApplyTracerMiddleware("getMyRoutinesByTimeRange"),
+					middlewares.ApplyMeterMiddleware("server.requests.routine.getMyRoutinesByTimeRange"),
 				},
 				append(
 					defaultMiddlewares,
 					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
-				routineBinder.BindGetAllMyRoutinesByTimeRange(routineController.GetAllMyRoutinesByTimeRange),
+				routineBinder.BindGetMyRoutinesByTimeRange(routineController.GetMyRoutinesByTimeRange),
 			)...,
 		)
 		routineRoutes.POST(

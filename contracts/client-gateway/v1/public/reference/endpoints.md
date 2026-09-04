@@ -21,7 +21,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `PUT` | `/block-packs/batch/position` | `moveMyBlockPacksByParentSubShelfIds` | `MoveMyBlockPacksByParentSubShelfIdsRequestDto` | `MoveMyBlockPacksByParentSubShelfIdsResponseDto` |
 | `PATCH` | `/block-packs/batch/restore` | `restoreMyBlockPacksByIds` | `RestoreMyBlockPacksByIdsRequestDto` | `RestoreMyBlockPacksByIdsResponseDto` |
 | `PUT` | `/block-packs/position` | `moveMyBlockPacksByParentSubShelfId` | `MoveMyBlockPacksByParentSubShelfIdRequestDto` | `MoveMyBlockPacksByParentSubShelfIdResponseDto` |
-| `GET` | `/block-packs/root-shelf/{root-shelf-id}` | `getAllMyBlockPacksByRootShelfId` | `GetAllMyBlockPacksByRootShelfIdRequestDto` | `GetAllMyBlockPacksByRootShelfIdResponseDto` |
+| `GET` | `/block-packs/root-shelf/{root-shelf-id}` | `getMyBlockPacksByRootShelfId` | `GetMyBlockPacksByRootShelfIdRequestDto` | `GetMyBlockPacksByRootShelfIdResponseDto` |
 | `GET` | `/block-packs/sub-shelf/{parent-sub-shelf-id}` | `getMyBlockPacksByParentSubShelfId` | `GetMyBlockPacksByParentSubShelfIdRequestDto` | `GetMyBlockPacksByParentSubShelfIdResponseDto` |
 | `POST` | `/block-packs/sub-shelf/{parent-sub-shelf-id}` | `createBlockPack` | `CreateBlockPackRequestDto` | `CreateBlockPackResponseDto` |
 | `DELETE` | `/block-packs/{block-pack-id}` | `deleteMyBlockPackById` | `DeleteMyBlockPackByIdRequestDto` | `DeleteMyBlockPackByIdResponseDto` |
@@ -38,7 +38,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `DELETE` | `/materials/batch` | `deleteMyMaterialsByIds` | `DeleteMyMaterialsByIdsRequestDto` | `DeleteMyMaterialsByIdsResponseDto` |
 | `PUT` | `/materials/batch/parent` | `moveMyMaterialsByIds` | `MoveMyMaterialsByIdsRequestDto` | `MoveMyMaterialsByIdsResponseDto` |
 | `PATCH` | `/materials/batch/restore` | `restoreMyMaterialsByIds` | `RestoreMyMaterialsByIdsRequestDto` | `RestoreMyMaterialsByIdsResponseDto` |
-| `GET` | `/materials/root-shelf/{root-shelf-id}` | `getAllMyMaterialsByRootShelfId` | `GetAllMyMaterialsByRootShelfIdRequestDto` | `GetAllMyMaterialsByRootShelfIdResponseDto` |
+| `GET` | `/materials/root-shelf/{root-shelf-id}` | `getMyMaterialsByRootShelfId` | `GetMyMaterialsByRootShelfIdRequestDto` | `GetMyMaterialsByRootShelfIdResponseDto` |
 | `GET` | `/materials/sub-shelf/{parent-sub-shelf-id}` | `getMyMaterialsByParentSubShelfId` | `GetMyMaterialsByParentSubShelfIdRequestDto` | `GetMyMaterialsByParentSubShelfIdResponseDto` |
 | `POST` | `/materials/sub-shelf/{parent-sub-shelf-id}` | `createMyMaterial` | `CreateMyMaterialRequestDto` | `CreateMyMaterialResponseDto` |
 | `DELETE` | `/materials/{material-id}` | `deleteMyMaterialById` | `DeleteMyMaterialByIdRequestDto` | `DeleteMyMaterialByIdResponseDto` |
@@ -89,7 +89,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `GET` | `/routine-tags/{routine-tag-id}` | `getMyRoutineTagById` | `GetMyRoutineTagByIdRequestDto` | `GetMyRoutineTagByIdResponseDto` |
 | `PUT` | `/routine-tags/{routine-tag-id}` | `updateMyRoutineTagById` | `UpdateMyRoutineTagByIdRequestDto` | `UpdateMyRoutineTagByIdResponseDto` |
 | `DELETE` | `/routine-tags/{routine-tag-id}/permanently` | `hardDeleteMyRoutineTagById` | `HardDeleteMyRoutineTagByIdRequestDto` | `HardDeleteMyRoutineTagByIdResponseDto` |
-| `GET` | `/routine-task-records/routine-task/{routine-task-id}` | `getAllMyRoutineTaskRecordsByRoutineTaskId` | `GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto` | `GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto` |
+| `GET` | `/routine-task-records/routine-task/{routine-task-id}` | `getMyRoutineTaskRecordsByRoutineTaskId` | `GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto` | `GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto` |
 | `GET` | `/routine-task-records/visualizations/actual-ended-at-count` | `visualizeMyRoutineTaskRecordActualEndedAtCount` | `VisualizeMyRoutineTaskRecordActualEndedAtCountRequestDto` | `VisualizeMyRoutineTaskRecordActualEndedAtCountResponseDto` |
 | `GET` | `/routine-task-records/visualizations/actual-started-at-count` | `visualizeMyRoutineTaskRecordActualStartedAtCount` | `VisualizeMyRoutineTaskRecordActualStartedAtCountRequestDto` | `VisualizeMyRoutineTaskRecordActualStartedAtCountResponseDto` |
 | `GET` | `/routine-task-records/visualizations/purpose-count` | `visualizeMyRoutineTaskRecordPurposeCount` | `VisualizeMyRoutineTaskRecordPurposeCountRequestDto` | `VisualizeMyRoutineTaskRecordPurposeCountResponseDto` |
@@ -98,7 +98,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `GET` | `/routine-tasks` | `getAllMyRoutineTasks` | `GetAllMyRoutineTasksRequestDto` | `GetAllMyRoutineTasksResponseDto` |
 | `DELETE` | `/routine-tasks/batch/permanently` | `hardDeleteMyRoutineTasksByIds` | `HardDeleteMyRoutineTasksByIdsRequestDto` | `HardDeleteMyRoutineTasksByIdsResponseDto` |
 | `POST` | `/routine-tasks/routine/{routine-id}` | `createRoutineTaskByRoutineId` | `CreateRoutineTaskByRoutineIdRequestDto` | `CreateRoutineTaskByRoutineIdResponseDto` |
-| `GET` | `/routine-tasks/routines` | `getAllMyRoutineTasksByRoutineIds` | `GetAllMyRoutineTasksByRoutineIdsRequestDto` | `GetAllMyRoutineTasksByRoutineIdsResponseDto` |
+| `GET` | `/routine-tasks/routine/{routine-id}` | `getMyRoutineTasksByRoutineId` | `GetMyRoutineTasksByRoutineIdRequestDto` | `GetMyRoutineTasksByRoutineIdResponseDto` |
 | `GET` | `/routine-tasks/visualizations/actual-ended-at-count` | `visualizeMyRoutineTaskActualEndedAtCount` | `VisualizeMyRoutineTaskActualEndedAtCountRequestDto` | `VisualizeMyRoutineTaskActualEndedAtCountResponseDto` |
 | `GET` | `/routine-tasks/visualizations/actual-started-at-count` | `visualizeMyRoutineTaskActualStartedAtCount` | `VisualizeMyRoutineTaskActualStartedAtCountRequestDto` | `VisualizeMyRoutineTaskActualStartedAtCountResponseDto` |
 | `GET` | `/routine-tasks/visualizations/purpose-count` | `visualizeMyRoutineTaskPurposeCount` | `VisualizeMyRoutineTaskPurposeCountRequestDto` | `VisualizeMyRoutineTaskPurposeCountResponseDto` |
@@ -109,7 +109,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `DELETE` | `/routine-tasks/{routine-task-id}/permanently` | `hardDeleteMyRoutineTaskById` | `HardDeleteMyRoutineTaskByIdRequestDto` | `HardDeleteMyRoutineTaskByIdResponseDto` |
 | `DELETE` | `/routine-tasks/{routine-task-id}/suspension` | `resumeMyRoutineTaskById` | `ResumeMyRoutineTaskByIdRequestDto` | `ResumeMyRoutineTaskByIdResponseDto` |
 | `PUT` | `/routine-tasks/{routine-task-id}/suspension` | `pauseMyRoutineTaskById` | `PauseMyRoutineTaskByIdRequestDto` | `PauseMyRoutineTaskByIdResponseDto` |
-| `GET` | `/routines` | `getAllMyRoutinesByTimeRange` | `GetAllMyRoutinesByTimeRangeRequestDto` | `GetAllMyRoutinesByTimeRangeResponseDto` |
+| `GET` | `/routines` | `getMyRoutinesByTimeRange` | `GetMyRoutinesByTimeRangeRequestDto` | `GetMyRoutinesByTimeRangeResponseDto` |
 | `DELETE` | `/routines/batch` | `deleteMyRoutinesByIds` | `DeleteMyRoutinesByIdsRequestDto` | `DeleteMyRoutinesByIdsResponseDto` |
 | `POST` | `/routines/batch` | `createRoutinesByStationIds` | `CreateRoutinesByStationIdsRequestDto` | `CreateRoutinesByStationIdsResponseDto` |
 | `PUT` | `/routines/batch` | `updateMyRoutinesByIds` | `UpdateMyRoutinesByIdsRequestDto` | `UpdateMyRoutinesByIdsResponseDto` |
@@ -162,7 +162,7 @@ This catalog is generated from the registered ClientGateway routes. Request and 
 | `PUT` | `/sub-shelves/position` | `moveMySubShelvesByRootShelfId` | `MoveMySubShelvesByRootShelfIdRequestDto` | `MoveMySubShelvesByRootShelfIdResponseDto` |
 | `GET` | `/sub-shelves/prev-sub-shelf/{prev-sub-shelf-id}` | `getMySubShelvesByPrevSubShelfId` | `GetMySubShelvesByPrevSubShelfIdRequestDto` | `GetMySubShelvesByPrevSubShelfIdResponseDto` |
 | `GET` | `/sub-shelves/prev-sub-shelf/{prev-sub-shelf-id}/items` | `getMySubShelvesAndItemsByPrevSubShelfId` | `GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto` | `GetMySubShelvesAndItemsByPrevSubShelfIdResponseDto` |
-| `GET` | `/sub-shelves/root-shelf/{root-shelf-id}` | `getAllMySubShelvesByRootShelfId` | `GetAllMySubShelvesByRootShelfIdRequestDto` | `GetAllMySubShelvesByRootShelfIdResponseDto` |
+| `GET` | `/sub-shelves/root-shelf/{root-shelf-id}` | `getMySubShelvesByRootShelfId` | `GetMySubShelvesByRootShelfIdRequestDto` | `GetMySubShelvesByRootShelfIdResponseDto` |
 | `POST` | `/sub-shelves/root-shelf/{root-shelf-id}` | `createSubShelfByRootShelfId` | `CreateSubShelfByRootShelfIdRequestDto` | `CreateSubShelfByRootShelfIdResponseDto` |
 | `DELETE` | `/sub-shelves/{sub-shelf-id}` | `deleteMySubShelfById` | `DeleteMySubShelfByIdRequestDto` | `DeleteMySubShelfByIdResponseDto` |
 | `GET` | `/sub-shelves/{sub-shelf-id}` | `getMySubShelfById` | `GetMySubShelfByIdRequestDto` | `GetMySubShelfByIdResponseDto` |

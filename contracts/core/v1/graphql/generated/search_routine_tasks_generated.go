@@ -312,6 +312,8 @@ func (ec *executionContext) fieldContext_SearchRoutineTaskEdge_node(_ context.Co
 				return ec.fieldContext_PrivateRoutineTask_title(ctx, field)
 			case "purpose":
 				return ec.fieldContext_PrivateRoutineTask_purpose(ctx, field)
+			case "phase":
+				return ec.fieldContext_PrivateRoutineTask_phase(ctx, field)
 			case "payload":
 				return ec.fieldContext_PrivateRoutineTask_payload(ctx, field)
 			case "costUnit":

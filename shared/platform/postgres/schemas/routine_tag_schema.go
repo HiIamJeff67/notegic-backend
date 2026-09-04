@@ -20,7 +20,6 @@ type RoutineTag struct {
 	UpdatedAt time.Time             `json:"updatedAt" gorm:"column:updated_at; type:timestamptz; not null; autoUpdateTime:true;"`
 	CreatedAt time.Time             `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	Owner          User             `json:"owner" gorm:"foreignKey:OwnerId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	RoutinesToTags []RoutinesToTags `json:"routinesToTags" gorm:"foreignKey:TagId,UserId; references:Id,OwnerId; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }

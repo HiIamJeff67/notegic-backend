@@ -32,6 +32,7 @@ func getDurablePermissionObjects() []spostgres.PermissionObject {
 			Grants: []spostgres.PermissionGrant{
 				{Runtime: ctypes.Runtime_Core, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
 				{Runtime: ctypes.Runtime_DurableJob, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
+				{Runtime: ctypes.Runtime_YjsWorker, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Connect}},
 			},
 		},
 		{
@@ -40,6 +41,7 @@ func getDurablePermissionObjects() []spostgres.PermissionObject {
 			Grants: []spostgres.PermissionGrant{
 				{Runtime: ctypes.Runtime_Core, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
 				{Runtime: ctypes.Runtime_DurableJob, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
+				{Runtime: ctypes.Runtime_YjsWorker, Privileges: []spostgres.PermissionPrivilege{spostgres.PermissionPrivilege_Usage}},
 			},
 		},
 		{

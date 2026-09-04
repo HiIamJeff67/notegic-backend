@@ -51,7 +51,7 @@ type GetMySubShelvesByPrevSubShelfIdRequestDto struct {
 
 type GetMySubShelvesByPrevSubShelfIdResponseDto []SubShelfResponseDto
 
-type GetAllMySubShelvesByRootShelfIdRequestDto struct {
+type GetMySubShelvesByRootShelfIdRequestDto struct {
 	coreapi.RequestDto[
 		struct {
 			UserAgent string `json:"userAgent" validate:"required,isuseragent"`
@@ -65,7 +65,7 @@ type GetAllMySubShelvesByRootShelfIdRequestDto struct {
 	]
 }
 
-type GetAllMySubShelvesByRootShelfIdResponseDto []SubShelfResponseDto
+type GetMySubShelvesByRootShelfIdResponseDto []SubShelfResponseDto
 
 type GetMySubShelvesAndItemsByPrevSubShelfIdRequestDto struct {
 	coreapi.RequestDto[

@@ -3,7 +3,7 @@ package apicontract
 const (
 	GetMyRoutineByIdOperation                        = "routine.get-by-id"
 	GetMyRoutinesByStationIdOperation                = "routine.get-by-station-id"
-	GetAllMyRoutinesByTimeRangeOperation             = "routine.get-all-by-time-range"
+	GetMyRoutinesByTimeRangeOperation                = "routine.get-by-time-range"
 	CreateRoutineByStationIdOperation                = "routine.create-by-station-id"
 	CreateRoutinesByStationIdsOperation              = "routine.create-many-by-station-ids"
 	UpdateMyRoutineByIdOperation                     = "routine.update"

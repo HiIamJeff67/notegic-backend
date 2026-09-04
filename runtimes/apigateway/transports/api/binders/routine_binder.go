@@ -20,7 +20,7 @@ import (
 type RoutineBinderInterface interface {
 	BindGetMyRoutineById(controllerFunc controllers.Func[*capi.GetMyRoutineByIdRequestDto]) gin.HandlerFunc
 	BindGetMyRoutinesByStationId(controllerFunc controllers.Func[*capi.GetMyRoutinesByStationIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyRoutinesByTimeRange(controllerFunc controllers.Func[*capi.GetAllMyRoutinesByTimeRangeRequestDto]) gin.HandlerFunc
+	BindGetMyRoutinesByTimeRange(controllerFunc controllers.Func[*capi.GetMyRoutinesByTimeRangeRequestDto]) gin.HandlerFunc
 	BindCreateRoutineByStationId(controllerFunc controllers.Func[*capi.CreateRoutineByStationIdRequestDto]) gin.HandlerFunc
 	BindCreateRoutinesByStationIds(controllerFunc controllers.Func[*capi.CreateRoutinesByStationIdsRequestDto]) gin.HandlerFunc
 	BindUpdateMyRoutineById(controllerFunc controllers.Func[*capi.UpdateMyRoutineByIdRequestDto]) gin.HandlerFunc
@@ -138,9 +138,9 @@ func (b *RoutineBinder) BindGetMyRoutinesByStationId(controllerFunc controllers.
 	}
 }
 
-func (b *RoutineBinder) BindGetAllMyRoutinesByTimeRange(controllerFunc controllers.Func[*capi.GetAllMyRoutinesByTimeRangeRequestDto]) gin.HandlerFunc {
+func (b *RoutineBinder) BindGetMyRoutinesByTimeRange(controllerFunc controllers.Func[*capi.GetMyRoutinesByTimeRangeRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestDto := &capi.GetAllMyRoutinesByTimeRangeRequestDto{}
+		requestDto := &capi.GetMyRoutinesByTimeRangeRequestDto{}
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 		ok := true
 		requestDto.Param.AreDeleted, ok = parseRoutineBool(ctx, "areDeleted")

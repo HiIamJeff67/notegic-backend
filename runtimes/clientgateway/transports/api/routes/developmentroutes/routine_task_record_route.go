@@ -50,14 +50,14 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 			"/routine-task/:routine-task-id",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("getAllMyRoutineTaskRecordsByRoutineTaskId"),
-					middlewares.ApplyMeterMiddleware("server.requests.routineTaskRecord.getAllMyRoutineTaskRecordsByRoutineTaskId"),
+					middlewares.ApplyTracerMiddleware("getMyRoutineTaskRecordsByRoutineTaskId"),
+					middlewares.ApplyMeterMiddleware("server.requests.routineTaskRecord.getMyRoutineTaskRecordsByRoutineTaskId"),
 				},
 				append(
 					defaultMiddlewares,
 					middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
 				),
-				routineTaskRecordBinder.BindGetAllMyRoutineTaskRecordsByRoutineTaskId(routineTaskRecordController.GetAllMyRoutineTaskRecordsByRoutineTaskId),
+				routineTaskRecordBinder.BindGetMyRoutineTaskRecordsByRoutineTaskId(routineTaskRecordController.GetMyRoutineTaskRecordsByRoutineTaskId),
 			)...,
 		)
 	}

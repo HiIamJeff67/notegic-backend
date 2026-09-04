@@ -86,12 +86,12 @@ func configureDevelopmentBlockPackRoutes(
 			"/root-shelf/:root-shelf-id",
 			middlewares.Reposition(
 				[]gin.HandlerFunc{
-					middlewares.ApplyTracerMiddleware("getAllMyBlockPacksByRootShelfId"),
-					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getAllMyBlockPacksByRootShelfId"),
+					middlewares.ApplyTracerMiddleware("getMyBlockPacksByRootShelfId"),
+					middlewares.ApplyMeterMiddleware("server.requests.blockPack.getMyBlockPacksByRootShelfId"),
 				},
 				defaultMiddlewares,
 				middlewares.AllowedPermissionsAbove(cenums.AccessControlPermission_Read),
-				blockPackBinder.BindGetAllMyBlockPacksByRootShelfId(blockPackController.GetAllMyBlockPacksByRootShelfId),
+				blockPackBinder.BindGetMyBlockPacksByRootShelfId(blockPackController.GetMyBlockPacksByRootShelfId),
 			)...,
 		)
 		blockPackRoutes.POST(

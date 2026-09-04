@@ -15,7 +15,7 @@ import (
 type RoutineEndpointInterface interface {
 	GetMyRoutineById(ctx *gin.Context)
 	GetMyRoutinesByStationId(ctx *gin.Context)
-	GetAllMyRoutinesByTimeRange(ctx *gin.Context)
+	GetMyRoutinesByTimeRange(ctx *gin.Context)
 	CreateRoutineByStationId(ctx *gin.Context)
 	CreateRoutinesByStationIds(ctx *gin.Context)
 	UpdateMyRoutineById(ctx *gin.Context)
@@ -81,20 +81,20 @@ func (t *RoutineEndpoint) GetMyRoutinesByStationId(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutinesByStationIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
-func (t *RoutineEndpoint) GetAllMyRoutinesByTimeRange(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMyRoutinesByTimeRangeRequestDto]{}
+func (t *RoutineEndpoint) GetMyRoutinesByTimeRange(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyRoutinesByTimeRangeRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.routineService.GetAllMyRoutinesByTimeRange(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.routineService.GetMyRoutinesByTimeRange(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
 		return
 	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyRoutinesByTimeRangeResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutinesByTimeRangeResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
 func (t *RoutineEndpoint) CreateRoutineByStationId(ctx *gin.Context) {

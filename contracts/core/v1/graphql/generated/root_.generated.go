@@ -159,6 +159,7 @@ type ComplexityRoot struct {
 		ID                     func(childComplexity int) int
 		MaxAttempts            func(childComplexity int) int
 		Payload                func(childComplexity int) int
+		Phase                  func(childComplexity int) int
 		PreviousRoutineTaskIds func(childComplexity int) int
 		Priority               func(childComplexity int) int
 		Purpose                func(childComplexity int) int
@@ -1159,6 +1160,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PrivateRoutineTask.Payload(childComplexity), true
+
+	case "PrivateRoutineTask.phase":
+		if e.complexity.PrivateRoutineTask.Phase == nil {
+			break
+		}
+
+		return e.complexity.PrivateRoutineTask.Phase(childComplexity), true
 
 	case "PrivateRoutineTask.previousRoutineTaskIds":
 		if e.complexity.PrivateRoutineTask.PreviousRoutineTaskIds == nil {
@@ -3219,6 +3227,7 @@ type PrivateSearchableRoutine {
   routineId: UUID!
   title: String!
   purpose: RoutineTaskPurpose!
+  phase: RoutinePhase
   payload: RawJSON!
   costUnit: Int64!
   priority: Int32!

@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 

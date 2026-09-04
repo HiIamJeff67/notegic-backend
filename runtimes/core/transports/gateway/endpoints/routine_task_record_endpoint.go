@@ -13,7 +13,7 @@ import (
 )
 
 type RoutineTaskRecordEndpointInterface interface {
-	GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context)
+	GetMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context)
 
 	/* ============================== Visualization Methods ============================== */
 	VisualizeMyRoutineTaskRecordStatusCount(ctx *gin.Context)
@@ -38,14 +38,14 @@ func NewRoutineTaskRecordEndpoint(
 	}
 }
 
-func (t *RoutineTaskRecordEndpoint) GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdRequestDto]{}
+func (t *RoutineTaskRecordEndpoint) GetMyRoutineTaskRecordsByRoutineTaskId(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyRoutineTaskRecordsByRoutineTaskIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.routineTaskRecordService.GetAllMyRoutineTaskRecordsByRoutineTaskId(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.routineTaskRecordService.GetMyRoutineTaskRecordsByRoutineTaskId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{
@@ -60,7 +60,7 @@ func (t *RoutineTaskRecordEndpoint) GetAllMyRoutineTaskRecordsByRoutineTaskId(ct
 		return
 	}
 
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyRoutineTaskRecordsByRoutineTaskIdResponseDto]{
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutineTaskRecordsByRoutineTaskIdResponseDto]{
 		Version:  cgateway.Version,
 		Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()},
 		Data:     *responseDto,

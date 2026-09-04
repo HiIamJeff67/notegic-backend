@@ -4,7 +4,7 @@ const (
 	GetMyBlockPackByIdOperation                  = "block-pack.get-by-id"
 	GetMyBlockPackAndItsParentByIdOperation      = "block-pack.get-and-parent-by-id"
 	GetMyBlockPacksByParentSubShelfIdOperation   = "block-pack.get-by-parent-sub-shelf-id"
-	GetAllMyBlockPacksByRootShelfIdOperation     = "block-pack.get-all-by-root-shelf-id"
+	GetMyBlockPacksByRootShelfIdOperation        = "block-pack.get-by-root-shelf-id"
 	CreateBlockPackOperation                     = "block-pack.create"
 	CreateBlockPacksOperation                    = "block-pack.create-many"
 	UpdateMyBlockPackByIdOperation               = "block-pack.update"

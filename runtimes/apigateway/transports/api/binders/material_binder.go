@@ -19,7 +19,7 @@ type MaterialBinderInterface interface {
 	BindGetMyMaterialById(controllerFunc controllers.Func[*capi.GetMyMaterialByIdRequestDto]) gin.HandlerFunc
 	BindGetMyMaterialAndItsParentById(controllerFunc controllers.Func[*capi.GetMyMaterialAndItsParentByIdRequestDto]) gin.HandlerFunc
 	BindGetMyMaterialsByParentSubShelfId(controllerFunc controllers.Func[*capi.GetMyMaterialsByParentSubShelfIdRequestDto]) gin.HandlerFunc
-	BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc
+	BindGetMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc
 	BindCreateMyMaterial(controllerFunc controllers.Func[*capi.CreateMyMaterialRequestDto]) gin.HandlerFunc
 	BindUpdateMyMaterialById(controllerFunc controllers.Func[*capi.UpdateMyMaterialByIdRequestDto]) gin.HandlerFunc
 	BindSaveMyMaterialById(controllerFunc controllers.Func[*capi.SaveMyMaterialByIdRequestDto]) gin.HandlerFunc
@@ -118,9 +118,9 @@ func (b *MaterialBinder) BindGetMyMaterialsByParentSubShelfId(controllerFunc con
 	}
 }
 
-func (b *MaterialBinder) BindGetAllMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetAllMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc {
+func (b *MaterialBinder) BindGetMyMaterialsByRootShelfId(controllerFunc controllers.Func[*capi.GetMyMaterialsByRootShelfIdRequestDto]) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var requestDto capi.GetAllMyMaterialsByRootShelfIdRequestDto
+		var requestDto capi.GetMyMaterialsByRootShelfIdRequestDto
 
 		requestDto.Header.UserAgent = ctx.GetHeader("User-Agent")
 

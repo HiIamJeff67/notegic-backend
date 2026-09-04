@@ -2909,249 +2909,6 @@
         ],
         "type": "object"
       },
-      "GetAllMyBlockPacksByRootShelfIdResponseData": {
-        "items": {
-          "properties": {
-            "blockCount": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "compactedUntilSequence": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "createdAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "deletedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "headerBackgroundURL": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "icon": {
-              "enum": [
-                "😀",
-                "😊",
-                "❤️",
-                "🔥",
-                "⭐",
-                "📚",
-                "📓",
-                "📝",
-                "💡",
-                "🚀",
-                "✅",
-                "📌",
-                "📂",
-                "📅",
-                "⏰"
-              ],
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "id": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "isProjectionCurrent": {
-              "type": "boolean"
-            },
-            "lastUpdateSequence": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "name": {
-              "type": "string"
-            },
-            "parentSubShelfId": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "projectedUntilSequence": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "updatedAt": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "parentSubShelfId",
-            "name",
-            "blockCount",
-            "lastUpdateSequence",
-            "compactedUntilSequence",
-            "projectedUntilSequence",
-            "isProjectionCurrent",
-            "updatedAt",
-            "createdAt"
-          ],
-          "type": "object"
-        },
-        "type": "array"
-      },
-      "GetAllMyBlockPacksByRootShelfIdSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GetAllMyBlockPacksByRootShelfIdResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
-      "GetAllMyMaterialsByRootShelfIdResponseData": {
-        "items": {
-          "properties": {
-            "contentType": {
-              "enum": [
-                "none",
-                "application/json",
-                "application/pdf",
-                "text/plain",
-                "text/html",
-                "text/markdown",
-                "image/png",
-                "image/jpg",
-                "image/jpeg",
-                "image/gif",
-                "image/svg+xml",
-                "image/webp",
-                "video/mp4",
-                "video/webm",
-                "audio/mpeg"
-              ],
-              "type": "string"
-            },
-            "createdAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "deletedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "downloadURL": {
-              "type": "string"
-            },
-            "id": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "parentSubShelfId": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "parseMediaType": {
-              "type": "string"
-            },
-            "size": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "updatedAt": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "parentSubShelfId",
-            "name",
-            "size",
-            "contentType",
-            "parseMediaType",
-            "downloadURL",
-            "updatedAt",
-            "createdAt"
-          ],
-          "type": "object"
-        },
-        "type": "array"
-      },
-      "GetAllMyMaterialsByRootShelfIdSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GetAllMyMaterialsByRootShelfIdResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "GetAllMyRoutineTagsResponseData": {
         "items": {
           "properties": {
@@ -3228,127 +2985,6 @@
         ],
         "type": "object"
       },
-      "GetAllMyRoutineTasksByRoutineIdsResponseData": {
-        "items": {
-          "properties": {
-            "costUnit": {
-              "format": "int64",
-              "type": "integer"
-            },
-            "createdAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "id": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "maxAttempts": {
-              "format": "int32",
-              "type": "integer"
-            },
-            "payload": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "previousRoutineTaskIds": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "priority": {
-              "format": "int32",
-              "type": "integer"
-            },
-            "purpose": {
-              "enum": [
-                "GetSubShelf",
-                "CreateSubShelf",
-                "UpdateSubShelf",
-                "DeleteSubShelf",
-                "GetBlockPack",
-                "CreateBlockPack",
-                "UpdateBlockPack",
-                "DeleteBlockPack",
-                "GetRoutine",
-                "CreateRoutine",
-                "UpdateRoutine",
-                "DeleteRoutine",
-                "GetMaterial",
-                "CreateMaterial",
-                "UpdateMaterial",
-                "DeleteMaterial"
-              ],
-              "type": "string"
-            },
-            "routineId": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "title": {
-              "type": "string"
-            },
-            "updatedAt": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "routineId",
-            "title",
-            "purpose",
-            "payload",
-            "costUnit",
-            "priority",
-            "maxAttempts",
-            "previousRoutineTaskIds",
-            "updatedAt",
-            "createdAt"
-          ],
-          "type": "object"
-        },
-        "type": "array"
-      },
-      "GetAllMyRoutineTasksByRoutineIdsSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GetAllMyRoutineTasksByRoutineIdsResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "GetAllMyRoutineTasksResponseData": {
         "items": {
           "properties": {
@@ -3371,6 +3007,19 @@
             "payload": {
               "additionalProperties": true,
               "type": "object"
+            },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "previousRoutineTaskIds": {
               "items": {
@@ -3470,164 +3119,6 @@
         ],
         "type": "object"
       },
-      "GetAllMyRoutinesByTimeRangeResponseData": {
-        "items": {
-          "properties": {
-            "createdAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "deletedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "description": {
-              "type": "string"
-            },
-            "id": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "isPinned": {
-              "type": "boolean"
-            },
-            "itemIds": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "period": {
-              "enum": [
-                "Daily",
-                "Weekly",
-                "Monthly"
-              ],
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "phase": {
-              "enum": [
-                "Claimed",
-                "Plan",
-                "Execution",
-                "Recovery",
-                "Analysis"
-              ],
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "scheduledEndAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "scheduledStartAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "stationId": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "status": {
-              "enum": [
-                "Scheduled",
-                "InProgress",
-                "Completed",
-                "OverDue"
-              ],
-              "type": "string"
-            },
-            "tagIds": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "taskIds": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "timezone": {
-              "type": "string"
-            },
-            "title": {
-              "type": "string"
-            },
-            "updatedAt": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "stationId",
-            "title",
-            "description",
-            "status",
-            "isPinned",
-            "scheduledStartAt",
-            "scheduledEndAt",
-            "timezone",
-            "updatedAt",
-            "createdAt",
-            "tagIds",
-            "taskIds",
-            "itemIds"
-          ],
-          "type": "object"
-        },
-        "type": "array"
-      },
-      "GetAllMyRoutinesByTimeRangeSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GetAllMyRoutinesByTimeRangeResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
       "GetAllMyStationsResponseData": {
         "items": {
           "properties": {
@@ -3689,99 +3180,6 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetAllMyStationsResponseData"
-          },
-          "embedded": {
-            "properties": {
-              "publicId": {
-                "format": "uuid",
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "exception": {
-            "type": "null"
-          },
-          "refreshableTokens": {
-            "properties": {
-              "newCSRFToken": {
-                "type": "string"
-              }
-            },
-            "type": "object"
-          },
-          "success": {
-            "const": true,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "exception"
-        ],
-        "type": "object"
-      },
-      "GetAllMySubShelvesByRootShelfIdResponseData": {
-        "items": {
-          "properties": {
-            "createdAt": {
-              "format": "date-time",
-              "type": "string"
-            },
-            "deletedAt": {
-              "format": "date-time",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "id": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "path": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "prevSubShelfId": {
-              "format": "uuid",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "rootShelfId": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "updatedAt": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "name",
-            "rootShelfId",
-            "path",
-            "updatedAt",
-            "createdAt"
-          ],
-          "type": "object"
-        },
-        "type": "array"
-      },
-      "GetAllMySubShelvesByRootShelfIdSuccessResponse": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/GetAllMySubShelvesByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -4313,6 +3711,137 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetMyBlockPacksByParentSubShelfIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "GetMyBlockPacksByRootShelfIdResponseData": {
+        "items": {
+          "properties": {
+            "blockCount": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "compactedUntilSequence": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "deletedAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "headerBackgroundURL": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "icon": {
+              "enum": [
+                "😀",
+                "😊",
+                "❤️",
+                "🔥",
+                "⭐",
+                "📚",
+                "📓",
+                "📝",
+                "💡",
+                "🚀",
+                "✅",
+                "📌",
+                "📂",
+                "📅",
+                "⏰"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "isProjectionCurrent": {
+              "type": "boolean"
+            },
+            "lastUpdateSequence": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "parentSubShelfId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "projectedUntilSequence": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "parentSubShelfId",
+            "name",
+            "blockCount",
+            "lastUpdateSequence",
+            "compactedUntilSequence",
+            "projectedUntilSequence",
+            "isProjectionCurrent",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetMyBlockPacksByRootShelfIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetMyBlockPacksByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -4909,6 +4438,118 @@
         ],
         "type": "object"
       },
+      "GetMyMaterialsByRootShelfIdResponseData": {
+        "items": {
+          "properties": {
+            "contentType": {
+              "enum": [
+                "none",
+                "application/json",
+                "application/pdf",
+                "text/plain",
+                "text/html",
+                "text/markdown",
+                "image/png",
+                "image/jpg",
+                "image/jpeg",
+                "image/gif",
+                "image/svg+xml",
+                "image/webp",
+                "video/mp4",
+                "video/webm",
+                "audio/mpeg"
+              ],
+              "type": "string"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "deletedAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "downloadURL": {
+              "type": "string"
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "parentSubShelfId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "parseMediaType": {
+              "type": "string"
+            },
+            "size": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "parentSubShelfId",
+            "name",
+            "size",
+            "contentType",
+            "parseMediaType",
+            "downloadURL",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetMyMaterialsByRootShelfIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetMyMaterialsByRootShelfIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
       "GetMyRootShelfByIdResponseData": {
         "properties": {
           "createdAt": {
@@ -5311,6 +4952,19 @@
             "additionalProperties": true,
             "type": "object"
           },
+          "phase": {
+            "enum": [
+              "Claimed",
+              "Plan",
+              "Execution",
+              "Recovery",
+              "Analysis"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "previousRoutineTaskIds": {
             "items": {
               "format": "uuid",
@@ -5374,6 +5028,140 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetMyRoutineTaskByIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "GetMyRoutineTasksByRoutineIdResponseData": {
+        "items": {
+          "properties": {
+            "costUnit": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxAttempts": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "payload": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "previousRoutineTaskIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "priority": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "purpose": {
+              "enum": [
+                "GetSubShelf",
+                "CreateSubShelf",
+                "UpdateSubShelf",
+                "DeleteSubShelf",
+                "GetBlockPack",
+                "CreateBlockPack",
+                "UpdateBlockPack",
+                "DeleteBlockPack",
+                "GetRoutine",
+                "CreateRoutine",
+                "UpdateRoutine",
+                "DeleteRoutine",
+                "GetMaterial",
+                "CreateMaterial",
+                "UpdateMaterial",
+                "DeleteMaterial"
+              ],
+              "type": "string"
+            },
+            "routineId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "routineId",
+            "title",
+            "purpose",
+            "payload",
+            "costUnit",
+            "priority",
+            "maxAttempts",
+            "previousRoutineTaskIds",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetMyRoutineTasksByRoutineIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetMyRoutineTasksByRoutineIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -5532,6 +5320,164 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetMyRoutinesByStationIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "GetMyRoutinesByTimeRangeResponseData": {
+        "items": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "deletedAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "description": {
+              "type": "string"
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "isPinned": {
+              "type": "boolean"
+            },
+            "itemIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "period": {
+              "enum": [
+                "Daily",
+                "Weekly",
+                "Monthly"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "phase": {
+              "enum": [
+                "Claimed",
+                "Plan",
+                "Execution",
+                "Recovery",
+                "Analysis"
+              ],
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "scheduledEndAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "scheduledStartAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "stationId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "Scheduled",
+                "InProgress",
+                "Completed",
+                "OverDue"
+              ],
+              "type": "string"
+            },
+            "tagIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "taskIds": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "stationId",
+            "title",
+            "description",
+            "status",
+            "isPinned",
+            "scheduledStartAt",
+            "scheduledEndAt",
+            "timezone",
+            "updatedAt",
+            "createdAt",
+            "tagIds",
+            "taskIds",
+            "itemIds"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetMyRoutinesByTimeRangeSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetMyRoutinesByTimeRangeResponseData"
           },
           "embedded": {
             "properties": {
@@ -6111,6 +6057,99 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GetMySubShelvesByPrevSubShelfIdResponseData"
+          },
+          "embedded": {
+            "properties": {
+              "publicId": {
+                "format": "uuid",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "exception": {
+            "type": "null"
+          },
+          "refreshableTokens": {
+            "properties": {
+              "newCSRFToken": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "success": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "exception"
+        ],
+        "type": "object"
+      },
+      "GetMySubShelvesByRootShelfIdResponseData": {
+        "items": {
+          "properties": {
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "deletedAt": {
+              "format": "date-time",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "path": {
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "prevSubShelfId": {
+              "format": "uuid",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "rootShelfId": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "updatedAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "rootShelfId",
+            "path",
+            "updatedAt",
+            "createdAt"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "GetMySubShelvesByRootShelfIdSuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GetMySubShelvesByRootShelfIdResponseData"
           },
           "embedded": {
             "properties": {
@@ -12917,7 +12956,7 @@
     },
     "/block-packs/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMyBlockPacksByRootShelfId",
+        "operationId": "getMyBlockPacksByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -12956,7 +12995,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyBlockPacksByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyBlockPacksByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -13048,12 +13087,12 @@
             "apiKey": []
           }
         ],
-        "summary": "Get All My Block Packs By Root Shelf Id",
+        "summary": "Get My Block Packs By Root Shelf Id",
         "tags": [
           "block-packs"
         ],
-        "x-go-request-dto": "GetAllMyBlockPacksByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMyBlockPacksByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMyBlockPacksByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMyBlockPacksByRootShelfIdResponseDto"
       }
     },
     "/block-packs/sub-shelf/{parent-sub-shelf-id}": {
@@ -14945,7 +14984,7 @@
     },
     "/materials/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMyMaterialsByRootShelfId",
+        "operationId": "getMyMaterialsByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -14984,7 +15023,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyMaterialsByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyMaterialsByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -15076,12 +15115,12 @@
             "apiKey": []
           }
         ],
-        "summary": "Get All My Materials By Root Shelf Id",
+        "summary": "Get My Materials By Root Shelf Id",
         "tags": [
           "materials"
         ],
-        "x-go-request-dto": "GetAllMyMaterialsByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMyMaterialsByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMyMaterialsByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMyMaterialsByRootShelfIdResponseDto"
       }
     },
     "/materials/sub-shelf/{parent-sub-shelf-id}": {
@@ -21275,6 +21314,145 @@
       }
     },
     "/routine-tasks/routine/{routine-id}": {
+      "get": {
+        "operationId": "getMyRoutineTasksByRoutineId",
+        "parameters": [
+          {
+            "example": "NotegicIntegration/1.0",
+            "in": "header",
+            "name": "User-Agent",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": true,
+            "in": "query",
+            "name": "areDeleted",
+            "required": false,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "example": "00000000-0000-4000-8000-000000000001",
+            "in": "path",
+            "name": "routine-id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyRoutineTasksByRoutineIdSuccessResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Authentication or CSRF failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Permission denied"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "State conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Get My Routine Tasks By Routine Id",
+        "tags": [
+          "routine-tasks"
+        ],
+        "x-go-request-dto": "GetMyRoutineTasksByRoutineIdRequestDto",
+        "x-go-response-dto": "GetMyRoutineTasksByRoutineIdResponseDto"
+      },
       "post": {
         "operationId": "createRoutineTaskByRoutineId",
         "parameters": [
@@ -21419,154 +21597,6 @@
         ],
         "x-go-request-dto": "CreateRoutineTaskByRoutineIdRequestDto",
         "x-go-response-dto": "CreateRoutineTaskByRoutineIdResponseDto"
-      }
-    },
-    "/routine-tasks/routines": {
-      "get": {
-        "operationId": "getAllMyRoutineTasksByRoutineIds",
-        "parameters": [
-          {
-            "example": "NotegicIntegration/1.0",
-            "in": "header",
-            "name": "User-Agent",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": true,
-            "in": "query",
-            "name": "areDeleted",
-            "required": false,
-            "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
-            }
-          },
-          {
-            "example": [
-              "00000000-0000-4000-8000-000000000001"
-            ],
-            "in": "query",
-            "name": "routineIds",
-            "required": true,
-            "schema": {
-              "items": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "maxItems": 1024,
-              "minItems": 1,
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetAllMyRoutineTasksByRoutineIdsSuccessResponse"
-                }
-              }
-            },
-            "description": "Successful operation"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Invalid request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Authentication or CSRF failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Permission denied"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Resource not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "State conflict"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Rate limit exceeded"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unexpected server error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service unavailable"
-          }
-        },
-        "security": [
-          {
-            "apiKey": []
-          }
-        ],
-        "summary": "Get All My Routine Tasks By Routine Ids",
-        "tags": [
-          "routine-tasks"
-        ],
-        "x-go-request-dto": "GetAllMyRoutineTasksByRoutineIdsRequestDto",
-        "x-go-response-dto": "GetAllMyRoutineTasksByRoutineIdsResponseDto"
       }
     },
     "/routine-tasks/visualizations/purpose-count": {
@@ -22137,7 +22167,7 @@
     },
     "/routines": {
       "get": {
-        "operationId": "getAllMyRoutinesByTimeRange",
+        "operationId": "getMyRoutinesByTimeRange",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -22203,7 +22233,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMyRoutinesByTimeRangeSuccessResponse"
+                  "$ref": "#/components/schemas/GetMyRoutinesByTimeRangeSuccessResponse"
                 }
               }
             },
@@ -22295,12 +22325,12 @@
             "apiKey": []
           }
         ],
-        "summary": "Get All My Routines By Time Range",
+        "summary": "Get My Routines By Time Range",
         "tags": [
           "routines"
         ],
-        "x-go-request-dto": "GetAllMyRoutinesByTimeRangeRequestDto",
-        "x-go-response-dto": "GetAllMyRoutinesByTimeRangeResponseDto"
+        "x-go-request-dto": "GetMyRoutinesByTimeRangeRequestDto",
+        "x-go-response-dto": "GetMyRoutinesByTimeRangeResponseDto"
       }
     },
     "/routines/batch": {
@@ -29324,7 +29354,7 @@
     },
     "/sub-shelves/root-shelf/{root-shelf-id}": {
       "get": {
-        "operationId": "getAllMySubShelvesByRootShelfId",
+        "operationId": "getMySubShelvesByRootShelfId",
         "parameters": [
           {
             "example": "NotegicIntegration/1.0",
@@ -29363,7 +29393,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetAllMySubShelvesByRootShelfIdSuccessResponse"
+                  "$ref": "#/components/schemas/GetMySubShelvesByRootShelfIdSuccessResponse"
                 }
               }
             },
@@ -29455,12 +29485,12 @@
             "apiKey": []
           }
         ],
-        "summary": "Get All My Sub Shelves By Root Shelf Id",
+        "summary": "Get My Sub Shelves By Root Shelf Id",
         "tags": [
           "sub-shelves"
         ],
-        "x-go-request-dto": "GetAllMySubShelvesByRootShelfIdRequestDto",
-        "x-go-response-dto": "GetAllMySubShelvesByRootShelfIdResponseDto"
+        "x-go-request-dto": "GetMySubShelvesByRootShelfIdRequestDto",
+        "x-go-response-dto": "GetMySubShelvesByRootShelfIdResponseDto"
       },
       "post": {
         "operationId": "createSubShelfByRootShelfId",

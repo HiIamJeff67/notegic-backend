@@ -36,7 +36,7 @@ func (s *BadgeService) GetPublicBadgeByPublicId(
 	db := s.db.WithContext(ctx)
 
 	badge := sschemas.Badge{}
-	result := db.Table(sschemas.Badge{}.TableName()).
+	result := db.Model(&sschemas.Badge{}).
 		Where("public_id = ?", publicId).
 		First(&badge)
 	if err := result.Error; err != nil {
@@ -58,9 +58,9 @@ func (s *BadgeService) GetPublicBadgeByUserPublicId(
 	db := s.db.WithContext(ctx)
 
 	badge := sschemas.Badge{}
-	result := db.Table(sschemas.Badge{}.TableName()+" b").
-		Select("b.*, utb.user_id").
-		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = b.id`).
+	result := db.Model(&sschemas.Badge{}).
+		Select(`"BadgeTable".*, utb.user_id`).
+		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = "BadgeTable".id`).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = utb.user_id`).
 		Where("u.public_id = ?", publicId).
 		First(&badge)
@@ -102,9 +102,9 @@ func (s *BadgeService) GetPublicBadgesByUserPublicIds(
 		sschemas.Badge
 		UserPublicId uuid.UUID `gorm:"column:user_public_id"`
 	}
-	result := db.Table(sschemas.Badge{}.TableName()+" b").
-		Select("b.*, u.public_id as user_public_id").
-		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = b.id`).
+	result := db.Model(&sschemas.Badge{}).
+		Select(`"BadgeTable".*, u.public_id as user_public_id`).
+		Joins(`LEFT JOIN "UsersToBadgesTable" utb ON utb.badge_id = "BadgeTable".id`).
 		Joins(`LEFT JOIN "UserTable" u ON u.id = utb.user_id`).
 		Where("u.public_id IN ?", uniquePublicIds).
 		Find(&badgesWithPublicUserIds)

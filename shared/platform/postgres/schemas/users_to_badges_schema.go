@@ -13,7 +13,6 @@ type UsersToBadges struct {
 	BadgeId   uuid.UUID `json:"badgeId" gorm:"column:badge_id; type:uuid; primaryKey;"`
 	CreatedAt time.Time `json:"createdAt" gorm:"column:created_at; type:timestamptz; not null; autoCreateTime:true;"`
 
-	// relations
 	User  User  `gorm:"foreignKey:UserId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 	Badge Badge `gorm:"foreignKey:BadgeId; references:Id; constraint:OnUpdate:CASCADE, OnDelete:CASCADE;"`
 }

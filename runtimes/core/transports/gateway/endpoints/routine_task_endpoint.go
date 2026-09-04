@@ -14,7 +14,8 @@ import (
 
 type RoutineTaskEndpointInterface interface {
 	GetMyRoutineTaskById(ctx *gin.Context)
-	GetAllMyRoutineTasksByRoutineIds(ctx *gin.Context)
+	GetMyRoutineTasksByRoutineId(ctx *gin.Context)
+	GetMyRoutineTasksByRoutineIds(ctx *gin.Context)
 	GetAllMyRoutineTasks(ctx *gin.Context)
 	CreateRoutineTaskByRoutineId(ctx *gin.Context)
 	UpdateMyRoutineTaskById(ctx *gin.Context)
@@ -52,20 +53,36 @@ func (t *RoutineTaskEndpoint) GetMyRoutineTaskById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutineTaskByIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
-func (t *RoutineTaskEndpoint) GetAllMyRoutineTasksByRoutineIds(ctx *gin.Context) {
-	request := &cgateway.Request[capi.GetAllMyRoutineTasksByRoutineIdsRequestDto]{}
+func (t *RoutineTaskEndpoint) GetMyRoutineTasksByRoutineId(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyRoutineTasksByRoutineIdRequestDto]{}
 	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	responseDto, exception := t.routineTaskService.GetAllMyRoutineTasksByRoutineIds(ctx.Request.Context(), &request.Dto)
+	responseDto, exception := t.routineTaskService.GetMyRoutineTasksByRoutineId(ctx.Request.Context(), &request.Dto)
 	if exception != nil {
 		publicException := exception.ToPublic()
 		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
 		return
 	}
-	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetAllMyRoutineTasksByRoutineIdsResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutineTasksByRoutineIdResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
+}
+
+func (t *RoutineTaskEndpoint) GetMyRoutineTasksByRoutineIds(ctx *gin.Context) {
+	request := &cgateway.Request[capi.GetMyRoutineTasksByRoutineIdsRequestDto]{}
+	if err := ctx.ShouldBindBodyWithJSON(request); err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	responseDto, exception := t.routineTaskService.GetMyRoutineTasksByRoutineIds(ctx.Request.Context(), &request.Dto)
+	if exception != nil {
+		publicException := exception.ToPublic()
+		ctx.JSON(publicException.HTTPStatusCode(), cgateway.Response[struct{}]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: struct{}{}, Exception: publicException})
+		return
+	}
+	ctx.JSON(http.StatusOK, cgateway.Response[capi.GetMyRoutineTasksByRoutineIdsResponseDto]{Version: cgateway.Version, Metadata: cgateway.ResponseMetadata{RequestId: request.Metadata.RequestId, RespondedAt: time.Now()}, Data: *responseDto})
 }
 
 func (t *RoutineTaskEndpoint) GetAllMyRoutineTasks(ctx *gin.Context) {
