@@ -15,7 +15,7 @@ import (
 var DatabaseMigrationManifest = spostgres.MigrationManifest{
 	Runtime:     ctypes.Runtime_DurableJob,
 	Triggers:    triggers.RoutineTaskTriggerSQLs,
-	Constraints: constraints.UserQuotaConstraintSQLs,
+	Constraints: constraints.MigratingConstraintSQLs,
 	Tables: []any{
 		&sschemas.RoutineRecord{},
 		&sschemas.RoutineTask{},
