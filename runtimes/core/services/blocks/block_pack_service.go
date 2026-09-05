@@ -495,26 +495,26 @@ func (s *BlockPackService) CreateBlockPacks(
 		yjsEvents := make([]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData], 0, len(yjsDocuments))
 		for _, document := range yjsDocuments {
 			yjsEvents = append(yjsEvents, cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
-			SchemaVersion: cevent.Version,
-			EventId:       uuid.New(),
-			EventType:     coreevents.EventType_YjsMaintenanceHint,
-			AggregateType: coreevents.AggregateType_BlockPack,
-			AggregateId:   document.BlockPackId,
-			KafkaKey:      document.BlockPackId.String(),
-			OccurredAt:    time.Now().UTC(),
-			CorrelationId: correlationId,
-			Data: coreevents.YjsMaintenanceHintData{
-				BlockPackId:            document.BlockPackId,
-				DocumentId:             document.Id,
-				LatestUpdateSequence:   document.LastUpdateSequence,
-				CompactedUntilSequence: document.CompactedUntilSequence,
-				ProjectedUntilSequence: document.ProjectedUntilSequence,
-				LastCompactedAt:        document.LastCompactedAt,
-				UncompactedUpdateCount: document.LastUpdateSequence - document.CompactedUntilSequence,
-				SnapshotBytes:          len(document.Snapshot),
-				StateVectorBytes:       len(document.StateVector),
-				Reason:                 "block_pack_created",
-			},
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_YjsMaintenanceHint,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   document.BlockPackId,
+				KafkaKey:      document.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: correlationId,
+				Data: coreevents.YjsMaintenanceHintData{
+					BlockPackId:            document.BlockPackId,
+					DocumentId:             document.Id,
+					LatestUpdateSequence:   document.LastUpdateSequence,
+					CompactedUntilSequence: document.CompactedUntilSequence,
+					ProjectedUntilSequence: document.ProjectedUntilSequence,
+					LastCompactedAt:        document.LastCompactedAt,
+					UncompactedUpdateCount: document.LastUpdateSequence - document.CompactedUntilSequence,
+					SnapshotBytes:          len(document.Snapshot),
+					StateVectorBytes:       len(document.StateVector),
+					Reason:                 "block_pack_created",
+				},
 			})
 		}
 		if err := s.yjsOutboxRepository.EnqueueOutboxEvents(

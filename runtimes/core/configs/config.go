@@ -9,14 +9,14 @@ import (
 )
 
 type Config struct {
-	Postgres                  spostgres.Config
-	ListenAddress             string
-	OAuthGoogle               OAuthGoogleConfig
-	OutboxRelay               OutboxRelayConfig
-	KafkaConsumer             KafkaConsumerConfig
-	QuotaCycleWorker          QuotaCycleWorkerConfig
-	UserDataCache             UserDataCacheConfig
-	StorageKeySalt            string
+	Postgres         spostgres.Config
+	ListenAddress    string
+	OAuthGoogle      OAuthGoogleConfig
+	OutboxRelay      OutboxRelayConfig
+	KafkaConsumer    KafkaConsumerConfig
+	QuotaCycleWorker QuotaCycleWorkerConfig
+	UserDataCache    UserDataCacheConfig
+	StorageKeySalt   string
 }
 
 func LoadConfig() (Config, error) {
@@ -53,13 +53,13 @@ func LoadConfig() (Config, error) {
 		return Config{}, err
 	}
 	return Config{
-		Postgres:                  postgres,
-		ListenAddress:             listenAddress,
-		OAuthGoogle:               oauthGoogle,
-		OutboxRelay:               outboxRelay,
-		KafkaConsumer:             kafkaConsumer,
-		QuotaCycleWorker:          quotaCycleWorker,
-		UserDataCache:             userDataCache,
-		StorageKeySalt:            storageKeySalt,
+		Postgres:         postgres,
+		ListenAddress:    listenAddress,
+		OAuthGoogle:      oauthGoogle,
+		OutboxRelay:      outboxRelay,
+		KafkaConsumer:    kafkaConsumer,
+		QuotaCycleWorker: quotaCycleWorker,
+		UserDataCache:    userDataCache,
+		StorageKeySalt:   storageKeySalt,
 	}, nil
 }
