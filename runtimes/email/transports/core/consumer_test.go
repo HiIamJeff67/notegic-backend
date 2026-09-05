@@ -17,19 +17,37 @@ import (
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 )
 
-type senderStub struct {
+type welcomeBuilderStub struct{}
+
+func (welcomeBuilderStub) Build(cemailevents.SendWelcomeEmailRequestDto) (*cemailevents.SendWelcomeEmailResponseDto, error) {
+	return nil, nil
+}
+
+type validationBuilderStub struct{}
+
+func (validationBuilderStub) Build(cemailevents.SendValidationEmailRequestDto) (*cemailevents.SendValidationEmailResponseDto, error) {
+	return nil, nil
+}
+
+type securityAlertBuilderStub struct{}
+
+func (securityAlertBuilderStub) Build(cemailevents.SendSecurityAlertEmailRequestDto) (*cemailevents.SendSecurityAlertEmailResponseDto, error) {
+	return nil, nil
+}
+
+type queueStub struct {
 	err error
 }
 
-func (s senderStub) SendWelcomeEmail(context.Context, cemailevents.SendWelcomeEmailRequestDto) error {
+func (s queueStub) EnqueueWelcomeEmail(*cemailevents.SendWelcomeEmailResponseDto) error {
 	return s.err
 }
 
-func (s senderStub) SendValidationEmail(context.Context, cemailevents.SendValidationEmailRequestDto) error {
+func (s queueStub) EnqueueValidationEmail(*cemailevents.SendValidationEmailResponseDto) error {
 	return s.err
 }
 
-func (s senderStub) SendSecurityAlertEmail(context.Context, cemailevents.SendSecurityAlertEmailRequestDto) error {
+func (s queueStub) EnqueueSecurityAlertEmail(*cemailevents.SendSecurityAlertEmailResponseDto) error {
 	return s.err
 }
 
@@ -59,8 +77,10 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 				Operation:  cemail.SendWelcomeEmailOperation,
 				OccurredAt: time.Now().UTC(),
 				To:         "user@example.com",
-				UserName:   "Notegic User",
-				Status:     "active",
+				Pattern: cemailevents.WelcomeEmailPattern{
+					UserName: "Notegic User",
+					Status:   "active",
+				},
 			}
 			data, err := json.Marshal(request)
 			if err != nil {
@@ -70,9 +90,10 @@ func TestEmailRequestConsumerMapsLocalErrorClassification(t *testing.T) {
 			stubException := cexceptions.New("DeliveryFailed", "Email", "SendEmail", "Failed to deliver the email", 502)
 			stubException.Retryable = test.retryable
 			consumer := &EmailRequestConsumer{
-				sender: senderStub{
-					err: stubException,
-				},
+				welcomeBuilder:       welcomeBuilderStub{},
+				validationBuilder:    validationBuilderStub{},
+				securityAlertBuilder: securityAlertBuilderStub{},
+				queue:                queueStub{err: stubException},
 			}
 			consumer.validator = validatorpkg.New()
 			resultErr := consumer.consume(

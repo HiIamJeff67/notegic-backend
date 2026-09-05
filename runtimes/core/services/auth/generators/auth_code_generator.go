@@ -1,4 +1,4 @@
-package authcode
+package generators
 
 import (
 	"math/rand/v2"
@@ -12,13 +12,18 @@ const (
 	authCodeMaxValue   = 999999
 )
 
+type AuthCodeGeneratorInterface interface {
+	Generate() string
+	ExpireAt(now time.Time) time.Time
+}
+
 type AuthCodeGenerator struct {
 	expiration time.Duration
 	length     int
 	maxValue   int
 }
 
-func New() *AuthCodeGenerator {
+func NewAuthCodeGenerator() AuthCodeGeneratorInterface {
 	return &AuthCodeGenerator{
 		expiration: authCodeExpiration,
 		length:     authCodeLength,

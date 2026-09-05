@@ -16,12 +16,14 @@ import (
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/block-packs"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
@@ -55,14 +57,16 @@ type BlockPackServiceInterface interface {
 }
 
 type BlockPackService struct {
-	validator           *validator.Validate
-	db                  *gorm.DB
-	blockPackScope      sscopes.BlockPackScopeInterface
-	subShelfRepository  srepositories.SubShelfRepositoryInterface
-	blockPackRepository srepositories.BlockPackRepositoryInterface
-	outboxRepository    srepositories.OutboxEventRepositoryInterface
-	blockPackException  apiexceptions.BlockPackException
-	searchException     apiexceptions.SearchException
+	validator                        *validator.Validate
+	db                               *gorm.DB
+	blockPackScope                   sscopes.BlockPackScopeInterface
+	subShelfRepository               srepositories.SubShelfRepositoryInterface
+	blockPackRepository              srepositories.BlockPackRepositoryInterface
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData]
+	resourceOutboxRepository         general.OutboxEventRepositoryInterface[coreevents.ResourceChangedData]
+	yjsOutboxRepository              general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData]
+	blockPackException               apiexceptions.BlockPackException
+	searchException                  apiexceptions.SearchException
 }
 
 func NewBlockPackService(
@@ -71,19 +75,23 @@ func NewBlockPackService(
 	blockPackScope sscopes.BlockPackScopeInterface,
 	subShelfRepository srepositories.SubShelfRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
-	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData],
+	resourceOutboxRepository general.OutboxEventRepositoryInterface[coreevents.ResourceChangedData],
+	yjsOutboxRepository general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData],
 	blockPackException apiexceptions.BlockPackException,
 	searchException apiexceptions.SearchException,
 ) BlockPackServiceInterface {
 	return &BlockPackService{
-		validator:           validator,
-		db:                  db,
-		blockPackScope:      blockPackScope,
-		subShelfRepository:  subShelfRepository,
-		blockPackRepository: blockPackRepository,
-		outboxRepository:    outboxRepository,
-		blockPackException:  blockPackException,
-		searchException:     searchException,
+		validator:                        validator,
+		db:                               db,
+		blockPackScope:                   blockPackScope,
+		subShelfRepository:               subShelfRepository,
+		blockPackRepository:              blockPackRepository,
+		accessRevocationOutboxRepository: accessRevocationOutboxRepository,
+		resourceOutboxRepository:         resourceOutboxRepository,
+		yjsOutboxRepository:              yjsOutboxRepository,
+		blockPackException:               blockPackException,
+		searchException:                  searchException,
 	}
 }
 
@@ -371,11 +379,41 @@ func (s *BlockPackService) CreateBlockPack(
 		tx.Rollback()
 		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueYjsMaintenanceHint(
+	correlationId := uuid.NewString()
+	var yjsDocument sschemas.BlockPackYjsDocument
+	if err := tx.Model(&sschemas.BlockPackYjsDocument{}).
+		Where("block_pack_id = ? AND deleted_at IS NULL", *newBlockPackId).
+		First(&yjsDocument).Error; err != nil {
+		tx.Rollback()
+		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
+	}
+	if err := s.yjsOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		uuid.NewString(),
-		*newBlockPackId,
-		"block_pack_created",
+		coreevents.CoreYjsMaintenanceHintTopic,
+		[]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_YjsMaintenanceHint,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   yjsDocument.BlockPackId,
+				KafkaKey:      yjsDocument.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: correlationId,
+				Data: coreevents.YjsMaintenanceHintData{
+					BlockPackId:            yjsDocument.BlockPackId,
+					DocumentId:             yjsDocument.Id,
+					LatestUpdateSequence:   yjsDocument.LastUpdateSequence,
+					CompactedUntilSequence: yjsDocument.CompactedUntilSequence,
+					ProjectedUntilSequence: yjsDocument.ProjectedUntilSequence,
+					LastCompactedAt:        yjsDocument.LastCompactedAt,
+					UncompactedUpdateCount: yjsDocument.LastUpdateSequence - yjsDocument.CompactedUntilSequence,
+					SnapshotBytes:          len(yjsDocument.Snapshot),
+					StateVectorBytes:       len(yjsDocument.StateVector),
+					Reason:                 "block_pack_created",
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
@@ -441,15 +479,53 @@ func (s *BlockPackService) CreateBlockPacks(
 
 		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueManyYjsMaintenanceHints(
-		tx,
-		uuid.NewString(),
-		newBlockPackIds,
-		"block_pack_created",
-	); err != nil {
-		tx.Rollback()
+	if len(newBlockPackIds) > 0 {
+		correlationId := uuid.NewString()
+		var yjsDocuments []sschemas.BlockPackYjsDocument
+		if err := tx.Model(&sschemas.BlockPackYjsDocument{}).
+			Where("block_pack_id IN ? AND deleted_at IS NULL", newBlockPackIds).
+			Find(&yjsDocuments).Error; err != nil {
+			tx.Rollback()
+			return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
+		}
+		if len(yjsDocuments) != len(newBlockPackIds) {
+			tx.Rollback()
+			return nil, s.blockPackException.FailedToCreate().WithOrigin(errors.New("Yjs maintenance hints require documents for every BlockPack ID"))
+		}
+		yjsEvents := make([]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData], 0, len(yjsDocuments))
+		for _, document := range yjsDocuments {
+			yjsEvents = append(yjsEvents, cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_YjsMaintenanceHint,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   document.BlockPackId,
+			KafkaKey:      document.BlockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: correlationId,
+			Data: coreevents.YjsMaintenanceHintData{
+				BlockPackId:            document.BlockPackId,
+				DocumentId:             document.Id,
+				LatestUpdateSequence:   document.LastUpdateSequence,
+				CompactedUntilSequence: document.CompactedUntilSequence,
+				ProjectedUntilSequence: document.ProjectedUntilSequence,
+				LastCompactedAt:        document.LastCompactedAt,
+				UncompactedUpdateCount: document.LastUpdateSequence - document.CompactedUntilSequence,
+				SnapshotBytes:          len(document.Snapshot),
+				StateVectorBytes:       len(document.StateVector),
+				Reason:                 "block_pack_created",
+			},
+			})
+		}
+		if err := s.yjsOutboxRepository.EnqueueOutboxEvents(
+			tx,
+			coreevents.CoreYjsMaintenanceHintTopic,
+			yjsEvents,
+		); err != nil {
+			tx.Rollback()
 
-		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
+			return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
+		}
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -501,10 +577,26 @@ func (s *BlockPackService) UpdateMyBlockPackById(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackChanged(
+	blockPackChangedEvents := []cevent.EventEnvelope[coreevents.ResourceChangedData]{
+		{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackChanged,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   requestDto.Param.BlockPackId,
+			KafkaKey:      requestDto.Param.BlockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: requestDto.Param.BlockPackId.String(),
+			Data: coreevents.ResourceChangedData{
+				ResourceId: requestDto.Param.BlockPackId,
+				Change:     coreevents.ResourceEventChange_Updated,
+			},
+		},
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		requestDto.Param.BlockPackId.String(),
-		[]uuid.UUID{requestDto.Param.BlockPackId},
+		coreevents.CoreLifecycleTopic,
+		blockPackChangedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
@@ -565,10 +657,27 @@ func (s *BlockPackService) UpdateMyBlockPacksByIds(
 	for index, updatedBlockPack := range requestDto.Body.UpdatedBlockPacks {
 		blockPackIds[index] = updatedBlockPack.BlockPackId
 	}
-	if err := s.outboxRepository.EnqueueBlockPackChanged(
+	blockPackChangedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackChangedEvents = append(blockPackChangedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackChanged,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-bulk-update",
+			Data: coreevents.ResourceChangedData{
+				ResourceId: blockPackId,
+				Change:     coreevents.ResourceEventChange_Updated,
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-bulk-update",
-		blockPackIds,
+		coreevents.CoreLifecycleTopic,
+		blockPackChangedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, s.blockPackException.FailedToCreate().WithOrigin(err)
@@ -616,12 +725,24 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		requestDto.Body.BlockPackId.String(),
-		[]uuid.UUID{requestDto.Body.BlockPackId},
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   requestDto.Body.BlockPackId,
+				KafkaKey:      requestDto.Body.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: requestDto.Body.BlockPackId.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -633,10 +754,25 @@ func (s *BlockPackService) MoveMyBlockPackByParentSubShelfId(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueBlockPackChanged(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		requestDto.Body.BlockPackId.String(),
-		[]uuid.UUID{requestDto.Body.BlockPackId},
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackChanged,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   requestDto.Body.BlockPackId,
+				KafkaKey:      requestDto.Body.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: requestDto.Body.BlockPackId.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId: requestDto.Body.BlockPackId,
+					Change:     coreevents.ResourceEventChange_Updated,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -703,12 +839,26 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(requestDto.Body.BlockPackIds))
+	for _, blockPackId := range requestDto.Body.BlockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-bulk-move",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-bulk-move",
-		requestDto.Body.BlockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.CoreLifecycleTopic,
+		blockPackAccessRevokedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -720,10 +870,27 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfId(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueBlockPackChanged(
+	blockPackChangedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(requestDto.Body.BlockPackIds))
+	for _, blockPackId := range requestDto.Body.BlockPackIds {
+		blockPackChangedEvents = append(blockPackChangedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackChanged,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-bulk-move",
+			Data: coreevents.ResourceChangedData{
+				ResourceId: blockPackId,
+				Change:     coreevents.ResourceEventChange_Updated,
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-bulk-move",
-		requestDto.Body.BlockPackIds,
+		coreevents.CoreLifecycleTopic,
+		blockPackChangedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -796,12 +963,26 @@ func (s *BlockPackService) MoveMyBlockPacksByParentSubShelfIds(
 	for index, movedBlockPack := range input {
 		blockPackIds[index] = movedBlockPack.Id
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-multi-parent-move",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-multi-parent-move",
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+		coreevents.CoreLifecycleTopic,
+		blockPackAccessRevokedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -941,12 +1122,24 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		requestDto.Param.BlockPackId.String(),
-		[]uuid.UUID{requestDto.Param.BlockPackId},
-		nil,
-		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   requestDto.Param.BlockPackId,
+				KafkaKey:      requestDto.Param.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: requestDto.Param.BlockPackId.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					Reason: coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -958,10 +1151,25 @@ func (s *BlockPackService) DeleteMyBlockPackById(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueBlockPackDeleted(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		requestDto.Param.BlockPackId.String(),
-		[]uuid.UUID{requestDto.Param.BlockPackId},
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackDeleted,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   requestDto.Param.BlockPackId,
+				KafkaKey:      requestDto.Param.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: requestDto.Param.BlockPackId.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId: requestDto.Param.BlockPackId,
+					Change:     coreevents.ResourceEventChange_Deleted,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1016,12 +1224,26 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(requestDto.Body.BlockPackIds))
+	for _, blockPackId := range requestDto.Body.BlockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-bulk-delete",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-bulk-delete",
-		requestDto.Body.BlockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+		coreevents.CoreLifecycleTopic,
+		blockPackAccessRevokedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1033,10 +1255,27 @@ func (s *BlockPackService) DeleteMyBlockPacksByIds(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueBlockPackDeleted(
+	blockPackDeletedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(requestDto.Body.BlockPackIds))
+	for _, blockPackId := range requestDto.Body.BlockPackIds {
+		blockPackDeletedEvents = append(blockPackDeletedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackDeleted,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "block-pack-bulk-delete",
+			Data: coreevents.ResourceChangedData{
+				ResourceId: blockPackId,
+				Change:     coreevents.ResourceEventChange_Deleted,
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		"block-pack-bulk-delete",
-		requestDto.Body.BlockPackIds,
+		coreevents.CoreLifecycleTopic,
+		blockPackDeletedEvents,
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(

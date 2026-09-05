@@ -20,6 +20,7 @@ import (
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	svalidations "github.com/HiIamJeff67/notegic-backend/shared/validations"
 
 	configs "github.com/HiIamJeff67/notegic-backend/runtimes/notification/configs"
@@ -85,7 +86,7 @@ func (a *Application) initializeService(db *gorm.DB) services.NotificationServic
 	repository := srepositories.NewNotificationRepository(
 		db,
 		srepositories.NewUserProjectionRepository(db),
-		srepositories.NewInboxEventRepository(),
+		general.NewInboxEventRepository(),
 	)
 	notificationValidator := validator.New()
 	svalidations.RegisterStringsValidation(notificationValidator)

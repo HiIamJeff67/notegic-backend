@@ -9,6 +9,7 @@ import (
 
 	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
+	ratelimit "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/controllers"
 	interceptors "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/interceptors"
@@ -20,18 +21,15 @@ type RoutineTaskDependencyRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
 	AccessTokenCookieHandler  *scookies.CookieHandler
 	RefreshTokenCookieHandler *scookies.CookieHandler
-	RateLimiters              RateLimiters
+	UnauthorizedRateLimiter   *ratelimit.HybridRateLimiter
 }
 
 func configureDevelopmentRoutineTaskDependencyRoutes(router *gin.RouterGroup, deps RoutineTaskDependencyRouteDependencies) {
-	if router == nil {
-		router = DevelopmentAPIRouterGroup
-	}
 	routineTaskDependencyBinder := binders.NewRoutineTaskDependencyBinder()
 	controller := controllers.NewRoutineTaskDependencyController(deps.CoreAdapter)
 	routes := router.Group("/routine-task-dependencies")
 	defaultMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(deps.RateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(deps.UnauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		middlewares.GatewayAuthenticationMiddleware(deps.AccessTokenCookieHandler, deps.RefreshTokenCookieHandler),
 		interceptors.ShareableResponseWriterInterceptor(

@@ -15,6 +15,7 @@ import (
 	cnotificationevents "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	inputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
@@ -38,13 +39,13 @@ type NotificationRepository interface {
 type NotificationRepositoryImpl struct {
 	db                       *gorm.DB
 	userProjectionRepository UserProjectionRepositoryInterface
-	inboxEventRepository     InboxEventRepositoryInterface
+	inboxEventRepository     general.InboxEventRepositoryInterface
 }
 
 func NewNotificationRepository(
 	db *gorm.DB,
 	userProjectionRepository UserProjectionRepositoryInterface,
-	inboxEventRepository InboxEventRepositoryInterface,
+	inboxEventRepository general.InboxEventRepositoryInterface,
 ) NotificationRepository {
 	return &NotificationRepositoryImpl{
 		db:                       db,
@@ -66,8 +67,8 @@ func (r *NotificationRepositoryImpl) CreateFromRequest(
 
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		isNewInboxEvent, inboxException := r.inboxEventRepository.CreateOne(
+			tx,
 			inputs.CreateInboxEventInput{EventId: event.EventId},
-			RepositoryOptionFields{DB: tx, IsTransactionStarted: true},
 		)
 		if inboxException != nil {
 			return inboxException

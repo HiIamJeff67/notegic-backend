@@ -9,6 +9,7 @@ import (
 
 	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
+	ratelimit "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/controllers"
 	interceptors "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/interceptors"
@@ -20,24 +21,21 @@ type RoutineTaskRecordRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
 	AccessTokenCookieHandler  *scookies.CookieHandler
 	RefreshTokenCookieHandler *scookies.CookieHandler
-	RateLimiters              RateLimiters
+	UnauthorizedRateLimiter   *ratelimit.HybridRateLimiter
 }
 
 func configureDevelopmentRoutineTaskRecordRoutes(
 	router *gin.RouterGroup,
 	deps RoutineTaskRecordRouteDependencies,
 ) {
-	coreAdapter, accessTokenCookieHandler, refreshTokenCookieHandler, rateLimiters := deps.CoreAdapter, deps.AccessTokenCookieHandler, deps.RefreshTokenCookieHandler, deps.RateLimiters
-	if router == nil {
-		router = DevelopmentAPIRouterGroup
-	}
+	coreAdapter, accessTokenCookieHandler, refreshTokenCookieHandler, unauthorizedRateLimiter := deps.CoreAdapter, deps.AccessTokenCookieHandler, deps.RefreshTokenCookieHandler, deps.UnauthorizedRateLimiter
 
 	routineTaskRecordBinder := binders.NewRoutineTaskRecordBinder()
 	routineTaskRecordController := controllers.NewRoutineTaskRecordController(coreAdapter)
 
 	routineTaskRecordRouterGroup := router.Group("/routine-task-records")
 	defaultMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 		interceptors.ShareableResponseWriterInterceptor(
@@ -66,7 +64,7 @@ func configureDevelopmentRoutineTaskRecordRoutes(
 
 	visualizationRoutes := router.Group("/routine-task-records/visualizations")
 	visualizationMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 		interceptors.ShareableResponseWriterInterceptor(

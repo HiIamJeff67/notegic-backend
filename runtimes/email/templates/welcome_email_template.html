@@ -1,268 +1,83 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Notegic</title>
-    <style>
-        /* Reset styles */
-        body, table, td, div, p, a { 
-            margin: 0; 
-            padding: 0; 
-            border: 0; 
-            font-size: 100%; 
-            vertical-align: baseline; 
-        }
-        
-        body { 
-            font-family: Arial, Helvetica, sans-serif;
-            line-height: 1.6; 
-            color: #e0e0e0; 
-            background-color: #0a0a0a;
-            width: 100% !important;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-        
-        table {
-            border-collapse: collapse;
-        }
-        
-        .container {
-            max-width: 600px;
-            background-color: #1a1a1a;
-            margin: 20px auto;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .header { 
-            background-color: #2d2d2d;
-            padding: 40px 20px; 
-            text-align: center; 
-        }
-        
-        .header h1 {
-            color: #ffffff;
-            font-size: 28px;
-            margin: 20px 0 0 0;
-            font-weight: bold;
-        }
-        
-        .logo {
-            width: 60px;
-            height: 60px;
-            background-color: #8B4513;
-            margin: 0 auto 20px;
-            text-align: center;
-            line-height: 60px;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            border-radius: 8px;
-        }
-        
-        .content { 
-            padding: 40px 30px; 
-            background-color: #1a1a1a;
-        }
-        
-        .content h2 {
-            color: #ffffff;
-            font-size: 20px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        
-        .content p {
-            color: #b0b0b0;
-            margin-bottom: 16px;
-            font-size: 16px;
-        }
-        
-        .highlight {
-            color: #228B22;
-            font-weight: bold;
-        }
-        
-        .info-box {
-            background-color: #2a2a2a;
-            border: 1px solid #404040;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 5px;
-        }
-        
-        .info-box ul {
-            margin: 10px 0;
-            padding-left: 20px;
-            color: #d0d0d0;
-        }
-        
-        .info-box li {
-            margin-bottom: 8px;
-        }
-        
-        .info-box strong {
-            color: #ffffff;
-        }
-        
-        .button {
-            display: inline-block;
-            padding: 16px 32px;
-            background-color: #8B4513;
-            color: #ffffff !important;
-            text-decoration: none;
-            margin: 25px 0;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 5px;
-        }
-        
-        .footer { 
-            background-color: #0f0f0f;
-            padding: 25px 20px; 
-            text-align: center; 
-            font-size: 13px; 
-            color: #888;
-        }
-        
-        .footer p {
-            margin: 8px 0;
-        }
-        
-        .footer a {
-            color: #228B22;
-            text-decoration: none;
-        }
-        
-        .divider {
-            height: 1px;
-            background-color: #333;
-            margin: 30px 0;
-        }
-        
-        .feature-table {
-            width: 100%;
-            margin: 25px 0;
-        }
-        
-        .feature-cell {
-            background-color: #242424;
-            border: 1px solid #404040;
-            padding: 20px;
-            text-align: center;
-            vertical-align: top;
-            width: 33.33%;
-            border-radius: 5px;
-        }
-        
-        .feature-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .feature-title {
-            color: #ffffff;
-            font-size: 16px;
-            margin: 10px 0;
-            font-weight: bold;
-        }
-        
-        .feature-desc {
-            color: #999;
-            font-size: 14px;
-            margin: 0;
-        }
-        
-        .team-highlight {
-            color: #8B4513;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Welcome to Notegic</title>
+  <style>
+    body { margin:0; padding:0; background:#10100f; }
+    table { border-collapse:collapse; }
+    a { color:inherit; }
+    .email-container { width:600px; border:0!important; }
+    .stamp-cell { background:#10100f; }
+    @media screen and (max-width:620px) {
+      .email-container { width:100%!important; }
+      .email-padding { padding-left:24px!important; padding-right:24px!important; }
+      .stamp-cell { width:112px!important; }
+      .stamp-logo { width:88px!important; }
+      .stamp-name { font-size:14px!important; }
+      .demo-side { display:block!important; width:100%!important; box-sizing:border-box; }
+    }
+  </style>
 </head>
 <body>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-            <td align="center" bgcolor="#0a0a0a">
-                <table class="container" width="600" cellpadding="0" cellspacing="0" border="0">
-                    <!-- Header -->
-                    <tr>
-                        <td class="header">
-                            <div class="logo">N</div>
-                            <h1>Welcome to Notegic</h1>
-                        </td>
-                    </tr>
-                    
-                    <!-- Content -->
-                    <tr>
-                        <td class="content">
-                            <h2>Hello <span class="highlight">{{.UserName}}</span>,</h2>
-                            
-                            <p>We're thrilled to have you join the <strong>Notegic</strong> community! Your journey to better note-taking and productivity starts now.</p>
-                            
-                            <div class="info-box">
-                                <p><strong>Your Account Details:</strong></p>
-                                <ul>
-                                    <li><strong>Email:</strong> <span class="highlight">{{.Email}}</span></li>
-                                    <li><strong>UserName:</strong> <span class="highlight">{{.UserName}}</span></li>
-                                    <li><strong>Status:</strong> <span style="color: #228B22;">{{.Status}}</span></li>
-                                </ul>
-                            </div>
-                            
-                            <div class="divider"></div>
-                            
-                            <!-- Features Table -->
-                            <table class="feature-table" cellpadding="0" cellspacing="10" border="0">
-                                <tr>
-                                    <td class="feature-cell">
-                                        <div class="feature-icon">📝</div>
-                                        <div class="feature-title">Smart Notes</div>
-                                        <p class="feature-desc">Create and organize notes with ease</p>
-                                    </td>
-                                    <td class="feature-cell">
-                                        <div class="feature-icon">🔗</div>
-                                        <div class="feature-title">Link Ideas</div>
-                                        <p class="feature-desc">Connect related thoughts seamlessly</p>
-                                    </td>
-                                    <td class="feature-cell">
-                                        <div class="feature-icon">🎯</div>
-                                        <div class="feature-title">Stay Focused</div>
-                                        <p class="feature-desc">Boost your productivity daily</p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <div style="text-align: center;">
-                                <a href="https://notegic.app/login" class="button">Start Taking Notes</a>
-                            </div>
-                            
-                            <div class="divider"></div>
-                            
-                            <p>Need help getting started? Our <a href="https://notegic.app/help" style="color: #228B22;">support team</a> is here to assist you.</p>
-                            
-                            <p style="margin-top: 30px;">
-                                Best regards,<br>
-                                <span class="team-highlight">The Notegic Team</span>
-                            </p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td class="footer">
-                            <p>This email was sent to <span class="highlight">{{.Email}}</span> because you created a Notegic account.</p>
-                            <p>If you didn't create this account, please <a href="mailto:support@notegic.app">contact us</a> immediately.</p>
-                            <div style="margin: 15px 0;">
-                                <a href="https://notegic.app/privacy">Privacy Policy</a> |
-                                <a href="https://notegic.app/terms">Terms of Service</a>
-                            </div>
-                            <p>&copy; 2025 Notegic. All rights reserved.</p>
-                        </td>
-                    </tr>
-                </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#10100f">
+    <tr>
+      <td align="center" style="padding:32px 16px">
+        <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;background:#171716;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace">
+          <tr>
+            <td>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="stamp-cell" width="164" align="center" valign="middle" style="width:164px;background:#10100f;border-right:1px solid #4b4b47;padding:18px"><table role="presentation" width="114" cellpadding="0" cellspacing="0" border="0" style="width:114px"><tr><td align="center"><img class="stamp-logo" src="https://api.notegic.app/api/development/v1/static/logo" alt="Notegic" width="114" style="display:block;width:114px;height:auto;border:0;outline:none;text-decoration:none"></td></tr><tr><td align="center" style="padding-top:9px"><p class="stamp-name" style="margin:0;color:#e7e5de;font-size:20px;line-height:22px;font-weight:700;white-space:nowrap">Notegic</p></td></tr></table></td>
+                  <td class="email-padding" valign="top" style="background:#d0cec7;padding:26px 30px">
+                    <p style="margin:0;color:#56554f;font-size:11px;line-height:16px;letter-spacing:.3px;font-weight:700">Notegic&nbsp;&nbsp;·&nbsp;&nbsp;Account&nbsp;&nbsp;·&nbsp;&nbsp;Welcome</p>
+                    <h1 style="margin:34px 0 0;color:#22221f;font-size:30px;line-height:36px;letter-spacing:-1.4px;font-weight:800">Welcome to<br>Notegic</h1>
+                  </td>
+                </tr>
+              </table>
             </td>
-        </tr>
-    </table>
+          </tr>
+          <tr>
+            <td class="email-padding" style="background:#f4f2ed;padding:34px 32px 18px">
+              <p style="margin:0 0 13px;color:#22221f;font-size:18px;line-height:28px;font-weight:700">Hello, {{.UserName}}.</p>
+              <p style="margin:0;color:#56554f;font-size:14px;line-height:22px">Your account is ready. Notegic is a place for the material of your work: the signal on your dashboard, the things you keep on shelves, and the routines that keep moving.</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-padding" style="background:#f4f2ed;padding:18px 32px 0">
+              <p style="margin:0 0 10px;color:#56554f;font-size:11px;line-height:16px;font-weight:700">01&nbsp;&nbsp;·&nbsp;&nbsp;Dashboard widgets</p>
+              <p style="margin:0 0 16px;color:#22221f;font-size:18px;line-height:26px;font-weight:700">Make the next useful move obvious.</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #6b6a64;background:#e7e5de">
+                <tr><td style="padding:12px 14px;border-bottom:1px solid #6b6a64"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="color:#35342f;font-size:11px;font-weight:700">Dashboard&nbsp;&nbsp;·&nbsp;&nbsp;Today</td><td align="right" style="color:#56554f;font-size:10px">{{.UserName}}'s workspace</td></tr></table></td></tr>
+                <tr><td style="padding:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="demo-side" width="58%" valign="top" style="padding:16px;background:#262623;border-right:1px solid #6b6a64"><p style="margin:0 0 21px;color:#c9c8c1;font-size:10px">Your dashboard</p><p style="margin:0 0 6px;color:#f1efe7;font-size:15px;line-height:22px;font-weight:700">{{.UserName}}'s<br>workspace is ready.</p><p style="margin:0;color:#aaa9a2;font-size:10px;line-height:16px">Your next useful move starts here.</p></td><td class="demo-side" valign="top" style="padding:16px;background:#c8bda8"><p style="margin:0 0 14px;color:#56554f;font-size:10px">Account status</p><p style="margin:0;color:#22221f;font-size:26px;line-height:30px;letter-spacing:-1px;font-weight:800">{{.Status}}</p><p style="margin:8px 0 0;color:#56554f;font-size:10px;line-height:16px">Your Notegic account<br>is ready to use.</p></td></tr></table></td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-padding" style="background:#f4f2ed;padding:30px 32px 0">
+              <p style="margin:0 0 10px;color:#56554f;font-size:11px;line-height:16px;font-weight:700">02&nbsp;&nbsp;·&nbsp;&nbsp;Shelf items&nbsp;&nbsp;·&nbsp;&nbsp;Block packs</p>
+              <p style="margin:0 0 16px;color:#22221f;font-size:18px;line-height:26px;font-weight:700">Give loose thoughts a shelf before they disappear.</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #6b6a64;background:#e7e5de"><tr><td class="demo-side" width="35%" valign="top" style="padding:16px;background:#c8bda8;border-right:1px solid #6b6a64"><p style="margin:0 0 19px;color:#56554f;font-size:10px">Shelf</p><p style="margin:0 0 18px;color:#22221f;font-size:14px;line-height:20px;font-weight:700">{{.UserName}}'s<br>first shelf</p><p style="margin:0;color:#56554f;font-size:10px;line-height:16px">Ready for your<br>first item</p></td><td class="demo-side" valign="top" style="padding:16px;background:#e7e5de"><p style="margin:0 0 20px;color:#56554f;font-size:10px">Block pack&nbsp;&nbsp;·&nbsp;&nbsp;Start a new one</p><p style="margin:0 0 8px;color:#22221f;font-size:15px;line-height:21px;font-weight:800">Build a small system<br>around your work.</p><p style="margin:0 0 12px;color:#56554f;font-size:10px;line-height:16px">Add a note, image, or link. Keep its source beside the thought.</p><p style="margin:0;color:#22221f;font-size:10px;font-weight:700">Add the first block&nbsp;&nbsp;→</p></td></tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-padding" style="background:#f4f2ed;padding:30px 32px 0">
+              <p style="margin:0 0 10px;color:#56554f;font-size:11px;line-height:16px;font-weight:700">03&nbsp;&nbsp;·&nbsp;&nbsp;Station routines</p>
+              <p style="margin:0 0 16px;color:#22221f;font-size:18px;line-height:26px;font-weight:700">Let a rhythm carry what memory should not.</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #6b6a64"><tr><td style="padding:13px 16px;background:#c8bda8;border-bottom:1px solid #aaa091"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="color:#22221f;font-size:12px;font-weight:700">Station&nbsp;&nbsp;·&nbsp;&nbsp;{{.UserName}}</td><td align="right" style="color:#56554f;font-size:10px">{{if .RoutineItems}}{{len .RoutineItems}} items{{else}}No routines yet{{end}}</td></tr></table></td></tr><tr><td style="padding:0 16px;background:#262623"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">{{if .RoutineItems}}{{range .RoutineItems}}<tr><td width="28" style="padding:13px 0;color:#c8bda8;font-size:14px">•</td><td style="padding:13px 0;border-bottom:1px solid #4b4b47;color:#f1efe7;font-size:11px;font-weight:700">{{.Name}}</td><td align="right" style="padding:13px 0;border-bottom:1px solid #4b4b47;color:#c8bda8;font-size:10px">{{.Status}}</td></tr>{{end}}{{else}}<tr><td style="padding:16px 0;color:#f1efe7;font-size:11px;font-weight:700">No routines yet</td><td align="right" style="padding:16px 0;color:#c8bda8;font-size:10px">Create one when your work needs a rhythm.</td></tr>{{end}}</table></td></tr></table>
+            </td>
+          </tr>
+          <tr>
+            <td class="email-padding" style="background:#f4f2ed;padding:32px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#e9e7e0;border:1px solid #bbb9b1"><tr><td><a href="https://notegic.app/login" style="display:inline-block;padding:15px 19px;color:#22221f;text-decoration:none;font-size:13px;line-height:18px;font-weight:700">Open your workspace&nbsp;&nbsp;→</a></td></tr></table><p style="margin:17px 0 0;color:#56554f;font-size:11px;line-height:18px">Your account&nbsp;&nbsp;·&nbsp;&nbsp;{{.Email}}&nbsp;&nbsp;·&nbsp;&nbsp;{{.Status}}</p></td>
+          </tr>
+          <tr>
+            <td class="email-padding" style="padding:20px 32px;background:#c8bda8;border-top:1px solid #4b4b47"><p style="margin:0 0 7px;color:#38342c;font-size:10px;line-height:16px">Sent to {{.Email}} because a Notegic account was created.</p><p style="margin:0;color:#38342c;font-size:10px;line-height:16px"><a href="{{privacyUrl}}">Privacy</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{termsUrl}}">Terms</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{{contactUrl}}">Contact</a></p></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

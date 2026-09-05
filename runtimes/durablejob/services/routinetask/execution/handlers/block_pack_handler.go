@@ -27,14 +27,14 @@ import (
 )
 
 type YjsDocumentInitializer interface {
-	InitializeDocuments(
+	Call(
 		context.Context,
 		[]capi.InitializeBlockPackYjsDocumentReqDto,
 	) ([]capi.InitializeBlockPackYjsDocumentResDto, error)
 }
 
 type YjsBlockPackUpdater interface {
-	UpdateBlockPack(
+	Call(
 		context.Context,
 		capi.UpdateBlockPackYjsDocumentRequestDto,
 	) (*capi.UpdateBlockPackYjsDocumentResponseDto, error)
@@ -235,7 +235,7 @@ func (s *BlockPackHandler) HandleCreateBlockPack(
 			true,
 		)
 	}
-	initializationResDtos, err := s.yjsWorkerClient.InitializeDocuments(ctx, initializationReqDtos)
+	initializationResDtos, err := s.yjsWorkerClient.Call(ctx, initializationReqDtos)
 	if err != nil {
 		return successes, cexceptions.New(
 			"FailedToCreate",
@@ -476,7 +476,7 @@ func (s *BlockPackHandler) HandleUpdateBlockPackWithResults(
 		}
 
 		if len(requestBlocks) > 0 {
-			responseDto, err := s.yjsBlockPackUpdater.UpdateBlockPack(ctx, capi.UpdateBlockPackYjsDocumentRequestDto{
+			responseDto, err := s.yjsBlockPackUpdater.Call(ctx, capi.UpdateBlockPackYjsDocumentRequestDto{
 				BlockPackId: payload.BlockPackId,
 				Blocks:      requestBlocks,
 			})

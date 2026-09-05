@@ -16,11 +16,13 @@ import (
 	csubshelves "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/sub-shelves"
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
@@ -54,20 +56,20 @@ type SubShelfServiceInterface interface {
 }
 
 type SubShelfService struct {
-	validator           *validator.Validate
-	db                  *gorm.DB
-	storage             storage.StorageInterface
-	subShelfScope       sscopes.SubShelfScopeInterface
-	subShelfRepository  srepositories.SubShelfRepositoryInterface
-	rootShelfRepository srepositories.RootShelfRepositoryInterface
-	materialRepository  srepositories.MaterialRepositoryInterface
-	blockPackRepository srepositories.BlockPackRepositoryInterface
-	outboxRepository    srepositories.OutboxEventRepositoryInterface
-	shelfException      apiexceptions.ShelfException
-	blockPackException  apiexceptions.BlockPackException
-	materialException   apiexceptions.MaterialException
-	storageException    apiexceptions.StorageException
-	searchException     apiexceptions.SearchException
+	validator                        *validator.Validate
+	db                               *gorm.DB
+	storage                          storage.StorageInterface
+	subShelfScope                    sscopes.SubShelfScopeInterface
+	subShelfRepository               srepositories.SubShelfRepositoryInterface
+	rootShelfRepository              srepositories.RootShelfRepositoryInterface
+	materialRepository               srepositories.MaterialRepositoryInterface
+	blockPackRepository              srepositories.BlockPackRepositoryInterface
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData]
+	shelfException                   apiexceptions.ShelfException
+	blockPackException               apiexceptions.BlockPackException
+	materialException                apiexceptions.MaterialException
+	storageException                 apiexceptions.StorageException
+	searchException                  apiexceptions.SearchException
 }
 
 func NewSubShelfService(
@@ -79,7 +81,7 @@ func NewSubShelfService(
 	rootShelfRepository srepositories.RootShelfRepositoryInterface,
 	materialRepository srepositories.MaterialRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
-	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData],
 	shelfException apiexceptions.ShelfException,
 	blockPackException apiexceptions.BlockPackException,
 	materialException apiexceptions.MaterialException,
@@ -87,20 +89,20 @@ func NewSubShelfService(
 	searchException apiexceptions.SearchException,
 ) SubShelfServiceInterface {
 	return &SubShelfService{
-		validator:           validator,
-		db:                  db,
-		storage:             storage,
-		subShelfScope:       subShelfScope,
-		subShelfRepository:  subShelfRepository,
-		rootShelfRepository: rootShelfRepository,
-		materialRepository:  materialRepository,
-		blockPackRepository: blockPackRepository,
-		outboxRepository:    outboxRepository,
-		shelfException:      shelfException,
-		blockPackException:  blockPackException,
-		materialException:   materialException,
-		storageException:    storageException,
-		searchException:     searchException,
+		validator:                        validator,
+		db:                               db,
+		storage:                          storage,
+		subShelfScope:                    subShelfScope,
+		subShelfRepository:               subShelfRepository,
+		rootShelfRepository:              rootShelfRepository,
+		materialRepository:               materialRepository,
+		blockPackRepository:              blockPackRepository,
+		accessRevocationOutboxRepository: accessRevocationOutboxRepository,
+		shelfException:                   shelfException,
+		blockPackException:               blockPackException,
+		materialException:                materialException,
+		storageException:                 storageException,
+		searchException:                  searchException,
 	}
 }
 
@@ -676,13 +678,23 @@ func (s *SubShelfService) MoveMySubShelfByRootShelfId(
 			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		requestDto.Body.SourceSubShelfId.String(),
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: requestDto.Body.SourceSubShelfId.String(),
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, blockPackAccessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -839,13 +851,23 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfId(
 			return nil, s.shelfException.FailedToUpdate().WithOrigin(err)
 		}
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		"sub-shelf-bulk-move",
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "sub-shelf-bulk-move",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, blockPackAccessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1072,13 +1094,23 @@ func (s *SubShelfService) MoveMySubShelvesByRootShelfIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		"sub-shelf-multi-root-move",
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "sub-shelf-multi-root-move",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, blockPackAccessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1218,13 +1250,23 @@ func (s *SubShelfService) DeleteMySubShelfById(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		requestDto.Param.SubShelfId.String(),
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
-	); err != nil {
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: requestDto.Param.SubShelfId.String(),
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, blockPackAccessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1288,13 +1330,23 @@ func (s *SubShelfService) DeleteMySubShelvesByIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		"sub-shelf-bulk-delete",
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
-	); err != nil {
+	blockPackAccessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		blockPackAccessRevokedEvents = append(blockPackAccessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "sub-shelf-bulk-delete",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, blockPackAccessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",

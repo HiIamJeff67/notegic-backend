@@ -39,9 +39,9 @@ type ApplicationInterface interface {
 	loadConfig() gatewayconfig.Config
 	loadRedisConfig() sredis.Config
 	initializeObservability() func()
-	initializeRateLimiters(*sredis.ClientSet, func()) (*ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter)
-	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) *gin.Engine
-	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) func()
+	initializeRateLimiter(*sredis.ClientSet, func()) *ratelimit.HybridRateLimiter
+	buildRouter(gatewayconfig.Config, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) *gin.Engine
+	startHTTP(gatewayconfig.Config, *gin.Engine, *ratelimit.HybridRateLimiter, *sredis.ClientSet, func()) func()
 }
 
 func NewApplication() *Application {
@@ -80,10 +80,10 @@ func (a *Application) initializeObservability() func() {
 
 }
 
-func (a *Application) initializeRateLimiters(
+func (a *Application) initializeRateLimiter(
 	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
-) (*ratelimit.HybridRateLimiter, *ratelimit.HybridRateLimiter) {
+) *ratelimit.HybridRateLimiter {
 	rateLimitRecordCacheStore := ratelimitrecord.Register(context.Background(), redisClientSet)
 	if err := rateLimitRecordCacheStore.Initialize(context.Background()); err != nil {
 		_ = redisClientSet.Close()
@@ -93,15 +93,12 @@ func (a *Application) initializeRateLimiters(
 	rateLimitRecordCacheClient := ratelimitrecord.NewRateLimitRecordCacheClient(rateLimitRecordCacheStore)
 	unauthorizedRateLimitConfig := gatewayconfig.DefaultUnauthorizedRateLimitConfig()
 	unauthorizedRateLimitConfig.CacheClient = rateLimitRecordCacheClient
-	authorizedRateLimitConfig := gatewayconfig.DefaultAuthorizedRateLimitConfig()
-	authorizedRateLimitConfig.CacheClient = rateLimitRecordCacheClient
-	return ratelimitmiddlewares.InitUnauthorizedRateLimiter(unauthorizedRateLimitConfig), ratelimitmiddlewares.InitAuthorizedRateLimiter(authorizedRateLimitConfig)
+	return ratelimitmiddlewares.InitUnauthorizedRateLimiter(unauthorizedRateLimitConfig)
 }
 
 func (a *Application) buildRouter(
 	config gatewayconfig.Config,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
-	authorizedRateLimiter *ratelimit.HybridRateLimiter,
 	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) *gin.Engine {
@@ -127,14 +124,10 @@ func (a *Application) buildRouter(
 		AllowedDomains:            config.AllowedDomains,
 		AccessTokenCookieHandler:  accessTokenCookieHandler,
 		RefreshTokenCookieHandler: refreshTokenCookieHandler,
-		RateLimiters: developmentroutes.RateLimiters{
-			Unauthorized: unauthorizedRateLimiter,
-			Authorized:   authorizedRateLimiter,
-		},
+		UnauthorizedRateLimiter:   unauthorizedRateLimiter,
 	})
 	if err := router.SetTrustedProxies(config.TrustedProxies); err != nil {
 		unauthorizedRateLimiter.Stop()
-		authorizedRateLimiter.Stop()
 		_ = redisClientSet.Close()
 		shutdownObservability()
 		panic(err)
@@ -148,14 +141,12 @@ func (a *Application) startHTTP(
 	config gatewayconfig.Config,
 	router *gin.Engine,
 	unauthorizedRateLimiter *ratelimit.HybridRateLimiter,
-	authorizedRateLimiter *ratelimit.HybridRateLimiter,
 	redisClientSet *sredis.ClientSet,
 	shutdownObservability func(),
 ) func() {
 	listener, err := net.Listen("tcp", config.ListenAddress)
 	if err != nil {
 		unauthorizedRateLimiter.Stop()
-		authorizedRateLimiter.Stop()
 		_ = redisClientSet.Close()
 		shutdownObservability()
 		panic(err)
@@ -182,7 +173,6 @@ func (a *Application) startHTTP(
 			fmt.Println("Failed to shutdown Gateway server: ", err)
 		}
 		unauthorizedRateLimiter.Stop()
-		authorizedRateLimiter.Stop()
 		if err := redisClientSet.Close(); err != nil {
 			fmt.Println("Failed to disconnect Gateway cache servers: ", err)
 		}
@@ -199,9 +189,9 @@ func (a *Application) Start() func() {
 		shutdownObservability()
 		panic(err)
 	}
-	unauthorizedRateLimiter, authorizedRateLimiter := a.initializeRateLimiters(redisClientSet, shutdownObservability)
-	router := a.buildRouter(config, unauthorizedRateLimiter, authorizedRateLimiter, redisClientSet, shutdownObservability)
-	return a.startHTTP(config, router, unauthorizedRateLimiter, authorizedRateLimiter, redisClientSet, shutdownObservability)
+	unauthorizedRateLimiter := a.initializeRateLimiter(redisClientSet, shutdownObservability)
+	router := a.buildRouter(config, unauthorizedRateLimiter, redisClientSet, shutdownObservability)
+	return a.startHTTP(config, router, unauthorizedRateLimiter, redisClientSet, shutdownObservability)
 }
 
 // make sure Application struct followed the ApplicationInterface implementations

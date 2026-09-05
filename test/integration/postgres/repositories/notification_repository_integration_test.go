@@ -17,6 +17,7 @@ import (
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 
 	repositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	schemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
@@ -32,7 +33,7 @@ func TestNotificationRepositorySuppressesRequestsForDeletedUsers(t *testing.T) {
 	repository := repositories.NewNotificationRepository(
 		db,
 		repositories.NewUserProjectionRepository(db),
-		repositories.NewInboxEventRepository(),
+		general.NewInboxEventRepository(),
 	)
 	userPublicId := uuid.New()
 	firstEvent := newNotificationRequestEvent(t, userPublicId, "first")
@@ -76,7 +77,7 @@ func TestNotificationRepositoryListUsesCompositeCursor(t *testing.T) {
 	repository := repositories.NewNotificationRepository(
 		db,
 		repositories.NewUserProjectionRepository(db),
-		repositories.NewInboxEventRepository(),
+		general.NewInboxEventRepository(),
 	)
 	userPublicId := uuid.New()
 	createdAt := time.Now().UTC().Truncate(time.Microsecond)

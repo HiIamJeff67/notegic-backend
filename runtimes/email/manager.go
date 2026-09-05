@@ -8,11 +8,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
+
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
+
 	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 
 	emailexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/email/exceptions"
-	emailsenders "github.com/HiIamJeff67/notegic-backend/runtimes/email/senders"
 	emailtypes "github.com/HiIamJeff67/notegic-backend/runtimes/email/types"
 )
 
@@ -22,7 +25,7 @@ type EmailWorkerManager struct {
 	workerPool    sync.WaitGroup
 	ctx           context.Context
 	cancel        context.CancelFunc
-	emailSender   emailsenders.EmailSenderInterface
+	emailSender   EmailSenderInterface
 
 	buffer      *emailtypes.EmailBuffer
 	bufferMutex sync.RWMutex
@@ -31,7 +34,7 @@ type EmailWorkerManager struct {
 	isMonitoring  int32
 }
 
-func NewEmailWorkerManager(maxWorkers int, sender emailsenders.EmailSenderInterface) *EmailWorkerManager {
+func NewEmailWorkerManager(maxWorkers int, sender EmailSenderInterface) *EmailWorkerManager {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &EmailWorkerManager{
 		maxWorkers:  maxWorkers,
@@ -42,10 +45,32 @@ func NewEmailWorkerManager(maxWorkers int, sender emailsenders.EmailSenderInterf
 	}
 }
 
+func (ewm *EmailWorkerManager) enqueueResponse(
+	emailObject emailtypes.EmailObject,
+	emailTaskType emailtypes.EmailTaskType,
+	maxRetries int,
+	priority int,
+) error {
+	task := &emailtypes.EmailTask{
+		ID:         ewm.generateTaskID(),
+		Type:       emailTaskType,
+		Object:     emailObject,
+		CreatedAt:  time.Now(),
+		MaxRetries: maxRetries,
+		Priority:   priority,
+	}
+	if err := ewm.enqueueTask(task); err != nil {
+		return emailexceptions.
+			NewDeliveryException("Email").
+			EnqueueFailed(err)
+	}
+	return nil
+}
+
 /* ============================== Auxiliary Functions ============================== */
 
 func (ewm *EmailWorkerManager) generateTaskID() string {
-	return fmt.Sprintf("email_task_%d", time.Now().UnixNano())
+	return fmt.Sprintf("email_task_%s", uuid.New().String())
 }
 
 /* ============================== Private Methods ============================== */
@@ -183,24 +208,50 @@ func (ewm *EmailWorkerManager) GetStatus() map[string]interface{} {
 	}
 }
 
-func (ewm *EmailWorkerManager) Enqueue(
-	emailObject emailtypes.EmailObject,
-	emailTaskType emailtypes.EmailTaskType,
-	maxRetries int,
-	priority int,
+func (ewm *EmailWorkerManager) EnqueueWelcomeEmail(
+	response *cemailevents.SendWelcomeEmailResponseDto,
 ) error {
-	task := &emailtypes.EmailTask{
-		ID:         ewm.generateTaskID(),
-		Type:       emailTaskType,
-		Object:     emailObject,
-		CreatedAt:  time.Now(),
-		MaxRetries: maxRetries,
-		Priority:   priority,
-	}
-	if err := ewm.enqueueTask(task); err != nil {
-		return emailexceptions.
-			NewDeliveryException("Email").
-			EnqueueFailed(err)
-	}
-	return nil
+	return ewm.enqueueResponse(
+		emailtypes.EmailObject{
+			To:               response.To,
+			Subject:          response.Subject,
+			Body:             response.Body,
+			EmailContentType: response.EmailContentType,
+		},
+		emailtypes.EmailTaskType_Welcome,
+		response.MaxRetries,
+		response.Priority,
+	)
+}
+
+func (ewm *EmailWorkerManager) EnqueueValidationEmail(
+	response *cemailevents.SendValidationEmailResponseDto,
+) error {
+	return ewm.enqueueResponse(
+		emailtypes.EmailObject{
+			To:               response.To,
+			Subject:          response.Subject,
+			Body:             response.Body,
+			EmailContentType: response.EmailContentType,
+		},
+		emailtypes.EmailTaskType_Validation,
+		response.MaxRetries,
+		response.Priority,
+	)
+}
+
+func (ewm *EmailWorkerManager) EnqueueSecurityAlertEmail(
+	response *cemailevents.SendSecurityAlertEmailResponseDto,
+) error {
+	return ewm.enqueueResponse(
+		emailtypes.EmailObject{
+			To:               response.To,
+			Subject:          response.Subject,
+			Body:             response.Body,
+			EmailContentType: response.EmailContentType,
+		},
+		emailtypes.EmailTaskType_Security,
+		response.MaxRetries,
+		response.Priority,
+	)
 }

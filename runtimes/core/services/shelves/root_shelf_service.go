@@ -16,11 +16,13 @@ import (
 	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cgqlmodels "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/graphql/models"
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
 	ssearchcursor "github.com/HiIamJeff67/notegic-backend/shared/lib/searchcursor"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
@@ -57,14 +59,15 @@ type RootShelfServiceInterface interface {
 }
 
 type RootShelfService struct {
-	validator                *validator.Validate
-	db                       *gorm.DB
-	rootShelfScope           sscopes.RootShelfScopeInterface
-	rootShelfRepository      srepositories.RootShelfRepositoryInterface
-	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface
-	blockPackRepository      srepositories.BlockPackRepositoryInterface
-	outboxRepository         srepositories.OutboxEventRepositoryInterface
-	shelfException           apiexceptions.ShelfException
+	validator                        *validator.Validate
+	db                               *gorm.DB
+	rootShelfScope                   sscopes.RootShelfScopeInterface
+	rootShelfRepository              srepositories.RootShelfRepositoryInterface
+	usersToShelvesRepository         srepositories.UsersToShelvesRepositoryInterface
+	blockPackRepository              srepositories.BlockPackRepositoryInterface
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData]
+	resourceOutboxRepository         general.OutboxEventRepositoryInterface[coreevents.ResourceChangedData]
+	shelfException                   apiexceptions.ShelfException
 }
 
 func NewRootShelfService(
@@ -74,18 +77,20 @@ func NewRootShelfService(
 	rootShelfRepository srepositories.RootShelfRepositoryInterface,
 	usersToShelvesRepository srepositories.UsersToShelvesRepositoryInterface,
 	blockPackRepository srepositories.BlockPackRepositoryInterface,
-	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	accessRevocationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.BlockPackAccessRevokedData],
+	resourceOutboxRepository general.OutboxEventRepositoryInterface[coreevents.ResourceChangedData],
 	shelfException apiexceptions.ShelfException,
 ) RootShelfServiceInterface {
 	return &RootShelfService{
-		validator:                validator,
-		db:                       db,
-		rootShelfScope:           rootShelfScope,
-		rootShelfRepository:      rootShelfRepository,
-		usersToShelvesRepository: usersToShelvesRepository,
-		blockPackRepository:      blockPackRepository,
-		outboxRepository:         outboxRepository,
-		shelfException:           shelfException,
+		validator:                        validator,
+		db:                               db,
+		rootShelfScope:                   rootShelfScope,
+		rootShelfRepository:              rootShelfRepository,
+		usersToShelvesRepository:         usersToShelvesRepository,
+		blockPackRepository:              blockPackRepository,
+		accessRevocationOutboxRepository: accessRevocationOutboxRepository,
+		resourceOutboxRepository:         resourceOutboxRepository,
+		shelfException:                   shelfException,
 	}
 }
 
@@ -221,13 +226,25 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 	if targetPermission != nil &&
 		slices.Index(cenums.AllAccessControlPermissions, permission) <
 			slices.Index(cenums.AllAccessControlPermissions, targetPermission.Permission) {
-		if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-			tx,
-			rootShelf.Id.String(),
-			blockPackIds,
-			[]uuid.UUID{targetUser.PublicId},
-			coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-		); err != nil {
+		accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+		for _, blockPackId := range blockPackIds {
+			targetUserPublicId := targetUser.PublicId
+			accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   blockPackId,
+				KafkaKey:      blockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					TargetUserPublicId: &targetUserPublicId,
+					Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+				},
+			})
+		}
+		if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"FailedToCreate",
@@ -239,12 +256,27 @@ func (s *RootShelfService) saveMyRootShelfPermission(
 			).WithOrigin(err)
 		}
 	}
-	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		targetUser.PublicId,
-		permission.String(),
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfPermissionChanged,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &targetUser.PublicId,
+					Change:             coreevents.ResourceEventChange_PermissionUpdated,
+					Permission:         permission.String(),
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -684,13 +716,43 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 	if permission == cenums.AccessControlPermission_Owner {
 		reason = coreevents.BlockPackAccessRevocationReason_ResourceUnavailable
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		rootShelf.Id.String(),
-		blockPackIds,
-		targetUserPublicIds,
-		reason,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds)*max(1, len(targetUserPublicIds)))
+	for _, blockPackId := range blockPackIds {
+		if len(targetUserPublicIds) == 0 {
+			accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   blockPackId,
+				KafkaKey:      blockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					Reason: reason,
+				},
+			})
+			continue
+		}
+		for _, targetUserPublicId := range targetUserPublicIds {
+			targetUserPublicId := targetUserPublicId
+			accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   blockPackId,
+				KafkaKey:      blockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					TargetUserPublicId: &targetUserPublicId,
+					Reason:             reason,
+				},
+			})
+		}
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -702,12 +764,26 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 		).WithOrigin(err)
 	}
 	if permission == cenums.AccessControlPermission_Owner {
-		if err := s.outboxRepository.EnqueueRootShelfDeleted(
-			tx,
-			rootShelf.Id.String(),
-			rootShelf.Id,
-			rootShelfMemberPublicIds,
-		); err != nil {
+		rootShelfDeletedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(rootShelfMemberPublicIds))
+		for _, targetUserPublicId := range rootShelfMemberPublicIds {
+			targetUserPublicId := targetUserPublicId
+			rootShelfDeletedEvents = append(rootShelfDeletedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfDeleted,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &targetUserPublicId,
+					Change:             coreevents.ResourceEventChange_Deleted,
+				},
+			})
+		}
+		if err := s.resourceOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, rootShelfDeletedEvents); err != nil {
 			tx.Rollback()
 			return nil, cexceptions.New(
 				"FailedToCreate",
@@ -719,11 +795,26 @@ func (s *RootShelfService) DeleteMyRootShelfById(
 			).WithOrigin(err)
 		}
 	} else if len(targetUserPublicIds) > 0 {
-		if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
+		if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 			tx,
-			rootShelf.Id.String(),
-			rootShelf.Id,
-			targetUserPublicIds[0],
+			coreevents.CoreLifecycleTopic,
+			[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+				{
+					SchemaVersion: cevent.Version,
+					EventId:       uuid.New(),
+					EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+					AggregateType: coreevents.AggregateType_RootShelf,
+					AggregateId:   rootShelf.Id,
+					KafkaKey:      rootShelf.Id.String(),
+					OccurredAt:    time.Now().UTC(),
+					CorrelationId: rootShelf.Id.String(),
+					Data: coreevents.ResourceChangedData{
+						ResourceId:         rootShelf.Id,
+						TargetUserPublicId: &targetUserPublicIds[0],
+						Change:             coreevents.ResourceEventChange_PermissionRevoked,
+					},
+				},
+			},
 		); err != nil {
 			tx.Rollback()
 			return nil, cexceptions.New(
@@ -818,13 +909,23 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		"root-shelf-bulk-delete",
-		blockPackIds,
-		nil,
-		coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "root-shelf-bulk-delete",
+			Data: coreevents.BlockPackAccessRevokedData{
+				Reason: coreevents.BlockPackAccessRevocationReason_ResourceUnavailable,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -835,12 +936,28 @@ func (s *RootShelfService) DeleteMyRootShelvesByIds(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueManyRootShelfDeleted(
-		tx,
-		"root-shelf-bulk-delete",
-		requestDto.Body.RootShelfIds,
-		rootShelfMemberPublicIdsById,
-	); err != nil {
+	rootShelfDeletedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0)
+	for _, rootShelfId := range requestDto.Body.RootShelfIds {
+		for _, targetUserPublicId := range rootShelfMemberPublicIdsById[rootShelfId] {
+			targetUserPublicId := targetUserPublicId
+			rootShelfDeletedEvents = append(rootShelfDeletedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfDeleted,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelfId,
+				KafkaKey:      rootShelfId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: "root-shelf-bulk-delete",
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelfId,
+					TargetUserPublicId: &targetUserPublicId,
+					Change:             coreevents.ResourceEventChange_Deleted,
+				},
+			})
+		}
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, rootShelfDeletedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1121,13 +1238,31 @@ func (s *RootShelfService) UpsertMyRootShelfPermissions(
 	for userId, user := range userById {
 		userPublicIdByUserId[userId] = user.PublicId
 	}
-	if err := s.outboxRepository.EnqueueManyRootShelfPermissionChanges(
-		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		updatedPermissions,
-		userPublicIdByUserId,
-	); err != nil {
+	permissionChangedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(updatedPermissions))
+	for _, permission := range updatedPermissions {
+		targetUserPublicId, exists := userPublicIdByUserId[permission.UserId]
+		if !exists {
+			tx.Rollback()
+			return nil, cexceptions.New("FailedToCreate", "Outbox", "UpsertMyRootShelfPermissions", "Root shelf permission event target user is unavailable", http.StatusInternalServerError, true)
+		}
+		permissionChangedEvents = append(permissionChangedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_RootShelfPermissionChanged,
+			AggregateType: coreevents.AggregateType_RootShelf,
+			AggregateId:   rootShelf.Id,
+			KafkaKey:      rootShelf.Id.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: rootShelf.Id.String(),
+			Data: coreevents.ResourceChangedData{
+				ResourceId:         rootShelf.Id,
+				TargetUserPublicId: &targetUserPublicId,
+				Change:             coreevents.ResourceEventChange_PermissionUpdated,
+				Permission:         permission.Permission.String(),
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, permissionChangedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1407,12 +1542,27 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			http.StatusNotFound,
 		)
 	}
-	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		actorUser.PublicId,
-		cenums.AccessControlPermission_Admin.String(),
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfPermissionChanged,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &actorUser.PublicId,
+					Change:             coreevents.ResourceEventChange_PermissionUpdated,
+					Permission:         cenums.AccessControlPermission_Admin.String(),
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1424,12 +1574,27 @@ func (s *RootShelfService) TransferMyRootShelfOwnership(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueRootShelfPermissionChanged(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		targetUser.PublicId,
-		cenums.AccessControlPermission_Owner.String(),
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfPermissionChanged,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &targetUser.PublicId,
+					Change:             coreevents.ResourceEventChange_PermissionUpdated,
+					Permission:         cenums.AccessControlPermission_Owner.String(),
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1564,13 +1729,25 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		rootShelf.Id.String(),
-		blockPackIds,
-		[]uuid.UUID{targetUser.PublicId},
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		targetUserPublicId := targetUser.PublicId
+		accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: rootShelf.Id.String(),
+			Data: coreevents.BlockPackAccessRevokedData{
+				TargetUserPublicId: &targetUserPublicId,
+				Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1581,11 +1758,26 @@ func (s *RootShelfService) DeleteMyRootShelfPermission(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		targetUser.PublicId,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &targetUser.PublicId,
+					Change:             coreevents.ResourceEventChange_PermissionRevoked,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1764,13 +1956,27 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 	for index, blockPack := range blockPacks {
 		blockPackIds[index] = blockPack.Id
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		rootShelf.Id.String(),
-		blockPackIds,
-		requestDto.Body.UserPublicIds,
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds)*len(requestDto.Body.UserPublicIds))
+	for _, blockPackId := range blockPackIds {
+		for _, targetUserPublicId := range requestDto.Body.UserPublicIds {
+			targetUserPublicId := targetUserPublicId
+			accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_BlockPackAccessRevoked,
+				AggregateType: coreevents.AggregateType_BlockPack,
+				AggregateId:   blockPackId,
+				KafkaKey:      blockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.BlockPackAccessRevokedData{
+					TargetUserPublicId: &targetUserPublicId,
+					Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+				},
+			})
+		}
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1781,12 +1987,26 @@ func (s *RootShelfService) DeleteMyRootShelfPermissions(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueManyRootShelfPermissionRevocations(
-		tx,
-		rootShelf.Id.String(),
-		[]uuid.UUID{rootShelf.Id},
-		requestDto.Body.UserPublicIds,
-	); err != nil {
+	permissionRevokedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(requestDto.Body.UserPublicIds))
+	for _, targetUserPublicId := range requestDto.Body.UserPublicIds {
+		targetUserPublicId := targetUserPublicId
+		permissionRevokedEvents = append(permissionRevokedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+			AggregateType: coreevents.AggregateType_RootShelf,
+			AggregateId:   rootShelf.Id,
+			KafkaKey:      rootShelf.Id.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: rootShelf.Id.String(),
+			Data: coreevents.ResourceChangedData{
+				ResourceId:         rootShelf.Id,
+				TargetUserPublicId: &targetUserPublicId,
+				Change:             coreevents.ResourceEventChange_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, permissionRevokedEvents); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
 			"FailedToCreate",
@@ -1873,13 +2093,25 @@ func (s *RootShelfService) LeaveMyRootShelf(
 		tx.Rollback()
 		return exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		rootShelf.Id.String(),
-		blockPackIds,
-		[]uuid.UUID{actorUserPublicId},
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		targetUserPublicId := actorUserPublicId
+		accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: rootShelf.Id.String(),
+			Data: coreevents.BlockPackAccessRevokedData{
+				TargetUserPublicId: &targetUserPublicId,
+				Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return cexceptions.New(
 			"FailedToCreate",
@@ -1890,11 +2122,26 @@ func (s *RootShelfService) LeaveMyRootShelf(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueRootShelfPermissionRevoked(
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		rootShelf.Id.String(),
-		rootShelf.Id,
-		actorUserPublicId,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+				AggregateType: coreevents.AggregateType_RootShelf,
+				AggregateId:   rootShelf.Id,
+				KafkaKey:      rootShelf.Id.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: rootShelf.Id.String(),
+				Data: coreevents.ResourceChangedData{
+					ResourceId:         rootShelf.Id,
+					TargetUserPublicId: &actorUserPublicId,
+					Change:             coreevents.ResourceEventChange_PermissionRevoked,
+				},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return cexceptions.New(
@@ -2005,13 +2252,25 @@ func (s *RootShelfService) LeaveMyRootShelves(
 		tx.Rollback()
 		return exception
 	}
-	if err := s.outboxRepository.EnqueueBlockPackAccessRevocations(
-		tx,
-		"root-shelf-bulk-leave",
-		blockPackIds,
-		[]uuid.UUID{actorUserPublicId},
-		coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
-	); err != nil {
+	accessRevokedEvents := make([]cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData], 0, len(blockPackIds))
+	for _, blockPackId := range blockPackIds {
+		targetUserPublicId := actorUserPublicId
+		accessRevokedEvents = append(accessRevokedEvents, cevent.EventEnvelope[coreevents.BlockPackAccessRevokedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_BlockPackAccessRevoked,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   blockPackId,
+			KafkaKey:      blockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "root-shelf-bulk-leave",
+			Data: coreevents.BlockPackAccessRevokedData{
+				TargetUserPublicId: &targetUserPublicId,
+				Reason:             coreevents.BlockPackAccessRevocationReason_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.accessRevocationOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, accessRevokedEvents); err != nil {
 		tx.Rollback()
 		return cexceptions.New(
 			"FailedToCreate",
@@ -2022,12 +2281,26 @@ func (s *RootShelfService) LeaveMyRootShelves(
 			true,
 		).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueManyRootShelfPermissionRevocations(
-		tx,
-		"root-shelf-bulk-leave",
-		rootShelfIds,
-		[]uuid.UUID{actorUserPublicId},
-	); err != nil {
+	permissionRevokedEvents := make([]cevent.EventEnvelope[coreevents.ResourceChangedData], 0, len(rootShelfIds))
+	for _, rootShelfId := range rootShelfIds {
+		targetUserPublicId := actorUserPublicId
+		permissionRevokedEvents = append(permissionRevokedEvents, cevent.EventEnvelope[coreevents.ResourceChangedData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_RootShelfPermissionRevoked,
+			AggregateType: coreevents.AggregateType_RootShelf,
+			AggregateId:   rootShelfId,
+			KafkaKey:      rootShelfId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: "root-shelf-bulk-leave",
+			Data: coreevents.ResourceChangedData{
+				ResourceId:         rootShelfId,
+				TargetUserPublicId: &targetUserPublicId,
+				Change:             coreevents.ResourceEventChange_PermissionRevoked,
+			},
+		})
+	}
+	if err := s.resourceOutboxRepository.EnqueueOutboxEvents(tx, coreevents.CoreLifecycleTopic, permissionRevokedEvents); err != nil {
 		tx.Rollback()
 		return cexceptions.New(
 			"FailedToCreate",

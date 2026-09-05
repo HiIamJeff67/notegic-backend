@@ -13,8 +13,7 @@ import (
 func TestNewRouterAPIGatewayAllowlist(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := NewRouter(APIRouteDependencies{
-		CoreAdapter:  coreadapters.NewCoreAdapter("http://core:7778", time.Second),
-		RateLimiters: RateLimiters{},
+		CoreAdapter: coreadapters.NewCoreAdapter("http://core:7778", time.Second),
 	})
 
 	routes := router.Routes()

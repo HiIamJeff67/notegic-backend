@@ -1,18 +1,15 @@
 package emaileventscontract
 
-import (
-	"time"
+import "time"
 
-	"github.com/google/uuid"
-)
+type SendValidationEmailRequestDto = SendEmailRequestDto[ValidationEmailPattern]
 
-type SendValidationEmailRequestDto struct {
-	RequestId  uuid.UUID `json:"requestId"`
-	Operation  string    `json:"operation"`
-	OccurredAt time.Time `json:"occurredAt"`
-	To         string    `json:"to" validate:"required,email"`
-	UserName   string    `json:"userName" validate:"required"`
-	AuthCode   string    `json:"authCode" validate:"required"`
-	UserAgent  string    `json:"userAgent" validate:"required"`
-	ExpiredAt  time.Time `json:"expiredAt" validate:"required"`
+type ValidationEmailPattern struct {
+	UserName      string    `json:"userName" validate:"required"`
+	Email         string    `json:"email" validate:"omitempty,email"`
+	AuthCode      string    `json:"authCode" validate:"required"`
+	UserAgent     string    `json:"userAgent" validate:"required"`
+	ExpiredAt     time.Time `json:"expiredAt" validate:"required"`
+	ExpiryMinutes int       `json:"expiryMinutes"`
+	RequestTime   string    `json:"requestTime"`
 }

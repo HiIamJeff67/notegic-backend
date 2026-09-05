@@ -1,16 +1,10 @@
 package emaileventscontract
 
-import (
-	"time"
+import "time"
 
-	"github.com/google/uuid"
-)
+type SendSecurityAlertEmailRequestDto = SendEmailRequestDto[SecurityAlertEmailPattern]
 
-type SendSecurityAlertEmailRequestDto struct {
-	RequestId        uuid.UUID `json:"requestId"`
-	Operation        string    `json:"operation"`
-	OccurredAt       time.Time `json:"occurredAt"`
-	To               string    `json:"to" validate:"required,email"`
+type SecurityAlertEmailPattern struct {
 	UserName         string    `json:"userName" validate:"required"`
 	Status           string    `json:"status" validate:"required"`
 	AlertType        string    `json:"alertType" validate:"required"`

@@ -9,9 +9,12 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
+
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
-	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 )
 
@@ -22,12 +25,12 @@ type YjsMaintenanceReconciliationWorkerInterface interface {
 
 type YjsMaintenanceReconciliationWorker struct {
 	db                    *gorm.DB
-	outboxEventRepository srepositories.OutboxEventRepositoryInterface
+	outboxEventRepository general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData]
 }
 
 func NewYjsMaintenanceReconciliationWorker(
 	db *gorm.DB,
-	outboxEventRepository srepositories.OutboxEventRepositoryInterface,
+	outboxEventRepository general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData],
 ) YjsMaintenanceReconciliationWorkerInterface {
 	return &YjsMaintenanceReconciliationWorker{
 		db:                    db,
@@ -102,15 +105,36 @@ func (w *YjsMaintenanceReconciliationWorker) Reconcile(ctx context.Context) erro
 	}
 
 	tx := w.db.WithContext(ctx).Begin()
-	blockPackIds := make([]uuid.UUID, len(documents))
-	for index, document := range documents {
-		blockPackIds[index] = document.BlockPackId
+	events := make([]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData], 0, len(documents))
+	correlationId := uuid.NewString()
+	for _, document := range documents {
+		events = append(events, cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
+			SchemaVersion: cevent.Version,
+			EventId:       uuid.New(),
+			EventType:     coreevents.EventType_YjsMaintenanceHint,
+			AggregateType: coreevents.AggregateType_BlockPack,
+			AggregateId:   document.BlockPackId,
+			KafkaKey:      document.BlockPackId.String(),
+			OccurredAt:    time.Now().UTC(),
+			CorrelationId: correlationId,
+			Data: coreevents.YjsMaintenanceHintData{
+				BlockPackId:            document.BlockPackId,
+				DocumentId:             document.Id,
+				LatestUpdateSequence:   document.LastUpdateSequence,
+				CompactedUntilSequence: document.CompactedUntilSequence,
+				ProjectedUntilSequence: document.ProjectedUntilSequence,
+				LastCompactedAt:        document.LastCompactedAt,
+				UncompactedUpdateCount: document.LastUpdateSequence - document.CompactedUntilSequence,
+				SnapshotBytes:          len(document.Snapshot),
+				StateVectorBytes:       len(document.StateVector),
+				Reason:                 "reconciliation",
+			},
+		})
 	}
-	if err := w.outboxEventRepository.EnqueueManyYjsMaintenanceHints(
+	if err := w.outboxEventRepository.EnqueueOutboxEvents(
 		tx,
-		uuid.NewString(),
-		blockPackIds,
-		"reconciliation",
+		coreevents.CoreYjsMaintenanceHintTopic,
+		events,
 	); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("enqueue Yjs maintenance hints: %w", err)

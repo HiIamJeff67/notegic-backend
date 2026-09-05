@@ -16,47 +16,43 @@ import (
 
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
+
+	emailbuilders "github.com/HiIamJeff67/notegic-backend/runtimes/email/builders"
 )
 
+type EmailQueueInterface interface {
+	EnqueueWelcomeEmail(*cemailevents.SendWelcomeEmailResponseDto) error
+	EnqueueValidationEmail(*cemailevents.SendValidationEmailResponseDto) error
+	EnqueueSecurityAlertEmail(*cemailevents.SendSecurityAlertEmailResponseDto) error
+}
+
 type EmailRequestConsumer struct {
-	sender      SenderInterface
-	validator   *validatorpkg.Validate
-	kafkaConfig skafka.ConsumerConfig
+	welcomeBuilder       emailbuilders.WelcomeEmailBuilderInterface
+	validationBuilder    emailbuilders.ValidationEmailBuilderInterface
+	securityAlertBuilder emailbuilders.SecurityAlertEmailBuilderInterface
+	queue                EmailQueueInterface
+	validator            *validatorpkg.Validate
+	kafkaConfig          skafka.ConsumerConfig
 }
 
 func NewEmailRequestConsumer(
-	sender SenderInterface,
+	welcomeBuilder emailbuilders.WelcomeEmailBuilderInterface,
+	validationBuilder emailbuilders.ValidationEmailBuilderInterface,
+	securityAlertBuilder emailbuilders.SecurityAlertEmailBuilderInterface,
+	queue EmailQueueInterface,
 	validator *validatorpkg.Validate,
 	kafkaConfig skafka.ConsumerConfig,
 ) *EmailRequestConsumer {
 	if validator == nil {
 		validator = validatorpkg.New()
 	}
-	return &EmailRequestConsumer{sender: sender, validator: validator, kafkaConfig: kafkaConfig}
-}
-
-func (c *EmailRequestConsumer) Start(ctx context.Context) func() {
-	consumer, err := skafka.NewConsumer(
-		c.kafkaConfig,
-		cemailevents.CoreEmailRequestTopic.String(),
-	)
-	if err != nil {
-		if slogs.NotegicLogger != nil {
-			slogs.NotegicLogger.Error(ctx, err, "Failed to create Core email request consumer")
-		}
-		return func() {}
-	}
-
-	workerCtx, cancel := context.WithCancel(ctx)
-	go func() {
-		if err := consumer.Run(workerCtx, c.consume); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
-			slogs.NotegicLogger.Error(workerCtx, err, "Core email request consumer stopped")
-		}
-	}()
-
-	return func() {
-		cancel()
-		consumer.Close()
+	return &EmailRequestConsumer{
+		welcomeBuilder:       welcomeBuilder,
+		validationBuilder:    validationBuilder,
+		securityAlertBuilder: securityAlertBuilder,
+		queue:                queue,
+		validator:            validator,
+		kafkaConfig:          kafkaConfig,
 	}
 }
 
@@ -92,41 +88,86 @@ func (c *EmailRequestConsumer) consume(
 	case cemail.SendWelcomeEmailOperation:
 		var request cemailevents.SendWelcomeEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
 		if request.RequestId != event.AggregateId || request.Operation != metadata.Operation {
-			return invalidEmailRequest("welcome request metadata is invalid")
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: welcome request metadata is invalid"),
+			}
 		}
 		if err := c.validator.Struct(&request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
-		err = c.sender.SendWelcomeEmail(ctx, request)
+		response, buildErr := c.welcomeBuilder.Build(request)
+		if buildErr != nil {
+			err = buildErr
+			break
+		}
+		err = c.queue.EnqueueWelcomeEmail(response)
 	case cemail.SendValidationEmailOperation:
 		var request cemailevents.SendValidationEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
 		if request.RequestId != event.AggregateId || request.Operation != metadata.Operation {
-			return invalidEmailRequest("validation request metadata is invalid")
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: validation request metadata is invalid"),
+			}
 		}
 		if err := c.validator.Struct(&request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
-		err = c.sender.SendValidationEmail(ctx, request)
+		response, buildErr := c.validationBuilder.Build(request)
+		if buildErr != nil {
+			err = buildErr
+			break
+		}
+		err = c.queue.EnqueueValidationEmail(response)
 	case cemail.SendSecurityAlertEmailOperation:
 		var request cemailevents.SendSecurityAlertEmailRequestDto
 		if err := json.Unmarshal(event.Data, &request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
 		if request.RequestId != event.AggregateId || request.Operation != metadata.Operation {
-			return invalidEmailRequest("security alert request metadata is invalid")
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: security alert request metadata is invalid"),
+			}
 		}
 		if err := c.validator.Struct(&request); err != nil {
-			return invalidEmailRequest(err.Error())
+			return &skafka.ConsumerError{
+				Classification: skafka.ErrorClassification_SchemaIncompatible,
+				Origin:         fmt.Errorf("invalid Core email request: %s", err.Error()),
+			}
 		}
-		err = c.sender.SendSecurityAlertEmail(ctx, request)
+		response, buildErr := c.securityAlertBuilder.Build(request)
+		if buildErr != nil {
+			err = buildErr
+			break
+		}
+		err = c.queue.EnqueueSecurityAlertEmail(response)
 	default:
-		return invalidEmailRequest("unsupported email operation")
+		return &skafka.ConsumerError{
+			Classification: skafka.ErrorClassification_SchemaIncompatible,
+			Origin:         fmt.Errorf("invalid Core email request: unsupported email operation"),
+		}
 	}
 	if err != nil {
 		classification := skafka.ErrorClassification_Transient
@@ -143,9 +184,27 @@ func (c *EmailRequestConsumer) consume(
 	return nil
 }
 
-func invalidEmailRequest(message string) error {
-	return &skafka.ConsumerError{
-		Classification: skafka.ErrorClassification_SchemaIncompatible,
-		Origin:         fmt.Errorf("invalid Core email request: %s", message),
+func (c *EmailRequestConsumer) Start(ctx context.Context) func() {
+	consumer, err := skafka.NewConsumer(
+		c.kafkaConfig,
+		cemailevents.CoreEmailRequestTopic.String(),
+	)
+	if err != nil {
+		if slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(ctx, err, "Failed to create Core email request consumer")
+		}
+		return func() {}
+	}
+
+	workerCtx, cancel := context.WithCancel(ctx)
+	go func() {
+		if err := consumer.Run(workerCtx, c.consume); err != nil && workerCtx.Err() == nil && slogs.NotegicLogger != nil {
+			slogs.NotegicLogger.Error(workerCtx, err, "Core email request consumer stopped")
+		}
+	}()
+
+	return func() {
+		cancel()
+		consumer.Close()
 	}
 }

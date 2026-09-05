@@ -7,6 +7,7 @@ import (
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
+	ratelimit "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/controllers"
 	interceptors "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/interceptors"
@@ -15,25 +16,22 @@ import (
 )
 
 type RoutineTaskRouteDependencies struct {
-	CoreAdapter  *coreadapters.CoreAdapter
-	RateLimiters RateLimiters
+	CoreAdapter             *coreadapters.CoreAdapter
+	UnauthorizedRateLimiter *ratelimit.HybridRateLimiter
 }
 
 func configureDevelopmentRoutineTaskRoutes(
 	router *gin.RouterGroup,
 	deps RoutineTaskRouteDependencies,
 ) {
-	coreAdapter, rateLimiters := deps.CoreAdapter, deps.RateLimiters
-	if router == nil {
-		router = DevelopmentAPIRouterGroup
-	}
+	coreAdapter, unauthorizedRateLimiter := deps.CoreAdapter, deps.UnauthorizedRateLimiter
 
 	routineTaskBinder := binders.NewRoutineTaskBinder()
 	routineTaskController := controllers.NewRoutineTaskController(coreAdapter)
 
 	routineTaskRoutes := router.Group("/routine-tasks")
 	defaultMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.EmbeddedInterceptor,
@@ -158,7 +156,7 @@ func configureDevelopmentRoutineTaskRoutes(
 
 	visualizationRoutes := router.Group("/routine-tasks/visualizations")
 	visualizationMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.EmbeddedInterceptor,

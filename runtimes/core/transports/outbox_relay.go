@@ -15,7 +15,7 @@ import (
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	smetrics "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/metrics"
 	straces "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/traces"
-	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 
 	coreconfig "github.com/HiIamJeff67/notegic-backend/runtimes/core/configs"
@@ -23,7 +23,7 @@ import (
 
 type OutboxRelay struct {
 	db                    *gorm.DB
-	outboxEventRepository srepositories.OutboxEventRepositoryInterface
+	outboxEventRepository general.OutboxEventRepositoryInterface[any]
 	producer              *skafka.Producer
 	config                coreconfig.OutboxRelayConfig
 	workerId              string
@@ -31,7 +31,7 @@ type OutboxRelay struct {
 
 func NewOutboxRelay(
 	db *gorm.DB,
-	outboxEventRepository srepositories.OutboxEventRepositoryInterface,
+	outboxEventRepository general.OutboxEventRepositoryInterface[any],
 	producer *skafka.Producer,
 	config coreconfig.OutboxRelayConfig,
 ) *OutboxRelay {
@@ -92,10 +92,10 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 
 	events, exception := r.outboxEventRepository.ClaimAvailable(
 		ctx,
+		r.db,
 		r.workerId,
 		r.config.BatchSize,
 		r.config.ClaimTimeout,
-		srepositories.WithDB(r.db),
 	)
 	if exception != nil {
 		if straces.NotegicTracer != nil {
@@ -116,7 +116,7 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 	publishedEventIds := make([]uuid.UUID, 0, len(events))
 	failureInputs := make([]sinputs.FailedOutboxEventInput, 0)
 	for _, event := range events {
-		payload, err := srepositories.SerializeOutboxEvent(event)
+		payload, err := r.outboxEventRepository.SerializeOutboxEvent(event)
 		if err == nil && r.producer == nil {
 			err = errors.New("Kafka producer is unavailable")
 		}
@@ -153,9 +153,9 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 
 	if exception := r.outboxEventRepository.MarkPublishedMany(
 		ctx,
+		r.db,
 		publishedEventIds,
 		r.workerId,
-		srepositories.WithDB(r.db),
 	); exception != nil {
 		if straces.NotegicTracer != nil {
 			straces.NotegicTracer.RecordError(ctx, exception)
@@ -169,9 +169,9 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 
 	if exception := r.outboxEventRepository.MarkFailedMany(
 		ctx,
+		r.db,
 		failureInputs,
 		r.workerId,
-		srepositories.WithDB(r.db),
 	); exception != nil {
 		if straces.NotegicTracer != nil {
 			straces.NotegicTracer.RecordError(ctx, exception)
@@ -187,8 +187,8 @@ func (r *OutboxRelay) relay(ctx context.Context) {
 func (r *OutboxRelay) cleanup(ctx context.Context) {
 	deletedCount, exception := r.outboxEventRepository.DeletePublishedBefore(
 		ctx,
+		r.db,
 		time.Now().Add(-r.config.Retention),
-		srepositories.WithDB(r.db),
 	)
 	if exception != nil {
 		if straces.NotegicTracer != nil {

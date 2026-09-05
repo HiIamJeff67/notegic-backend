@@ -1,16 +1,17 @@
 package emaileventscontract
 
-import (
-	"time"
+type SendWelcomeEmailRequestDto = SendEmailRequestDto[WelcomeEmailPattern]
 
-	"github.com/google/uuid"
-)
-
-type SendWelcomeEmailRequestDto struct {
-	RequestId  uuid.UUID `json:"requestId"`
-	Operation  string    `json:"operation"`
-	OccurredAt time.Time `json:"occurredAt"`
-	To         string    `json:"to" validate:"required,email"`
-	UserName   string    `json:"userName" validate:"required"`
-	Status     string    `json:"status" validate:"required"`
+type WelcomeEmailPattern struct {
+	UserName     string                           `json:"userName" validate:"required"`
+	Email        string                           `json:"email" validate:"omitempty,email"`
+	Status       string                           `json:"status" validate:"required"`
+	RoutineItems []WelcomeEmailRoutineItemPattern `json:"routineItems" validate:"omitempty,dive"`
 }
+
+type WelcomeEmailRoutineItemPattern struct {
+	Name   string `json:"name" validate:"required"`
+	Status string `json:"status" validate:"required"`
+}
+
+type WelcomeEmailRoutineItem = WelcomeEmailRoutineItemPattern

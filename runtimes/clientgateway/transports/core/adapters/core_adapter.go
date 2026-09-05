@@ -299,61 +299,6 @@ func Call[RequestDto any, ResponseDto any](
 	)
 }
 
-func CallAsComponent[RequestDto any, ResponseDto any](
-	ctx context.Context,
-	client *CoreAdapter,
-	actor string,
-	requestDto *RequestDto,
-	operation string,
-	path string,
-) (*cgateway.Response[ResponseDto], *cexceptions.Exception) {
-	if requestDto == nil {
-		return nil, cexceptions.New(
-			"InvalidRequest",
-			"Gateway",
-			operation,
-			"The Core service request DTO is required",
-			http.StatusBadRequest,
-		)
-	}
-
-	requestId := uuid.NewString()
-	delegationToken, err := IssueDelegationToken(
-		actor,
-		"",
-		nil,
-		operation,
-		requestId,
-	)
-	if err != nil {
-		return nil, cexceptions.New(
-			"CoreDelegationFailed",
-			"Gateway",
-			operation,
-			"Failed to communicate with the Core service",
-			http.StatusInternalServerError,
-			true,
-		).WithOrigin(err)
-	}
-
-	return call[RequestDto, ResponseDto](
-		client,
-		nil,
-		ctx,
-		http.MethodPost,
-		path,
-		delegationToken,
-		http.Header{},
-		&cgateway.Request[RequestDto]{
-			Operation: operation,
-			Metadata: cgateway.RequestMetadata{
-				RequestId: requestId,
-			},
-			Dto: *requestDto,
-		},
-	)
-}
-
 func CallSecurly[RequestDto any, ResponseDto any](
 	ctx *gin.Context,
 	client *CoreAdapter,

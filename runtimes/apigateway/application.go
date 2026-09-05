@@ -100,9 +100,9 @@ func (a *Application) buildRouter(
 	shutdownObservability func(),
 ) *gin.Engine {
 	router := developmentroutes.NewRouter(developmentroutes.APIRouteDependencies{
-		CoreAdapter:    coreadapters.NewCoreAdapter(config.CoreBaseUrl, config.CoreAdapterTimeout),
-		AllowedDomains: config.AllowedDomains,
-		RateLimiters:   developmentroutes.RateLimiters{Unauthorized: unauthorizedRateLimiter},
+		CoreAdapter:             coreadapters.NewCoreAdapter(config.CoreBaseUrl, config.CoreAdapterTimeout),
+		AllowedDomains:          config.AllowedDomains,
+		UnauthorizedRateLimiter: unauthorizedRateLimiter,
 	})
 	if err := router.SetTrustedProxies(config.TrustedProxies); err != nil {
 		unauthorizedRateLimiter.Stop()

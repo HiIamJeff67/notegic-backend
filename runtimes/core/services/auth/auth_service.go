@@ -18,14 +18,15 @@ import (
 	cemaildto "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 	cnotificationtypes "github.com/HiIamJeff67/notegic-backend/contracts/notification/v1/types"
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
+	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
 
 	sconstants "github.com/HiIamJeff67/notegic-backend/shared/constants"
-	sauthcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
 	snowflake "github.com/HiIamJeff67/notegic-backend/shared/lib/snowflake"
 	sstrings "github.com/HiIamJeff67/notegic-backend/shared/lib/strings"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
 	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 	sharedtokens "github.com/HiIamJeff67/notegic-backend/shared/tokens"
@@ -39,7 +40,7 @@ import (
 	apiexceptions "github.com/HiIamJeff67/notegic-backend/runtimes/core/exceptions"
 	"github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/generators"
 	"github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/hashers"
-	emailtransport "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/email"
+	emailservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/email"
 )
 
 type AuthServiceInterface interface {
@@ -57,26 +58,27 @@ type AuthServiceInterface interface {
 }
 
 type AuthService struct {
-	validator                  *validator.Validate
-	db                         *gorm.DB
-	userRepository             srepositories.UserRepositoryInterface
-	userInfoRepository         srepositories.UserInfoRepositoryInterface
-	userAccountRepository      srepositories.UserAccountRepositoryInterface
-	userSettingRepository      srepositories.UserSettingRepositoryInterface
-	rootShelfRepository        srepositories.RootShelfRepositoryInterface
-	outboxRepository           srepositories.OutboxEventRepositoryInterface
-	oauthService               OAuthServiceInterface
-	emailClient                emailtransport.ClientInterface
-	userDataCacheClient        *userdata.UserDataCacheClient
-	authCodeGenerator          *sauthcode.AuthCodeGenerator
-	fakeDisplayNameGenerator   generators.FakeDisplayNameGeneratorInterface
-	loginBlockedUntilGenerator generators.LoginBlockedUntilGeneratorInterface
-	passwordHasher             hashers.PasswordHasherInterface
-	authException              apiexceptions.AuthException
-	userException              apiexceptions.UserException
-	userAccountException       apiexceptions.UserAccountException
-	userInfoException          apiexceptions.UserInfoException
-	userSettingException       apiexceptions.UserSettingException
+	validator                    *validator.Validate
+	db                           *gorm.DB
+	userRepository               srepositories.UserRepositoryInterface
+	userInfoRepository           srepositories.UserInfoRepositoryInterface
+	userAccountRepository        srepositories.UserAccountRepositoryInterface
+	userSettingRepository        srepositories.UserSettingRepositoryInterface
+	rootShelfRepository          srepositories.RootShelfRepositoryInterface
+	notificationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.NotificationRequestedData]
+	sessionOutboxRepository      general.OutboxEventRepositoryInterface[coreevents.UserSessionsRevokedData]
+	oauthService                 OAuthServiceInterface
+	emailService                 emailservices.EmailServiceInterface
+	userDataCacheClient          *userdata.UserDataCacheClient
+	authCodeGenerator            generators.AuthCodeGeneratorInterface
+	fakeDisplayNameGenerator     generators.FakeDisplayNameGeneratorInterface
+	loginBlockedUntilGenerator   generators.LoginBlockedUntilGeneratorInterface
+	passwordHasher               hashers.PasswordHasherInterface
+	authException                apiexceptions.AuthException
+	userException                apiexceptions.UserException
+	userAccountException         apiexceptions.UserAccountException
+	userInfoException            apiexceptions.UserInfoException
+	userSettingException         apiexceptions.UserSettingException
 }
 
 func NewAuthService(
@@ -87,11 +89,12 @@ func NewAuthService(
 	userAccountRepository srepositories.UserAccountRepositoryInterface,
 	userSettingRepository srepositories.UserSettingRepositoryInterface,
 	rootShelfRepository srepositories.RootShelfRepositoryInterface,
-	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	notificationOutboxRepository general.OutboxEventRepositoryInterface[coreevents.NotificationRequestedData],
+	sessionOutboxRepository general.OutboxEventRepositoryInterface[coreevents.UserSessionsRevokedData],
 	oauthService OAuthServiceInterface,
-	emailClient emailtransport.ClientInterface,
+	emailService emailservices.EmailServiceInterface,
 	userDataCacheClient *userdata.UserDataCacheClient,
-	authCodeGenerator *sauthcode.AuthCodeGenerator,
+	authCodeGenerator generators.AuthCodeGeneratorInterface,
 	fakeDisplayNameGenerator generators.FakeDisplayNameGeneratorInterface,
 	loginBlockedUntilGenerator generators.LoginBlockedUntilGeneratorInterface,
 	passwordHasher hashers.PasswordHasherInterface,
@@ -102,26 +105,27 @@ func NewAuthService(
 	userSettingException apiexceptions.UserSettingException,
 ) AuthServiceInterface {
 	return &AuthService{
-		validator:                  validator,
-		db:                         db,
-		userRepository:             userRepository,
-		userInfoRepository:         userInfoRepository,
-		userAccountRepository:      userAccountRepository,
-		userSettingRepository:      userSettingRepository,
-		rootShelfRepository:        rootShelfRepository,
-		outboxRepository:           outboxRepository,
-		oauthService:               oauthService,
-		emailClient:                emailClient,
-		userDataCacheClient:        userDataCacheClient,
-		authCodeGenerator:          authCodeGenerator,
-		fakeDisplayNameGenerator:   fakeDisplayNameGenerator,
-		loginBlockedUntilGenerator: loginBlockedUntilGenerator,
-		passwordHasher:             passwordHasher,
-		authException:              authException,
-		userException:              userException,
-		userAccountException:       userAccountException,
-		userInfoException:          userInfoException,
-		userSettingException:       userSettingException,
+		validator:                    validator,
+		db:                           db,
+		userRepository:               userRepository,
+		userInfoRepository:           userInfoRepository,
+		userAccountRepository:        userAccountRepository,
+		userSettingRepository:        userSettingRepository,
+		rootShelfRepository:          rootShelfRepository,
+		notificationOutboxRepository: notificationOutboxRepository,
+		sessionOutboxRepository:      sessionOutboxRepository,
+		oauthService:                 oauthService,
+		emailService:                 emailService,
+		userDataCacheClient:          userDataCacheClient,
+		authCodeGenerator:            authCodeGenerator,
+		fakeDisplayNameGenerator:     fakeDisplayNameGenerator,
+		loginBlockedUntilGenerator:   loginBlockedUntilGenerator,
+		passwordHasher:               passwordHasher,
+		authException:                authException,
+		userException:                userException,
+		userAccountException:         userAccountException,
+		userInfoException:            userInfoException,
+		userSettingException:         userSettingException,
 	}
 }
 
@@ -173,14 +177,16 @@ func (s *AuthService) loginByGoogleUserInfo(
 
 	if user.UserAgent != userAgent {
 		// send a security email to warn the user
-		if exception := s.emailClient.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
-			To:               user.Email,
-			UserName:         user.Name,
-			Status:           user.Status.String(),
-			AlertType:        "Login in Different Place",
-			Reason:           "Your account has a recent login action in other place",
-			TimeOfOccurrence: time.Now(),
-			OtherDetails:     "",
+		if exception := s.emailService.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
+			To: user.Email,
+			Pattern: cemaildto.SecurityAlertEmailPattern{
+				UserName:         user.Name,
+				Status:           user.Status.String(),
+				AlertType:        "Login in Different Place",
+				Reason:           "Your account has a recent login action in other place",
+				TimeOfOccurrence: time.Now(),
+				OtherDetails:     "",
+			},
 		}); exception != nil {
 			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
@@ -450,22 +456,34 @@ func (s *AuthService) Register(
 		tx.Rollback()
 		return nil, cexceptions.New("FailedToMarshal", "Notification", "Request", "Failed to encode the welcome notification payload", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueNotificationRequested(
+	if err := s.notificationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		uuid.NewString(),
-		coreevents.NotificationRequestedData{
-			RecipientUserPublicId: newUser.PublicId,
-			UserProjection: coreevents.UserProjection{
-				PublicId: newUser.PublicId,
-				Plan:     newUser.Plan,
-				Status:   newUser.Status,
+		coreevents.CoreNotificationTopic,
+		[]cevent.EventEnvelope[coreevents.NotificationRequestedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_NotificationRequested,
+				AggregateType: coreevents.AggregateType_Notification,
+				AggregateId:   newUser.PublicId,
+				KafkaKey:      newUser.PublicId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: newUser.PublicId.String(),
+				Data: coreevents.NotificationRequestedData{
+					RecipientUserPublicId: newUser.PublicId,
+					UserProjection: coreevents.UserProjection{
+						PublicId: newUser.PublicId,
+						Plan:     newUser.Plan,
+						Status:   newUser.Status,
+					},
+					Type:            coreevents.NotificationType_News,
+					Priority:        coreevents.NotificationPriority_Normal,
+					TemplateKey:     cnotificationtypes.TemplateKey_News,
+					TemplateVersion: 1,
+					Payload:         payload,
+					DedupeKey:       "welcome:" + newUser.PublicId.String(),
+				},
 			},
-			Type:            coreevents.NotificationType_News,
-			Priority:        coreevents.NotificationPriority_Normal,
-			TemplateKey:     cnotificationtypes.TemplateKey_News,
-			TemplateVersion: 1,
-			Payload:         payload,
-			DedupeKey:       "welcome:" + newUser.PublicId.String(),
 		},
 	); err != nil {
 		tx.Rollback()
@@ -498,10 +516,13 @@ func (s *AuthService) Register(
 		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
 
-	if exception = s.emailClient.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
-		To:       newUser.Email,
-		UserName: newUser.Name,
-		Status:   newUser.Status.String(),
+	if exception = s.emailService.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
+		To: newUser.Email,
+		Pattern: cemaildto.WelcomeEmailPattern{
+			UserName: newUser.Name,
+			Email:    newUser.Email,
+			Status:   newUser.Status.String(),
+		},
 	}); exception != nil {
 		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
@@ -732,22 +753,34 @@ func (s *AuthService) RegisterViaGoogle(
 		tx.Rollback()
 		return nil, cexceptions.New("FailedToMarshal", "Notification", "Request", "Failed to encode the welcome notification payload", http.StatusInternalServerError, true).WithOrigin(err)
 	}
-	if err := s.outboxRepository.EnqueueNotificationRequested(
+	if err := s.notificationOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		uuid.NewString(),
-		coreevents.NotificationRequestedData{
-			RecipientUserPublicId: newUser.PublicId,
-			UserProjection: coreevents.UserProjection{
-				PublicId: newUser.PublicId,
-				Plan:     newUser.Plan,
-				Status:   newUser.Status,
+		coreevents.CoreNotificationTopic,
+		[]cevent.EventEnvelope[coreevents.NotificationRequestedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_NotificationRequested,
+				AggregateType: coreevents.AggregateType_Notification,
+				AggregateId:   newUser.PublicId,
+				KafkaKey:      newUser.PublicId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: newUser.PublicId.String(),
+				Data: coreevents.NotificationRequestedData{
+					RecipientUserPublicId: newUser.PublicId,
+					UserProjection: coreevents.UserProjection{
+						PublicId: newUser.PublicId,
+						Plan:     newUser.Plan,
+						Status:   newUser.Status,
+					},
+					Type:            coreevents.NotificationType_News,
+					Priority:        coreevents.NotificationPriority_Normal,
+					TemplateKey:     cnotificationtypes.TemplateKey_News,
+					TemplateVersion: 1,
+					Payload:         payload,
+					DedupeKey:       "welcome:" + newUser.PublicId.String(),
+				},
 			},
-			Type:            coreevents.NotificationType_News,
-			Priority:        coreevents.NotificationPriority_Normal,
-			TemplateKey:     cnotificationtypes.TemplateKey_News,
-			TemplateVersion: 1,
-			Payload:         payload,
-			DedupeKey:       "welcome:" + newUser.PublicId.String(),
 		},
 	); err != nil {
 		tx.Rollback()
@@ -760,10 +793,13 @@ func (s *AuthService) RegisterViaGoogle(
 	}
 
 	// send the welcome email to the registered user
-	if exception = s.emailClient.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
-		To:       newUser.Email,
-		UserName: newUser.Name,
-		Status:   newUser.Status.String(),
+	if exception = s.emailService.SendWelcomeEmail(ctx, cemaildto.SendWelcomeEmailRequestDto{
+		To: newUser.Email,
+		Pattern: cemaildto.WelcomeEmailPattern{
+			UserName: newUser.Name,
+			Email:    newUser.Email,
+			Status:   newUser.Status.String(),
+		},
 	}); exception != nil {
 		_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 	}
@@ -863,14 +899,16 @@ func (s *AuthService) Login(
 
 	if user.UserAgent != reqDto.Header.UserAgent {
 		// send a security email to warn the user
-		if exception := s.emailClient.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
-			To:               user.Email,
-			UserName:         user.Name,
-			Status:           user.Status.String(),
-			AlertType:        "Login in Different Place",
-			Reason:           "Your account has a recent login action in other place",
-			TimeOfOccurrence: time.Now(),
-			OtherDetails:     "",
+		if exception := s.emailService.SendSecurityAlertEmail(ctx, cemaildto.SendSecurityAlertEmailRequestDto{
+			To: user.Email,
+			Pattern: cemaildto.SecurityAlertEmailPattern{
+				UserName:         user.Name,
+				Status:           user.Status.String(),
+				AlertType:        "Login in Different Place",
+				Reason:           "Your account has a recent login action in other place",
+				TimeOfOccurrence: time.Now(),
+				OtherDetails:     "",
+			},
 		}); exception != nil {
 			_ = slogs.NotegicLogger.JSON(ctx, slog.LevelError, exception.String(), exception)
 		}
@@ -1088,10 +1126,22 @@ func (s *AuthService) Logout(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueUserSessionsRevoked(
+	if err := s.sessionOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		actorUserPublicId.String(),
-		actorUserPublicId,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.UserSessionsRevokedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_UserSessionsRevoked,
+				AggregateType: coreevents.AggregateType_User,
+				AggregateId:   actorUserPublicId,
+				KafkaKey:      actorUserPublicId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: actorUserPublicId.String(),
+				Data:          coreevents.UserSessionsRevokedData{},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1144,12 +1194,15 @@ func (s *AuthService) SendAuthCode(
 		return nil, s.authException.AuthCodeBlockedDueToTryingTooManyTimes(output.BlockAuthCodeUntil).WithOrigin(err)
 	}
 
-	if exception := s.emailClient.SendValidationEmail(ctx, cemaildto.SendValidationEmailRequestDto{
-		To:        reqDto.Body.Email,
-		UserName:  output.Name,
-		AuthCode:  authCode,
-		UserAgent: output.UserAgent,
-		ExpiredAt: authCodeExpiredAt,
+	if exception := s.emailService.SendValidationEmail(ctx, cemaildto.SendValidationEmailRequestDto{
+		To: reqDto.Body.Email,
+		Pattern: cemaildto.ValidationEmailPattern{
+			UserName:  output.Name,
+			Email:     reqDto.Body.Email,
+			AuthCode:  authCode,
+			UserAgent: output.UserAgent,
+			ExpiredAt: authCodeExpiredAt,
+		},
 	}); exception != nil {
 		return nil, exception
 	}
@@ -1352,10 +1405,22 @@ func (s *AuthService) ForgetPassword(
 		tx.Rollback()
 		return nil, exception
 	}
-	if err := s.outboxRepository.EnqueueUserSessionsRevoked(
+	if err := s.sessionOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		user.PublicId.String(),
-		user.PublicId,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.UserSessionsRevokedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_UserSessionsRevoked,
+				AggregateType: coreevents.AggregateType_User,
+				AggregateId:   user.PublicId,
+				KafkaKey:      user.PublicId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: user.PublicId.String(),
+				Data:          coreevents.UserSessionsRevokedData{},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1501,10 +1566,22 @@ func (s *AuthService) DeleteMe(
 		tx.Rollback()
 		return nil, s.userException.FailedToDelete()
 	}
-	if err := s.outboxRepository.EnqueueUserSessionsRevoked(
+	if err := s.sessionOutboxRepository.EnqueueOutboxEvents(
 		tx,
-		actorUserPublicId.String(),
-		actorUserPublicId,
+		coreevents.CoreLifecycleTopic,
+		[]cevent.EventEnvelope[coreevents.UserSessionsRevokedData]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     coreevents.EventType_UserSessionsRevoked,
+				AggregateType: coreevents.AggregateType_User,
+				AggregateId:   actorUserPublicId,
+				KafkaKey:      actorUserPublicId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: actorUserPublicId.String(),
+				Data:          coreevents.UserSessionsRevokedData{},
+			},
+		},
 	); err != nil {
 		tx.Rollback()
 		return nil, cexceptions.New(
@@ -1530,8 +1607,6 @@ func (s *AuthService) DeleteMe(
 		DeletedAt: time.Now(),
 	}, nil
 }
-
-func (s *AuthService) RegisterViaMeta() {}
 
 func (s *AuthService) RegisterViaGithub() {}
 

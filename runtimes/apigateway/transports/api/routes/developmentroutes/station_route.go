@@ -7,6 +7,7 @@ import (
 
 	cenums "github.com/HiIamJeff67/notegic-backend/contracts/types/enums"
 
+	ratelimit "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/controllers"
 	interceptors "github.com/HiIamJeff67/notegic-backend/runtimes/apigateway/transports/api/interceptors"
@@ -15,25 +16,22 @@ import (
 )
 
 type StationRouteDependencies struct {
-	CoreAdapter  *coreadapters.CoreAdapter
-	RateLimiters RateLimiters
+	CoreAdapter             *coreadapters.CoreAdapter
+	UnauthorizedRateLimiter *ratelimit.HybridRateLimiter
 }
 
 func configureDevelopmentStationRoutes(
 	router *gin.RouterGroup,
 	deps StationRouteDependencies,
 ) {
-	coreAdapter, rateLimiters := deps.CoreAdapter, deps.RateLimiters
-	if router == nil {
-		router = DevelopmentAPIRouterGroup
-	}
+	coreAdapter, unauthorizedRateLimiter := deps.CoreAdapter, deps.UnauthorizedRateLimiter
 
 	stationBinder := binders.NewStationBinder()
 	stationController := controllers.NewStationController(coreAdapter)
 
 	stationRoutes := router.Group("/stations")
 	defaultMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.EmbeddedInterceptor,
@@ -356,7 +354,7 @@ func configureDevelopmentStationRoutes(
 
 	visualizationRoutes := router.Group("/stations/visualizations")
 	visualizationMiddlewares := []gin.HandlerFunc{
-		middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+		middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 		middlewares.TimeoutMiddleware(3 * time.Second),
 		interceptors.ShareableResponseWriterInterceptor(
 			interceptors.EmbeddedInterceptor,

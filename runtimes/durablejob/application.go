@@ -28,7 +28,7 @@ import (
 	routinetaskrecoverers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/services/routinetask/recovery/recoverers"
 	realtimegatewayproducers "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/realtimegateway/producers"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/status"
-	yjsworkertransport "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/yjsworker"
+	yjsworkeradapters "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/transports/yjsworker/adapters"
 	validation "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/validations"
 	routinetaskworker "github.com/HiIamJeff67/notegic-backend/runtimes/durablejob/workers/routinetask"
 )
@@ -134,8 +134,8 @@ func (a *Application) initializeWorkers(
 		blockRepository,
 		routineRepository,
 		materialRepository,
-		yjsworkertransport.NewDocumentInitializationClient(config.YjsDocumentInitialization),
-		yjsworkertransport.NewBlockPackUpdateClient(config.YjsDocumentInitialization),
+		yjsworkeradapters.NewDocumentInitializationAdapter(config.YjsDocumentInitialization),
+		yjsworkeradapters.NewBlockPackUpdateAdapter(config.YjsDocumentInitialization),
 	)
 	routineTaskPlanService := routineexecution.NewPlanService(
 		db,

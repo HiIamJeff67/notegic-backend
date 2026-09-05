@@ -11,9 +11,9 @@ import (
 
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 
+	emailbuilders "github.com/HiIamJeff67/notegic-backend/runtimes/email/builders"
+	renderers "github.com/HiIamJeff67/notegic-backend/runtimes/email/builders/renderers"
 	emailconfig "github.com/HiIamJeff67/notegic-backend/runtimes/email/configs"
-	renderers "github.com/HiIamJeff67/notegic-backend/runtimes/email/renderers"
-	emailsenders "github.com/HiIamJeff67/notegic-backend/runtimes/email/senders"
 	coretransport "github.com/HiIamJeff67/notegic-backend/runtimes/email/transports/core"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/email/transports/status"
 )
@@ -65,34 +65,38 @@ func (a *Application) initializeWorkers(
 	config emailconfig.Config,
 	shutdownObservability func(),
 ) func() {
-	// Initialize renderers, the bounded sender queue, and the Kafka consumer.
-	deliverySender := emailsenders.NewEmailSender(config.SMTP)
+	// Initialize renderers, the bounded delivery queue, and the Kafka consumer.
+	deliverySender := NewEmailSender(config.SMTP)
 	emailWorkerManager := NewEmailWorkerManager(16, deliverySender)
-	welcomeRenderer, err := renderers.NewRenderer(config.Renderers.Welcome)
+	welcomeRenderer, err := renderers.NewWelcomeEmailRenderer(config.Renderers.Welcome)
 	if err != nil {
 		emailWorkerManager.Shutdown()
 		shutdownObservability()
 		panic(err)
 	}
-	validationRenderer, err := renderers.NewRenderer(config.Renderers.Validation)
+	validationRenderer, err := renderers.NewValidationEmailRenderer(config.Renderers.Validation)
 	if err != nil {
 		emailWorkerManager.Shutdown()
 		shutdownObservability()
 		panic(err)
 	}
-	securityAlertRenderer, err := renderers.NewRenderer(config.Renderers.SecurityAlert)
+	securityAlertRenderer, err := renderers.NewSecurityAlertEmailRenderer(config.Renderers.SecurityAlert)
 	if err != nil {
 		emailWorkerManager.Shutdown()
 		shutdownObservability()
 		panic(err)
 	}
-	sender := coretransport.NewSender(
-		emailsenders.NewWelcomeEmailSender(welcomeRenderer, emailWorkerManager.Enqueue),
-		emailsenders.NewValidationEmailSender(validationRenderer, emailWorkerManager.Enqueue),
-		emailsenders.NewSecurityAlertEmailSender(securityAlertRenderer, emailWorkerManager.Enqueue),
+	welcomeBuilder := emailbuilders.NewWelcomeEmailBuilder(welcomeRenderer)
+	validationBuilder := emailbuilders.NewValidationEmailBuilder(validationRenderer)
+	securityAlertBuilder := emailbuilders.NewSecurityAlertEmailBuilder(securityAlertRenderer)
+	emailRequestConsumer := coretransport.NewEmailRequestConsumer(
+		welcomeBuilder,
+		validationBuilder,
+		securityAlertBuilder,
+		emailWorkerManager,
+		validator.New(),
+		config.KafkaConsumer,
 	)
-	validation := validator.New()
-	emailRequestConsumer := coretransport.NewEmailRequestConsumer(sender, validation, config.KafkaConsumer)
 	shutdownRequestConsumer := emailRequestConsumer.Start(context.Background())
 	return func() {
 		shutdownRequestConsumer()

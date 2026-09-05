@@ -7,6 +7,7 @@ import (
 
 	scookies "github.com/HiIamJeff67/notegic-backend/shared/cookies"
 
+	ratelimit "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/ratelimit"
 	binders "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/binders"
 	controllers "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/controllers"
 	interceptors "github.com/HiIamJeff67/notegic-backend/runtimes/clientgateway/transports/api/interceptors"
@@ -18,17 +19,14 @@ type AuthRouteDependencies struct {
 	CoreAdapter               *coreadapters.CoreAdapter
 	AccessTokenCookieHandler  *scookies.CookieHandler
 	RefreshTokenCookieHandler *scookies.CookieHandler
-	RateLimiters              RateLimiters
+	UnauthorizedRateLimiter   *ratelimit.HybridRateLimiter
 }
 
 func configureDevelopmentAuthRoutes(
 	router *gin.RouterGroup,
 	deps AuthRouteDependencies,
 ) {
-	coreAdapter, accessTokenCookieHandler, refreshTokenCookieHandler, rateLimiters := deps.CoreAdapter, deps.AccessTokenCookieHandler, deps.RefreshTokenCookieHandler, deps.RateLimiters
-	if router == nil {
-		router = DevelopmentAPIRouterGroup
-	}
+	coreAdapter, accessTokenCookieHandler, refreshTokenCookieHandler, unauthorizedRateLimiter := deps.CoreAdapter, deps.AccessTokenCookieHandler, deps.RefreshTokenCookieHandler, deps.UnauthorizedRateLimiter
 
 	authBinder := binders.NewAuthBinder()
 	authController := controllers.NewAuthController(
@@ -43,7 +41,7 @@ func configureDevelopmentAuthRoutes(
 			"/register",
 			middlewares.ApplyTracerMiddleware("register"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.register"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(5*time.Second),
 			authBinder.BindRegister(authController.Register),
 		)
@@ -51,7 +49,7 @@ func configureDevelopmentAuthRoutes(
 			"/register-via-google",
 			middlewares.ApplyTracerMiddleware("registerViaGoogle"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.registerViaGoogle"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(5*time.Second),
 			authBinder.BindRegisterViaGoogle(authController.RegisterViaGoogle),
 		)
@@ -59,7 +57,7 @@ func configureDevelopmentAuthRoutes(
 			"/login",
 			middlewares.ApplyTracerMiddleware("login"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.login"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			authBinder.BindLogin(authController.Login),
 		)
@@ -67,7 +65,7 @@ func configureDevelopmentAuthRoutes(
 			"/login-via-google",
 			middlewares.ApplyTracerMiddleware("loginViaGoogle"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.loginViaGoogle"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			authBinder.BindLoginViaGoogle(authController.LoginViaGoogle),
 		)
@@ -75,7 +73,7 @@ func configureDevelopmentAuthRoutes(
 			"/logout",
 			middlewares.ApplyTracerMiddleware("logout"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.logout"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 			interceptors.ShareableResponseWriterInterceptor(
@@ -87,7 +85,7 @@ func configureDevelopmentAuthRoutes(
 			"/send-auth-code",
 			middlewares.ApplyTracerMiddleware("sendAuthCode"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.sendAuthCode"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			authBinder.BindSendAuthCode(authController.SendAuthCode),
 		)
@@ -95,7 +93,7 @@ func configureDevelopmentAuthRoutes(
 			"/validate-email",
 			middlewares.ApplyTracerMiddleware("validateEmail"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.validateEmail"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 			interceptors.ShareableResponseWriterInterceptor(
@@ -108,7 +106,7 @@ func configureDevelopmentAuthRoutes(
 			"/reset-email",
 			middlewares.ApplyTracerMiddleware("resetEmail"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.resetEmail"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 			interceptors.ShareableResponseWriterInterceptor(
@@ -121,7 +119,7 @@ func configureDevelopmentAuthRoutes(
 			"/forget-password",
 			middlewares.ApplyTracerMiddleware("forgetPassword"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.forgetPassword"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			authBinder.BindForgetPassword(authController.ForgetPassword),
 		)
@@ -129,7 +127,7 @@ func configureDevelopmentAuthRoutes(
 			"/reset-me",
 			middlewares.ApplyTracerMiddleware("resetMe"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.resetMe"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(3*time.Second),
 			middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 			interceptors.ShareableResponseWriterInterceptor(
@@ -142,7 +140,7 @@ func configureDevelopmentAuthRoutes(
 			"/delete-me",
 			middlewares.ApplyTracerMiddleware("deleteMe"),
 			middlewares.ApplyMeterMiddleware("server.requests.auth.deleteMe"),
-			middlewares.UnauthorizedRateLimitMiddleware(rateLimiters.Unauthorized),
+			middlewares.UnauthorizedRateLimitMiddleware(unauthorizedRateLimiter),
 			middlewares.TimeoutMiddleware(5*time.Second),
 			middlewares.GatewayAuthenticationMiddleware(accessTokenCookieHandler, refreshTokenCookieHandler),
 			interceptors.ShareableResponseWriterInterceptor(

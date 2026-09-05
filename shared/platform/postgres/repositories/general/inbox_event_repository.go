@@ -1,7 +1,8 @@
-package repositories
+package general
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
@@ -12,7 +13,7 @@ import (
 )
 
 type InboxEventRepositoryInterface interface {
-	CreateOne(input inputs.CreateInboxEventInput, opts RepositoryOptionFields) (bool, *cexceptions.Exception)
+	CreateOne(tx *gorm.DB, input inputs.CreateInboxEventInput) (bool, *cexceptions.Exception)
 }
 
 type InboxEventRepository struct {
@@ -25,21 +26,23 @@ func NewInboxEventRepository(repositoryExceptions ...exceptions.InboxEventExcept
 		repositoryException = repositoryExceptions[0]
 	}
 
-	return &InboxEventRepository{exceptions: repositoryException}
+	return &InboxEventRepository{
+		exceptions: repositoryException,
+	}
 }
 
 func (r *InboxEventRepository) CreateOne(
+	tx *gorm.DB,
 	input inputs.CreateInboxEventInput,
-	parsedOptions RepositoryOptionFields,
 ) (bool, *cexceptions.Exception) {
 	if input.EventId == uuid.Nil {
 		return false, r.exceptions.EventIdRequired()
 	}
-	if parsedOptions.DB == nil {
+	if tx == nil {
 		return false, r.exceptions.DatabaseUnavailable()
 	}
 
-	result := parsedOptions.DB.
+	result := tx.
 		Clauses(clause.OnConflict{DoNothing: true}).
 		Create(&schemas.InboxEvent{EventId: input.EventId})
 	if result.Error != nil {

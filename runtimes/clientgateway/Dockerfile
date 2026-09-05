@@ -32,6 +32,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /out/clientgateway /app/clientgateway
+COPY --from=base /notegic-backend/runtimes/email/templates/assets/common.svg /app/runtimes/email/templates/assets/common.svg
 
 EXPOSE 7777
 

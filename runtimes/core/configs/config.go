@@ -16,7 +16,6 @@ type Config struct {
 	KafkaConsumer             KafkaConsumerConfig
 	QuotaCycleWorker          QuotaCycleWorkerConfig
 	UserDataCache             UserDataCacheConfig
-	YjsDocumentInitialization YjsDocumentInitializationConfig
 	StorageKeySalt            string
 }
 
@@ -53,10 +52,6 @@ func LoadConfig() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	yjsDocumentInitialization, err := loadYjsDocumentInitializationConfig()
-	if err != nil {
-		return Config{}, err
-	}
 	return Config{
 		Postgres:                  postgres,
 		ListenAddress:             listenAddress,
@@ -65,7 +60,6 @@ func LoadConfig() (Config, error) {
 		KafkaConsumer:             kafkaConsumer,
 		QuotaCycleWorker:          quotaCycleWorker,
 		UserDataCache:             userDataCache,
-		YjsDocumentInitialization: yjsDocumentInitialization,
 		StorageKeySalt:            storageKeySalt,
 	}, nil
 }

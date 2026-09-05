@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -14,15 +15,18 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"gorm.io/gorm"
 
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
+	cemailevents "github.com/HiIamJeff67/notegic-backend/contracts/email/v1/events"
 	ctypes "github.com/HiIamJeff67/notegic-backend/contracts/types"
 	cexceptions "github.com/HiIamJeff67/notegic-backend/contracts/types/exceptions"
+	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 
-	sauthcode "github.com/HiIamJeff67/notegic-backend/shared/lib/authcode"
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	sobservability "github.com/HiIamJeff67/notegic-backend/shared/platform/observability"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	spostgres "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sscopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 	sredis "github.com/HiIamJeff67/notegic-backend/shared/platform/redis"
 
@@ -36,6 +40,7 @@ import (
 	authgenerators "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/generators"
 	authhashers "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/auth/hashers"
 	blockservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/blocks"
+	emailservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/email"
 	materialservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/material"
 	otherservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/other"
 	realtimeservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/realtime"
@@ -45,7 +50,6 @@ import (
 	userservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/user"
 	coretransports "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports"
 	durablejobrouters "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/durablejob/routers"
-	emailtransport "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/email"
 	coremiddlewares "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/gateway/middlewares"
 	gatewayrouters "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/gateway/routers"
 	status "github.com/HiIamJeff67/notegic-backend/runtimes/core/transports/status"
@@ -126,12 +130,14 @@ func (a *Application) buildRouter(
 	routineTaskDependencyRepository := srepositories.NewRoutineTaskDependencyRepository(db)
 	routineTaskRecordRepository := srepositories.NewRoutineTaskRecordRepository(db, routineTaskRecordScope)
 	itemRepository := srepositories.NewItemRepository(db, itemScope)
-	outboxEventRepository := srepositories.NewOutboxEventRepository(db)
 	inMemoryStorage := storage.NewInMemoryStorage()
 
 	oauthService := authservices.NewOAuthService(config.OAuthGoogle.OAuthConfig())
-	emailClient := emailtransport.NewClient(
+	emailService := emailservices.NewEmailService(
 		db,
+		general.NewOutboxEventRepository[cemailevents.SendWelcomeEmailRequestDto](),
+		general.NewOutboxEventRepository[cemailevents.SendValidationEmailRequestDto](),
+		general.NewOutboxEventRepository[cemailevents.SendSecurityAlertEmailRequestDto](),
 	)
 
 	authService := authservices.NewAuthService(
@@ -142,11 +148,12 @@ func (a *Application) buildRouter(
 		userAccountRepository,
 		userSettingRepository,
 		rootShelfRepository,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[coreevents.NotificationRequestedData](),
+		general.NewOutboxEventRepository[coreevents.UserSessionsRevokedData](),
 		oauthService,
-		emailClient,
+		emailService,
 		userDataCacheClient,
-		sauthcode.New(),
+		authgenerators.NewAuthCodeGenerator(),
 		authgenerators.NewFakeDisplayNameGenerator(),
 		authgenerators.NewLoginBlockedUntilGenerator(),
 		authhashers.NewPasswordHasher(),
@@ -163,7 +170,8 @@ func (a *Application) buildRouter(
 		rootShelfRepository,
 		usersToShelvesRepository,
 		blockPackRepository,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[coreevents.BlockPackAccessRevokedData](),
+		general.NewOutboxEventRepository[coreevents.ResourceChangedData](),
 		coreexceptions.NewShelfException(),
 	)
 	stationService := routineservices.NewStationService(
@@ -243,7 +251,7 @@ func (a *Application) buildRouter(
 		rootShelfRepository,
 		materialRepository,
 		blockPackRepository,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[coreevents.BlockPackAccessRevokedData](),
 		coreexceptions.NewShelfException(),
 		coreexceptions.NewBlockPackException(),
 		coreexceptions.NewMaterialException(),
@@ -256,7 +264,9 @@ func (a *Application) buildRouter(
 		blockPackScope,
 		subShelfRepository,
 		blockPackRepository,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[coreevents.BlockPackAccessRevokedData](),
+		general.NewOutboxEventRepository[coreevents.ResourceChangedData](),
+		general.NewOutboxEventRepository[coreevents.YjsMaintenanceHintData](),
 		coreexceptions.NewBlockPackException(),
 		coreexceptions.NewSearchException(),
 	)
@@ -455,7 +465,7 @@ func (a *Application) initializeWorkers(
 	kafkaProducer *skafka.Producer,
 ) func() {
 	blockPackYjsRepository := srepositories.NewBlockPackYjsRepository(db)
-	outboxEventRepository := srepositories.NewOutboxEventRepository(db)
+	outboxEventRepository := general.NewOutboxEventRepository[any]()
 	blockPackScope := sscopes.NewBlockPackScope()
 	blockScope := sscopes.NewBlockScope()
 	rootShelfRepository := srepositories.NewRootShelfRepository(db, sscopes.NewRootShelfScope())
@@ -480,7 +490,7 @@ func (a *Application) initializeWorkers(
 	)
 	yjsMaintenanceReconciliationWorker := coreworkers.NewYjsMaintenanceReconciliationWorker(
 		db,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[coreevents.YjsMaintenanceHintData](),
 	)
 	quotaCycleWorker := coreworkers.NewQuotaCycleWorker(
 		db,
@@ -502,7 +512,8 @@ func (a *Application) initializeWorkers(
 			coreexceptions.NewSearchException(),
 		),
 		blockPackYjsRepository,
-		outboxEventRepository,
+		general.NewOutboxEventRepository[cyjsworker.ReplyEnvelope[json.RawMessage]](),
+		general.NewOutboxEventRepository[coreevents.YjsMaintenanceHintData](),
 		skafka.ConsumerConfig{
 			ClientConfig: skafka.ClientConfig{
 				ConnectionConfig: kafkaConnection,

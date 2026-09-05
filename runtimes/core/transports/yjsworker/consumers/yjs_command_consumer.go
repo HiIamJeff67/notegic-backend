@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	capi "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/api/blocks"
+	coreevents "github.com/HiIamJeff67/notegic-backend/contracts/core/v1/events"
 	cevent "github.com/HiIamJeff67/notegic-backend/contracts/types/events"
 	cyjsworker "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1"
 	cyjsworkerevents "github.com/HiIamJeff67/notegic-backend/contracts/yjs-worker/v1/events"
@@ -18,18 +19,21 @@ import (
 	skafka "github.com/HiIamJeff67/notegic-backend/shared/platform/kafka"
 	slogs "github.com/HiIamJeff67/notegic-backend/shared/platform/observability/logs"
 	srepositories "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories"
+	general "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/general"
 	sinputs "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/repositories/inputs"
+	sschemas "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/schemas"
 
 	blockservices "github.com/HiIamJeff67/notegic-backend/runtimes/core/services/blocks"
 )
 
 type YjsCommandConsumer struct {
-	db                     *gorm.DB
-	yjsPersistenceService  blockservices.YjsPersistenceServiceInterface
-	blockService           blockservices.BlockServiceInterface
-	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface
-	outboxRepository       srepositories.OutboxEventRepositoryInterface
-	kafkaConfig            skafka.ConsumerConfig
+	db                               *gorm.DB
+	yjsPersistenceService            blockservices.YjsPersistenceServiceInterface
+	blockService                     blockservices.BlockServiceInterface
+	blockPackYjsRepository           srepositories.BlockPackYjsRepositoryInterface
+	replyOutboxEventRepository       general.OutboxEventRepositoryInterface[cyjsworker.ReplyEnvelope[json.RawMessage]]
+	maintenanceOutboxEventRepository general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData]
+	kafkaConfig                      skafka.ConsumerConfig
 }
 
 func NewYjsCommandConsumer(
@@ -37,16 +41,18 @@ func NewYjsCommandConsumer(
 	yjsPersistenceService blockservices.YjsPersistenceServiceInterface,
 	blockService blockservices.BlockServiceInterface,
 	blockPackYjsRepository srepositories.BlockPackYjsRepositoryInterface,
-	outboxRepository srepositories.OutboxEventRepositoryInterface,
+	replyOutboxEventRepository general.OutboxEventRepositoryInterface[cyjsworker.ReplyEnvelope[json.RawMessage]],
+	maintenanceOutboxEventRepository general.OutboxEventRepositoryInterface[coreevents.YjsMaintenanceHintData],
 	kafkaConfig skafka.ConsumerConfig,
 ) *YjsCommandConsumer {
 	return &YjsCommandConsumer{
-		db:                     db,
-		yjsPersistenceService:  yjsPersistenceService,
-		blockService:           blockService,
-		blockPackYjsRepository: blockPackYjsRepository,
-		outboxRepository:       outboxRepository,
-		kafkaConfig:            kafkaConfig,
+		db:                               db,
+		yjsPersistenceService:            yjsPersistenceService,
+		blockService:                     blockService,
+		blockPackYjsRepository:           blockPackYjsRepository,
+		replyOutboxEventRepository:       replyOutboxEventRepository,
+		maintenanceOutboxEventRepository: maintenanceOutboxEventRepository,
+		kafkaConfig:                      kafkaConfig,
 	}
 }
 
@@ -57,28 +63,9 @@ func (c *YjsCommandConsumer) writeReply(
 	exception *cyjsworker.Error,
 ) error {
 	tx := c.db.WithContext(ctx).Begin()
-	if err := c.enqueueReply(tx, command, data, exception); err != nil {
-		tx.Rollback()
-
-		return err
-	}
-	if err := tx.Commit().Error; err != nil {
-		return fmt.Errorf("commit invalid YjsWorker command transaction: %w", err)
-	}
-
-	return nil
-}
-
-func (c *YjsCommandConsumer) enqueueReply(
-	tx *gorm.DB,
-	command cyjsworker.CommandEnvelope[json.RawMessage],
-	data json.RawMessage,
-	exception *cyjsworker.Error,
-) error {
 	if data == nil {
 		data = json.RawMessage("{}")
 	}
-
 	reply := cyjsworker.ReplyEnvelope[json.RawMessage]{
 		SchemaVersion: cyjsworker.Version,
 		CommandId:     command.CommandId,
@@ -92,8 +79,7 @@ func (c *YjsCommandConsumer) enqueueReply(
 		Data:          data,
 		Error:         exception,
 	}
-
-	return srepositories.EnqueueOutboxEvents(
+	if err := c.replyOutboxEventRepository.EnqueueOutboxEvents(
 		tx,
 		cyjsworkerevents.CoreYjsWorkerReplyTopic,
 		[]cevent.EventEnvelope[cyjsworker.ReplyEnvelope[json.RawMessage]]{
@@ -111,7 +97,16 @@ func (c *YjsCommandConsumer) enqueueReply(
 				Data:          reply,
 			},
 		},
-	)
+	); err != nil {
+		tx.Rollback()
+
+		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("commit invalid YjsWorker command transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (c *YjsCommandConsumer) consume(
@@ -218,14 +213,40 @@ func (c *YjsCommandConsumer) consume(
 
 			return fmt.Errorf("append Yjs update: %w", err)
 		}
-		if err := c.outboxRepository.EnqueueYjsMaintenanceHint(
+		var document sschemas.BlockPackYjsDocument
+		if err := tx.Where("block_pack_id = ? AND deleted_at IS NULL", command.BlockPackId).First(&document).Error; err != nil {
+			tx.Rollback()
+			return fmt.Errorf("load Yjs document for maintenance hint: %w", err)
+		}
+		if err := c.maintenanceOutboxEventRepository.EnqueueOutboxEvents(
 			tx,
-			command.CorrelationId,
-			command.BlockPackId,
-			"yjs_update_persisted",
+			coreevents.CoreYjsMaintenanceHintTopic,
+			[]cevent.EventEnvelope[coreevents.YjsMaintenanceHintData]{
+				{
+					SchemaVersion: cevent.Version,
+					EventId:       uuid.New(),
+					EventType:     coreevents.EventType_YjsMaintenanceHint,
+					AggregateType: coreevents.AggregateType_BlockPack,
+					AggregateId:   document.BlockPackId,
+					KafkaKey:      document.BlockPackId.String(),
+					OccurredAt:    time.Now().UTC(),
+					CorrelationId: command.CorrelationId,
+					Data: coreevents.YjsMaintenanceHintData{
+						BlockPackId:            document.BlockPackId,
+						DocumentId:             document.Id,
+						LatestUpdateSequence:   document.LastUpdateSequence,
+						CompactedUntilSequence: document.CompactedUntilSequence,
+						ProjectedUntilSequence: document.ProjectedUntilSequence,
+						LastCompactedAt:        document.LastCompactedAt,
+						UncompactedUpdateCount: document.LastUpdateSequence - document.CompactedUntilSequence,
+						SnapshotBytes:          len(document.Snapshot),
+						StateVectorBytes:       len(document.StateVector),
+						Reason:                 "yjs_update_persisted",
+					},
+				},
+			},
 		); err != nil {
 			tx.Rollback()
-
 			return fmt.Errorf("enqueue Yjs maintenance hint: %w", err)
 		}
 		data, err = json.Marshal(cyjsworker.AppendYjsUpdateReplyDto{
@@ -363,7 +384,41 @@ func (c *YjsCommandConsumer) consume(
 			Retryable: false,
 		}
 	}
-	if err := c.enqueueReply(tx, command, data, exception); err != nil {
+	if data == nil {
+		data = json.RawMessage("{}")
+	}
+	reply := cyjsworker.ReplyEnvelope[json.RawMessage]{
+		SchemaVersion: cyjsworker.Version,
+		CommandId:     command.CommandId,
+		CommandType:   command.CommandType,
+		BlockPackId:   command.BlockPackId,
+		CorrelationId: command.CorrelationId,
+		CausationId:   &command.CommandId,
+		Trace:         command.Trace,
+		Producer:      "core",
+		RespondedAt:   time.Now().UTC(),
+		Data:          data,
+		Error:         exception,
+	}
+	if err := c.replyOutboxEventRepository.EnqueueOutboxEvents(
+		tx,
+		cyjsworkerevents.CoreYjsWorkerReplyTopic,
+		[]cevent.EventEnvelope[cyjsworker.ReplyEnvelope[json.RawMessage]]{
+			{
+				SchemaVersion: cevent.Version,
+				EventId:       uuid.New(),
+				EventType:     cyjsworkerevents.EventType_YjsWorkerCommandCompleted,
+				AggregateType: cyjsworkerevents.AggregateType_BlockPack,
+				AggregateId:   command.BlockPackId,
+				KafkaKey:      command.BlockPackId.String(),
+				OccurredAt:    time.Now().UTC(),
+				CorrelationId: command.CorrelationId,
+				CausationId:   &command.CommandId,
+				Trace:         command.Trace,
+				Data:          reply,
+			},
+		},
+	); err != nil {
 		tx.Rollback()
 
 		return err

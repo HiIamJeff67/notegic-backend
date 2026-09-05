@@ -1,4 +1,4 @@
-package senders
+package email
 
 import (
 	"context"

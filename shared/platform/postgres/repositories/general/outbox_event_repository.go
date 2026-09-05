@@ -1,4 +1,4 @@
-package repositories
+package general
 
 import (
 	"context"
@@ -21,16 +21,17 @@ import (
 	scopes "github.com/HiIamJeff67/notegic-backend/shared/platform/postgres/scopes"
 )
 
-type GenericOutboxEventRepositoryInterface interface {
-	CreateMany(createInputs []inputs.CreateOutboxEventInput, opts RepositoryOptionFields) *cexceptions.Exception
-	ClaimAvailable(ctx context.Context, workerId string, batchSize int, claimTimeout time.Duration, opts RepositoryOptionFields) ([]schemas.OutboxEvent, *cexceptions.Exception)
-	MarkPublishedMany(ctx context.Context, eventIds []uuid.UUID, workerId string, opts RepositoryOptionFields) *cexceptions.Exception
-	MarkFailedMany(ctx context.Context, failureInputs []inputs.FailedOutboxEventInput, workerId string, opts RepositoryOptionFields) *cexceptions.Exception
-	DeletePublishedBefore(ctx context.Context, publishedBefore time.Time, opts RepositoryOptionFields) (int64, *cexceptions.Exception)
+type OutboxEventRepositoryInterface[D any] interface {
+	EnqueueOutboxEvents(tx *gorm.DB, topic cevent.Topic, envelopes []cevent.EventEnvelope[D]) error
+	CreateMany(tx *gorm.DB, createInputs []inputs.CreateOutboxEventInput, batchSize int, isTransactionStarted bool) *cexceptions.Exception
+	SerializeOutboxEvent(event schemas.OutboxEvent) ([]byte, error)
+	ClaimAvailable(ctx context.Context, db *gorm.DB, workerId string, batchSize int, claimTimeout time.Duration) ([]schemas.OutboxEvent, *cexceptions.Exception)
+	MarkPublishedMany(ctx context.Context, db *gorm.DB, eventIds []uuid.UUID, workerId string) *cexceptions.Exception
+	MarkFailedMany(ctx context.Context, db *gorm.DB, failureInputs []inputs.FailedOutboxEventInput, workerId string) *cexceptions.Exception
+	DeletePublishedBefore(ctx context.Context, db *gorm.DB, publishedBefore time.Time) (int64, *cexceptions.Exception)
 }
 
-type GenericOutboxEventRepository struct {
-}
+type OutboxEventRepository[D any] struct{}
 
 type outboxEventMetadata struct {
 	SchemaVersion string               `json:"schemaVersion"`
@@ -40,11 +41,11 @@ type outboxEventMetadata struct {
 	Trace         cevent.TraceMetadata `json:"trace"`
 }
 
-func NewGenericOutboxEventRepository() GenericOutboxEventRepositoryInterface {
-	return &GenericOutboxEventRepository{}
+func NewOutboxEventRepository[D any]() OutboxEventRepositoryInterface[D] {
+	return &OutboxEventRepository[D]{}
 }
 
-func ConvertEnvelopeToCreateOutboxEventInput[D any](
+func (r *OutboxEventRepository[D]) convertEnvelopeToCreateInput(
 	topic cevent.Topic,
 	envelope cevent.EventEnvelope[D],
 ) (inputs.CreateOutboxEventInput, error) {
@@ -84,7 +85,7 @@ func ConvertEnvelopeToCreateOutboxEventInput[D any](
 	}, nil
 }
 
-func EnqueueOutboxEvents[D any](
+func (r *OutboxEventRepository[D]) EnqueueOutboxEvents(
 	tx *gorm.DB,
 	topic cevent.Topic,
 	envelopes []cevent.EventEnvelope[D],
@@ -95,35 +96,35 @@ func EnqueueOutboxEvents[D any](
 
 	createInputs := make([]inputs.CreateOutboxEventInput, len(envelopes))
 	for index, envelope := range envelopes {
-		createInput, err := ConvertEnvelopeToCreateOutboxEventInput(topic, envelope)
+		createInput, err := r.convertEnvelopeToCreateInput(topic, envelope)
 		if err != nil {
 			return err
 		}
 		createInputs[index] = createInput
 	}
 
-	if exception := (&GenericOutboxEventRepository{}).CreateMany(
+	if exception := r.CreateMany(
+		tx,
 		createInputs,
-		RepositoryOptionFields{
-			DB:                   tx,
-			IsTransactionStarted: true,
-			BatchSize:            1000,
-		},
+		1000,
+		true,
 	); exception != nil {
 		return exception
 	}
 	return nil
 }
 
-func (r *GenericOutboxEventRepository) CreateMany(
+func (r *OutboxEventRepository[D]) CreateMany(
+	tx *gorm.DB,
 	createInputs []inputs.CreateOutboxEventInput,
-	parsedOptions RepositoryOptionFields,
+	batchSize int,
+	isTransactionStarted bool,
 ) *cexceptions.Exception {
 	if len(createInputs) == 0 {
 		return nil
 	}
 
-	if !parsedOptions.IsTransactionStarted {
+	if !isTransactionStarted {
 		return cexceptions.New("TransactionRequired", "Outbox", "Create", "Outbox events must be created in the domain transaction", http.StatusInternalServerError)
 	}
 
@@ -142,14 +143,14 @@ func (r *GenericOutboxEventRepository) CreateMany(
 		}
 	}
 
-	result := parsedOptions.DB.CreateInBatches(&events, parsedOptions.BatchSize)
+	result := tx.CreateInBatches(&events, batchSize)
 	if result.Error != nil {
 		return cexceptions.New("FailedToCreate", "Outbox", "Create", "Failed to create outbox events", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 	return nil
 }
 
-func SerializeOutboxEvent(event schemas.OutboxEvent) ([]byte, error) {
+func (r *OutboxEventRepository[D]) SerializeOutboxEvent(event schemas.OutboxEvent) ([]byte, error) {
 	var metadata outboxEventMetadata
 	if err := json.Unmarshal(event.Metadata, &metadata); err != nil {
 		return nil, err
@@ -175,16 +176,16 @@ func SerializeOutboxEvent(event schemas.OutboxEvent) ([]byte, error) {
 	})
 }
 
-func (r *GenericOutboxEventRepository) ClaimAvailable(
+func (r *OutboxEventRepository[D]) ClaimAvailable(
 	ctx context.Context,
+	db *gorm.DB,
 	workerId string,
 	batchSize int,
 	claimTimeout time.Duration,
-	parsedOptions RepositoryOptionFields,
 ) ([]schemas.OutboxEvent, *cexceptions.Exception) {
 	now := time.Now()
 	expiredAt := now.Add(-claimTimeout)
-	tx := parsedOptions.DB.WithContext(ctx).Begin()
+	tx := db.WithContext(ctx).Begin()
 	lockingStrength := "UPDATE"
 
 	var events []schemas.OutboxEvent
@@ -232,16 +233,16 @@ func (r *GenericOutboxEventRepository) ClaimAvailable(
 	return events, nil
 }
 
-func (r *GenericOutboxEventRepository) MarkPublishedMany(
+func (r *OutboxEventRepository[D]) MarkPublishedMany(
 	ctx context.Context,
+	db *gorm.DB,
 	eventIds []uuid.UUID,
 	workerId string,
-	parsedOptions RepositoryOptionFields,
 ) *cexceptions.Exception {
 	if len(eventIds) == 0 {
 		return nil
 	}
-	result := parsedOptions.DB.WithContext(ctx).
+	result := db.WithContext(ctx).
 		Model(&schemas.OutboxEvent{}).
 		Where("id IN ? AND claimed_by = ? AND published_at IS NULL", eventIds, workerId).
 		Updates(map[string]any{"published_at": time.Now(), "last_error": nil, "claimed_by": nil, "claimed_at": nil})
@@ -251,11 +252,11 @@ func (r *GenericOutboxEventRepository) MarkPublishedMany(
 	return nil
 }
 
-func (r *GenericOutboxEventRepository) MarkFailedMany(
+func (r *OutboxEventRepository[D]) MarkFailedMany(
 	ctx context.Context,
+	db *gorm.DB,
 	failureInputs []inputs.FailedOutboxEventInput,
 	workerId string,
-	parsedOptions RepositoryOptionFields,
 ) *cexceptions.Exception {
 	if len(failureInputs) == 0 {
 		return nil
@@ -279,19 +280,19 @@ func (r *GenericOutboxEventRepository) MarkFailedMany(
 			AND outbox_event.claimed_by = ?
 			AND outbox_event.published_at IS NULL
 	`, strings.Join(valuePlaceholders, ","))
-	result := parsedOptions.DB.WithContext(ctx).Exec(query, valueArguments...)
+	result := db.WithContext(ctx).Exec(query, valueArguments...)
 	if result.Error != nil {
 		return cexceptions.New("FailedToUpdate", "Outbox", "MarkFailed", "Failed to schedule outbox event retries", http.StatusInternalServerError, true).WithOrigin(result.Error)
 	}
 	return nil
 }
 
-func (r *GenericOutboxEventRepository) DeletePublishedBefore(
+func (r *OutboxEventRepository[D]) DeletePublishedBefore(
 	ctx context.Context,
+	db *gorm.DB,
 	publishedBefore time.Time,
-	parsedOptions RepositoryOptionFields,
 ) (int64, *cexceptions.Exception) {
-	result := parsedOptions.DB.WithContext(ctx).
+	result := db.WithContext(ctx).
 		Where("published_at IS NOT NULL AND published_at < ?", publishedBefore).
 		Delete(&schemas.OutboxEvent{})
 	if result.Error != nil {
