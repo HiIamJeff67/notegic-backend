@@ -23,3 +23,7 @@ tmp/
 # Runtime-mounted secret material. Keep the complete directory outside Git;
 # operational documentation belongs under docs/.
 /secrets/
+
+# Personal AI/RAG study notes are intentionally kept outside Git.
+/notes/*
+/notes/
